@@ -98,7 +98,14 @@ Lexer::Lex(Token& token)
   token.m_text.resize(len + 1, 0);
 
   // Copy string into buffer
-  wcsncpy(const_cast<wchar_t*>(token.m_text.c_str()), start, len);
+  if(token.m_type == TOK_STRING)
+  {
+    wcsncpy(const_cast<wchar_t*>(token.m_text.c_str()), start + 1, len - 2);
+  }
+  else
+  {
+    wcsncpy(const_cast<wchar_t*>(token.m_text.c_str()), start, len);
+  }
 
   // Move pointer
   m_strptr = end;

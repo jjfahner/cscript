@@ -29,6 +29,7 @@ int parseNextToken(wchar_t const*& start, wchar_t const*& end)
   "true"                    { return TOK_TRUE; }
   "false"                   { return TOK_FALSE; }
   "null"                    { return TOK_NULL; }
+  "print"                   { return TOK_PRINT; }
 
   /* Identifiers */
   [a-zA-Z_][a-zA-Z_0-9]*    { return TOK_IDENTIFIER; }
