@@ -245,7 +245,11 @@ void StackMachine::Run()
       PopStack(0);
       R0.GetRef() = R1.GetDeref();
       PushStack(R0);
-      std::wcout << "-> " << R0.AsString() << std::endl;
+      break;
+
+    case TOK_PRINT:
+      PopStack(0);
+      std::wcout << R0.AsString();
       break;
 
     default:

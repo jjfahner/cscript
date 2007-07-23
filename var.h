@@ -285,7 +285,7 @@ inline Variant
 operator * (Variant const& lhs, Variant const& rhs)
 {
   Variant tmp(lhs.GetDeref());
-  tmp += rhs;
+  tmp *= rhs;
   return tmp;
 }
 
@@ -293,7 +293,7 @@ inline Variant
 operator / (Variant const& lhs, Variant const& rhs)
 {
   Variant tmp(lhs.GetDeref());
-  tmp += rhs;
+  tmp /= rhs;
   return tmp;
 }
 
@@ -301,7 +301,7 @@ inline Variant
 operator % (Variant const& lhs, Variant const& rhs)
 {
   Variant tmp(lhs.GetDeref());
-  tmp += rhs;
+  tmp %= rhs;
   return tmp;
 }
 

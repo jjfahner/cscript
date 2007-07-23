@@ -50,6 +50,7 @@ statement ::= expression_statement .
 statement ::= declaration_statement .
 statement ::= for_statement .
 statement ::= compound_statement .
+statement ::= print_statement . // Dirty hack :)
 
 // Expression list
 expression_list ::= assignment_expression. 
@@ -138,7 +139,7 @@ postfix_expression ::= postfix_expression LRBRACKET expression_list_opt RRBRACKE
 // Primary expression
 primary_expression ::= literal.                         
 primary_expression ::= id_expression.                   
-primary_expression ::= LRBRACKET expression RRBRACKET.  
+primary_expression ::= LRBRACKET assignment_expression RRBRACKET.  
 
 // Literals
 literal ::= INTEGER(A). { pContext->PushByte(TOK_RVALUE); pContext->PushQuad(pContext->AddLiteral(Variant(A->m_text, Variant::stInt))); }
@@ -190,6 +191,9 @@ declaration_statement ::= declaration SEMICOLON .
 compound_statement ::= compound_start statement_sequence_opt compound_end .
 compound_start ::= LCBRACKET . { pContext->PushFrame(); }
 compound_end   ::= RCBRACKET . { pContext->PopFrame();  }
+
+// Print statement
+print_statement ::= PRINT LRBRACKET assignment_expression RRBRACKET SEMICOLON . { pContext->PushByte(TOK_PRINT); }
 
 //////////////////////////////////////////////////////////////////////////
 //
