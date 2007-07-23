@@ -249,6 +249,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ref.h"
+				>
+			</File>
+			<File
 				RelativePath=".\tokens.h"
 				>
 			</File>
