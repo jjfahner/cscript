@@ -268,7 +268,7 @@ private:
 inline Variant 
 operator + (Variant const& lhs, Variant const& rhs)
 {
-  Variant tmp(lhs);
+  Variant tmp(lhs.GetDeref());
   tmp += rhs;
   return tmp;
 }
@@ -276,7 +276,7 @@ operator + (Variant const& lhs, Variant const& rhs)
 inline Variant 
 operator - (Variant const& lhs, Variant const& rhs)
 {
-  Variant tmp(lhs);
+  Variant tmp(lhs.GetDeref());
   tmp -= rhs;
   return tmp;
 }
@@ -284,7 +284,7 @@ operator - (Variant const& lhs, Variant const& rhs)
 inline Variant 
 operator * (Variant const& lhs, Variant const& rhs)
 {
-  Variant tmp(lhs);
+  Variant tmp(lhs.GetDeref());
   tmp += rhs;
   return tmp;
 }
@@ -292,7 +292,7 @@ operator * (Variant const& lhs, Variant const& rhs)
 inline Variant 
 operator / (Variant const& lhs, Variant const& rhs)
 {
-  Variant tmp(lhs);
+  Variant tmp(lhs.GetDeref());
   tmp += rhs;
   return tmp;
 }
@@ -300,7 +300,7 @@ operator / (Variant const& lhs, Variant const& rhs)
 inline Variant 
 operator % (Variant const& lhs, Variant const& rhs)
 {
-  Variant tmp(lhs);
+  Variant tmp(lhs.GetDeref());
   tmp += rhs;
   return tmp;
 }
