@@ -1,0 +1,15 @@
+var piet = "Hallo wereld" + "!!!";
+var c, d;
+c = d = piet;
+var i, j, a, b;
+i = "Hallo";
+j = " wereld";
+a = i + j;
+b = a;
+a = 2 - 1;
+a = 2 * 2;
+// Error due to broken tokenizer: a = 2 / 2;
+a = 3 % 2;
+i = ++a;
+j = a++;
+b = a;
