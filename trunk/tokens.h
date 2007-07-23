@@ -20,5 +20,9 @@
 #define TOK_HALT          106
 #define TOK_VARINIT       107
 #define TOK_POP           108
+#define TOK_UNDEF         109
+#define TOK_JMP           110
+#define TOK_JZ            111
+#define TOK_JNZ           112
 
 #endif // #ifndef CSCRIPT_TOKENS_H

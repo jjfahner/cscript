@@ -26,7 +26,7 @@ inline Word EatWord(Byte*& source)
   return w;
 }
 
-inline Byte EatQuad(Byte*& source)
+inline Quad EatQuad(Byte*& source)
 {
   Quad q = *(Quad*)source;
   source += 4;
@@ -37,6 +37,12 @@ void
 StackMachine::AddVar(Quad id, Variant const& value)
 {
   m_variables[id] = value;
+}
+
+void
+StackMachine::DelVar(Quad id)
+{
+  m_variables.erase(id);
 }
 
 void 
@@ -59,12 +65,6 @@ StackMachine::PopStack(size_t index)
 }
 
 inline void 
-StackMachine::PushStack(size_t index)
-{
-  m_stack.push(m_registers[index]);
-}
-
-inline void 
 StackMachine::PushStack(Variant const& value)
 {
   m_stack.push(value);
@@ -79,10 +79,18 @@ void StackMachine::Run()
   m_registers.clear();
   m_registers.resize(20);
 
-  Byte* code = m_parseContext.GetCode();
+  // Code pointers
+  Byte* base = m_parseContext.GetCode();
+  Byte* code = base;
+
+  // Helper
+  Quad temp;
+
+  // Execute code
   for(;;)
   {
-    switch(EatByte(code))
+    Byte ins = EatByte(code);
+    switch(ins)
     {
     case TOK_HALT:
       return;
@@ -106,6 +114,28 @@ void StackMachine::Run()
 
     case TOK_POP:
       m_stack.pop();
+      break;
+
+    case TOK_UNDEF:
+      DelVar(EatQuad(code));
+      break;
+
+    case TOK_JMP:
+      code = base + EatQuad(code);
+      break;
+
+    case TOK_JZ:
+      PopStack(0);
+      temp = EatQuad(code);
+      if(!R0.AsBool())
+        code = base + temp;
+      break;
+
+    case TOK_JNZ:
+      PopStack(0);
+      temp = EatQuad(code);
+      if(R0.AsBool())
+        code = base + temp;
       break;
 
     case TOK_ADDOP:
@@ -150,16 +180,52 @@ void StackMachine::Run()
       PushStack(R0 && R1);
       break;
 
+    case TOK_GT:
+      PopStack(1);
+      PopStack(0);
+      PushStack(R0 > R1);
+     break;
+
+    case TOK_GE:
+      PopStack(1);
+      PopStack(0);
+      PushStack(R0 >= R1);
+      break;
+
+    case TOK_ST:
+      PopStack(1);
+      PopStack(0);
+      PushStack(R0 < R1);
+      break;
+
+    case TOK_SE:
+      PopStack(1);
+      PopStack(0);
+      PushStack(R0 <= R1);
+      break;
+
+    case TOK_EQUALS:
+      PopStack(1);
+      PopStack(0);
+      PushStack(R0 == R1);
+      break;
+
+    case TOK_NEQUALS:
+      PopStack(1);
+      PopStack(0);
+      PushStack(R0 != R1);
+      break;
+
     case TOK_PREINC:
       PopStack(0);
       R0.GetRef() += 1LL;
-      PushStack(0);
+      PushStack(R0);
       break;
 
     case TOK_PRESUB:
       PopStack(0);
       R0.GetRef() -= 1LL;
-      PushStack(0);
+      PushStack(R0);
       break;
 
     case TOK_POSTINC:

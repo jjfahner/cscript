@@ -107,6 +107,12 @@ Variant::MakeMap()
 int 
 Variant::Compare(Variant const& rhs, bool exact) const
 {
+  // Comparing to ref
+  if(m_type == stRef)
+  {
+    return m_ref->Compare(rhs, exact);
+  }
+ 
   // Check type for exact match
   if(exact && m_type != rhs.m_type)
   {

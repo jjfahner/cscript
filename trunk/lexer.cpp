@@ -48,9 +48,15 @@ m_strptr (0)
   wchar_t line[4000];
   for(;;)
   {
+    // End of file
+    if(stream.eof())
+    {
+      break;
+    }
+
     // Read line
     stream.getline(line, 4000);
-    if(!stream.good())
+    if(stream.bad())
     {
       break;
     }
