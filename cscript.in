@@ -9,6 +9,13 @@
 %token_type       { Token* }
 %extra_argument   { ParseContext* pContext }
 
+// Error handlers
+%parse_failure {
+  throw std::runtime_error("Parse failed");
+}
+%syntax_error {
+  throw std::runtime_error("Syntax error");
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -20,7 +27,6 @@
 #include "context.h"
 
 #pragma warning(disable:4065)
-
 
 } 
 //
@@ -40,9 +46,10 @@ statement_sequence_opt ::= .
 statement_sequence_opt ::= statement_sequence. 
 
 // Statement
-statement ::= SEMICOLON. 
-statement ::= expression  SEMICOLON . 
-statement ::= declaration SEMICOLON .
+statement ::= expression_statement . 
+statement ::= declaration_statement .
+statement ::= for_statement .
+statement ::= compound_statement .
 
 // Expression list
 expression_list ::= assignment_expression. 
@@ -54,7 +61,10 @@ expression_list_opt ::= expression_list.
 
 // Expression
 expression ::= assignment_expression. { pContext->PushByte(TOK_POP); }
-// expression ::= expression COMMA assignment_expression. 
+
+// Optional expression
+expression_opt ::= .
+expression_opt ::= expression .
 
 // Assignment
 assignment_expression ::= conditional_expression. 
@@ -164,3 +174,91 @@ var_declaration ::= IDENTIFIER(A) ASSIGN assignment_expression . {
   pContext->PushByte(TOK_VARINIT);  
   pContext->PushQuad(pContext->AddVar(A->m_text)); 
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Statements
+//
+
+// Expression statement
+expression_statement ::= expression_opt SEMICOLON .
+
+// Declaration statement
+declaration_statement ::= declaration SEMICOLON .
+
+// Compound statement
+compound_statement ::= compound_start statement_sequence_opt compound_end .
+compound_start ::= LCBRACKET . { pContext->PushFrame(); }
+compound_end   ::= RCBRACKET . { pContext->PopFrame();  }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For statement
+//
+// Because reordering of subexpressions is decidedly non-trivial in this
+// parser implementation, layout of for expressions is fairly complex:
+//
+//   init_statement
+// 
+//   label1:
+// 	  condition
+// 	  jz label4  <patch 1>
+// 	  jmp label3 <patch 2>
+// 
+//   label2:
+// 	  expression
+// 	  jmp label1
+// 
+//   label3:
+// 	  statements
+// 	  jmp label2
+// 
+//   label4:
+//
+
+// For statement - main structure
+for_statement ::= for_start LRBRACKET for_init for_cond SEMICOLON for_expr RRBRACKET for_end . 
+
+// For keyword
+for_start ::= FOR . { 
+  pContext->PushFrame(); 
+}
+
+// For init statement
+for_init ::= for_init_statement . { 
+  pContext->PushOffset(L"for_label1"); 
+}
+
+// For condition
+for_cond ::= for_condition . { 
+  pContext->PushByte(TOK_JZ);
+  pContext->PushOffset(L"for_patch_1");
+  pContext->PushQuad(0);
+  pContext->PushByte(TOK_JMP);
+  pContext->PushOffset(L"for_patch_2");
+  pContext->PushQuad(0);
+  pContext->PushOffset(L"for_label_2"); 
+}
+
+// For expression
+for_expr ::= expression_opt . { 
+  pContext->PushByte(TOK_JMP);
+  pContext->PushQuad(pContext->PopOffset(L"for_label1"));
+  pContext->SetQuad(pContext->PopOffset(L"for_patch_2"), pContext->GetPos());
+}
+
+// For end
+for_end ::= statement . {
+  pContext->PushByte(TOK_JMP); 
+  pContext->PushQuad(pContext->PopOffset(L"for_label_2"));
+  pContext->SetQuad(pContext->PopOffset(L"for_patch_1"), pContext->GetPos());
+  pContext->PopFrame();
+}
+
+// For Condition
+//for_condition ::= .
+for_condition ::= assignment_expression .
+
+// Initializer
+for_init_statement ::= expression_statement .
+for_init_statement ::= declaration_statement .

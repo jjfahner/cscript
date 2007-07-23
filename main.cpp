@@ -32,6 +32,10 @@ void run()
   // Destroy parser
   ParseFree(pParser, free);
 
+  // Write code to file
+  std::ofstream of("test.csb", std::ios::binary);
+  of.write((char*)context.GetCode(), context.GetSize());
+
   // Execute code
   StackMachine machine(context);
   machine.Run();

@@ -32,6 +32,7 @@ protected:
   // Variable management
   //
   void AddVar(Quad id, Variant const& value);
+  void DelVar(Quad id);
   void PushVar(Quad id);
 
   //
@@ -58,7 +59,6 @@ protected:
   //
   // Push onto stack
   //
-  inline void PushStack(size_t index);
   inline void PushStack(Variant const& value);
 
   //

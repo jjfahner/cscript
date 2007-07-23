@@ -190,7 +190,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="lemon.exe -q -s cscript.in"
+						CommandLine="lemon.exe -q cscript.in&#x0D;&#x0A;"
 						Outputs="cscript.c"
 					/>
 				</FileConfiguration>
@@ -208,7 +208,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating lexer"
-						CommandLine="re2c.exe -b -o lexer.gen lexer.in"
+						CommandLine="re2c.exe -b -o lexer.gen lexer.in&#x0D;&#x0A;"
+						AdditionalDependencies="cscript.in"
 						Outputs="lexer.gen"
 					/>
 				</FileConfiguration>
