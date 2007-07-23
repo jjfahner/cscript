@@ -31,7 +31,8 @@ protected:
   //
   // Variable management
   //
-  void AddVar(Quad id, Variant const& value);
+  void AddVar(Quad id);
+  void AddVar(Quad id, VariantRef const& value);
   void DelVar(Quad id);
   void PushVar(Quad id);
 
@@ -48,7 +49,7 @@ protected:
   //
   // Variables
   //
-  typedef std::map<Quad, Variant> Variables;
+  typedef std::map<Quad, VariantRef> Variables;
   Variables m_variables;
 
   //
@@ -59,17 +60,18 @@ protected:
   //
   // Push onto stack
   //
+  inline void PushStack(VariantRef const& value);
   inline void PushStack(Variant const& value);
 
   //
   // Stack
   //
-  std::stack<Variant> m_stack;
+  std::stack<VariantRef> m_stack;
 
   //
   // Register
   //
-  std::vector<Variant> m_registers;
+  std::vector<VariantRef> m_registers;
 
 };
 

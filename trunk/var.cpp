@@ -12,8 +12,9 @@ Variant::operator = (Variant const& rhs)
   // Clear self
   Clear();
 
-  // Binary copy
-  memcpy(this, &rhs, sizeof(Variant));
+  // Copy type and data
+  m_type = rhs.m_type;
+  memcpy(&m_int, &rhs.m_int, sizeof(m_int));
 
   // Copy dynamic types
   switch(m_type)
@@ -90,7 +91,6 @@ Variant::MakeString()
   {
   case stBool:  wcscpy(buf, m_bool ? L"true" : L"false"); break;
   case stInt:   _i64tow(m_int, buf, 10); break;
-  case stRef:   wcscpy(buf, m_ref->AsString().c_str()); break;
   default:      throw std::runtime_error("Invalid conversion");
   }
   Clear();
@@ -107,12 +107,6 @@ Variant::MakeMap()
 int 
 Variant::Compare(Variant const& rhs, bool exact) const
 {
-  // Comparing to ref
-  if(m_type == stRef)
-  {
-    return m_ref->Compare(rhs, exact);
-  }
- 
   // Check type for exact match
   if(exact && m_type != rhs.m_type)
   {
@@ -170,7 +164,6 @@ Variant::operator += (Variant const& value)
   switch(m_type)
   {
   case stNull  : *this = value; break;
-  case stRef   : *m_ref += value; break;
   case stBool  : m_bool = m_bool ? true : value.AsBool(); break;
   case stInt   : m_int += value.AsInt(); break;
   case stString: *m_string += value.AsString(); break;

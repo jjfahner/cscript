@@ -2,6 +2,7 @@
 #include "tokens.h"
 
 #include <iostream>
+#include <crtdbg.h>
 
 StackMachine::StackMachine(ParseContext const& context) :
 m_parseContext (context)
@@ -34,7 +35,13 @@ inline Quad EatQuad(Byte*& source)
 }
 
 void 
-StackMachine::AddVar(Quad id, Variant const& value)
+StackMachine::AddVar(Quad id)
+{
+  m_variables[id] = VariantRef(new Variant);
+}
+
+void 
+StackMachine::AddVar(Quad id, VariantRef const& value)
 {
   m_variables[id] = value;
 }
@@ -48,36 +55,71 @@ StackMachine::DelVar(Quad id)
 void 
 StackMachine::PushVar(Quad id)
 {
-  m_stack.push(&m_variables[id]);
+#ifdef _DEBUG
+  if(m_variables.count(id) == 0)
+  {
+    throw std::runtime_error("Variable not created");
+  }
+#endif
+  m_stack.push(m_variables[id]);
 }
 
 void
 StackMachine::PushLiteral(Quad id)
 {
-  m_stack.push(m_parseContext.GetLiteral(id));
+  m_stack.push(VariantRef(new Variant(m_parseContext.GetLiteral(id))));
 }
 
 inline void 
 StackMachine::PopStack(size_t index)
 {
+#ifdef _DEBUG
+  if(m_stack.size() == 0)
+  {
+    throw std::runtime_error("Stack underflow");
+  }
+#endif
   m_registers[index] = m_stack.top();
   m_stack.pop();
 }
 
 inline void 
-StackMachine::PushStack(Variant const& value)
+StackMachine::PushStack(VariantRef const& value)
 {
   m_stack.push(value);
 }
 
-// Alias registers
-#define R0 (m_registers[0])
-#define R1 (m_registers[1])
+inline void 
+StackMachine::PushStack(Variant const& value)
+{
+  m_stack.push(VariantRef(new Variant(value)));
+}
 
+//
+// Alias registers
+//
+#ifdef _DEBUG
+#define R0 (*m_registers.at(0))
+#define P0 ( m_registers.at(0))
+#define R1 (*m_registers.at(1))
+#define P1 ( m_registers.at(1))
+#else
+#define R0 (*m_registers[0])
+#define P0 ( m_registers[0])
+#define R1 (*m_registers[1])
+#define P1 ( m_registers[1])
+#endif
+
+//
+// Main loop
+//
 void StackMachine::Run()
 {
+  // Create registers
   m_registers.clear();
-  m_registers.resize(20);
+  m_registers.resize(2);
+  m_registers[0] = VariantRef(new Variant());
+  m_registers[1] = VariantRef(new Variant());
 
   // Code pointers
   Byte* base = m_parseContext.GetCode();
@@ -85,6 +127,9 @@ void StackMachine::Run()
 
   // Helper
   Quad temp;
+
+  // Instruction count
+  size_t inscount = 0;
 
   // Execute code
   for(;;)
@@ -96,12 +141,12 @@ void StackMachine::Run()
       return;
     
     case TOK_VAR:      
-      AddVar(EatQuad(code), Variant());
+      AddVar(EatQuad(code));
       break;
 
     case TOK_VARINIT:
       PopStack(0);
-      AddVar(EatQuad(code), R0);
+      AddVar(EatQuad(code), P0);
       break;
 
     case TOK_LVALUE:
@@ -218,33 +263,33 @@ void StackMachine::Run()
 
     case TOK_PREINC:
       PopStack(0);
-      R0.GetRef() += 1LL;
-      PushStack(R0);
+      R0 += 1LL;
+      PushStack(P1);
       break;
 
     case TOK_PRESUB:
       PopStack(0);
-      R0.GetRef() -= 1LL;
-      PushStack(R0);
+      R0 -= 1LL;
+      PushStack(P1);
       break;
 
     case TOK_POSTINC:
       PopStack(0);
-      PushStack(R0.GetRef());
-      R0.GetRef() += 1LL;
+      PushStack(R0);
+      R0 += 1LL;
       break;
 
     case TOK_POSTSUB:
       PopStack(0);
-      PushStack(R0.GetRef());
-      R0.GetRef() -= 1LL;
+      PushStack(R0);
+      R0 -= 1LL;
       break;
 
     case TOK_ASSIGN:
       PopStack(1);
       PopStack(0);
-      R0.GetRef() = R1.GetDeref();
-      PushStack(R0);
+      R0 = R1;
+      PushStack(P0);
       break;
 
     case TOK_PRINT:
@@ -255,5 +300,11 @@ void StackMachine::Run()
     default:
       throw std::runtime_error("Invalid instruction");
     }
+
+    // Check heap
+    _CrtCheckMemory();
+
+    // Update instruction count
+    ++inscount;
   }
 }

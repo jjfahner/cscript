@@ -107,14 +107,14 @@ public:
     return index;
   }
 
-  Variant& GetLiteral(Quad id) const
+  Variant const& GetLiteral(Quad id) const
   {
     Literals::const_iterator it;
     if((it = m_literals.find(id)) == m_literals.end())
     {
       throw std::runtime_error("Unknown literal");
     }
-    return const_cast<Variant&>(it->second);
+    return it->second;
   }
 
   Quad AddVar(std::wstring const& name)
@@ -148,6 +148,11 @@ public:
     }
     throw std::runtime_error("Undeclared variable");
   }
+
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Stack frames
+  //
 
   void PushFrame()
   {

@@ -5,8 +5,9 @@
 
 #include <string>
 #include <map>
+#include "ref.h"
 
-class Variant
+class Variant : public Ref<Variant>::Counted
 {
 public:
 
@@ -18,7 +19,6 @@ public:
     stNull,
     stBool,
     stInt,
-    stRef,
     stString,
     stMap
   };
@@ -28,7 +28,6 @@ public:
   //
   typedef bool          BoolType;
   typedef __int64       IntType;
-  typedef Variant       RefType;
   typedef std::wstring  StringType;
   typedef std::map<Variant, Variant> MapType;
 
@@ -77,15 +76,6 @@ public:
   Variant(IntType const& value) :
   m_int  (value),
   m_type (stInt)
-  {
-  }
-
-  //
-  // Reference construction
-  //
-  Variant(RefType* value) :
-  m_ref  (value),
-  m_type (stRef)
   {
   }
 
@@ -148,22 +138,6 @@ public:
       throw std::runtime_error("Invalid subtype");
     }
     return m_int;
-  }
-  RefType& GetRef() const
-  {
-    if(m_type != stRef)
-    {
-      throw std::runtime_error("Invalid subtype");
-    }
-    return *m_ref;
-  }
-  RefType& GetDeref() const
-  {
-    if(m_type == stRef)
-    {
-      return m_ref->GetDeref();
-    }
-    return const_cast<RefType&>(*this);
   }
   StringType const& GetString() const
   {
@@ -253,7 +227,6 @@ private:
   union {
     BoolType    m_bool;
     IntType     m_int;
-    RefType*    m_ref;
     MapType*    m_map;
     StringType* m_string;
   };  
@@ -268,7 +241,7 @@ private:
 inline Variant 
 operator + (Variant const& lhs, Variant const& rhs)
 {
-  Variant tmp(lhs.GetDeref());
+  Variant tmp(lhs);
   tmp += rhs;
   return tmp;
 }
@@ -276,7 +249,7 @@ operator + (Variant const& lhs, Variant const& rhs)
 inline Variant 
 operator - (Variant const& lhs, Variant const& rhs)
 {
-  Variant tmp(lhs.GetDeref());
+  Variant tmp(lhs);
   tmp -= rhs;
   return tmp;
 }
@@ -284,7 +257,7 @@ operator - (Variant const& lhs, Variant const& rhs)
 inline Variant 
 operator * (Variant const& lhs, Variant const& rhs)
 {
-  Variant tmp(lhs.GetDeref());
+  Variant tmp(lhs);
   tmp *= rhs;
   return tmp;
 }
@@ -292,7 +265,7 @@ operator * (Variant const& lhs, Variant const& rhs)
 inline Variant 
 operator / (Variant const& lhs, Variant const& rhs)
 {
-  Variant tmp(lhs.GetDeref());
+  Variant tmp(lhs);
   tmp /= rhs;
   return tmp;
 }
@@ -300,7 +273,7 @@ operator / (Variant const& lhs, Variant const& rhs)
 inline Variant 
 operator % (Variant const& lhs, Variant const& rhs)
 {
-  Variant tmp(lhs.GetDeref());
+  Variant tmp(lhs);
   tmp %= rhs;
   return tmp;
 }
@@ -362,5 +335,12 @@ operator && (Variant const& lhs, Variant const& rhs)
 {
   return lhs.AsBool() && rhs.AsBool();
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ref holder
+//
+
+typedef Ref<Variant> VariantRef;
 
 #endif // #ifndef CSCRIPT_VAR_H
