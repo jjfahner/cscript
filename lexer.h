@@ -23,10 +23,16 @@ public:
 private:
 
   //
+  // Specialized lexing
+  //
+  bool LexString(Token& token);
+
+  //
   // Members
   //
-  std::wstring    m_source;
-  wchar_t const*  m_strptr;
+  wchar_t*  m_source;
+  size_t    m_length;
+  wchar_t*  m_strptr;
 
 };
 
