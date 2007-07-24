@@ -1,6 +1,13 @@
-var precedence = (1 + 2) * (3 + 4);
-//print(precedence);
 
+// Precedence parsing check
+if((1 - 2 - 3) != -4)
+{
+  print("Precedence check failed\n");
+}
+
+//print("Precedence test: " + precedence + "\n");
+
+// For test
 for(var a = 0; a < 10; ++a)
 {
   var a = a + 1;
@@ -39,3 +46,4 @@ a = 7 == 7;
 a = 7 != 8;
 a = 8 >= 7;
 a = 8 > 7;
+*/

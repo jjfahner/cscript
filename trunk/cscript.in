@@ -114,6 +114,7 @@ relational_expression ::= relational_expression GT additive_expression. { pConte
 relational_expression ::= relational_expression GE additive_expression. { pContext->PushByte(TOK_GE); }
 
 // Additive expression
+%right ADDOP SUBOP.
 additive_expression ::= multiplicative_expression. 
 additive_expression ::= multiplicative_expression ADDOP additive_expression. { pContext->PushByte(TOK_ADDOP); }
 additive_expression ::= multiplicative_expression SUBOP additive_expression. { pContext->PushByte(TOK_SUBOP); }
