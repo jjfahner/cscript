@@ -18,8 +18,11 @@ m_strptr (0)
     throw std::runtime_error("Failed to read from file");
   }
 
-  // Read source string
+  // Read buffers
   wchar_t line[4000];
+  std::wstring source;
+
+  // Read source string
   for(;;)
   {
     // End of file
@@ -39,11 +42,16 @@ m_strptr (0)
     wcscat(line, L"\n");
 
     // Append to input
-    m_source += line;
+    source += line;
   }
 
+  // Copy buffer
+  m_length = source.length();
+  wchar_t* m_source = new wchar_t[m_length + 1];
+  wcscpy(m_source, source.c_str());
+
   // Point to offset of string
-  m_strptr = m_source.c_str();
+  m_strptr = m_source; 
 }
 
 bool
@@ -56,28 +64,67 @@ Lexer::Lex(Token& token)
   }
 
   // Parse next token
-  wchar_t const* start = m_strptr;
-  wchar_t const* end   = start;
-  token.m_type = parseNextToken(start, end);
-  if(token.m_type == 0)
+  wchar_t* start = m_strptr;
+  wchar_t* end   = start;
+  int type = parseNextToken(start, end);
+  
+  // Depending on token, do specialized parsing
+  switch(type)
   {
-    return false;
+  case 0:          return false;
+  case TOK_STRING: m_strptr = end; return LexString(token);
   }
 
   // Copy into token
+  token.m_type = type;
   token.m_text = start;
   token.m_size = end - start;
-
-  // Cut off string start/end
-  if(token.m_type == TOK_STRING)
-  {
-    token.m_text += 1;
-    token.m_size -= 2;
-  }
 
   // Move pointer
   m_strptr = end;
 
   // Succeeded
   return true;
+}
+
+bool 
+Lexer::LexString(Token& token)
+{
+  wchar_t* dst = m_strptr;
+  wchar_t  wch;
+
+  // Init token
+  token.m_type = TOK_STRING;
+  token.m_text = m_strptr;
+  token.m_size = 0;
+
+  // Parse string, translating escapes in-place
+  for(;; ++m_strptr, ++dst)
+  {
+    switch(*m_strptr)
+    {
+    case 0:     
+      throw std::runtime_error("Unterminated string constant");
+    
+    case '"':
+      token.m_size = dst - token.m_text;
+      ++m_strptr;
+      return true;
+
+    case '\\':
+      switch(wch = *++m_strptr)
+      {
+      case 'r': wch = '\r'; break;
+      case 'n': wch = '\n'; break;
+      case 't': wch = '\t'; break;
+      case 'b': wch = '\b'; break;
+      }
+      *dst = wch;
+      break;
+
+    default:
+      *dst = *m_strptr;
+      break;
+    }
+  }
 }
