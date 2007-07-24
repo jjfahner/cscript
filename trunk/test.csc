@@ -1,13 +1,17 @@
 var precedence = (1 + 2) * (3 + 4);
-print(precedence);
+//print(precedence);
 
-for(var a = 0; a < 10000; ++a)
+for(var a = 0; a < 10; ++a)
 {
   var a = a + 1;
-  //if(a % 1000 == 0)
-  //{
-  //  print(".");
-  //}
+  if(a % 2 == 0)
+  {
+    print(".");
+  }
+  else
+  {
+    print("+");
+  }
 }
 
 var piet = "Hallo wereld" + "!!!";
@@ -18,7 +22,7 @@ var i, j, a, b;
 i = "Hallo";
 j = " wereld";
 a = i + j;
-print(a);
+//print(a);
 
 b = a;
 a = 2 - 1;
