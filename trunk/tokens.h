@@ -25,4 +25,22 @@
 #define TOK_JZ            111
 #define TOK_JNZ           112
 
+//
+// Define token structure
+//
+
+struct Token
+{
+  wchar_t const*  m_text;
+  size_t          m_size;
+  int             m_type;
+
+  operator std::wstring () const
+  {
+    return std::wstring(m_text, m_size);
+  }
+};
+
+
+
 #endif // #ifndef CSCRIPT_TOKENS_H

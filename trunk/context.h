@@ -106,7 +106,13 @@ public:
     m_literals[index] = value;
     return index;
   }
-
+  Quad AddLiteral(std::wstring const& value, Variant::SubTypes type)
+  {
+    unsigned long index = (Quad) m_literals.size();
+    m_literals[index] = Variant(value, type);
+    return index;
+  }
+  
   Variant const& GetLiteral(Quad id) const
   {
     Literals::const_iterator it;

@@ -6,7 +6,7 @@
 
 // Set prefix for tokens
 %token_prefix     TOK_
-%token_type       { Token* }
+%token_type       { Token }
 %extra_argument   { ParseContext* pContext }
 
 // Error handlers
@@ -27,6 +27,15 @@
 #include "context.h"
 
 #pragma warning(disable:4065)
+
+//
+// Some defines to make the code a bit cleaner
+//
+#define PUSHB(arg) (pContext->PushByte(arg))
+#define PUSHW(arg) (pContext->PushWord(arg))
+#define PUSHQ(arg) (pContext->PushQuad(arg))
+#define PUSHFRAME()(pContext->PushFrame())
+#define POPFRAME() (pContext->PopFrame())
 
 } 
 //
@@ -49,7 +58,7 @@
 
 
 // Start symbol
-translation_unit ::= statement_sequence_opt. { pContext->PushByte(TOK_HALT); }
+translation_unit ::= statement_sequence_opt. { PUSHB(TOK_HALT); }
 
 // Statement sequence
 statement_sequence ::= statement. 
@@ -76,7 +85,7 @@ expression_list_opt ::= .
 expression_list_opt ::= expression_list. 
 
 // Expression
-expression ::= assignment_expression. { pContext->PushByte(TOK_POP); }
+expression ::= assignment_expression. { PUSHB(TOK_POP); }
 
 // Optional expression
 expression_opt ::= .
@@ -84,12 +93,12 @@ expression_opt ::= expression .
 
 // Assignment
 assignment_expression ::= conditional_expression . 
-assignment_expression ::= binary_expression ASSIGN assignment_expression. { pContext->PushByte(TOK_ASSIGN); }
-assignment_expression ::= binary_expression ASSADD assignment_expression. { pContext->PushByte(TOK_ASSADD); } 
-assignment_expression ::= binary_expression ASSSUB assignment_expression. { pContext->PushByte(TOK_ASSSUB); }
-assignment_expression ::= binary_expression ASSMUL assignment_expression. { pContext->PushByte(TOK_ASSMUL); }
-assignment_expression ::= binary_expression ASSDIV assignment_expression. { pContext->PushByte(TOK_ASSDIV); }
-assignment_expression ::= binary_expression ASSMOD assignment_expression. { pContext->PushByte(TOK_ASSMOD); }
+assignment_expression ::= binary_expression ASSIGN assignment_expression. { PUSHB(TOK_ASSIGN); }
+assignment_expression ::= binary_expression ASSADD assignment_expression. { PUSHB(TOK_ASSADD); } 
+assignment_expression ::= binary_expression ASSSUB assignment_expression. { PUSHB(TOK_ASSSUB); }
+assignment_expression ::= binary_expression ASSMUL assignment_expression. { PUSHB(TOK_ASSMUL); }
+assignment_expression ::= binary_expression ASSDIV assignment_expression. { PUSHB(TOK_ASSDIV); }
+assignment_expression ::= binary_expression ASSMOD assignment_expression. { PUSHB(TOK_ASSMOD); }
 
 // Conditional
 conditional_expression ::= binary_expression .
@@ -97,14 +106,14 @@ conditional_expression ::= cond_part QUESTION cond_expr_true COLON cond_expr_fal
 
 // Contitional parts
 cond_part ::= binary_expression . {
-  pContext->PushByte(TOK_JZ);
+  PUSHB(TOK_JZ);
   pContext->PushOffset(L"cond_exp_1");
-  pContext->PushQuad(0);
+  PUSHQ(0);
 }
 cond_expr_true ::= assignment_expression . {
-  pContext->PushByte(TOK_JMP);
+  PUSHB(TOK_JMP);
   pContext->PushOffset(L"cond_exp_2");
-  pContext->PushQuad(0);
+  PUSHQ(0);
   pContext->SetQuad(pContext->PopOffset(L"cond_exp_1"), pContext->GetPos());
 }
 cond_expr_false ::= assignment_expression . {
@@ -113,32 +122,32 @@ cond_expr_false ::= assignment_expression . {
 
 // Binary expressions
 binary_expression ::= unary_expression . 
-binary_expression ::= binary_expression LOGOR   binary_expression. { pContext->PushByte(TOK_LOGOR);   }
-binary_expression ::= binary_expression LOGAND  binary_expression. { pContext->PushByte(TOK_LOGAND);  }
-binary_expression ::= binary_expression BITOR   binary_expression. { pContext->PushByte(TOK_PREINC);  }
-binary_expression ::= binary_expression BITXOR  binary_expression. { pContext->PushByte(TOK_BITXOR);  }
-binary_expression ::= binary_expression BITAND  binary_expression. { pContext->PushByte(TOK_BITAND);  }
-binary_expression ::= binary_expression EQUALS  binary_expression. { pContext->PushByte(TOK_EQUALS);  }
-binary_expression ::= binary_expression NEQUALS binary_expression. { pContext->PushByte(TOK_NEQUALS); }
-binary_expression ::= binary_expression ST      binary_expression. { pContext->PushByte(TOK_ST);      }
-binary_expression ::= binary_expression SE      binary_expression. { pContext->PushByte(TOK_SE);      }
-binary_expression ::= binary_expression GT      binary_expression. { pContext->PushByte(TOK_GT);      }
-binary_expression ::= binary_expression GE      binary_expression. { pContext->PushByte(TOK_GE);      }
-binary_expression ::= binary_expression ADDOP   binary_expression. { pContext->PushByte(TOK_ADDOP);   }
-binary_expression ::= binary_expression SUBOP   binary_expression. { pContext->PushByte(TOK_SUBOP);   }
-binary_expression ::= binary_expression MULOP   binary_expression. { pContext->PushByte(TOK_MULOP);   }
-binary_expression ::= binary_expression DIVOP   binary_expression. { pContext->PushByte(TOK_DIVOP);   }
-binary_expression ::= binary_expression MODOP   binary_expression. { pContext->PushByte(TOK_MODOP);   }
+binary_expression ::= binary_expression LOGOR   binary_expression. { PUSHB(TOK_LOGOR);   }
+binary_expression ::= binary_expression LOGAND  binary_expression. { PUSHB(TOK_LOGAND);  }
+binary_expression ::= binary_expression BITOR   binary_expression. { PUSHB(TOK_PREINC);  }
+binary_expression ::= binary_expression BITXOR  binary_expression. { PUSHB(TOK_BITXOR);  }
+binary_expression ::= binary_expression BITAND  binary_expression. { PUSHB(TOK_BITAND);  }
+binary_expression ::= binary_expression EQUALS  binary_expression. { PUSHB(TOK_EQUALS);  }
+binary_expression ::= binary_expression NEQUALS binary_expression. { PUSHB(TOK_NEQUALS); }
+binary_expression ::= binary_expression ST      binary_expression. { PUSHB(TOK_ST);      }
+binary_expression ::= binary_expression SE      binary_expression. { PUSHB(TOK_SE);      }
+binary_expression ::= binary_expression GT      binary_expression. { PUSHB(TOK_GT);      }
+binary_expression ::= binary_expression GE      binary_expression. { PUSHB(TOK_GE);      }
+binary_expression ::= binary_expression ADDOP   binary_expression. { PUSHB(TOK_ADDOP);   }
+binary_expression ::= binary_expression SUBOP   binary_expression. { PUSHB(TOK_SUBOP);   }
+binary_expression ::= binary_expression MULOP   binary_expression. { PUSHB(TOK_MULOP);   }
+binary_expression ::= binary_expression DIVOP   binary_expression. { PUSHB(TOK_DIVOP);   }
+binary_expression ::= binary_expression MODOP   binary_expression. { PUSHB(TOK_MODOP);   }
 
 // Unary expression
 unary_expression ::= postfix_expression. 
-unary_expression ::= ADDADD unary_expression. { pContext->PushByte(TOK_PREINC); }
-unary_expression ::= SUBSUB unary_expression. { pContext->PushByte(TOK_PRESUB); }
+unary_expression ::= ADDADD unary_expression. { PUSHB(TOK_PREINC); }
+unary_expression ::= SUBSUB unary_expression. { PUSHB(TOK_PRESUB); }
 
 // Postfix expression
 postfix_expression ::= primary_expression. 
-postfix_expression ::= postfix_expression ADDADD. { pContext->PushByte(TOK_POSTINC); }
-postfix_expression ::= postfix_expression SUBSUB. { pContext->PushByte(TOK_POSTSUB); } 
+postfix_expression ::= postfix_expression ADDADD. { PUSHB(TOK_POSTINC); }
+postfix_expression ::= postfix_expression SUBSUB. { PUSHB(TOK_POSTSUB); } 
 postfix_expression ::= postfix_expression DOT id_expression.  
 postfix_expression ::= postfix_expression LSBRACKET expression RSBRACKET.  
 postfix_expression ::= postfix_expression LRBRACKET expression_list_opt RRBRACKET.  
@@ -149,15 +158,15 @@ primary_expression ::= id_expression.
 primary_expression ::= LRBRACKET assignment_expression RRBRACKET.  
 
 // Literals
-literal ::= INTEGER(A). { pContext->PushByte(TOK_RVALUE); pContext->PushQuad(pContext->AddLiteral(Variant(A->m_text, Variant::stInt))); }
-literal ::= REAL(A).    { pContext->PushByte(TOK_RVALUE); pContext->PushQuad(pContext->AddLiteral(Variant(A->m_text, Variant::stInt))); }
-literal ::= STRING(A).  { pContext->PushByte(TOK_RVALUE); pContext->PushQuad(pContext->AddLiteral(Variant(A->m_text, Variant::stString))); }
-literal ::= TRUE.       { pContext->PushByte(TOK_RVALUE); pContext->PushQuad(pContext->AddLiteral(Variant(true))); }
-literal ::= FALSE.      { pContext->PushByte(TOK_RVALUE); pContext->PushQuad(pContext->AddLiteral(Variant(false))); }
-literal ::= NULL.       { pContext->PushByte(TOK_RVALUE); pContext->PushQuad(pContext->AddLiteral(Variant())); }
+literal ::= INTEGER(A). { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(A, Variant::stInt)); }
+literal ::= REAL(A).    { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(A, Variant::stInt)); }
+literal ::= STRING(A).  { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(A, Variant::stString)); }
+literal ::= TRUE.       { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(Variant(true))); }
+literal ::= FALSE.      { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(Variant(false))); }
+literal ::= NULL.       { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(Variant())); }
 
 // Id expression
-id_expression ::= IDENTIFIER(A). { pContext->PushByte(TOK_LVALUE); pContext->PushQuad(pContext->GetVar(A->m_text)); } 
+id_expression ::= IDENTIFIER(A). { PUSHB(TOK_LVALUE); PUSHQ(pContext->GetVar(A)); } 
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -173,14 +182,14 @@ declaration_sequence ::= declaration_sequence COMMA var_declaration .
 
 // Variable declaration
 var_declaration ::= IDENTIFIER(A) . { 
-  pContext->PushByte(TOK_VAR);      
-  pContext->PushQuad(pContext->AddVar(A->m_text)); 
+  PUSHB(TOK_VAR);      
+  PUSHQ(pContext->AddVar(A)); 
 }
 
 // Variable declaration with initialization
 var_declaration ::= IDENTIFIER(A) ASSIGN assignment_expression . { 
-  pContext->PushByte(TOK_VARINIT);  
-  pContext->PushQuad(pContext->AddVar(A->m_text)); 
+  PUSHB(TOK_VARINIT);  
+  PUSHQ(pContext->AddVar(A)); 
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -196,11 +205,11 @@ declaration_statement ::= declaration SEMICOLON .
 
 // Compound statement
 compound_statement ::= compound_start statement_sequence_opt compound_end .
-compound_start ::= LCBRACKET . { pContext->PushFrame(); }
-compound_end   ::= RCBRACKET . { pContext->PopFrame();  }
+compound_start ::= LCBRACKET . { PUSHFRAME(); }
+compound_end   ::= RCBRACKET . { POPFRAME();  }
 
 // Print statement
-print_statement ::= PRINT LRBRACKET assignment_expression RRBRACKET SEMICOLON . { pContext->PushByte(TOK_PRINT); }
+print_statement ::= PRINT LRBRACKET assignment_expression RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -232,7 +241,7 @@ for_statement ::= for_start LRBRACKET for_init for_cond SEMICOLON for_expr RRBRA
 
 // For keyword
 for_start ::= FOR . { 
-  pContext->PushFrame(); 
+  PUSHFRAME(); 
 }
 
 // For init statement
@@ -242,28 +251,28 @@ for_init ::= for_init_statement . {
 
 // For condition
 for_cond ::= for_condition . { 
-  pContext->PushByte(TOK_JZ);
+  PUSHB(TOK_JZ);
   pContext->PushOffset(L"for_patch_1");
-  pContext->PushQuad(0);
-  pContext->PushByte(TOK_JMP);
+  PUSHQ(0);
+  PUSHB(TOK_JMP);
   pContext->PushOffset(L"for_patch_2");
-  pContext->PushQuad(0);
+  PUSHQ(0);
   pContext->PushOffset(L"for_label_2"); 
 }
 
 // For expression
 for_expr ::= expression_opt . { 
-  pContext->PushByte(TOK_JMP);
-  pContext->PushQuad(pContext->PopOffset(L"for_label1"));
+  PUSHB(TOK_JMP);
+  PUSHQ(pContext->PopOffset(L"for_label1"));
   pContext->SetQuad(pContext->PopOffset(L"for_patch_2"), pContext->GetPos());
 }
 
 // For end
 for_end ::= statement . {
-  pContext->PushByte(TOK_JMP); 
-  pContext->PushQuad(pContext->PopOffset(L"for_label_2"));
+  PUSHB(TOK_JMP); 
+  PUSHQ(pContext->PopOffset(L"for_label_2"));
   pContext->SetQuad(pContext->PopOffset(L"for_patch_1"), pContext->GetPos());
-  pContext->PopFrame();
+  POPFRAME();
 }
 
 // For Condition
@@ -299,9 +308,9 @@ if_statement ::= IF if_cond statement if_else .
 
 // If condition
 if_cond ::= LRBRACKET assignment_expression RRBRACKET . {
-  pContext->PushByte(TOK_JZ);
+  PUSHB(TOK_JZ);
   pContext->PushOffset(L"if_patch_1");
-  pContext->PushQuad(0);
+  PUSHQ(0);
 }
 
 // Empty else part
@@ -314,9 +323,9 @@ if_else ::= if_else_1 if_else_2 .
 
 // Prefix part
 if_else_1 ::= ELSE . {
-  pContext->PushByte(TOK_JMP);
+  PUSHB(TOK_JMP);
   pContext->PushOffset(L"if_patch_2");
-  pContext->PushQuad(0);
+  PUSHQ(0);
   pContext->SetQuad(pContext->PopOffset(L"if_patch_1"), pContext->GetPos());
 }
 
