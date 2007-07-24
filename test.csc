@@ -1,9 +1,13 @@
 var precedence = (1 + 2) * (3 + 4);
 print(precedence);
 
-for(var a = 0; a < 10; ++a)
+for(var a = 0; a < 10000; ++a)
 {
-  print(("" + a) + " -");
+  var a = a + 1;
+  //if(a % 1000 == 0)
+  //{
+  //  print(".");
+  //}
 }
 
 var piet = "Hallo wereld" + "!!!";
