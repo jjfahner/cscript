@@ -19,7 +19,9 @@ for(var a = 0; a < 10; ++a)
   {
     print("+");
   }
+  print(a % 2 ? "@" : "$");
 }
+
 
 var piet = "Hallo wereld" + "!!!";
 var c, d;
