@@ -19,11 +19,10 @@ void run()
   //ParseTrace(stdout, "->");
 
   // Invoke parser for every token
-  Token* token = new Token;
-  while(lexer.Lex(*token))
+  Token token;
+  while(lexer.Lex(token))
   {
-    Parse(pParser, token->m_type, token, &context);
-    token = new Token;
+    Parse(pParser, token.m_type, token, &context);
   }
   
   // Empty token to finalize parse

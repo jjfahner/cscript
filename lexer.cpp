@@ -5,32 +5,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Token implementation
-//
-
-Token::Token()
-{
-  clear();
-}
-
-void 
-Token::clear()
-{
-  m_text.clear();
-  m_type = 0;
-  m_line = 0;
-  m_char = 0;
-}
-
-Token& 
-Token::operator += (wchar_t wch)
-{
-  m_text += wch;
-  return *this;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Lexer implementation
 //
 
@@ -75,9 +49,6 @@ m_strptr (0)
 bool
 Lexer::Lex(Token& token)
 {
-  // Reset token
-  token.clear();
-
   // End of input
   if(*m_strptr == 0)
   {
@@ -93,34 +64,15 @@ Lexer::Lex(Token& token)
     return false;
   }
 
-  // Resize string buffer
-  size_t len = end - start;
-  token.m_text.resize(len + 1, 0);
+  // Copy into token
+  token.m_text = start;
+  token.m_size = end - start;
 
-  // Copy string into buffer
+  // Cut off string start/end
   if(token.m_type == TOK_STRING)
   {
-    wchar_t* dest = const_cast<wchar_t*>(token.m_text.c_str());
-    for(wchar_t const* cur = start + 1; cur < start + len - 1; ++cur)
-    {
-      if(*cur == '\\')
-      {
-        switch(*++cur)
-        {
-        case 'n': *dest++ = '\n'; break;
-        case 't': *dest++ = '\t'; break;
-        default : *dest++ = *cur; break;
-        }
-      }
-      else
-      {
-        *dest++ = *cur;
-      }
-    }
-  }
-  else
-  {
-    wcsncpy(const_cast<wchar_t*>(token.m_text.c_str()), start, len);
+    token.m_text += 1;
+    token.m_size -= 2;
   }
 
   // Move pointer
