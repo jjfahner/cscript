@@ -63,7 +63,10 @@ Variant::SetType(SubTypes type)
 void 
 Variant::MakeBool()
 {
-  MakeInt();
+  if(m_type != stInt)
+  {
+    MakeInt();
+  }
   m_bool = m_int ? true : false;
   m_type = stBool;
 }

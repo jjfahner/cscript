@@ -93,7 +93,23 @@ assignment_expression ::= binary_expression ASSMOD assignment_expression. { pCon
 
 // Conditional
 conditional_expression ::= binary_expression .
-conditional_expression ::= binary_expression QUESTION expression COLON assignment_expression. 
+conditional_expression ::= cond_part QUESTION cond_expr_true COLON cond_expr_false . 
+
+// Contitional parts
+cond_part ::= binary_expression . {
+  pContext->PushByte(TOK_JZ);
+  pContext->PushOffset(L"cond_exp_1");
+  pContext->PushQuad(0);
+}
+cond_expr_true ::= assignment_expression . {
+  pContext->PushByte(TOK_JMP);
+  pContext->PushOffset(L"cond_exp_2");
+  pContext->PushQuad(0);
+  pContext->SetQuad(pContext->PopOffset(L"cond_exp_1"), pContext->GetPos());
+}
+cond_expr_false ::= assignment_expression . {
+  pContext->SetQuad(pContext->PopOffset(L"cond_exp_2"), pContext->GetPos());
+}
 
 // Binary expressions
 binary_expression ::= unary_expression . 
