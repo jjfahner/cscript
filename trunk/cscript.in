@@ -34,6 +34,20 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+
+// Precedence rules for binary operators
+%left LOGOR .
+%left LOGAND .
+%left BITOR .
+%left BITXOR .
+%left BITAND .
+%left EQUALS NEQUALS .
+%left ST SE GT GE .
+%left ADDOP SUBOP .
+%left MULOP DIVOP MODOP .
+%right ASSIGN ASSADD ASSSUB ASSMUL ASSDIV ASSMOD .
+
+
 // Start symbol
 translation_unit ::= statement_sequence_opt. { pContext->PushByte(TOK_HALT); }
 
@@ -69,61 +83,36 @@ expression_opt ::= .
 expression_opt ::= expression .
 
 // Assignment
-assignment_expression ::= conditional_expression. 
-assignment_expression ::= logical_or_expression ASSIGN assignment_expression. { pContext->PushByte(TOK_ASSIGN); }
-assignment_expression ::= logical_or_expression ASSADD assignment_expression. { pContext->PushByte(TOK_ASSADD); } 
-assignment_expression ::= logical_or_expression ASSSUB assignment_expression. { pContext->PushByte(TOK_ASSSUB); }
-assignment_expression ::= logical_or_expression ASSMUL assignment_expression. { pContext->PushByte(TOK_ASSMUL); }
-assignment_expression ::= logical_or_expression ASSDIV assignment_expression. { pContext->PushByte(TOK_ASSDIV); }
-assignment_expression ::= logical_or_expression ASSMOD assignment_expression. { pContext->PushByte(TOK_ASSMOD); }
+assignment_expression ::= conditional_expression . 
+assignment_expression ::= binary_expression ASSIGN assignment_expression. { pContext->PushByte(TOK_ASSIGN); }
+assignment_expression ::= binary_expression ASSADD assignment_expression. { pContext->PushByte(TOK_ASSADD); } 
+assignment_expression ::= binary_expression ASSSUB assignment_expression. { pContext->PushByte(TOK_ASSSUB); }
+assignment_expression ::= binary_expression ASSMUL assignment_expression. { pContext->PushByte(TOK_ASSMUL); }
+assignment_expression ::= binary_expression ASSDIV assignment_expression. { pContext->PushByte(TOK_ASSDIV); }
+assignment_expression ::= binary_expression ASSMOD assignment_expression. { pContext->PushByte(TOK_ASSMOD); }
 
 // Conditional
-conditional_expression ::= logical_or_expression. 
-conditional_expression ::= logical_or_expression QUESTION expression COLON assignment_expression. 
+conditional_expression ::= binary_expression .
+conditional_expression ::= binary_expression QUESTION expression COLON assignment_expression. 
 
-// Logical or
-logical_or_expression ::= logical_and_expression. 
-logical_or_expression ::= logical_or_expression LOGOR logical_and_expression. { pContext->PushByte(TOK_LOGOR); }
-
-// Logical and
-logical_and_expression ::= inclusive_or_expression. 
-logical_and_expression ::= logical_and_expression LOGAND inclusive_or_expression. { pContext->PushByte(TOK_LOGAND); }
-
-// Bitwise or
-inclusive_or_expression ::= exclusive_or_expression. 
-inclusive_or_expression ::= inclusive_or_expression BITOR exclusive_or_expression. { pContext->PushByte(TOK_PREINC); }
-
-// Bitwise xor
-exclusive_or_expression ::= and_expression. 
-exclusive_or_expression ::= exclusive_or_expression BITXOR and_expression. { pContext->PushByte(TOK_BITXOR); }
-
-// Bitwise and
-and_expression ::= equality_expression. 
-and_expression ::= and_expression BITAND equality_expression. { pContext->PushByte(TOK_BITAND); }
-
-// Equality expression
-equality_expression ::= relational_expression. 
-equality_expression ::= equality_expression EQUALS  relational_expression. { pContext->PushByte(TOK_EQUALS); }
-equality_expression ::= equality_expression NEQUALS relational_expression. { pContext->PushByte(TOK_NEQUALS); }
-
-// Relational expression
-relational_expression ::= additive_expression. 
-relational_expression ::= relational_expression ST additive_expression. { pContext->PushByte(TOK_ST); }
-relational_expression ::= relational_expression SE additive_expression. { pContext->PushByte(TOK_SE); }
-relational_expression ::= relational_expression GT additive_expression. { pContext->PushByte(TOK_GT); }
-relational_expression ::= relational_expression GE additive_expression. { pContext->PushByte(TOK_GE); }
-
-// Additive expression
-%right ADDOP SUBOP.
-additive_expression ::= multiplicative_expression. 
-additive_expression ::= multiplicative_expression ADDOP additive_expression. { pContext->PushByte(TOK_ADDOP); }
-additive_expression ::= multiplicative_expression SUBOP additive_expression. { pContext->PushByte(TOK_SUBOP); }
-
-// Multiplicative expression
-multiplicative_expression ::= unary_expression. 
-multiplicative_expression ::= multiplicative_expression MULOP unary_expression. { pContext->PushByte(TOK_MULOP); }
-multiplicative_expression ::= multiplicative_expression DIVOP unary_expression. { pContext->PushByte(TOK_DIVOP); }
-multiplicative_expression ::= multiplicative_expression MODOP unary_expression. { pContext->PushByte(TOK_MODOP); }
+// Binary expressions
+binary_expression ::= unary_expression . 
+binary_expression ::= binary_expression LOGOR   binary_expression. { pContext->PushByte(TOK_LOGOR);   }
+binary_expression ::= binary_expression LOGAND  binary_expression. { pContext->PushByte(TOK_LOGAND);  }
+binary_expression ::= binary_expression BITOR   binary_expression. { pContext->PushByte(TOK_PREINC);  }
+binary_expression ::= binary_expression BITXOR  binary_expression. { pContext->PushByte(TOK_BITXOR);  }
+binary_expression ::= binary_expression BITAND  binary_expression. { pContext->PushByte(TOK_BITAND);  }
+binary_expression ::= binary_expression EQUALS  binary_expression. { pContext->PushByte(TOK_EQUALS);  }
+binary_expression ::= binary_expression NEQUALS binary_expression. { pContext->PushByte(TOK_NEQUALS); }
+binary_expression ::= binary_expression ST      binary_expression. { pContext->PushByte(TOK_ST);      }
+binary_expression ::= binary_expression SE      binary_expression. { pContext->PushByte(TOK_SE);      }
+binary_expression ::= binary_expression GT      binary_expression. { pContext->PushByte(TOK_GT);      }
+binary_expression ::= binary_expression GE      binary_expression. { pContext->PushByte(TOK_GE);      }
+binary_expression ::= binary_expression ADDOP   binary_expression. { pContext->PushByte(TOK_ADDOP);   }
+binary_expression ::= binary_expression SUBOP   binary_expression. { pContext->PushByte(TOK_SUBOP);   }
+binary_expression ::= binary_expression MULOP   binary_expression. { pContext->PushByte(TOK_MULOP);   }
+binary_expression ::= binary_expression DIVOP   binary_expression. { pContext->PushByte(TOK_DIVOP);   }
+binary_expression ::= binary_expression MODOP   binary_expression. { pContext->PushByte(TOK_MODOP);   }
 
 // Unary expression
 unary_expression ::= postfix_expression. 

@@ -190,7 +190,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="lemon.exe -q cscript.in&#x0D;&#x0A;"
+						CommandLine="lemon.exe cscript.in&#x0D;&#x0A;"
 						Outputs="cscript.c"
 					/>
 				</FileConfiguration>
