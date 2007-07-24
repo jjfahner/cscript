@@ -50,6 +50,7 @@ statement ::= expression_statement .
 statement ::= declaration_statement .
 statement ::= for_statement .
 statement ::= compound_statement .
+statement ::= if_statement .
 statement ::= print_statement . // Dirty hack :)
 
 // Expression list
@@ -266,3 +267,50 @@ for_condition ::= assignment_expression .
 // Initializer
 for_init_statement ::= expression_statement .
 for_init_statement ::= declaration_statement .
+
+//////////////////////////////////////////////////////////////////////////
+//
+// If statement
+//
+// Layout for the if statement
+//
+//   condition
+//   jz label1 <patch 1>
+//
+//   statement (when condition == true)
+//   jmp label2 <patch 2>
+//
+//   label1:
+//   statement (when condition == false)
+//
+//   label2:
+
+// Main if statement
+if_statement ::= IF if_cond if_true if_else .
+
+// If condition
+if_cond ::= assignment_expression . {
+  pContext->PushByte(TOK_JZ);
+  pContext->PushOffset(L"if_patch_1");
+  pContext->PushQuad(0);
+}
+
+// If true part
+if_true ::= statement . {
+  pContext->PushByte(TOK_JMP);
+  pContext->PushOffset(L"if_patch_2");
+  pContext->PushQuad(0);
+  pContext->PushOffset(L"if_label_1");
+}
+
+// Empty else part
+if_else ::= . {
+  pContext->SetQuad(pContext->PopOffset(L"if_patch_1"), pContext->GetPos()); 
+  pContext->SetQuad(pContext->PopOffset(L"if_patch_2"), pContext->GetPos()); 
+  pContext->PopOffset(L"");
+}
+
+// Filled else part
+if_else ::= ELSE statement . {
+  
+}

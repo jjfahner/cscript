@@ -302,7 +302,7 @@ void StackMachine::Run()
     }
 
     // Check heap
-    _CrtCheckMemory();
+    //_CrtCheckMemory();
 
     // Update instruction count
     ++inscount;

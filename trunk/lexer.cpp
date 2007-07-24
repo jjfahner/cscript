@@ -100,7 +100,23 @@ Lexer::Lex(Token& token)
   // Copy string into buffer
   if(token.m_type == TOK_STRING)
   {
-    wcsncpy(const_cast<wchar_t*>(token.m_text.c_str()), start + 1, len - 2);
+    wchar_t* dest = const_cast<wchar_t*>(token.m_text.c_str());
+    for(wchar_t const* cur = start + 1; cur < start + len - 1; ++cur)
+    {
+      if(*cur == '\\')
+      {
+        switch(*++cur)
+        {
+        case 'n': *dest++ = '\n'; break;
+        case 't': *dest++ = '\t'; break;
+        default : *dest++ = *cur; break;
+        }
+      }
+      else
+      {
+        *dest++ = *cur;
+      }
+    }
   }
   else
   {

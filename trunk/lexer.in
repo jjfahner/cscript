@@ -24,6 +24,8 @@ int parseNextToken(wchar_t const*& start, wchar_t const*& end)
   "/*".*"*/"                { start = end; return parseNextToken(start, end); }
 
   /* Keywords */
+  "if"                      { return TOK_IF; }
+  "else"                    { return TOK_ELSE; }
   "for"                     { return TOK_FOR; }
   "var"                     { return TOK_VAR; }
   "true"                    { return TOK_TRUE; }
