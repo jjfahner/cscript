@@ -277,40 +277,44 @@ for_init_statement ::= declaration_statement .
 //   condition
 //   jz label1 <patch 1>
 //
-//   statement (when condition == true)
+//   statement
 //   jmp label2 <patch 2>
 //
 //   label1:
-//   statement (when condition == false)
+//   statement
 //
 //   label2:
 
+%left LOWER_THAN_ELSE.
+%left ELSE.
+
 // Main if statement
-if_statement ::= IF if_cond if_true if_else .
+if_statement ::= IF if_cond statement if_else .
 
 // If condition
-if_cond ::= assignment_expression . {
+if_cond ::= LRBRACKET assignment_expression RRBRACKET . {
   pContext->PushByte(TOK_JZ);
   pContext->PushOffset(L"if_patch_1");
   pContext->PushQuad(0);
 }
 
-// If true part
-if_true ::= statement . {
-  pContext->PushByte(TOK_JMP);
-  pContext->PushOffset(L"if_patch_2");
-  pContext->PushQuad(0);
-  pContext->PushOffset(L"if_label_1");
-}
-
 // Empty else part
-if_else ::= . {
-  pContext->SetQuad(pContext->PopOffset(L"if_patch_1"), pContext->GetPos()); 
-  pContext->SetQuad(pContext->PopOffset(L"if_patch_2"), pContext->GetPos()); 
-  pContext->PopOffset(L"");
+if_else ::= . [LOWER_THAN_ELSE] {
+  pContext->SetQuad(pContext->PopOffset(L"if_patch_1"), pContext->GetPos());
 }
 
 // Filled else part
-if_else ::= ELSE statement . {
-  
+if_else ::= if_else_1 if_else_2 .
+
+// Prefix part
+if_else_1 ::= ELSE . {
+  pContext->PushByte(TOK_JMP);
+  pContext->PushOffset(L"if_patch_2");
+  pContext->PushQuad(0);
+  pContext->SetQuad(pContext->PopOffset(L"if_patch_1"), pContext->GetPos());
+}
+
+// Statement part
+if_else_2 ::= statement . {
+  pContext->SetQuad(pContext->PopOffset(L"if_patch_2"), pContext->GetPos());
 }
