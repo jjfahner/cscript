@@ -190,6 +190,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
+						Description="Generating parser"
 						CommandLine="lemon.exe cscript.in&#x0D;&#x0A;"
 						Outputs="cscript.c"
 					/>
