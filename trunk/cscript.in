@@ -85,7 +85,7 @@ expression_list_opt ::= .
 expression_list_opt ::= expression_list. 
 
 // Expression
-expression ::= assignment_expression. { PUSHB(TOK_POP); }
+expression ::= assignment_expression.
 
 // Optional expression
 expression_opt ::= .
@@ -110,7 +110,7 @@ cond_part ::= binary_expression . {
   pContext->PushOffset(L"cond_exp_1");
   PUSHQ(0);
 }
-cond_expr_true ::= assignment_expression . {
+cond_expr_true ::= expression . {
   PUSHB(TOK_JMP);
   pContext->PushOffset(L"cond_exp_2");
   PUSHQ(0);
@@ -155,7 +155,7 @@ postfix_expression ::= postfix_expression LRBRACKET expression_list_opt RRBRACKE
 // Primary expression
 primary_expression ::= literal.                         
 primary_expression ::= id_expression.                   
-primary_expression ::= LRBRACKET assignment_expression RRBRACKET.  
+primary_expression ::= LRBRACKET expression RRBRACKET.  
 
 // Literals
 literal ::= INTEGER(A). { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(A, Variant::stInt)); }
@@ -187,7 +187,7 @@ var_declaration ::= IDENTIFIER(A) . {
 }
 
 // Variable declaration with initialization
-var_declaration ::= IDENTIFIER(A) ASSIGN assignment_expression . { 
+var_declaration ::= IDENTIFIER(A) ASSIGN expression . { 
   PUSHB(TOK_VARINIT);  
   PUSHQ(pContext->AddVar(A)); 
 }
@@ -198,7 +198,8 @@ var_declaration ::= IDENTIFIER(A) ASSIGN assignment_expression . {
 //
 
 // Expression statement
-expression_statement ::= expression_opt SEMICOLON .
+expression_statement ::= expression_statement_opt SEMICOLON .
+expression_statement_opt ::= expression . { PUSHB(TOK_POP); }
 
 // Declaration statement
 declaration_statement ::= declaration SEMICOLON .
@@ -209,7 +210,7 @@ compound_start ::= LCBRACKET . { PUSHFRAME(); }
 compound_end   ::= RCBRACKET . { POPFRAME();  }
 
 // Print statement
-print_statement ::= PRINT LRBRACKET assignment_expression RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }
+print_statement ::= PRINT LRBRACKET expression RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -277,7 +278,7 @@ for_end ::= statement . {
 
 // For Condition
 //for_condition ::= .
-for_condition ::= assignment_expression .
+for_condition ::= expression .
 
 // Initializer
 for_init_statement ::= expression_statement .
@@ -307,7 +308,7 @@ for_init_statement ::= declaration_statement .
 if_statement ::= IF if_cond statement if_else .
 
 // If condition
-if_cond ::= LRBRACKET assignment_expression RRBRACKET . {
+if_cond ::= LRBRACKET expression RRBRACKET . {
   PUSHB(TOK_JZ);
   pContext->PushOffset(L"if_patch_1");
   PUSHQ(0);
