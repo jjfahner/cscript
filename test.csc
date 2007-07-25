@@ -47,3 +47,13 @@ a = 7 != 8;
 a = 8 >= 7;
 a = 8 > 7;
 
+// Test array functionality
+a[1] = "Cool";
+a[2] = "Stuff!\n";
+print(a[1] + " " + a[2]);
+
+// Test nested array functionality
+a[1]["a"] = "Even ";
+a[2]["b"] = "cooler ";
+a[3]["c"] = "stuff\n";
+print(a[1]["a"] + a[2]["b"] + a[3]["c"]);

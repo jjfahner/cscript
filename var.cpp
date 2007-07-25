@@ -104,7 +104,12 @@ Variant::MakeString()
 void 
 Variant::MakeMap()
 {
-  throw std::runtime_error("Invalid conversion");
+  if(m_type != stMap)
+  {
+    Clear();
+    m_map  = new MapType;
+    m_type = stMap;
+  }
 }
 
 int 
