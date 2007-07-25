@@ -24,6 +24,7 @@
 #define TOK_JMP           110
 #define TOK_JZ            111
 #define TOK_JNZ           112
+#define TOK_INDEX         113
 
 //
 // Define token structure

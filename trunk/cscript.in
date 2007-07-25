@@ -149,7 +149,7 @@ postfix_expression ::= primary_expression.
 postfix_expression ::= postfix_expression ADDADD. { PUSHB(TOK_POSTINC); }
 postfix_expression ::= postfix_expression SUBSUB. { PUSHB(TOK_POSTSUB); } 
 postfix_expression ::= postfix_expression DOT id_expression.  
-postfix_expression ::= postfix_expression LSBRACKET expression RSBRACKET.  
+postfix_expression ::= postfix_expression LSBRACKET expression RSBRACKET.  { PUSHB(TOK_INDEX); }
 postfix_expression ::= postfix_expression LRBRACKET expression_list_opt RRBRACKET.  
 
 // Primary expression

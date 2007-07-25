@@ -7,6 +7,10 @@
 #include <map>
 #include "ref.h"
 
+class Variant;
+
+typedef Ref<Variant> VariantRef;
+
 class Variant : public Ref<Variant>::Counted
 {
 public:
@@ -29,7 +33,7 @@ public:
   typedef bool          BoolType;
   typedef __int64       IntType;
   typedef std::wstring  StringType;
-  typedef std::map<Variant, Variant> MapType;
+  typedef std::map<Variant, VariantRef> MapType;
 
   //
   // Default construction
@@ -206,6 +210,17 @@ public:
   Variant const& operator /= (Variant const& value);
   Variant const& operator %= (Variant const& value);
 
+  //
+  // Map index
+  //
+  VariantRef const& operator [] (Variant const& index)
+  {
+    SetType(stMap);
+    VariantRef& ref = (*m_map)[index];
+    if(!ref) ref = VariantRef(new Variant);
+    return ref;
+  }
+
 private:
 
   //
@@ -335,12 +350,5 @@ operator && (Variant const& lhs, Variant const& rhs)
 {
   return lhs.AsBool() && rhs.AsBool();
 }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Ref holder
-//
-
-typedef Ref<Variant> VariantRef;
 
 #endif // #ifndef CSCRIPT_VAR_H

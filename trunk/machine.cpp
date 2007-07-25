@@ -157,6 +157,12 @@ void StackMachine::Run()
       PushLiteral(EatQuad(code));
       break;
 
+    case TOK_INDEX:
+      PopStack(1);
+      PopStack(0);
+      PushStack(R0[R1]);
+      break;
+
     case TOK_POP:
       m_stack.pop();
       break;
