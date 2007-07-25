@@ -1,4 +1,3 @@
-
 // Precedence parsing check
 if((1 - 2 - 3) != -4)
 {
@@ -8,19 +7,18 @@ if((1 - 2 - 3) != -4)
 print("Precedence test: " + 10 + "\n");
 
 // For test
-for(var a = 0; a < 10; ++a)
+for(var a = 0; a < 10000; ++a)
 {
   var a = a + 1;
-  if(a % 2 == 0)
+  if(a % 200 == 0)
   {
     print(".");
   }
-  else
-  {
-    print("+");
-  }
-  print(a % 2 ? "@" : "$");
 }
+print("\n");
+
+// Precedence
+print((1 == 0 ? "Not true" : 0 == 1 ? "Not true" : "True") + "\n");
 
 
 var piet = "Hallo wereld" + "!!!";
