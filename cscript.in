@@ -36,6 +36,7 @@
 #define PUSHQ(arg) (pContext->PushQuad(arg))
 #define PUSHFRAME()(pContext->PushFrame())
 #define POPFRAME() (pContext->PopFrame())
+#define PATCH(arg) (pContext->SetQuad(pContext->PopOffset(arg), pContext->GetPos()))
 
 } 
 //
@@ -74,6 +75,7 @@ statement ::= declaration_statement .
 statement ::= for_statement .
 statement ::= compound_statement .
 statement ::= if_statement .
+statement ::= while_statement .
 statement ::= print_statement . // Dirty hack :)
 
 // Expression list
@@ -265,14 +267,14 @@ for_cond ::= for_condition . {
 for_expr ::= expression_opt . { 
   PUSHB(TOK_JMP);
   PUSHQ(pContext->PopOffset(L"for_label1"));
-  pContext->SetQuad(pContext->PopOffset(L"for_patch_2"), pContext->GetPos());
+  PATCH(L"for_patch_2");
 }
 
 // For end
 for_end ::= statement . {
   PUSHB(TOK_JMP); 
   PUSHQ(pContext->PopOffset(L"for_label_2"));
-  pContext->SetQuad(pContext->PopOffset(L"for_patch_1"), pContext->GetPos());
+  PATCH(L"for_patch_1");
   POPFRAME();
 }
 
@@ -316,7 +318,7 @@ if_cond ::= LRBRACKET expression RRBRACKET . {
 
 // Empty else part
 if_else ::= . [LOWER_THAN_ELSE] {
-  pContext->SetQuad(pContext->PopOffset(L"if_patch_1"), pContext->GetPos());
+  PATCH(L"if_patch_1");
 }
 
 // Filled else part
@@ -327,10 +329,37 @@ if_else_1 ::= ELSE . {
   PUSHB(TOK_JMP);
   pContext->PushOffset(L"if_patch_2");
   PUSHQ(0);
-  pContext->SetQuad(pContext->PopOffset(L"if_patch_1"), pContext->GetPos());
+  PATCH(L"if_patch_1");
 }
 
 // Statement part
 if_else_2 ::= statement . {
-  pContext->SetQuad(pContext->PopOffset(L"if_patch_2"), pContext->GetPos());
+  PATCH(L"if_patch_2");
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While statement
+//
+
+// Basic while
+while_statement ::= while_start while_condition while_content .
+
+// While start
+while_start ::= WHILE . {
+  pContext->PushOffset(L"switch_cond_1");
+}
+
+// While condition
+while_condition ::= LRBRACKET expression RRBRACKET . {
+  PUSHB(TOK_JZ);
+  pContext->PushOffset(L"switch_cond_2");
+  PUSHQ(0);
+}
+
+// While statement
+while_content ::= statement . {
+  PUSHB(TOK_JMP);
+  PUSHQ(pContext->PopOffset(L"switch_cond_1"));
+  PATCH(L"switch_cond_2");
 }

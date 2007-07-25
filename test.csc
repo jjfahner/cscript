@@ -57,3 +57,13 @@ a[1]["a"] = "Even ";
 a[2]["b"] = "cooler ";
 a[3]["c"] = "stuff\n";
 print(a[1]["a"] + a[2]["b"] + a[3]["c"]);
+
+// Test while statement
+print("while: ");
+a[0][1] = 0;
+while(a[0][1] < 10)
+{
+  print(".");
+  ++a[0][1];
+}
+print("\n");
