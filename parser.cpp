@@ -6,8 +6,6 @@
 #include "cscript.c"
 #include "lexer.h"
 
-#include <fstream>
-
 Parser::Parser() : 
 m_code (0),
 m_size (0),
@@ -32,18 +30,46 @@ Parser::~Parser()
   }
 }
 
-void 
-Parser::Parse(std::wstring const& filename)
+Quad 
+Parser::ParseFile(std::wstring const& filename)
+{
+  // Create lexer for file
+  Lexer lexer;
+  lexer.SetFile(filename);
+
+  // Parse
+  return ParseImpl(lexer);
+}
+
+Quad
+Parser::ParseText(std::wstring const& text)
+{
+  // Create lexer for text
+  Lexer lexer;
+  lexer.SetText(text);
+
+  // Parse
+  return ParseImpl(lexer);
+}
+
+Quad
+Parser::ParseImpl(Lexer& lexer)
 {
   // Add nesting level
   ++m_depth;
 
-  // Start tokenizer
-  std::wifstream stream(filename.c_str(), std::ios::binary);
-  Lexer lexer(stream);
+  // In case of start, clean up
+  if(m_depth == 1)
+  {
+    // Clear literals
+    m_literals.clear();
+  }
 
   // Allocate parser
   void *pParser = CScriptParseAlloc(malloc);
+
+  // Store buffer position
+  Quad offset = GetPos();
 
   // Try block for parser memory management
   try 
@@ -70,17 +96,17 @@ Parser::Parse(std::wstring const& filename)
     throw;
   }
 
-  // Remove nesting level
-  --m_depth;
-
-  // Generate halt instruction
-  if(m_depth == 0)
+  // End of code
+  if(--m_depth == 0)
   {
     PushByte(TOK_HALT); 
 
     // Write literals to output
     WriteLiterals();
   }
+
+  // Done
+  return offset;
 }
 
 Byte* 

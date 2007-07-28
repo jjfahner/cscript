@@ -19,20 +19,57 @@ void version()
 void usage()
 {
   version();
-  std::wcout
-    << "Usage: cscript <scriptname>\n\n";
+  std::wcout << 
+    "Usage: cscript [options] file\n"
+//     "Options:\n"
+//     "-i interactive\t\tRuns cscript in interactive mode\n"
+//     "-c compile <src> <dst>\tCompiles src to dst\n"
+    ;
+}
+
+//
+// Interactive mode
+//
+int interactive()
+{
+  Parser parser;
+  StackMachine machine;
+
+  // Welcome message
+  version();
+  std::wcout << "CScript is running in interactive mode.\n\n";
+
+  // Run interactive loop
+  for(;;)
+  {
+    wchar_t buf[4000];
+    std::streamsize len = 4000;
+
+    std::wcout << L"> ";
+    std::wcin.getline(buf, len);
+
+    try
+    {
+      Quad offset = parser.ParseText(buf);
+      machine.Execute(parser.GetCode(), offset);
+    }
+    catch(std::exception const& e)
+    {
+      std::cout << e.what() << std::endl;
+    }
+  }
 }
 
 //
 // Unicode entry point
 //
-int wmain(int argc, wchar_t** argv)
+int cscript_main(int argc, wchar_t** argv)
 {
   // Check arguments
-  if(argc != 2)
+  if(argc == 1)
   {
-    usage();
-    return EXIT_FAILURE;
+    interactive();
+    return EXIT_SUCCESS;
   }
 
   // Run program
@@ -40,7 +77,7 @@ int wmain(int argc, wchar_t** argv)
   {
     // Parse input
     Parser parser;
-    parser.Parse(argv[1]);
+    parser.ParseFile(argv[1]);
 
     // Write code to file
   #ifdef _DEBUG
@@ -61,6 +98,18 @@ int wmain(int argc, wchar_t** argv)
     std::cout << "\nUnexpected exception\n";
   }
 
+  // Program succeeded
+	return EXIT_SUCCESS;
+}
+
+//
+// Unicode entry point
+//
+int wmain(int argc, wchar_t** argv)
+{
+  // Run cscript
+  int result = cscript_main(argc, argv);
+
   // Wait for user input
 #ifdef _DEBUG
   std::cout << "\n\nPress enter to quit";
@@ -68,5 +117,5 @@ int wmain(int argc, wchar_t** argv)
 #endif
 
   // Program succeeded
-	return EXIT_SUCCESS;
+	return result;
 }

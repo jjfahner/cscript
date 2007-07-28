@@ -4,10 +4,20 @@
 
 StackMachine::StackMachine()
 {
+  // Create initial stack frame
+  PushStackFrame();
 }
 
 StackMachine::~StackMachine()
 {
+  // Pop initial stack frame
+  PopStackFrame();
+
+  // Check stack
+  if(m_varStack.size() != 0)
+  {
+    throw std::runtime_error("Stack not empty");
+  }
 }
 
 inline Byte EatByte(Byte*& source)
@@ -124,7 +134,7 @@ StackMachine::PopRet()
 // Main loop
 //
 void 
-StackMachine::Execute(Byte* code)
+StackMachine::Execute(Byte* base, Quad offset)
 {
   // Create registers
   m_registers.clear();
@@ -139,13 +149,10 @@ StackMachine::Execute(Byte* code)
   #define R1 (*P1)
 
   // Code pointers
-  Byte* base = code;
+  Byte* code = base + offset;
 
   // Helper
   Quad temp;
-
-  // Create initial stack frame
-  PushStackFrame();
 
   // Execute code
   for(;;)

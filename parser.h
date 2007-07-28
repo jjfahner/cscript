@@ -9,27 +9,14 @@
 #include "types.h"
 #include "tokens.h"
 
-struct Function 
-{
-  typedef std::list<std::wstring> Names;
+//
+// Forward declares
+//
+class Lexer;
 
-  Function() :
-  m_offset (0)
-  {
-  }
-
-  Quad    m_offset;
-  Names   m_params;
-};
-
-struct PredVarLessExact
-{
-  bool operator () (Variant const& lhs, Variant const& rhs) const
-  {
-    return lhs.Compare(rhs, true) < 0;
-  }
-};
-
+//
+// Parser implementation
+//
 class Parser
 {
 public:
@@ -45,9 +32,18 @@ public:
   ~Parser();
 
   //
-  // Parse file contents. Function is reentrant
+  // Parse file contents. Function is reentrant.
+  // Code is added to existing buffer.
+  // Returns offset of first instruction.
   //
-  void Parse(std::wstring const& filename);
+  Quad ParseFile(std::wstring const& filename);
+
+  //
+  // Parse string contents. Function is reentrant.
+  // Code is added to existing buffer.
+  // Returns offset of first instruction.
+  //
+  Quad ParseText(std::wstring const& text);
 
   //
   // Bytecode info
@@ -109,12 +105,33 @@ private:
   };
 
   //
+  // Function information
+  //
+  struct Function 
+  {
+    typedef std::list<std::wstring> Names;
+
+    Function() :
+    m_offset (0)
+    {
+    }
+
+    Quad    m_offset;
+    Names   m_params;
+  };
+
+  //
   // Local typedefs
   //
-  typedef std::map<Variant, std::list<Quad>, PredVarLessExact> Literals;
+  typedef std::map<Variant, std::list<Quad>, Variant::LessExact> Literals;
   typedef std::list<StackFrame> Stack;
   typedef std::map<std::wstring, std::stack<Quad> > LabelStack;
   typedef std::map<std::wstring, Function> FunctionMap;
+
+  //
+  // Parse lexer contents. Returns offset of first instruction.
+  //
+  Quad ParseImpl(Lexer& lexer);
 
   //
   // Write literals to file
