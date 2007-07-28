@@ -8,7 +8,7 @@
 %name             CScriptParse
 %token_prefix     TOK_
 %token_type       { Token }
-%extra_argument   { Parser* pContext }
+%extra_argument   { Parser* p }
 
 // Error handlers
 %parse_failure {
@@ -32,13 +32,13 @@
 //
 // Some defines to make the code a bit cleaner
 //
-#define PUSHB(arg) (pContext->PushByte(arg))
-#define PUSHW(arg) (pContext->PushWord(arg))
-#define PUSHQ(arg) (pContext->PushQuad(arg))
-#define PUSHFRAME()(pContext->PushFrame())
-#define POPFRAME() (pContext->PopFrame())
-#define PATCH(arg) (pContext->SetQuad(pContext->PopOffset(arg), pContext->GetPos()))
-#define FUN(arg)   (pContext->GetFunction(arg))
+#define PUSHB(arg) (p->PushByte(arg))
+#define PUSHW(arg) (p->PushWord(arg))
+#define PUSHQ(arg) (p->PushQuad(arg))
+#define PUSHFRAME()(p->PushFrame())
+#define POPFRAME() (p->PopFrame())
+#define PATCH(arg) (p->SetQuad(p->PopOffset(arg), p->GetPos()))
+#define FUN(arg)   (p->GetFunction(arg))
 
 } 
 //
@@ -61,7 +61,7 @@
 
 
 // Start symbol
-translation_unit ::= statement_sequence_opt. { PUSHB(TOK_HALT); }
+translation_unit ::= statement_sequence_opt.
 
 // Statement sequence
 statement_sequence ::= statement. 
@@ -104,17 +104,17 @@ conditional_expression ::= cond_part QUESTION cond_expr_true COLON cond_expr_fal
 // Contitional parts
 cond_part ::= binary_expression . {
   PUSHB(TOK_JZ);
-  pContext->PushOffset(L"cond_exp_1");
+  p->PushOffset(L"cond_exp_1");
   PUSHQ(0);
 }
 cond_expr_true ::= expression . {
   PUSHB(TOK_JMP);
-  pContext->PushOffset(L"cond_exp_2");
+  p->PushOffset(L"cond_exp_2");
   PUSHQ(0);
-  pContext->SetQuad(pContext->PopOffset(L"cond_exp_1"), pContext->GetPos());
+  p->SetQuad(p->PopOffset(L"cond_exp_1"), p->GetPos());
 }
 cond_expr_false ::= assignment_expression . {
-  pContext->SetQuad(pContext->PopOffset(L"cond_exp_2"), pContext->GetPos());
+  p->SetQuad(p->PopOffset(L"cond_exp_2"), p->GetPos());
 }
 
 // Binary expressions
@@ -155,15 +155,15 @@ primary_expression ::= id_expression.
 primary_expression ::= LRBRACKET expression RRBRACKET.  
 
 // Literals
-literal ::= INTEGER(A). { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(A, Variant::stInt)); }
-literal ::= REAL(A).    { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(A, Variant::stInt)); }
-literal ::= STRING(A).  { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(A, Variant::stString)); }
-literal ::= TRUE.       { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(Variant(true))); }
-literal ::= FALSE.      { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(Variant(false))); }
-literal ::= NULL.       { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(Variant())); }
+literal ::= INTEGER(A). { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(A, Variant::stInt)); }
+literal ::= REAL(A).    { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(A, Variant::stInt)); }
+literal ::= STRING(A).  { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(A, Variant::stString)); }
+literal ::= TRUE.       { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(Variant(true))); }
+literal ::= FALSE.      { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(Variant(false))); }
+literal ::= NULL.       { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(Variant())); }
 
 // Id expression
-id_expression ::= IDENTIFIER(A). { PUSHB(TOK_LVALUE); PUSHQ(pContext->GetVar(A)); } 
+id_expression ::= IDENTIFIER(A). { PUSHB(TOK_LVALUE); PUSHQ(p->GetVar(A)); } 
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -187,7 +187,7 @@ argument_list ::= arguments .
 
 // Return statements - leaves return expression on the stack
 return_statement ::= RETURN expression SEMICOLON . { PUSHB(TOK_RET); }
-return_statement ::= RETURN SEMICOLON . { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(Variant())); PUSHB(TOK_RET); }
+return_statement ::= RETURN SEMICOLON . { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(Variant())); PUSHB(TOK_RET); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -205,23 +205,23 @@ declaration_sequence ::= declaration_sequence COMMA var_declaration .
 // Variable declaration
 var_declaration ::= IDENTIFIER(A) . { 
   PUSHB(TOK_VAR);      
-  PUSHQ(pContext->AddVar(A)); 
+  PUSHQ(p->AddVar(A)); 
 }
 
 // Variable declaration with initialization
 var_declaration ::= IDENTIFIER(A) ASSIGN expression . { 
   PUSHB(TOK_VARINIT);  
-  PUSHQ(pContext->AddVar(A)); 
+  PUSHQ(p->AddVar(A)); 
 }
 
 // Function declaration
 function_declaration ::= function_name LRBRACKET parameter_list parameters_done RRBRACKET function_body .
 
 // Function name
-function_name ::= IDENTIFIER(A) . {	pContext->PushFunction(A); }
+function_name ::= IDENTIFIER(A) . {	p->PushFunction(A); }
 
 // Single parameter
-parameter ::= IDENTIFIER(A) . { pContext->AddParam(A); }
+parameter ::= IDENTIFIER(A) . { p->AddParam(A); }
 
 // One or more paremeters
 parameters ::= parameter .
@@ -232,7 +232,7 @@ parameter_list ::= .
 parameter_list ::= parameters .
 
 // Helper - generate code for body
-parameters_done ::= . { pContext->GenFunProlog(); }
+parameters_done ::= . { p->GenFunProlog(); }
 
 // Function-level statements
 function_statement ::= statement .
@@ -248,7 +248,7 @@ function_block_start ::= LCBRACKET . { PUSHFRAME(); }
 function_block_end   ::= RCBRACKET . { POPFRAME();  }
 
 // Function body
-function_body ::= function_block . { pContext->PopFunction(); }
+function_body ::= function_block . { p->PopFunction(); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -268,7 +268,7 @@ compound_start ::= LCBRACKET . { PUSHFRAME(); }
 compound_end   ::= RCBRACKET . { POPFRAME();  }
 
 // Include statement
-include_statement ::= INCLUDE expression SEMICOLON . { /*pContext->Include(A);*/ }
+include_statement ::= INCLUDE STRING(A) SEMICOLON . { p->Parse(A); }
 
 // Print statement
 print_statement ::= PRINT LRBRACKET argument_list RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }
@@ -308,31 +308,31 @@ for_start ::= FOR . {
 
 // For init statement
 for_init ::= for_init_statement . { 
-  pContext->PushOffset(L"for_label1"); 
+  p->PushOffset(L"for_label1"); 
 }
 
 // For condition
 for_cond ::= for_condition . { 
   PUSHB(TOK_JZ);
-  pContext->PushOffset(L"for_patch_1");
+  p->PushOffset(L"for_patch_1");
   PUSHQ(0);
   PUSHB(TOK_JMP);
-  pContext->PushOffset(L"for_patch_2");
+  p->PushOffset(L"for_patch_2");
   PUSHQ(0);
-  pContext->PushOffset(L"for_label_2"); 
+  p->PushOffset(L"for_label_2"); 
 }
 
 // For expression
 for_expr ::= expression_opt . { 
   PUSHB(TOK_JMP);
-  PUSHQ(pContext->PopOffset(L"for_label1"));
+  PUSHQ(p->PopOffset(L"for_label1"));
   PATCH(L"for_patch_2");
 }
 
 // For end
 for_end ::= statement . {
   PUSHB(TOK_JMP); 
-  PUSHQ(pContext->PopOffset(L"for_label_2"));
+  PUSHQ(p->PopOffset(L"for_label_2"));
   PATCH(L"for_patch_1");
   POPFRAME();
 }
@@ -371,7 +371,7 @@ if_statement ::= IF if_cond statement if_else .
 // If condition
 if_cond ::= LRBRACKET expression RRBRACKET . {
   PUSHB(TOK_JZ);
-  pContext->PushOffset(L"if_patch_1");
+  p->PushOffset(L"if_patch_1");
   PUSHQ(0);
 }
 
@@ -386,7 +386,7 @@ if_else ::= if_else_1 if_else_2 .
 // Prefix part
 if_else_1 ::= ELSE . {
   PUSHB(TOK_JMP);
-  pContext->PushOffset(L"if_patch_2");
+  p->PushOffset(L"if_patch_2");
   PUSHQ(0);
   PATCH(L"if_patch_1");
 }
@@ -406,19 +406,19 @@ while_statement ::= while_start while_condition while_content .
 
 // While start
 while_start ::= WHILE . {
-  pContext->PushOffset(L"switch_cond_1");
+  p->PushOffset(L"switch_cond_1");
 }
 
 // While condition
 while_condition ::= LRBRACKET expression RRBRACKET . {
   PUSHB(TOK_JZ);
-  pContext->PushOffset(L"switch_cond_2");
+  p->PushOffset(L"switch_cond_2");
   PUSHQ(0);
 }
 
 // While statement
 while_content ::= statement . {
   PUSHB(TOK_JMP);
-  PUSHQ(pContext->PopOffset(L"switch_cond_1"));
+  PUSHQ(p->PopOffset(L"switch_cond_1"));
   PATCH(L"switch_cond_2");
 }

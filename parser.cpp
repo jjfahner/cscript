@@ -9,7 +9,8 @@ m_code (0),
 m_size (0),
 m_used (0),
 m_vnum (0),
-m_fun  (0)
+m_fun  (0),
+m_depth(0)
 {
   // Base frame
   PushFrame();
@@ -30,6 +31,9 @@ Parser::~Parser()
 void 
 Parser::Parse(std::wstring const& filename)
 {
+  // Add nesting level
+  ++m_depth;
+
   // Start tokenizer
   std::wifstream stream(filename.c_str(), std::ios::binary);
   Lexer lexer(stream);
@@ -51,6 +55,15 @@ Parser::Parse(std::wstring const& filename)
 
   // Destroy parser
   CScriptParseFree(pParser, free);
+
+  // Remove nesting level
+  --m_depth;
+
+  // Generate halt instruction
+  if(m_depth == 0)
+  {
+    PushByte(TOK_HALT); 
+  }
 }
 
 Byte* 

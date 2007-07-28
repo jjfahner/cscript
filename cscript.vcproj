@@ -291,6 +291,10 @@
 			RelativePath=".\test.csc"
 			>
 		</File>
+		<File
+			RelativePath=".\test.csi"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

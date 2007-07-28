@@ -1,19 +1,4 @@
-function doPrint(a)
-{
-  var a = a, b;
-  print(a);
-  return a;
-}
-
-function mul(a, b)
-{
-  return a*b;
-}
-
-function div(a, b)
-{
-  return a/b;
-}
+include "test.csi";
 
 // Precedence parsing check
 if((1 - 2 - 3) != -4)
