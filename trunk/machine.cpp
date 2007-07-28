@@ -221,7 +221,7 @@ StackMachine::Execute(Byte* base, Quad offset)
       break;
 
     case TOK_CALLN:
-      ExecNative(EatQuad(code), m_stack);
+      ExecNative(EatQuad(code), *this);
       break;        
 
     case TOK_RET:

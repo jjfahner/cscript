@@ -27,8 +27,6 @@ public:
   //
   void Execute(Byte* code, Quad offset = 0);
 
-protected:
-
   //
   // Variable management
   //
@@ -48,22 +46,26 @@ protected:
   inline void PushLiteral(Byte* address);
 
   //
-  // Variables
-  //
-  typedef std::map<Quad, VariantRef> StackFrame;
-  typedef std::stack<StackFrame> VarStack;
-  VarStack m_varStack;
-
-  //
   // Push a new stackframe
   //
   inline void PushStackFrame();
   inline void PopStackFrame();
 
   //
-  // Pop top of stack into register
+  // Size of stack
+  //
+  inline Quad StackSize() const;
+
+  //
+  // Top of stack
+  //
+  inline VariantRef const& StackTop() const;
+
+  //
+  // Pop top of stack
   //
   inline void PopStack(size_t index);
+  inline VariantRef PopStack();
 
   //
   // Push onto stack
@@ -76,6 +78,15 @@ protected:
   //
   inline void PushRet(Quad offset);
   inline Quad PopRet();
+
+protected:
+
+  //
+  // Variables
+  //
+  typedef std::map<Quad, VariantRef> StackFrame;
+  typedef std::stack<StackFrame> VarStack;
+  VarStack m_varStack;
 
   //
   // Stack
@@ -93,5 +104,31 @@ protected:
   std::stack<Quad> m_return;
 
 };
+
+inline Quad 
+StackMachine::StackSize() const
+{
+  return (Quad)m_stack.size();
+}
+
+inline VariantRef const& 
+StackMachine::StackTop() const
+{
+#ifdef _DEBUG
+  if(m_stack.size() == 0)
+  {
+    throw std::runtime_error("Attempt to read top from empty stack");
+  }
+#endif
+  return m_stack.top();
+}
+
+inline VariantRef 
+StackMachine::PopStack()
+{
+  VariantRef ref = StackTop();
+  m_stack.pop();
+  return ref;
+}
 
 #endif // #ifndef CSCRIPT_MACHINE_H

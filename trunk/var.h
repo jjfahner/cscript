@@ -93,6 +93,20 @@ public:
   }
 
   //
+  // Other integers
+  //
+  Variant(int value) :
+  m_int   (value),
+  m_type  (stInt)
+  {
+  }
+  Variant(size_t value) :
+  m_int   (value),
+  m_type  (stInt)
+  {
+  }
+
+  //
   // String construction
   //
   Variant(StringType const& value) :
