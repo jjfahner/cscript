@@ -24,7 +24,7 @@ public:
   //
   // Execute code
   //
-  void Run();
+  void Execute();
 
 protected:
 
@@ -64,6 +64,12 @@ protected:
   inline void PushStack(Variant const& value);
 
   //
+  // Return stack
+  //
+  inline void PushRet(Quad offset);
+  inline Quad PopRet();
+
+  //
   // Stack
   //
   std::stack<VariantRef> m_stack;
@@ -72,6 +78,11 @@ protected:
   // Register
   //
   std::vector<VariantRef> m_registers;
+
+  //
+  // Return stack
+  //
+  std::stack<Quad> m_return;
 
 };
 

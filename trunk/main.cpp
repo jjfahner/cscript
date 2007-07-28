@@ -37,7 +37,7 @@ void run()
 
   // Execute code
   StackMachine machine(context);
-  machine.Run();
+  machine.Execute();
 }
 
 int main()
