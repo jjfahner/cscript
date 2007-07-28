@@ -77,10 +77,10 @@ Parser::Parse(std::wstring const& filename)
   if(m_depth == 0)
   {
     PushByte(TOK_HALT); 
-  }
 
-  // Write literals to output
-  WriteLiterals();
+    // Write literals to output
+    WriteLiterals();
+  }
 }
 
 Byte* 
@@ -331,28 +331,18 @@ Parser::WriteLiterals()
   ie = m_literals.end();
   for(; it != ie; ++it)
   {
-    // Store offset
+    // Reserve space for literal
+    size_t len = it->first.WriteLength();
+    Reserve(m_used + len);
+
+    // Write value
     Quad pos = GetPos();
+    it->first.Write(m_code + m_used);
 
-    // Write literal
-    switch(it->first.GetType())
-    {
-    case Variant::stNull:
-      break;
-    case Variant::stBool:
-      WriteBool(it->first.AsBool());
-      break;
-    case Variant::stInt:
-      WriteInt(it->first.AsInt());
-      break;
-    case Variant::stString:
-      WriteString(it->first.AsString());
-      break;
-    default:
-      throw std::runtime_error("Invalid literal");
-    }
+    // Advance position
+    m_used += len;
 
-    // Patch literal
+    // Patch into code
     std::list<Quad>::iterator pi, pe;
     pi = it->second.begin();
     pe = it->second.end();
@@ -361,31 +351,4 @@ Parser::WriteLiterals()
       SetQuad(*pi, pos);
     }
   }
-}
-
-void 
-Parser::WriteBool(Variant::BoolType const& value)
-{
-  PushByte(Variant::stBool);
-  PushByte(value);
-}
-
-void 
-Parser::WriteInt(Variant::IntType const& value)
-{
-  PushByte(Variant::stInt);
-  Reserve(m_used + sizeof(Variant::IntType));
-  memcpy(m_code + m_used, &value, sizeof(Variant::IntType));
-  m_used += sizeof(Variant::IntType);
-}
-
-void 
-Parser::WriteString(Variant::StringType const& value)
-{
-  PushByte(Variant::stString);
-  size_t len = value.length();
-  size_t num = (len + 1) * 2;
-  Reserve(m_used + num);
-  wcscpy((wchar_t*)(m_code + m_used), value.c_str());
-  m_used += num;
 }

@@ -120,9 +120,6 @@ private:
   // Write literals to file
   //
   void WriteLiterals();
-  void WriteBool(Variant::BoolType const&);
-  void WriteInt(Variant::IntType const&);
-  void WriteString(Variant::StringType const&);
 
   //
   // Resize code buffer
