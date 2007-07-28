@@ -6,11 +6,8 @@
 #include <algorithm>
 
 #include "var.h"
+#include "types.h"
 #include "tokens.h"
-
-typedef unsigned __int8   Byte;
-typedef unsigned __int16  Word;
-typedef unsigned __int32  Quad;
 
 struct Function 
 {
@@ -23,6 +20,14 @@ struct Function
 
   Quad    m_offset;
   Names   m_params;
+};
+
+struct PredVarLessExact
+{
+  bool operator () (Variant const& lhs, Variant const& rhs) const
+  {
+    return lhs.Compare(rhs, true) < 0;
+  }
 };
 
 class Parser
@@ -57,14 +62,8 @@ public:
   void PushByte(Byte ch);
   void PushWord(Word sh);
   void PushQuad(Quad ln);
+  void PushRVal(Variant const&);
   void SetQuad(Quad offset, Quad value);
-
-  //
-  // Literals
-  //
-  Quad AddLiteral(Variant const& value);
-  Quad AddLiteral(std::wstring const& value, Variant::SubTypes type);
-  Variant const& GetLiteral(Quad id) const;
 
   //
   // Variables
@@ -112,13 +111,21 @@ private:
   //
   // Local typedefs
   //
-  typedef std::map<Quad, Variant> Literals;
+  typedef std::map<Variant, std::list<Quad>, PredVarLessExact> Literals;
   typedef std::list<StackFrame> Stack;
   typedef std::map<std::wstring, std::stack<Quad> > LabelStack;
   typedef std::map<std::wstring, Function> FunctionMap;
 
   //
-  // Used for resizing code buffer
+  // Write literals to file
+  //
+  void WriteLiterals();
+  void WriteBool(Variant::BoolType const&);
+  void WriteInt(Variant::IntType const&);
+  void WriteString(Variant::StringType const&);
+
+  //
+  // Resize code buffer
   //
   void Reserve(size_t size);
 

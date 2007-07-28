@@ -1,11 +1,8 @@
-#include "machine.h"
 #include "tokens.h"
-
+#include "machine.h"
 #include <iostream>
-#include <crtdbg.h>
 
-StackMachine::StackMachine(Parser const& context) :
-m_Parser (context)
+StackMachine::StackMachine()
 {
 }
 
@@ -77,9 +74,11 @@ StackMachine::PushVar(Quad id)
 }
 
 void
-StackMachine::PushLiteral(Quad id)
+StackMachine::PushLiteral(Byte* address)
 {
-  m_stack.push(VariantRef(new Variant(m_Parser.GetLiteral(id))));
+  VariantRef ref(new Variant);
+  ref->Read(address);
+  m_stack.push(ref);
 }
 
 inline void 
@@ -125,7 +124,7 @@ StackMachine::PopRet()
 // Main loop
 //
 void 
-StackMachine::Execute()
+StackMachine::Execute(Byte* code)
 {
   // Create registers
   m_registers.clear();
@@ -140,8 +139,7 @@ StackMachine::Execute()
   #define R1 (*P1)
 
   // Code pointers
-  Byte* base = m_Parser.GetCode();
-  Byte* code = base;
+  Byte* base = code;
 
   // Helper
   Quad temp;
@@ -172,7 +170,7 @@ StackMachine::Execute()
       break;
 
     case TOK_RVALUE:
-      PushLiteral(EatQuad(code));
+      PushLiteral(base + EatQuad(code));
       break;
 
     case TOK_INDEX:

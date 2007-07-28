@@ -283,6 +283,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\types.h"
+				>
+			</File>
+			<File
 				RelativePath=".\var.h"
 				>
 			</File>

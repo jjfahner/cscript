@@ -155,12 +155,12 @@ primary_expression ::= id_expression.
 primary_expression ::= LRBRACKET expression RRBRACKET.  
 
 // Literals
-literal ::= INTEGER(A). { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(A, Variant::stInt)); }
-literal ::= REAL(A).    { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(A, Variant::stInt)); }
-literal ::= STRING(A).  { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(A, Variant::stString)); }
-literal ::= TRUE.       { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(Variant(true))); }
-literal ::= FALSE.      { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(Variant(false))); }
-literal ::= NULL.       { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(Variant())); }
+literal ::= INTEGER(A) . { p->PushRVal(Variant(std::wstring(A), Variant::stInt)); }
+literal ::= REAL(A) .    { p->PushRVal(Variant(std::wstring(A), Variant::stInt)); }
+literal ::= STRING(A) .  { p->PushRVal(Variant(std::wstring(A), Variant::stString)); }
+literal ::= TRUE .       { p->PushRVal(Variant(true)); }
+literal ::= FALSE .      { p->PushRVal(Variant(false)); }
+literal ::= NULL .       { p->PushRVal(Variant()); }
 
 // Id expression
 id_expression ::= IDENTIFIER(A). { PUSHB(TOK_LVALUE); PUSHQ(p->GetVar(A)); } 
@@ -187,7 +187,7 @@ argument_list ::= arguments .
 
 // Return statements - leaves return expression on the stack
 return_statement ::= RETURN expression SEMICOLON . { PUSHB(TOK_RET); }
-return_statement ::= RETURN SEMICOLON . { PUSHB(TOK_RVALUE); PUSHQ(p->AddLiteral(Variant())); PUSHB(TOK_RET); }
+return_statement ::= RETURN SEMICOLON . { p->PushRVal(Variant()); PUSHB(TOK_RET); }
 
 //////////////////////////////////////////////////////////////////////////
 //
