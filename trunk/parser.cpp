@@ -41,20 +41,30 @@ Parser::Parse(std::wstring const& filename)
   // Allocate parser
   void *pParser = CScriptParseAlloc(malloc);
 
-  //CScriptParseTrace(stdout, "->");
-
-  // Invoke parser for every token
-  Token token;
-  while(lexer.Lex(token))
+  // Try block for parser memory management
+  try 
   {
-    CScriptParse(pParser, token.m_type, token, this);
-  }
-  
-  // Empty token to finalize parse
-  CScriptParse(pParser, 0, token, this);
+    // Run parser loop
+    Token token;
+    while(lexer.Lex(token))
+    {
+      CScriptParse(pParser, token.m_type, token, this);
+    }
+    
+    // Empty token to finalize parse
+    CScriptParse(pParser, 0, token, this);
 
-  // Destroy parser
-  CScriptParseFree(pParser, free);
+    // Destroy parser
+    CScriptParseFree(pParser, free);
+  }
+  catch(...)
+  {
+    // Destroy parser
+    CScriptParseFree(pParser, free);
+  
+    // Rethrow exception
+    throw;
+  }
 
   // Remove nesting level
   --m_depth;
