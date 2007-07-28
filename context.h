@@ -3,6 +3,7 @@
 
 #include <list>
 #include <stack>
+#include <algorithm>
 
 #include "var.h"
 #include "tokens.h"
@@ -10,6 +11,19 @@
 typedef unsigned __int8   Byte;
 typedef unsigned __int16  Word;
 typedef unsigned __int32  Quad;
+
+struct Function 
+{
+  typedef std::list<std::wstring> Names;
+
+  Function() :
+  m_offset (0)
+  {
+  }
+
+  Quad    m_offset;
+  Names   m_params;
+};
 
 class ParseContext
 {
@@ -19,7 +33,8 @@ public:
   m_code (0),
   m_size (0),
   m_used (0),
-  m_vnum (0)
+  m_vnum (0),
+  m_fun  (0)
   {
     // Base frame
     PushFrame();
@@ -128,14 +143,14 @@ public:
     StackFrame& frame = m_stack.front();
     
     // Check whether it exists
-    if(frame.count(name))
+    if(frame.m_vars.count(name))
     {
       throw std::runtime_error("Duplicate variable name");
     }
 
     // Insert into stack frame
     Quad index = ++m_vnum;
-    frame[name] = index;
+    frame.m_vars[name] = index;
 
     // Return index
     return index;
@@ -146,10 +161,14 @@ public:
     Stack::iterator frame = m_stack.begin();
     for(; frame != m_stack.end(); ++frame)
     {
-      StackFrame::iterator it = frame->find(name);
-      if(it != frame->end())
+      FrameVars::iterator it = frame->m_vars.find(name);
+      if(it != frame->m_vars.end())
       {
         return it->second;
+      }
+      if(frame->m_boundary)
+      {
+        break;
       }
     }
     throw std::runtime_error("Undeclared variable");
@@ -160,10 +179,10 @@ public:
   // Stack frames
   //
 
-  void PushFrame()
+  void PushFrame(bool boundary = false)
   {
     // Push new frame on the stack
-    m_stack.push_front(StackFrame());
+    m_stack.push_front(StackFrame(boundary));
   }
 
   void PopFrame()
@@ -171,8 +190,8 @@ public:
     StackFrame& frame = m_stack.front();
     
     // Generate stackframe cleanup
-    StackFrame::iterator it = frame.begin();
-    StackFrame::iterator ie = frame.end();
+    FrameVars::iterator it = frame.m_vars.begin();
+    FrameVars::iterator ie = frame.m_vars.end();
     for(; it != ie; ++it)
     {
       PushByte(TOK_UNDEF);
@@ -196,6 +215,103 @@ public:
     return offset;
   }
 
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Functions
+  //
+
+  void PushFunction(std::wstring const& name)
+  {
+    // Disallow nested functions
+    if(m_fun)
+    {
+      throw std::runtime_error("Function declarations may not be nested");
+    }
+    
+    // Check for declaration of function
+    if(m_functions.count(name))
+    {
+      throw std::runtime_error("Duplicate function declaration");
+    }
+
+    // Generate a jump for top-level code
+    PushByte(TOK_JMP);
+    PushOffset(L"function_declaration");
+    PushQuad(0);
+
+    // Create new function
+    m_fun = &m_functions[name];
+
+    // Set offset
+    m_fun->m_offset = GetPos();
+  }
+
+  void GenFunProlog()
+  {
+    // Start new stackframe
+    PushFrame(true);
+
+    // Generate variables for parameters
+    Function::Names::reverse_iterator it, ie;
+    it = m_fun->m_params.rbegin();
+    ie = m_fun->m_params.rend();
+    for(; it != ie; ++it)
+    {
+      PushByte(TOK_VARINIT);
+      PushQuad(AddVar(*it));
+    }
+  }
+
+  void PopFunction()
+  {
+    // Check function
+    if(m_fun == 0)
+    {
+      throw std::runtime_error("Attempt to leave a nonexistent function");
+    }
+
+    // Remove stackframe
+    PopFrame();
+
+    // Push return code
+    PushByte(TOK_RVALUE);
+    PushQuad(AddLiteral(Variant()));
+    PushByte(TOK_RET);
+
+    // Resolve the jump
+    SetQuad(PopOffset(L"function_declaration"), GetPos());
+
+    // Release function
+    m_fun = 0;
+  }
+
+  Quad GetFunction(std::wstring const& name)
+  {
+    // Find function
+    FunctionMap::iterator it = m_functions.find(name);
+    if(it == m_functions.end())
+    {
+      throw std::runtime_error("Function undefined");
+    }
+
+    // Return offset
+    return it->second.m_offset;
+  }
+
+  void AddParam(std::wstring const& name)
+  {
+    // Check for duplicates
+    if(std::find(m_fun->m_params.begin(), 
+                 m_fun->m_params.end(), name) != 
+                 m_fun->m_params.end())
+    {
+      throw std::runtime_error("Duplicate parameter name");
+    }
+
+    // Add to list of parameters
+    m_fun->m_params.push_back(name);
+  }
+
 private:
 
   //
@@ -215,7 +331,16 @@ private:
   //
   // Stack frame
   //
-  typedef std::map<std::wstring, Quad> StackFrame;
+  typedef std::map<std::wstring, Quad> FrameVars;
+  struct StackFrame
+  {
+    StackFrame(bool boundary) : 
+    m_boundary (boundary)
+    {
+    }
+    bool      m_boundary;
+    FrameVars m_vars;
+  };
   typedef std::list<StackFrame> Stack;
   Stack m_stack;
 
@@ -224,6 +349,13 @@ private:
   //
   typedef std::map<std::wstring, std::stack<Quad> > LabelStack;
   LabelStack m_labels;
+
+  //
+  // Functions
+  //
+  typedef std::map<std::wstring, Function> FunctionMap;
+  FunctionMap m_functions;
+  Function*   m_fun;
 
  };
 

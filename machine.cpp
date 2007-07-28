@@ -95,6 +95,20 @@ StackMachine::PushStack(Variant const& value)
   m_stack.push(VariantRef(new Variant(value)));
 }
 
+inline void 
+StackMachine::PushRet(Quad offset)
+{
+  m_return.push(offset);
+}
+
+inline Quad 
+StackMachine::PopRet()
+{
+  Quad top = m_return.top();
+  m_return.pop();
+  return top;
+}
+
 //
 // Alias registers
 //
@@ -113,7 +127,8 @@ StackMachine::PushStack(Variant const& value)
 //
 // Main loop
 //
-void StackMachine::Run()
+void 
+StackMachine::Execute()
 {
   // Create registers
   m_registers.clear();
@@ -139,7 +154,7 @@ void StackMachine::Run()
     {
     case TOK_HALT:
       return;
-    
+
     case TOK_VAR:      
       AddVar(EatQuad(code));
       break;
@@ -187,6 +202,16 @@ void StackMachine::Run()
       temp = EatQuad(code);
       if(R0.AsBool())
         code = base + temp;
+      break;
+
+    case TOK_CALL:
+      temp = EatQuad(code);
+      PushRet((Quad)(code - base));      
+      code = base + temp;
+      break;
+
+    case TOK_RET:
+      code = base + PopRet();
       break;
 
     case TOK_ADDOP:

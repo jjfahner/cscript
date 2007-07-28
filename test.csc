@@ -1,10 +1,30 @@
+function doPrint(a)
+{
+  print(a);
+  return;
+  //return a;
+}
+
+function mul(a, b)
+{
+  return a*b;
+}
+
+//var g;
+//return g;
+
+function div(a, b)
+{
+  return a/b;
+}
+
 // Precedence parsing check
 if((1 - 2 - 3) != -4)
 {
   print("Precedence check failed\n");
 }
 
-print("Precedence test: " + 10 + "\n");
+print("Precedence test: " + div(mul(10, 2), 4) + "\n");
 
 // For test
 for(var a = 0; a < 10000; ++a)
@@ -12,7 +32,7 @@ for(var a = 0; a < 10000; ++a)
   var a = a + 1;
   if(a % 200 == 0)
   {
-    print(".");
+    doPrint(".");
   }
 }
 print("\n");
@@ -63,7 +83,7 @@ print("while: ");
 a[0][1] = 0;
 while(a[0][1] < 10)
 {
-  print(".");
+  doPrint(".");
   ++a[0][1];
 }
 print("\n");

@@ -27,11 +27,13 @@ int parseNextToken(wchar_t*& start, wchar_t*& end)
   "if"                      { return TOK_IF; }
   "else"                    { return TOK_ELSE; }
   "for"                     { return TOK_FOR; }
+  "function"				{ return TOK_FUN; }
   "var"                     { return TOK_VAR; }
   "true"                    { return TOK_TRUE; }
   "false"                   { return TOK_FALSE; }
   "null"                    { return TOK_NULL; }
   "print"                   { return TOK_PRINT; }
+  "return"                  { return TOK_RETURN; }
   "while"                   { return TOK_WHILE; }
 
   /* Identifiers */

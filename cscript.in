@@ -37,6 +37,7 @@
 #define PUSHFRAME()(pContext->PushFrame())
 #define POPFRAME() (pContext->PopFrame())
 #define PATCH(arg) (pContext->SetQuad(pContext->PopOffset(arg), pContext->GetPos()))
+#define FUN(arg)   (pContext->GetFunction(arg))
 
 } 
 //
@@ -77,14 +78,6 @@ statement ::= compound_statement .
 statement ::= if_statement .
 statement ::= while_statement .
 statement ::= print_statement . // Dirty hack :)
-
-// Expression list
-expression_list ::= assignment_expression. 
-expression_list ::= expression_list COMMA assignment_expression. 
-
-// Optional expression list
-expression_list_opt ::= . 
-expression_list_opt ::= expression_list. 
 
 // Expression
 expression ::= assignment_expression.
@@ -152,7 +145,7 @@ postfix_expression ::= postfix_expression ADDADD. { PUSHB(TOK_POSTINC); }
 postfix_expression ::= postfix_expression SUBSUB. { PUSHB(TOK_POSTSUB); } 
 postfix_expression ::= postfix_expression DOT id_expression.  
 postfix_expression ::= postfix_expression LSBRACKET expression RSBRACKET.  { PUSHB(TOK_INDEX); }
-postfix_expression ::= postfix_expression LRBRACKET expression_list_opt RRBRACKET.  
+postfix_expression ::= function_call .
 
 // Primary expression
 primary_expression ::= literal.                         
@@ -172,11 +165,36 @@ id_expression ::= IDENTIFIER(A). { PUSHB(TOK_LVALUE); PUSHQ(pContext->GetVar(A))
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Function calls
+//
+
+// Function call
+function_call ::= IDENTIFIER(A) LRBRACKET argument_list RRBRACKET . { PUSHB(TOK_CALL); PUSHQ(FUN(A)); }
+
+// An argument is any expression. If expression lists become part
+// of the language, this will have to be changed to something else.
+argument ::= expression .
+
+// Argument list containing 1 or more arguments
+arguments ::= argument .
+arguments ::= arguments COMMA argument . 
+
+// Argument list
+argument_list ::= . 
+argument_list ::= arguments . 
+
+// Return statements - leaves return expression on the stack
+return_statement ::= RETURN expression SEMICOLON . { PUSHB(TOK_RET); }
+return_statement ::= RETURN SEMICOLON . { PUSHB(TOK_RVALUE); PUSHQ(pContext->AddLiteral(Variant())); PUSHB(TOK_RET); }
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Declarations
 //
 
 // Declaration starting point
-declaration ::= VAR declaration_sequence .
+declaration ::= VAR declaration_sequence SEMICOLON .
+declaration ::= FUN function_declaration .
 
 // Declaration sequence
 declaration_sequence ::= var_declaration .
@@ -194,6 +212,37 @@ var_declaration ::= IDENTIFIER(A) ASSIGN expression . {
   PUSHQ(pContext->AddVar(A)); 
 }
 
+// Function declaration
+function_declaration ::= function_name LRBRACKET parameter_list parameters_done RRBRACKET function_body .
+
+// Function name
+function_name ::= IDENTIFIER(A) . {	pContext->PushFunction(A); }
+
+// Single parameter
+parameter ::= IDENTIFIER(A) . { pContext->AddParam(A); }
+
+// One or more paremeters
+parameters ::= parameter .
+parameters ::= parameters COMMA parameter .
+
+// Parameters
+parameter_list ::= .
+parameter_list ::= parameters .
+
+// Helper - generate code for body
+parameters_done ::= . { pContext->GenFunProlog(); }
+
+// Function-level statements
+function_statement ::= statement .
+function_statement ::= return_statement .
+
+// Function_statements
+function_statements ::= .
+function_statements ::= function_statements function_statement .
+
+// Function body
+function_body ::= LCBRACKET function_statements RCBRACKET . { pContext->PopFunction(); }
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Statements
@@ -204,7 +253,7 @@ expression_statement ::= expression_statement_opt SEMICOLON .
 expression_statement_opt ::= expression . { PUSHB(TOK_POP); }
 
 // Declaration statement
-declaration_statement ::= declaration SEMICOLON .
+declaration_statement ::= declaration .
 
 // Compound statement
 compound_statement ::= compound_start statement_sequence_opt compound_end .
@@ -212,7 +261,7 @@ compound_start ::= LCBRACKET . { PUSHFRAME(); }
 compound_end   ::= RCBRACKET . { POPFRAME();  }
 
 // Print statement
-print_statement ::= PRINT LRBRACKET expression RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }
+print_statement ::= PRINT LRBRACKET argument_list RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }
 
 //////////////////////////////////////////////////////////////////////////
 //
