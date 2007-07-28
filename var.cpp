@@ -268,3 +268,52 @@ Variant::Read(unsigned char* address)
   throw std::runtime_error("Invalid subtype");
 }
 
+size_t 
+Variant::WriteLength() const
+{
+  switch(m_type)
+  {
+  case stNull:    return 1;
+  case stBool:    return 2;
+  case stInt:     return 1 + sizeof(IntType);
+  case stString:  return m_string->length() * 2 + 3;
+  default: throw std::runtime_error("Invalid subtype");
+  }
+}
+
+void
+Variant::Write(unsigned char* address) const
+{
+  // Write type
+  *address++ = m_type;
+
+  // Null writes no data
+  if(m_type == stNull)
+  {
+    return;
+  }
+
+  // Boolean
+  if(m_type == stBool)
+  {
+    *address = m_bool ? 1 : 0;
+    return;
+  }
+
+  // Integer
+  if(m_type == stInt)
+  {
+    *((IntType*)address) = m_int;
+    return;
+  }
+
+  // String
+  if(m_type == stString)
+  {
+    wcscpy((wchar_t*)address, m_string->c_str());
+    return;
+  }
+
+  // Not supported
+  throw std::runtime_error("Invalid subtype");
+}

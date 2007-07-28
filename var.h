@@ -222,9 +222,11 @@ public:
   }
 
   //
-  // Read from memory location
+  // Read/write memory location
   //
   void Read(unsigned char* address);
+  void Write(unsigned char* address) const;
+  size_t WriteLength() const;
 
 private:
 
