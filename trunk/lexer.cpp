@@ -3,14 +3,24 @@
 #include "tokens.h"
 #include "lexer.gen"
 
+#include <fstream>
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Lexer implementation
 //
 
-Lexer::Lexer(std::wistream& stream) :
+Lexer::Lexer() :
 m_strptr (0)
 {
+}
+
+
+void
+Lexer::SetFile(std::wstring const& filename)
+{
+  std::wifstream stream(filename.c_str(), std::ios::binary);
+
   // Read first byte to check file
   stream.peek();
   if(!stream.good())
@@ -45,10 +55,17 @@ m_strptr (0)
     source += line;
   }
 
+  // Set string
+  SetText(source);
+}
+
+void 
+Lexer::SetText(std::wstring const& text)
+{
   // Copy buffer
-  m_length = source.length();
+  m_length = text.length();
   wchar_t* m_source = new wchar_t[m_length + 1];
-  wcscpy(m_source, source.c_str());
+  wcscpy(m_source, text.c_str());
 
   // Point to offset of string
   m_strptr = m_source; 

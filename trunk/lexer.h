@@ -2,7 +2,6 @@
 #define CSCRIPT_LEXER_H
 
 #include <string>
-#include <iosfwd>
 
 #include "tokens.h"
 
@@ -13,7 +12,17 @@ public:
   //
   // Construction
   //
-  Lexer(std::wistream& stream);
+  Lexer();
+
+  //
+  // Lex from stream
+  //
+  void SetFile(std::wstring const& filename);
+
+  //
+  // Lex from string
+  //
+  void SetText(std::wstring const& text);
 
   //
   // Fetch next token

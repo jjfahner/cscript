@@ -25,7 +25,7 @@ public:
   //
   // Execute code
   //
-  void Execute(Byte* code);
+  void Execute(Byte* code, Quad offset = 0);
 
 protected:
 

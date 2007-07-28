@@ -256,8 +256,8 @@ function_body ::= function_block . { p->PopFunction(); }
 //
 
 // Expression statement
-expression_statement ::= expression_statement_opt SEMICOLON .
-expression_statement_opt ::= expression . { PUSHB(TOK_POP); }
+expression_statement ::= SEMICOLON  .
+expression_statement ::= expression SEMICOLON . { PUSHB(TOK_POP); }
 
 // Declaration statement
 declaration_statement ::= declaration .
@@ -268,7 +268,7 @@ compound_start ::= LCBRACKET . { PUSHFRAME(); }
 compound_end   ::= RCBRACKET . { POPFRAME();  }
 
 // Include statement
-include_statement ::= INCLUDE STRING(A) SEMICOLON . { p->Parse(A); }
+include_statement ::= INCLUDE STRING(A) SEMICOLON . { p->ParseFile(A); }
 
 // Print statement
 print_statement ::= PRINT LRBRACKET argument_list RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }

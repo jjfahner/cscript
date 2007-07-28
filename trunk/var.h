@@ -36,6 +36,15 @@ public:
   typedef std::map<Variant, VariantRef> MapType;
 
   //
+  // Predicate for exact matching
+  //
+  struct LessExact {
+    bool operator () (Variant const& lhs, Variant const& rhs) const {
+      return lhs.Compare(rhs, true) < 0;
+    }
+  };
+
+  //
   // Default construction
   //
   Variant() :
