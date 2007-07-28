@@ -137,6 +137,7 @@ private:
   //
   // Code info
   //
+  size_t        m_depth;
   Literals      m_literals;
   Stack         m_stack;
   LabelStack    m_labels;
