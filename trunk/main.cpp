@@ -1,42 +1,21 @@
 #include <iostream>
 #include <fstream>
-#include "lexer.h"
-#include "cscript.c"
+
+#include "parser.h"
 #include "machine.h"
 
 void run()
 {
-  // Start tokenizer
-  std::wifstream stream("test.csc", std::ios::binary);
-  Lexer lexer(stream);
-
-  // Parse info
-  ParseContext context;
-
-  // Allocate parser
-  void *pParser = ParseAlloc(malloc);
-
-  //ParseTrace(stdout, "->");
-
-  // Invoke parser for every token
-  Token token;
-  while(lexer.Lex(token))
-  {
-    Parse(pParser, token.m_type, token, &context);
-  }
-  
-  // Empty token to finalize parse
-  Parse(pParser, 0, token, &context);
-
-  // Destroy parser
-  ParseFree(pParser, free);
+  // Parse input
+  Parser parser;
+  parser.Parse(L"test.csc");
 
   // Write code to file
   std::ofstream of("test.csb", std::ios::binary);
-  of.write((char*)context.GetCode(), context.GetSize());
+  of.write((char*)parser.GetCode(), parser.GetSize());
 
   // Execute code
-  StackMachine machine(context);
+  StackMachine machine(parser);
   machine.Execute();
 }
 

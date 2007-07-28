@@ -5,9 +5,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 // Set prefix for tokens
+%name             CScriptParse
 %token_prefix     TOK_
 %token_type       { Token }
-%extra_argument   { ParseContext* pContext }
+%extra_argument   { Parser* pContext }
 
 // Error handlers
 %parse_failure {
@@ -24,7 +25,7 @@
 %include {
 
 #include "tokens.h"
-#include "context.h"
+#include "parser.h"
 
 #pragma warning(disable:4065)
 
@@ -71,6 +72,7 @@ statement_sequence_opt ::= .
 statement_sequence_opt ::= statement_sequence. 
 
 // Statement
+statement ::= include_statement .
 statement ::= expression_statement . 
 statement ::= declaration_statement .
 statement ::= for_statement .
@@ -240,8 +242,13 @@ function_statement ::= return_statement .
 function_statements ::= .
 function_statements ::= function_statements function_statement .
 
+// Compound statement
+function_block ::= function_block_start function_statements function_block_end .
+function_block_start ::= LCBRACKET . { PUSHFRAME(); }
+function_block_end   ::= RCBRACKET . { POPFRAME();  }
+
 // Function body
-function_body ::= LCBRACKET function_statements RCBRACKET . { pContext->PopFunction(); }
+function_body ::= function_block . { pContext->PopFunction(); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -259,6 +266,9 @@ declaration_statement ::= declaration .
 compound_statement ::= compound_start statement_sequence_opt compound_end .
 compound_start ::= LCBRACKET . { PUSHFRAME(); }
 compound_end   ::= RCBRACKET . { POPFRAME();  }
+
+// Include statement
+include_statement ::= INCLUDE expression SEMICOLON . { /*pContext->Include(A);*/ }
 
 // Print statement
 print_statement ::= PRINT LRBRACKET argument_list RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }

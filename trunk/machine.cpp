@@ -4,8 +4,8 @@
 #include <iostream>
 #include <crtdbg.h>
 
-StackMachine::StackMachine(ParseContext const& context) :
-m_parseContext (context)
+StackMachine::StackMachine(Parser const& context) :
+m_Parser (context)
 {
 }
 
@@ -34,40 +34,52 @@ inline Quad EatQuad(Byte*& source)
   return q;
 }
 
+inline void 
+StackMachine::PushStackFrame()
+{
+  m_varStack.push(StackFrame());
+}
+
+inline void 
+StackMachine::PopStackFrame()
+{
+  m_varStack.pop();
+}
+
 void 
 StackMachine::AddVar(Quad id)
 {
-  m_variables[id] = VariantRef(new Variant);
+  m_varStack.top()[id] = VariantRef(new Variant);
 }
 
 void 
 StackMachine::AddVar(Quad id, VariantRef const& value)
 {
-  m_variables[id] = value;
+  m_varStack.top()[id] = value;
 }
 
 void
 StackMachine::DelVar(Quad id)
 {
-  m_variables.erase(id);
+  m_varStack.top().erase(id);
 }
 
 void 
 StackMachine::PushVar(Quad id)
 {
 #ifdef _DEBUG
-  if(m_variables.count(id) == 0)
+  if(m_varStack.top().count(id) == 0)
   {
     throw std::runtime_error("Variable not created");
   }
 #endif
-  m_stack.push(m_variables[id]);
+  m_stack.push(m_varStack.top()[id]);
 }
 
 void
 StackMachine::PushLiteral(Quad id)
 {
-  m_stack.push(VariantRef(new Variant(m_parseContext.GetLiteral(id))));
+  m_stack.push(VariantRef(new Variant(m_Parser.GetLiteral(id))));
 }
 
 inline void 
@@ -110,21 +122,6 @@ StackMachine::PopRet()
 }
 
 //
-// Alias registers
-//
-#ifdef _DEBUG
-#define R0 (*m_registers.at(0))
-#define P0 ( m_registers.at(0))
-#define R1 (*m_registers.at(1))
-#define P1 ( m_registers.at(1))
-#else
-#define R0 (*m_registers[0])
-#define P0 ( m_registers[0])
-#define R1 (*m_registers[1])
-#define P1 ( m_registers[1])
-#endif
-
-//
 // Main loop
 //
 void 
@@ -133,18 +130,24 @@ StackMachine::Execute()
   // Create registers
   m_registers.clear();
   m_registers.resize(2);
-  m_registers[0] = VariantRef(new Variant());
-  m_registers[1] = VariantRef(new Variant());
+
+  // Create register refs
+  VariantRef& P0 = m_registers[0];
+  VariantRef& P1 = m_registers[1];
+
+  // Define aliasses
+  #define R0 (*P0)
+  #define R1 (*P1)
 
   // Code pointers
-  Byte* base = m_parseContext.GetCode();
+  Byte* base = m_Parser.GetCode();
   Byte* code = base;
 
   // Helper
   Quad temp;
 
-  // Instruction count
-  size_t inscount = 0;
+  // Create initial stack frame
+  PushStackFrame();
 
   // Execute code
   for(;;)
@@ -208,10 +211,12 @@ StackMachine::Execute()
       temp = EatQuad(code);
       PushRet((Quad)(code - base));      
       code = base + temp;
+      PushStackFrame();
       break;
 
     case TOK_RET:
       code = base + PopRet();
+      PopStackFrame();
       break;
 
     case TOK_ADDOP:
@@ -331,11 +336,5 @@ StackMachine::Execute()
     default:
       throw std::runtime_error("Invalid instruction");
     }
-
-    // Check heap
-    //_CrtCheckMemory();
-
-    // Update instruction count
-    ++inscount;
   }
 }
