@@ -1,5 +1,6 @@
 #include "tokens.h"
 #include "machine.h"
+#include "native.h"
 #include <iostream>
 
 StackMachine::StackMachine()
@@ -219,6 +220,10 @@ StackMachine::Execute(Byte* base, Quad offset)
       PushStackFrame();
       break;
 
+    case TOK_CALLN:
+      ExecNative(EatQuad(code), m_stack);
+      break;        
+
     case TOK_RET:
       code = base + PopRet();
       PopStackFrame();
@@ -331,11 +336,6 @@ StackMachine::Execute(Byte* base, Quad offset)
       PopStack(0);
       R0 = R1;
       PushStack(P0);
-      break;
-
-    case TOK_PRINT:
-      PopStack(0);
-      std::wcout << R0.AsString();
       break;
 
     default:

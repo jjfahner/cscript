@@ -24,17 +24,16 @@ int parseNextToken(wchar_t*& start, wchar_t*& end)
   "/*".*"*/"                { start = end; return parseNextToken(start, end); }
 
   /* Keywords */
-  "if"                      { return TOK_IF; }
-  "include"                 { return TOK_INCLUDE; }
   "else"                    { return TOK_ELSE; }
+  "false"                   { return TOK_FALSE; }
   "for"                     { return TOK_FOR; }
   "function"				        { return TOK_FUN; }
-  "var"                     { return TOK_VAR; }
-  "true"                    { return TOK_TRUE; }
-  "false"                   { return TOK_FALSE; }
+  "if"                      { return TOK_IF; }
+  "include"                 { return TOK_INCLUDE; }
   "null"                    { return TOK_NULL; }
-  "print"                   { return TOK_PRINT; }
   "return"                  { return TOK_RETURN; }
+  "true"                    { return TOK_TRUE; }
+  "var"                     { return TOK_VAR; }
   "while"                   { return TOK_WHILE; }
 
   /* Identifiers */

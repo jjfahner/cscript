@@ -31,7 +31,8 @@
 #define TOK_JNZ           112
 #define TOK_INDEX         113
 #define TOK_CALL          114
-#define TOK_RET           115
+#define TOK_CALLN         115
+#define TOK_RET           116
 
 //
 // Define token structure

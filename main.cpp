@@ -45,7 +45,7 @@ int interactive()
     wchar_t buf[4000];
     std::streamsize len = 4000;
 
-    std::wcout << L"> ";
+    std::wcout << L"\n> ";
     std::wcin.getline(buf, len);
 
     try

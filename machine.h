@@ -38,9 +38,14 @@ protected:
   void PushVar(Quad id);
 
   //
+  // Native calls
+  //
+  inline void NativeCall(Quad id);
+
+  //
   // Literal management
   //
-  void PushLiteral(Byte* address);
+  inline void PushLiteral(Byte* address);
 
   //
   // Variables
