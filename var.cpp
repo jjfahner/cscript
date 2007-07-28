@@ -34,7 +34,7 @@ Variant::Clear()
   switch(m_type)
   {
   case stString: delete m_string; break;
-  case stMap:     delete m_map;   break;
+  case stMap:    delete m_map;   break;
   }
 
   // Clear data and type
@@ -67,6 +67,7 @@ Variant::MakeBool()
   {
     MakeInt();
   }
+  Clear();
   m_bool = m_int ? true : false;
   m_type = stBool;
 }
@@ -118,7 +119,7 @@ Variant::Compare(Variant const& rhs, bool exact) const
   // Check type for exact match
   if(exact && m_type != rhs.m_type)
   {
-    return false;
+    return m_type - rhs.m_type;
   }
 
   // Nullness
@@ -222,5 +223,48 @@ Variant::operator %= (Variant const& value)
   default   : throw std::runtime_error("Invalid type for operation");
   }
   return *this;
+}
+
+void 
+Variant::Read(unsigned char* address)
+{
+  Clear();
+
+  // Read type
+  unsigned char type = *address++;
+
+  // Empty
+  if(type == stNull)
+  {
+    m_type = stNull;
+    return;
+  }
+
+  // Boolean
+  if(type == stBool)
+  {
+    m_type = stBool;
+    m_bool = *address ? true : false;
+    return;
+  }
+
+  // Integer
+  if(type == stInt)
+  {
+    m_type = stInt;
+    m_int  = *(IntType*)address;
+    return;
+  }
+
+  // String
+  if(type == stString)
+  {
+    m_type = stString;
+    m_string = new StringType((wchar_t const*)address);
+    return;
+  }
+
+  // Not supported
+  throw std::runtime_error("Invalid subtype");
 }
 

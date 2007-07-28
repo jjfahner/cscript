@@ -5,7 +5,8 @@
 #include <stack>
 #include <vector>
 
-#include "parser.h"
+#include "types.h"
+#include "var.h"
 
 class StackMachine 
 {
@@ -14,7 +15,7 @@ public:
   //
   // Construction
   //
-  StackMachine(Parser const& context);
+  StackMachine();
 
   //
   // Destruction
@@ -24,7 +25,7 @@ public:
   //
   // Execute code
   //
-  void Execute();
+  void Execute(Byte* code);
 
 protected:
 
@@ -39,12 +40,7 @@ protected:
   //
   // Literal management
   //
-  void PushLiteral(Quad id);
-
-  //
-  // Members
-  //
-  Parser const& m_Parser;
+  void PushLiteral(Byte* address);
 
   //
   // Variables

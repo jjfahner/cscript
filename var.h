@@ -221,6 +221,11 @@ public:
     return ref;
   }
 
+  //
+  // Read from memory location
+  //
+  void Read(unsigned char* address);
+
 private:
 
   //

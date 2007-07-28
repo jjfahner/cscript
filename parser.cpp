@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "parser.h"
 #include "cscript.c"
 #include "lexer.h"
@@ -74,6 +78,9 @@ Parser::Parse(std::wstring const& filename)
   {
     PushByte(TOK_HALT); 
   }
+
+  // Write literals to output
+  WriteLiterals();
 }
 
 Byte* 
@@ -113,6 +120,14 @@ Parser::PushQuad(Quad ln)
 }
 
 void 
+Parser::PushRVal(Variant const& value)
+{
+  PushByte(TOK_RVALUE);
+  m_literals[value].push_back(GetPos());
+  PushQuad(0);
+}
+
+void 
 Parser::SetQuad(Quad offset, Quad value)
 {
   *(Quad*)(m_code+offset) = value;
@@ -132,32 +147,6 @@ Quad
 Parser::GetPos() const
 {
   return (Quad) m_used;
-}
-
-Quad 
-Parser::AddLiteral(Variant const& value)
-{
-  unsigned long index = (Quad) m_literals.size();
-  m_literals[index] = value;
-  return index;
-}
-Quad 
-Parser::AddLiteral(std::wstring const& value, Variant::SubTypes type)
-{
-  unsigned long index = (Quad) m_literals.size();
-  m_literals[index] = Variant(value, type);
-  return index;
-}
-
-Variant const& 
-Parser::GetLiteral(Quad id) const
-{
-  Literals::const_iterator it;
-  if((it = m_literals.find(id)) == m_literals.end())
-  {
-    throw std::runtime_error("Unknown literal");
-  }
-  return it->second;
 }
 
 Quad 
@@ -295,8 +284,7 @@ Parser::PopFunction()
   PopFrame();
 
   // Push return code
-  PushByte(TOK_RVALUE);
-  PushQuad(AddLiteral(Variant()));
+  PushRVal(Variant());
   PushByte(TOK_RET);
 
   // Resolve the jump
@@ -333,4 +321,71 @@ Parser::AddParam(std::wstring const& name)
 
   // Add to list of parameters
   m_fun->m_params.push_back(name);
+}
+
+void 
+Parser::WriteLiterals()
+{
+  Literals::iterator it, ie;
+  it = m_literals.begin();
+  ie = m_literals.end();
+  for(; it != ie; ++it)
+  {
+    // Store offset
+    Quad pos = GetPos();
+
+    // Write literal
+    switch(it->first.GetType())
+    {
+    case Variant::stNull:
+      break;
+    case Variant::stBool:
+      WriteBool(it->first.AsBool());
+      break;
+    case Variant::stInt:
+      WriteInt(it->first.AsInt());
+      break;
+    case Variant::stString:
+      WriteString(it->first.AsString());
+      break;
+    default:
+      throw std::runtime_error("Invalid literal");
+    }
+
+    // Patch literal
+    std::list<Quad>::iterator pi, pe;
+    pi = it->second.begin();
+    pe = it->second.end();
+    for(; pi != pe; ++pi)
+    {
+      SetQuad(*pi, pos);
+    }
+  }
+}
+
+void 
+Parser::WriteBool(Variant::BoolType const& value)
+{
+  PushByte(Variant::stBool);
+  PushByte(value);
+}
+
+void 
+Parser::WriteInt(Variant::IntType const& value)
+{
+  PushByte(Variant::stInt);
+  Reserve(m_used + sizeof(Variant::IntType));
+  memcpy(m_code + m_used, &value, sizeof(Variant::IntType));
+  m_used += sizeof(Variant::IntType);
+}
+
+void 
+Parser::WriteString(Variant::StringType const& value)
+{
+  PushByte(Variant::stString);
+  size_t len = value.length();
+  size_t num = (len + 1) * 2;
+  Reserve(m_used + num);
+  wcscpy((wchar_t*)(m_code + m_used), value.c_str());
+  m_used += num;
 }

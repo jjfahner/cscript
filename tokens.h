@@ -9,6 +9,11 @@
 #include "cscript.h"
 
 //
+// String is required for Token
+//
+#include <string>
+
+//
 // Define additional instruction values
 //
 #define TOK_LVALUE        100
