@@ -1,17 +1,14 @@
 function doPrint(a)
 {
+  var a = a, b;
   print(a);
-  return;
-  //return a;
+  return a;
 }
 
 function mul(a, b)
 {
   return a*b;
 }
-
-//var g;
-//return g;
 
 function div(a, b)
 {

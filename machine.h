@@ -5,7 +5,7 @@
 #include <stack>
 #include <vector>
 
-#include "context.h"
+#include "parser.h"
 
 class StackMachine 
 {
@@ -14,7 +14,7 @@ public:
   //
   // Construction
   //
-  StackMachine(ParseContext const& context);
+  StackMachine(Parser const& context);
 
   //
   // Destruction
@@ -44,13 +44,20 @@ protected:
   //
   // Members
   //
-  ParseContext const& m_parseContext;
+  Parser const& m_Parser;
 
   //
   // Variables
   //
-  typedef std::map<Quad, VariantRef> Variables;
-  Variables m_variables;
+  typedef std::map<Quad, VariantRef> StackFrame;
+  typedef std::stack<StackFrame> VarStack;
+  VarStack m_varStack;
+
+  //
+  // Push a new stackframe
+  //
+  inline void PushStackFrame();
+  inline void PopStackFrame();
 
   //
   // Pop top of stack into register

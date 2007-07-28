@@ -25,9 +25,10 @@ int parseNextToken(wchar_t*& start, wchar_t*& end)
 
   /* Keywords */
   "if"                      { return TOK_IF; }
+  "include"                 { return TOK_INCLUDE; }
   "else"                    { return TOK_ELSE; }
   "for"                     { return TOK_FOR; }
-  "function"				{ return TOK_FUN; }
+  "function"				        { return TOK_FUN; }
   "var"                     { return TOK_VAR; }
   "true"                    { return TOK_TRUE; }
   "false"                   { return TOK_FALSE; }
