@@ -87,6 +87,7 @@ public:
   Quad GetFunction(std::wstring const& name);
   void GenFunProlog();
   void AddParam(std::wstring const& name);
+  void CallFunction(std::wstring const& name);
 
 private:
 
@@ -112,12 +113,13 @@ private:
     typedef std::list<std::wstring> Names;
 
     Function() :
-    m_offset (0)
+    m_offset  (0)
     {
     }
 
     Quad    m_offset;
     Names   m_params;
+
   };
 
   //

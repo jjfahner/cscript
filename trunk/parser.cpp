@@ -5,6 +5,7 @@
 #include "parser.h"
 #include "cscript.c"
 #include "lexer.h"
+#include "native.h"
 
 Parser::Parser() : 
 m_code (0),
@@ -63,6 +64,9 @@ Parser::ParseImpl(Lexer& lexer)
   {
     // Clear literals
     m_literals.clear();
+
+    // Reset function pointer
+    m_fun = 0;
   }
 
   // Allocate parser
@@ -268,15 +272,13 @@ Parser::PushFunction(std::wstring const& name)
     throw std::runtime_error("Duplicate function declaration");
   }
 
-  // Generate a jump for top-level code
+  // Generate a jump to bypass function code
   PushByte(TOK_JMP);
   PushOffset(L"function_declaration");
   PushQuad(0);
 
   // Create new function
   m_fun = &m_functions[name];
-
-  // Set offset
   m_fun->m_offset = GetPos();
 }
 
@@ -309,7 +311,7 @@ Parser::PopFunction()
   // Remove stackframe
   PopFrame();
 
-  // Push return code
+  // Generate return value
   PushRVal(Variant());
   PushByte(TOK_RET);
 
@@ -332,6 +334,33 @@ Parser::GetFunction(std::wstring const& name)
 
   // Return offset
   return it->second.m_offset;
+}
+
+void
+Parser::CallFunction(std::wstring const& name)
+{
+  // Find function
+  FunctionMap::iterator it = m_functions.find(name);
+  if(it != m_functions.end())
+  {
+    // Function call
+    PushByte(TOK_CALL); 
+    PushQuad(it->second.m_offset);
+    return;
+  }
+
+  // Find native function
+  Quad index = FindNative(name);
+  if(index != -1)
+  {
+    // Native call
+    PushByte(TOK_CALLN);
+    PushQuad(index);
+    return;
+  }
+
+  // Unknown function
+  throw std::runtime_error("Function undefined");
 }
 
 void 

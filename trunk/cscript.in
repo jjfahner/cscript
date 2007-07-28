@@ -38,7 +38,7 @@
 #define PUSHFRAME()(p->PushFrame())
 #define POPFRAME() (p->PopFrame())
 #define PATCH(arg) (p->SetQuad(p->PopOffset(arg), p->GetPos()))
-#define FUN(arg)   (p->GetFunction(arg))
+#define CALL(arg)  (p->CallFunction(arg))
 
 } 
 //
@@ -79,7 +79,7 @@ statement ::= for_statement .
 statement ::= compound_statement .
 statement ::= if_statement .
 statement ::= while_statement .
-statement ::= print_statement . // Dirty hack :)
+//statement ::= print_statement . // Dirty hack :)
 
 // Expression
 expression ::= assignment_expression.
@@ -171,7 +171,7 @@ id_expression ::= IDENTIFIER(A). { PUSHB(TOK_LVALUE); PUSHQ(p->GetVar(A)); }
 //
 
 // Function call
-function_call ::= IDENTIFIER(A) LRBRACKET argument_list RRBRACKET . { PUSHB(TOK_CALL); PUSHQ(FUN(A)); }
+function_call ::= IDENTIFIER(A) LRBRACKET argument_list RRBRACKET . { CALL(A); }
 
 // An argument is any expression. If expression lists become part
 // of the language, this will have to be changed to something else.
@@ -184,10 +184,6 @@ arguments ::= arguments COMMA argument .
 // Argument list
 argument_list ::= . 
 argument_list ::= arguments . 
-
-// Return statements - leaves return expression on the stack
-return_statement ::= RETURN expression SEMICOLON . { PUSHB(TOK_RET); }
-return_statement ::= RETURN SEMICOLON . { p->PushRVal(Variant()); PUSHB(TOK_RET); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -250,6 +246,11 @@ function_block_end   ::= RCBRACKET . { POPFRAME();  }
 // Function body
 function_body ::= function_block . { p->PopFunction(); }
 
+// Return statement - leaves return expression on the stack
+return_statement ::= RETURN expression SEMICOLON . { PUSHB(TOK_RET); }
+return_statement ::= RETURN SEMICOLON . { p->PushRVal(Variant()); PUSHB(TOK_RET); }
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Statements
@@ -271,7 +272,7 @@ compound_end   ::= RCBRACKET . { POPFRAME();  }
 include_statement ::= INCLUDE STRING(A) SEMICOLON . { p->ParseFile(A); }
 
 // Print statement
-print_statement ::= PRINT LRBRACKET argument_list RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }
+//print_statement ::= PRINT LRBRACKET argument_list RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }
 
 //////////////////////////////////////////////////////////////////////////
 //
