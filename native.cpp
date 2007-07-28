@@ -1,4 +1,5 @@
 #include "native.h"
+#include "machine.h"
 
 #include <vector>
 #include <map>
@@ -7,7 +8,7 @@
 //
 // Native call type
 //
-typedef void (*NativeCall)(std::stack<VariantRef>&);
+typedef void (*NativeCall)(StackMachine&);
 
 //
 // Mapping between name and index
@@ -44,9 +45,9 @@ struct NativeCallRegistrar
 };
 
 #define NATIVE_CALL(name)                                       \
-  void Native_##name(std::stack<VariantRef>& stack);            \
+  void Native_##name(StackMachine& machine);                    \
   NativeCallRegistrar register_##name(L#name, Native_##name);   \
-  void Native_##name(std::stack<VariantRef>& stack)
+  void Native_##name(StackMachine& machine)
 
 //
 // Find a native call index
@@ -69,10 +70,10 @@ FindNative(std::wstring const& name)
 // Execute a native call
 //
 void 
-ExecNative(Quad index, std::stack<VariantRef>& stack)
+ExecNative(Quad index, StackMachine& machine)
 {
   static NativeCallVec& ncv = getNativeCalls();
-  return ncv[index](stack);
+  return ncv[index](machine);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,15 +83,15 @@ ExecNative(Quad index, std::stack<VariantRef>& stack)
 
 NATIVE_CALL(print)
 {
-  std::wcout << stack.top()->AsString();
+  std::wcout << machine.StackTop()->AsString();
 }
 
 NATIVE_CALL(exit)
 {
   int ret = 0;
-  if(stack.size())
+  if(machine.StackSize())
   {
-    ret = (int)stack.top()->AsInt();
+    ret = (int)machine.StackTop()->AsInt();
   }
   exit(ret);
 }
@@ -98,9 +99,9 @@ NATIVE_CALL(exit)
 NATIVE_CALL(quit)
 {
   int ret = 0;
-  if(stack.size())
+  if(machine.StackSize())
   {
-    ret = (int)stack.top()->AsInt();
+    ret = (int)machine.StackTop()->AsInt();
   }
   exit(ret);
 }
@@ -109,5 +110,11 @@ NATIVE_CALL(read)
 {
   std::wstring line;
   std::wcin >> line;
-  stack.push(VariantRef(new Variant(line)));
+  machine.PushStack(line);
 }
+
+NATIVE_CALL(length)
+{
+  machine.PushStack(machine.PopStack()->AsString().length());
+}
+
