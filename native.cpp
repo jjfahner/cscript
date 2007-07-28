@@ -5,6 +5,8 @@
 #include <map>
 #include <iostream>
 
+#include <process.h>
+
 //
 // Native call type
 //
@@ -118,3 +120,9 @@ NATIVE_CALL(length)
   machine.PushStack(machine.PopStack()->AsString().length());
 }
 
+NATIVE_CALL(exec)
+{
+  std::wstring cmd = machine.PopStack()->AsString();
+  int result = (int)_wspawnlp(_P_NOWAIT, cmd.c_str(), cmd.c_str(), 0);
+  machine.PushStack(result);
+}
