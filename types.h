@@ -24,7 +24,7 @@ typedef std::list<String> StringList;
 //
 // Native call pointer
 //
-typedef void (*NativeCall)(class StackMachine&);
+typedef void (*NativeCall)(class StackMachine&, Word);
 
 //
 // Function information

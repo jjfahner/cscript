@@ -400,11 +400,11 @@ Parser::PopCall()
   m_calls.pop();
 
   // Check argument count
-  if(call.m_args < call.m_fn->m_minPar)
+  if(call.m_fn->m_minPar != -1 && call.m_args < call.m_fn->m_minPar)
   {
     throw std::runtime_error("Not enough arguments for call");
   }
-  if(call.m_args > call.m_fn->m_maxPar)
+  if(call.m_fn->m_maxPar != -1 && call.m_args > call.m_fn->m_maxPar)
   {
     throw std::runtime_error("Too many arguments for call");
   }
@@ -413,7 +413,8 @@ Parser::PopCall()
   if(call.m_fn->m_native)
   {
     PushByte(TOK_CALLN);
-    PushQuad(call.m_fn->m_offset);
+    PushWord(call.m_fn->m_offset);
+    PushWord(call.m_args);
   }
   else
   {

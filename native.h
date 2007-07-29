@@ -14,7 +14,7 @@ Function* FindNative(String const& name);
 //
 // Execute a native call
 //
-void ExecNative(Quad index, StackMachine& machine);
+void ExecNative(Quad index, StackMachine& machine, Word numArgs);
 
 
 #endif // #ifndef CSCRIPT_NATIVE_CALLS_H
