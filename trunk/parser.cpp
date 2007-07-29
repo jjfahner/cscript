@@ -32,7 +32,7 @@ Parser::~Parser()
 }
 
 Quad 
-Parser::ParseFile(std::wstring const& filename)
+Parser::ParseFile(String const& filename)
 {
   // Create lexer for file
   Lexer lexer;
@@ -43,7 +43,7 @@ Parser::ParseFile(std::wstring const& filename)
 }
 
 Quad
-Parser::ParseText(std::wstring const& text)
+Parser::ParseText(String const& text)
 {
   // Create lexer for text
   Lexer lexer;
@@ -180,7 +180,7 @@ Parser::GetPos() const
 }
 
 Quad 
-Parser::AddVar(std::wstring const& name)
+Parser::AddVar(String const& name)
 {
   StackFrame& frame = m_stack.front();
   
@@ -199,7 +199,7 @@ Parser::AddVar(std::wstring const& name)
 }
 
 Quad 
-Parser::GetVar(std::wstring const& name)
+Parser::GetVar(String const& name)
 {
   Stack::iterator frame = m_stack.begin();
   for(; frame != m_stack.end(); ++frame)
@@ -243,13 +243,13 @@ Parser::PopFrame()
 }
 
 void 
-Parser::PushOffset(std::wstring const& name)
+Parser::PushOffset(String const& name)
 {
   m_labels[name].push(GetPos());
 }
 
 Quad 
-Parser::PopOffset(std::wstring const& name)
+Parser::PopOffset(String const& name)
 {
   std::stack<Quad>& stack = m_labels[name];
   Quad offset = stack.top();
@@ -258,7 +258,7 @@ Parser::PopOffset(std::wstring const& name)
 }
 
 void 
-Parser::PushFunction(std::wstring const& name)
+Parser::PushFunction(String const& name)
 {
   // Disallow nested functions
   if(m_fun)
@@ -279,6 +279,7 @@ Parser::PushFunction(std::wstring const& name)
 
   // Create new function
   m_fun = &m_functions[name];
+  m_fun->m_native = false;
   m_fun->m_offset = GetPos();
 }
 
@@ -289,7 +290,7 @@ Parser::GenFunProlog()
   PushFrame(true);
 
   // Generate variables for parameters
-  Function::Names::reverse_iterator it, ie;
+  StringList::reverse_iterator it, ie;
   it = m_fun->m_params.rbegin();
   ie = m_fun->m_params.rend();
   for(; it != ie; ++it)
@@ -318,12 +319,15 @@ Parser::PopFunction()
   // Resolve the jump
   SetQuad(PopOffset(L"function_declaration"), GetPos());
 
+  // Finalize function
+  m_fun->m_minPar = m_fun->m_maxPar = (Quad) m_fun->m_params.size();
+
   // Release function
   m_fun = 0;
 }
 
 Quad 
-Parser::GetFunction(std::wstring const& name)
+Parser::GetFunction(String const& name)
 {
   // Find function
   FunctionMap::iterator it = m_functions.find(name);
@@ -336,35 +340,76 @@ Parser::GetFunction(std::wstring const& name)
   return it->second.m_offset;
 }
 
-void
-Parser::CallFunction(std::wstring const& name)
+Function* 
+Parser::FindFunction(String const& name)
 {
   // Find function
   FunctionMap::iterator it = m_functions.find(name);
   if(it != m_functions.end())
   {
-    // Function call
-    PushByte(TOK_CALL); 
-    PushQuad(it->second.m_offset);
-    return;
+    return &it->second;
   }
 
   // Find native function
-  Quad index = FindNative(name);
-  if(index != -1)
-  {
-    // Native call
-    PushByte(TOK_CALLN);
-    PushQuad(index);
-    return;
-  }
-
-  // Unknown function
-  throw std::runtime_error("Function undefined");
+  return FindNative(name);
 }
 
 void 
-Parser::AddParam(std::wstring const& name)
+Parser::PushCall(String const& name)
+{
+  // Build call
+  FnCall call;
+  call.m_fn = FindFunction(name);
+
+  // Unknown function
+  if(call.m_fn == 0)
+  {
+    throw std::runtime_error("Function undefined");
+  }
+
+  // Put new call on stack
+  m_calls.push(call);
+}
+
+void 
+Parser::PopCall()
+{
+  // Take call off stack
+  FnCall call = m_calls.top();
+  m_calls.pop();
+
+  // Check argument count
+  if(call.m_args < call.m_fn->m_minPar)
+  {
+    throw std::runtime_error("Not enough arguments for call");
+  }
+  if(call.m_args > call.m_fn->m_maxPar)
+  {
+    throw std::runtime_error("Too many arguments for call");
+  }
+
+  // Generate code
+  if(call.m_fn->m_native)
+  {
+    PushByte(TOK_CALLN);
+    PushQuad(call.m_fn->m_offset);
+  }
+  else
+  {
+    PushByte(TOK_CALL);
+    PushQuad(call.m_fn->m_offset);
+  }
+}
+
+void 
+Parser::PushArg()
+{
+  // Increase argument count
+  ++m_calls.top().m_args;
+}
+
+void 
+Parser::AddParam(String const& name)
 {
   // Check for duplicates
   if(std::find(m_fun->m_params.begin(), 

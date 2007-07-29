@@ -36,14 +36,14 @@ public:
   // Code is added to existing buffer.
   // Returns offset of first instruction.
   //
-  Quad ParseFile(std::wstring const& filename);
+  Quad ParseFile(String const& filename);
 
   //
   // Parse string contents. Function is reentrant.
   // Code is added to existing buffer.
   // Returns offset of first instruction.
   //
-  Quad ParseText(std::wstring const& text);
+  Quad ParseText(String const& text);
 
   //
   // Bytecode info
@@ -64,8 +64,8 @@ public:
   //
   // Variables
   //
-  Quad AddVar(std::wstring const& name);
-  Quad GetVar(std::wstring const& name);
+  Quad AddVar(String const& name);
+  Quad GetVar(String const& name);
 
   //
   // Stack frames
@@ -76,25 +76,32 @@ public:
   //
   // Offsets
   //
-  void PushOffset(std::wstring const& name);
-  Quad PopOffset(std::wstring const& name);
+  void PushOffset(String const& name);
+  Quad PopOffset(String const& name);
 
   //
   // Functions
   //
-  void PushFunction(std::wstring const& name);
+  void PushFunction(String const& name);
   void PopFunction();
-  Quad GetFunction(std::wstring const& name);
+  Quad GetFunction(String const& name);
   void GenFunProlog();
-  void AddParam(std::wstring const& name);
-  void CallFunction(std::wstring const& name);
+  void AddParam(String const& name);
+
+  //
+  // Function calls
+  //
+  Function* FindFunction(String const& name);
+  void PushCall(String const& name);
+  void PopCall();
+  void PushArg();
 
 private:
 
   //
   // Compile-time stack frame
   //
-  typedef std::map<std::wstring, Quad> FrameVars;
+  typedef std::map<String, Quad> FrameVars;
   struct StackFrame
   {
     StackFrame(bool boundary) : 
@@ -106,20 +113,16 @@ private:
   };
 
   //
-  // Function information
+  // Function call
   //
-  struct Function 
+  struct FnCall
   {
-    typedef std::list<std::wstring> Names;
-
-    Function() :
-    m_offset  (0)
+    FnCall() : m_fn (0), m_args (0) 
     {
     }
 
-    Quad    m_offset;
-    Names   m_params;
-
+    Function* m_fn;
+    Quad      m_args;
   };
 
   //
@@ -127,8 +130,9 @@ private:
   //
   typedef std::map<Variant, std::list<Quad>, Variant::LessExact> Literals;
   typedef std::list<StackFrame> Stack;
-  typedef std::map<std::wstring, std::stack<Quad> > LabelStack;
-  typedef std::map<std::wstring, Function> FunctionMap;
+  typedef std::map<String, std::stack<Quad> > LabelStack;
+  typedef std::map<String, Function> FunctionMap;
+  typedef std::stack<FnCall> CallStack;
 
   //
   // Parse lexer contents. Returns offset of first instruction.
@@ -146,26 +150,19 @@ private:
   void Reserve(size_t size);
 
   //
-  // Code buffer
+  // Members
   //
   Byte*         m_code;
   size_t        m_size;
   size_t        m_used;
-
-  //
-  // Variable numbering
-  //
   Quad          m_vnum;
-
-  //
-  // Code info
-  //
   size_t        m_depth;
   Literals      m_literals;
   Stack         m_stack;
   LabelStack    m_labels;
   FunctionMap   m_functions;
   Function*     m_fun;
+  CallStack     m_calls;
 
  };
 

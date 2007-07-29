@@ -1,9 +1,9 @@
 #ifndef CSCRIPT_LEXER_H
 #define CSCRIPT_LEXER_H
 
-#include <string>
+#include "types.h"
 
-#include "tokens.h"
+struct Token;
 
 class Lexer 
 {
@@ -17,12 +17,12 @@ public:
   //
   // Lex from stream
   //
-  void SetFile(std::wstring const& filename);
+  void SetFile(String const& filename);
 
   //
   // Lex from string
   //
-  void SetText(std::wstring const& text);
+  void SetText(String const& text);
 
   //
   // Fetch next token

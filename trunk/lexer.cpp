@@ -17,7 +17,7 @@ m_strptr (0)
 
 
 void
-Lexer::SetFile(std::wstring const& filename)
+Lexer::SetFile(String const& filename)
 {
   std::wifstream stream(filename.c_str(), std::ios::binary);
 
@@ -30,7 +30,7 @@ Lexer::SetFile(std::wstring const& filename)
 
   // Read buffers
   wchar_t line[4000];
-  std::wstring source;
+  String source;
 
   // Read source string
   for(;;)
@@ -60,7 +60,7 @@ Lexer::SetFile(std::wstring const& filename)
 }
 
 void 
-Lexer::SetText(std::wstring const& text)
+Lexer::SetText(String const& text)
 {
   // Copy buffer
   m_length = text.length();

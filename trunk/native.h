@@ -9,7 +9,7 @@ class StackMachine;
 //
 // Resolve a native call by name
 //
-Quad FindNative(std::wstring const& name);
+Function* FindNative(String const& name);
 
 //
 // Execute a native call
