@@ -27,8 +27,10 @@ int parseNextToken(wchar_t*& start, wchar_t*& end)
   "else"                    { return TOK_ELSE; }
   "false"                   { return TOK_FALSE; }
   "for"                     { return TOK_FOR; }
+  "foreach"                 { return TOK_FOREACH; }
   "function"				        { return TOK_FUN; }
   "if"                      { return TOK_IF; }
+  "in"                      { return TOK_IN; }
   "include"                 { return TOK_INCLUDE; }
   "null"                    { return TOK_NULL; }
   "return"                  { return TOK_RETURN; }

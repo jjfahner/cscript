@@ -82,7 +82,7 @@ statement ::= for_statement .
 statement ::= compound_statement .
 statement ::= if_statement .
 statement ::= while_statement .
-//statement ::= print_statement . // Dirty hack :)
+statement ::= foreach_statement .
 
 // Expression
 expression ::= assignment_expression.
@@ -154,8 +154,9 @@ postfix_expression ::= function_call .
 
 // Primary expression
 primary_expression ::= literal.                         
-primary_expression ::= id_expression.                   
+primary_expression ::= id_expression.
 primary_expression ::= LRBRACKET expression RRBRACKET.  
+primary_expression ::= list_definition .
 
 // Literals
 literal ::= INTEGER(A) . { p->PushRVal(Variant(String(A), Variant::stInt)); }
@@ -164,18 +165,17 @@ literal ::= STRING(A) .  { p->PushRVal(Variant(String(A), Variant::stString)); }
 literal ::= TRUE .       { p->PushRVal(Variant(true)); }
 literal ::= FALSE .      { p->PushRVal(Variant(false)); }
 literal ::= NULL .       { p->PushRVal(Variant()); }
-literal ::= assoc .
 
 // Id expression
 id_expression ::= IDENTIFIER(A). { INS(LVALUE); PUSHQ(p->GetVar(A)); } 
 
-// Associative array literal
-assoc ::= assoc_start assoc_content assoc_end .
-assoc_start   ::= LSBRACKET . { p->PushRVal(Variant()); }
-assoc_end     ::= RSBRACKET .
-assoc_entry   ::= expression . { INS(ARRAY); }
-assoc_content ::= assoc_entry . 
-assoc_content ::= assoc_content COMMA assoc_entry .
+// List definition
+list_definition ::= list_start list_content list_end .
+list_start   ::= LSBRACKET . { p->PushRVal(Variant()); }
+list_end     ::= RSBRACKET .
+list_entry   ::= expression . { INS(ARRAY); }
+list_content ::= list_entry . 
+list_content ::= list_content COMMA list_entry .
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -214,14 +214,17 @@ declaration ::= FUN function_declaration .
 declaration_sequence ::= var_declaration .
 declaration_sequence ::= declaration_sequence COMMA var_declaration .
 
+var_declaration ::= simple_declaration .
+var_declaration ::= init_declaration .
+
 // Variable declaration
-var_declaration ::= IDENTIFIER(A) . { 
+simple_declaration ::= IDENTIFIER(A) . { 
   INS(VAR);      
   PUSHQ(p->AddVar(A)); 
 }
 
 // Variable declaration with initialization
-var_declaration ::= IDENTIFIER(A) ASSIGN expression . { 
+init_declaration ::= IDENTIFIER(A) ASSIGN expression . { 
   INS(VARINIT);  
   PUSHQ(p->AddVar(A)); 
 }
@@ -439,3 +442,22 @@ while_content ::= statement . {
   PUSHQ(p->PopOffset(L"switch_cond_1"));
   PATCH(L"switch_cond_2");
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Foreach statement
+//
+
+foreach_statement ::= foreach_init LRBRACKET for_lvalue IN for_expression RRBRACKET statement foreach_end .
+
+foreach_init ::= FOREACH . { PUSHFRAME(); }
+
+for_lvalue ::= id_expression .
+for_lvalue ::= VAR simple_declaration .
+
+for_expression ::= expression . { }
+
+foreach_end ::= . { POPFRAME(); }
+
+
+

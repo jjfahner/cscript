@@ -12,6 +12,9 @@ class Variant;
 
 typedef Ref<Variant> VariantRef;
 
+//
+// Variant implementation
+//
 class Variant : public Ref<Variant>::Counted
 {
 public:
@@ -25,16 +28,32 @@ public:
     stBool,
     stInt,
     stString,
-    stMap
+    stAssoc,
+    stResource,
+  };
+
+  //
+  // Map from variant to variant ref
+  //
+  typedef std::map<Variant, VariantRef> AssocMap;
+
+  //
+  // Base class for resources
+  //
+  struct Resource
+  {
+    virtual ~Resource() {}
+    virtual Resource* Clone() const = 0;
   };
 
   //
   // Implementation types
   //
-  typedef bool          BoolType;
-  typedef __int64       IntType;
-  typedef String  StringType;
-  typedef std::map<Variant, VariantRef> MapType;
+  typedef bool        BoolType;
+  typedef __int64     IntType;
+  typedef String      StringType;
+  typedef AssocMap    AssocType;
+  typedef Resource    ResType;
 
   //
   // Predicate for exact matching
@@ -79,8 +98,8 @@ public:
   // Boolean construction
   //
   Variant(BoolType value) :
-  m_bool (value),
-  m_type (stBool)
+  m_bln   (value),
+  m_type  (stBool)
   {
   }
   
@@ -111,17 +130,26 @@ public:
   // String construction
   //
   Variant(StringType const& value) :
-  m_string (new StringType(value)),
-  m_type   (stString)
+  m_str   (new StringType(value)),
+  m_type  (stString)
   {
   }
 
   //
-  // Map construction
+  // Assoc construction
   //
-  Variant(MapType const& value) :
-  m_map  (new MapType(value)),
-  m_type (stMap)
+  Variant(AssocType const& value) :
+  m_map  (new AssocType(value)),
+  m_type (stAssoc)
+  {
+  }
+
+  //
+  // Resource construction
+  //
+  Variant(ResType* value) :
+  m_res   (value),
+  m_type  (stResource)
   {
   }
 
@@ -157,7 +185,7 @@ public:
     {
       throw std::runtime_error("Invalid subtype");
     }
-    return m_bool;
+    return m_bln;
   }
   IntType& GetInt()
   {
@@ -173,15 +201,33 @@ public:
     {
       throw std::runtime_error("Invalid subtype");
     }
-    return *m_string;
+    return *m_str;
   }
-  MapType& GetMap()
+  AssocType& GetMap()
   {
-    if(m_type != stMap)
+    if(m_type != stAssoc)
     {
       throw std::runtime_error("Invalid subtype");
     }
     return *m_map;
+  }
+  ResType* GetResource()
+  {
+    if(m_type != stResource)
+    {
+      throw std::runtime_error("Invalid subtype");
+    }
+    return m_res;
+  }
+  template <typename T>
+  T* GetTypedRes()
+  {
+    T* ptr;
+    if(m_type != stResource || (ptr = dynamic_cast<T*>(m_res)) == 0)
+    {
+      throw std::runtime_error("Invalid subtype");
+    }
+    return ptr;
   }
 
   //
@@ -191,7 +237,7 @@ public:
   {
     if(m_type == stBool)
     {
-      return m_bool;
+      return m_bln;
     }
     return Variant(*this, stBool).GetBool();
   }
@@ -207,17 +253,17 @@ public:
   {
     if(m_type == stString)
     {
-      return *m_string;
+      return *m_str;
     }
     return Variant(*this, stString).GetString();
   }
-  MapType AsMap() const
+  AssocType AsMap() const
   {
-    if(m_type == stMap)
+    if(m_type == stAssoc)
     {
       return *m_map;
     }
-    return Variant(*this, stMap).AsMap();
+    return Variant(*this, stAssoc).AsMap();
   }
   
   //
@@ -244,7 +290,7 @@ public:
   //
   VariantRef& operator [] (Variant const& index)
   {
-    SetType(stMap);
+    SetType(stAssoc);
     VariantRef& ref = (*m_map)[index];
     if(!ref) ref = VariantRef(new Variant);
     return ref;
@@ -276,10 +322,11 @@ private:
   // Subtypes
   //
   union {
-    BoolType    m_bool;
+    BoolType    m_bln;
     IntType     m_int;
-    MapType*    m_map;
-    StringType* m_string;
+    AssocType*  m_map;
+    StringType* m_str;
+    ResType*    m_res;
   };  
 
 };
@@ -386,5 +433,80 @@ operator && (Variant const& lhs, Variant const& rhs)
 {
   return lhs.AsBool() && rhs.AsBool();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Resource types
+//
+
+//
+// Iterator resource for foreach implementation
+//
+struct IteratorRes : public Variant::Resource
+{
+  //
+  // Iterator type
+  //
+  typedef Variant::AssocType::iterator Iterator;
+
+  //
+  // Construction
+  //
+  IteratorRes() {}
+  IteratorRes(Iterator const& cur, Iterator const& end) : 
+  m_cur (cur),
+  m_end (end)
+  {
+  }
+  IteratorRes(Variant::AssocType& map) :
+  m_cur (map.begin()),
+  m_end (map.end())
+  {
+  }
+
+  //
+  // Cloning
+  //
+  virtual IteratorRes* Clone() const {
+    return new IteratorRes(m_cur, m_end);
+  }
+
+  //
+  // Status
+  //
+  bool AtEnd() const
+  {
+    return m_cur == m_end;
+  }
+
+  //
+  // Move forward
+  //
+  bool Next()
+  {
+    if(m_cur != m_end)
+    {
+      ++m_cur;
+    }
+    return m_cur != m_end;
+  }
+
+
+  //
+  // Dereference
+  //
+  Iterator const& operator -> () const
+  {
+    return m_cur;
+  }
+
+  //
+  // Iterator
+  //
+  Iterator m_cur;
+  Iterator m_end;
+
+};
 
 #endif // #ifndef CSCRIPT_VAR_H
