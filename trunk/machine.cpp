@@ -188,6 +188,13 @@ StackMachine::Execute(Byte* base, Quad offset)
       PushStack(R0[R1]);
       break;
 
+    case TOK_ARRAY:
+      PopStack(1);
+      PopStack(0);
+      R0.Append(P1);
+      PushStack(P0);
+      break;
+
     case TOK_POP:
       m_stack.pop();
       break;

@@ -27,7 +27,7 @@ bool
 Lexer::Lex(Token& token)
 {
   // End of input
-  if(*m_strptr == 0)
+  if(m_strptr == 0 || *m_strptr == 0)
   {
     return false;
   }

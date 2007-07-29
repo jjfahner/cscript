@@ -39,7 +39,6 @@
 #define PUSHFRAME()   (p->PushFrame())
 #define POPFRAME()    (p->PopFrame())
 #define PATCH(arg)    (p->SetQuad(p->PopOffset(arg), p->GetPos()))
-#define CALL(arg)     (p->CallFunction(arg))
 #define PUSHCALL(arg) (p->PushCall(arg))
 #define POPCALL()     (p->PopCall())
 #define PUSHARG()     (p->PushArg())
@@ -165,9 +164,18 @@ literal ::= STRING(A) .  { p->PushRVal(Variant(String(A), Variant::stString)); }
 literal ::= TRUE .       { p->PushRVal(Variant(true)); }
 literal ::= FALSE .      { p->PushRVal(Variant(false)); }
 literal ::= NULL .       { p->PushRVal(Variant()); }
+literal ::= assoc .
 
 // Id expression
 id_expression ::= IDENTIFIER(A). { INS(LVALUE); PUSHQ(p->GetVar(A)); } 
+
+// Associative array literal
+assoc ::= assoc_start assoc_content assoc_end .
+assoc_start   ::= LSBRACKET . { p->PushRVal(Variant()); }
+assoc_end     ::= RSBRACKET .
+assoc_entry   ::= expression . { INS(ARRAY); }
+assoc_content ::= assoc_entry . 
+assoc_content ::= assoc_content COMMA assoc_entry .
 
 //////////////////////////////////////////////////////////////////////////
 //
