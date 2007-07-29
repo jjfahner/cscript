@@ -226,6 +226,16 @@ Variant::operator %= (Variant const& value)
 }
 
 void 
+Variant::Append(VariantRef const& ref)
+{
+  if(m_type != stMap)
+  {
+    MakeMap();
+  }
+  (*m_map)[m_map->size()] = ref;
+}
+
+void 
 Variant::Read(unsigned char* address)
 {
   Clear();

@@ -77,9 +77,35 @@ ExecNative(Quad index, StackMachine& machine, Word numArgs)
 // Native call implementations
 //
 
+void PrintVariant(VariantRef const& ref)
+{
+  switch(ref->GetType())
+  {
+  case Variant::stNull:   std::wcout << "null"; return;
+  case Variant::stBool:   std::wcout << (ref->GetBool() ? "true" : "false"); return;
+  case Variant::stInt:    std::wcout << ref->GetInt(); return;
+  case Variant::stString: std::wcout << ref->GetString(); return;
+  case Variant::stMap:    break;
+  default: throw std::runtime_error("Invalid subtype");
+  }
+
+  Variant::MapType::const_iterator it, ie;
+  it = ref->GetMap().begin();
+  ie = ref->GetMap().end();
+  std::wcout << "[";
+  std::wstring sep;
+  for(; it != ie; ++it)
+  {
+    std::wcout << sep;
+    sep = L",";
+    PrintVariant(it->second);
+  }
+  std::wcout << "]";
+}
+
 NATIVE_CALL(print, 1, 2)
 {
-  std::wcout << machine.StackTop()->AsString();
+  PrintVariant(machine.StackTop());
 }
 
 NATIVE_CALL(exit, 0, 1)
@@ -116,7 +142,17 @@ NATIVE_CALL(length, 1, 1)
   {
     throw std::runtime_error("Invalid type for length");
   }
-  machine.PushStack(ref->AsString().length());
+  machine.PushStack(ref->GetString().length());
+}
+
+NATIVE_CALL(count, 1, 1)
+{
+  VariantRef ref = machine.PopStack();
+  if(ref->GetType() != Variant::stMap)
+  {
+    throw std::runtime_error("Invalid type for count");
+  }
+  machine.PushStack(ref->GetMap().size());
 }
 
 NATIVE_CALL(exec, 1, -1)

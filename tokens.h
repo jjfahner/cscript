@@ -33,6 +33,7 @@
 #define TOK_CALL          114
 #define TOK_CALLN         115
 #define TOK_RET           116
+#define TOK_ARRAY         117
 
 //
 // Define token structure

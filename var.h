@@ -151,7 +151,7 @@ public:
   //
   // Retrieve subtypes
   //
-  BoolType GetBool() const
+  BoolType& GetBool()
   {
     if(m_type != stBool)
     {
@@ -159,7 +159,7 @@ public:
     }
     return m_bool;
   }
-  IntType const& GetInt() const
+  IntType& GetInt()
   {
     if(m_type != stInt)
     {
@@ -167,7 +167,7 @@ public:
     }
     return m_int;
   }
-  StringType const& GetString() const
+  StringType& GetString()
   {
     if(m_type != stString)
     {
@@ -175,7 +175,7 @@ public:
     }
     return *m_string;
   }
-  MapType const& GetMap() const
+  MapType& GetMap()
   {
     if(m_type != stMap)
     {
@@ -219,6 +219,11 @@ public:
     }
     return Variant(*this, stMap).AsMap();
   }
+  
+  //
+  // Append item to map
+  //
+  void Append(VariantRef const& ref);
 
   //
   // Comparison
@@ -237,7 +242,7 @@ public:
   //
   // Map index
   //
-  VariantRef const& operator [] (Variant const& index)
+  VariantRef& operator [] (Variant const& index)
   {
     SetType(stMap);
     VariantRef& ref = (*m_map)[index];
