@@ -43,7 +43,7 @@ public:
   // Code is added to existing buffer.
   // Returns offset of first instruction.
   //
-  Quad ParseText(String const& text);
+  Quad ParseText(wchar_t* text);
 
   //
   // Bytecode info
@@ -51,6 +51,11 @@ public:
   Byte* GetCode() const;
   Quad GetSize() const;
   Quad GetPos() const;
+
+  //
+  // Take over code ownership
+  //
+  Byte* ReleaseCode();
 
   //
   // Bytecode generation

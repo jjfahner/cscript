@@ -6,6 +6,7 @@
 #include "cscript.c"
 #include "lexer.h"
 #include "native.h"
+#include "file.h"
 
 Parser::Parser() : 
 m_code (0),
@@ -34,16 +35,26 @@ Parser::~Parser()
 Quad 
 Parser::ParseFile(String const& filename)
 {
+  // Create file
+  File file;
+  file.Open(filename);
+
+  // Check type
+  if(file.GetType() != File::source)
+  {
+    throw std::runtime_error("Invalid file");
+  }
+
   // Create lexer for file
   Lexer lexer;
-  lexer.SetFile(filename);
+  lexer.SetText((wchar_t*)file.GetData());
 
   // Parse
   return ParseImpl(lexer);
 }
 
 Quad
-Parser::ParseText(String const& text)
+Parser::ParseText(wchar_t* text)
 {
   // Create lexer for text
   Lexer lexer;
@@ -123,6 +134,16 @@ Quad
 Parser::GetSize() const
 {
   return (Quad)m_used;
+}
+
+Byte* 
+Parser::ReleaseCode()
+{
+  Byte* code = m_code;
+  m_code = 0;
+  m_used = 0;
+  m_size = 0;
+  return code;
 }
 
 void 

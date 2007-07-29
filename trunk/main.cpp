@@ -3,6 +3,7 @@
 
 #include "parser.h"
 #include "machine.h"
+#include "file.h"
 
 //
 // Print version
@@ -72,31 +73,30 @@ int cscript_main(int argc, wchar_t** argv)
     return EXIT_SUCCESS;
   }
 
-  // Run program
-  try
+  // Open the file
+  File file;
+  file.Open(argv[1]);
+
+  // Fetch code pointer from file
+  Byte* code = file.GetData();
+
+  // Compile code if required
+  if(file.GetType() == File::source)
   {
-    // Parse input
+    // Let parser parse input
     Parser parser;
-    parser.ParseFile(argv[1]);
+    parser.ParseText((wchar_t*)file.GetData());
+    
+    // Take code from parser
+    code = parser.ReleaseCode();
+  }
 
-    // Write code to file
-  #ifdef _DEBUG
-    std::ofstream of("out.csb", std::ios::binary);
-    of.write((char*)parser.GetCode(), parser.GetSize());
-  #endif
+  // Execute code
+  StackMachine machine;
+  machine.Execute(code);
 
-    // Execute code
-    StackMachine machine;
-    machine.Execute(parser.GetCode());
-  }
-  catch(std::exception const& e)
-  {
-    std::cout << "\nException: " << e.what() << "\n";
-  }
-  catch(...)
-  {
-    std::cout << "\nUnexpected exception\n";
-  }
+  // Free code
+  free(code);
 
   // Program succeeded
 	return EXIT_SUCCESS;
@@ -107,15 +107,31 @@ int cscript_main(int argc, wchar_t** argv)
 //
 int wmain(int argc, wchar_t** argv)
 {
-  // Run cscript
-  int result = cscript_main(argc, argv);
+  int result = EXIT_FAILURE;
+  try
+  {
+    result = cscript_main(argc, argv);
+  }
+  catch(std::exception const& e)
+  {
+    std::cout << "\nException: " << e.what() << "\n";
+  }
+  catch(...)
+  {
+    std::cout << "\nUnexpected exception\n";
+  }
 
-  // Wait for user input
 #ifdef _DEBUG
   std::cout << "\n\nPress enter to quit";
   std::cin.get();
 #endif
 
-  // Program succeeded
 	return result;
 }
+
+//   // Write code to file
+//   #ifdef _DEBUG
+//     std::ofstream of("out.csb", std::ios::binary);
+//     of.write("\xce\xec", 2);
+//     of.write((char*)parser.GetCode(), parser.GetSize());//   #endif
+
