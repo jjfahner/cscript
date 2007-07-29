@@ -98,7 +98,7 @@ Variant::MakeString()
   default:      throw std::runtime_error("Invalid conversion");
   }
   Clear();
-  m_string = new std::wstring(buf);
+  m_string = new String(buf);
   m_type   = stString;
 }
 

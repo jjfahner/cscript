@@ -32,13 +32,17 @@
 //
 // Some defines to make the code a bit cleaner
 //
-#define PUSHB(arg) (p->PushByte(arg))
-#define PUSHW(arg) (p->PushWord(arg))
-#define PUSHQ(arg) (p->PushQuad(arg))
-#define PUSHFRAME()(p->PushFrame())
-#define POPFRAME() (p->PopFrame())
-#define PATCH(arg) (p->SetQuad(p->PopOffset(arg), p->GetPos()))
-#define CALL(arg)  (p->CallFunction(arg))
+#define INS(arg)      (p->PushByte(TOK_##arg))
+#define PUSHB(arg)    (p->PushByte(arg))
+#define PUSHW(arg)    (p->PushWord(arg))
+#define PUSHQ(arg)    (p->PushQuad(arg))
+#define PUSHFRAME()   (p->PushFrame())
+#define POPFRAME()    (p->PopFrame())
+#define PATCH(arg)    (p->SetQuad(p->PopOffset(arg), p->GetPos()))
+#define CALL(arg)     (p->CallFunction(arg))
+#define PUSHCALL(arg) (p->PushCall(arg))
+#define POPCALL()     (p->PopCall())
+#define PUSHARG()     (p->PushArg())
 
 } 
 //
@@ -90,12 +94,12 @@ expression_opt ::= expression .
 
 // Assignment
 assignment_expression ::= conditional_expression . 
-assignment_expression ::= binary_expression ASSIGN assignment_expression. { PUSHB(TOK_ASSIGN); }
-assignment_expression ::= binary_expression ASSADD assignment_expression. { PUSHB(TOK_ASSADD); } 
-assignment_expression ::= binary_expression ASSSUB assignment_expression. { PUSHB(TOK_ASSSUB); }
-assignment_expression ::= binary_expression ASSMUL assignment_expression. { PUSHB(TOK_ASSMUL); }
-assignment_expression ::= binary_expression ASSDIV assignment_expression. { PUSHB(TOK_ASSDIV); }
-assignment_expression ::= binary_expression ASSMOD assignment_expression. { PUSHB(TOK_ASSMOD); }
+assignment_expression ::= binary_expression ASSIGN assignment_expression. { INS(ASSIGN); }
+assignment_expression ::= binary_expression ASSADD assignment_expression. { INS(ASSADD); } 
+assignment_expression ::= binary_expression ASSSUB assignment_expression. { INS(ASSSUB); }
+assignment_expression ::= binary_expression ASSMUL assignment_expression. { INS(ASSMUL); }
+assignment_expression ::= binary_expression ASSDIV assignment_expression. { INS(ASSDIV); }
+assignment_expression ::= binary_expression ASSMOD assignment_expression. { INS(ASSMOD); }
 
 // Conditional
 conditional_expression ::= binary_expression .
@@ -103,12 +107,12 @@ conditional_expression ::= cond_part QUESTION cond_expr_true COLON cond_expr_fal
 
 // Contitional parts
 cond_part ::= binary_expression . {
-  PUSHB(TOK_JZ);
+  INS(JZ);
   p->PushOffset(L"cond_exp_1");
   PUSHQ(0);
 }
 cond_expr_true ::= expression . {
-  PUSHB(TOK_JMP);
+  INS(JMP);
   p->PushOffset(L"cond_exp_2");
   PUSHQ(0);
   p->SetQuad(p->PopOffset(L"cond_exp_1"), p->GetPos());
@@ -119,34 +123,34 @@ cond_expr_false ::= assignment_expression . {
 
 // Binary expressions
 binary_expression ::= unary_expression . 
-binary_expression ::= binary_expression LOGOR   binary_expression. { PUSHB(TOK_LOGOR);   }
-binary_expression ::= binary_expression LOGAND  binary_expression. { PUSHB(TOK_LOGAND);  }
-binary_expression ::= binary_expression BITOR   binary_expression. { PUSHB(TOK_PREINC);  }
-binary_expression ::= binary_expression BITXOR  binary_expression. { PUSHB(TOK_BITXOR);  }
-binary_expression ::= binary_expression BITAND  binary_expression. { PUSHB(TOK_BITAND);  }
-binary_expression ::= binary_expression EQUALS  binary_expression. { PUSHB(TOK_EQUALS);  }
-binary_expression ::= binary_expression NEQUALS binary_expression. { PUSHB(TOK_NEQUALS); }
-binary_expression ::= binary_expression ST      binary_expression. { PUSHB(TOK_ST);      }
-binary_expression ::= binary_expression SE      binary_expression. { PUSHB(TOK_SE);      }
-binary_expression ::= binary_expression GT      binary_expression. { PUSHB(TOK_GT);      }
-binary_expression ::= binary_expression GE      binary_expression. { PUSHB(TOK_GE);      }
-binary_expression ::= binary_expression ADDOP   binary_expression. { PUSHB(TOK_ADDOP);   }
-binary_expression ::= binary_expression SUBOP   binary_expression. { PUSHB(TOK_SUBOP);   }
-binary_expression ::= binary_expression MULOP   binary_expression. { PUSHB(TOK_MULOP);   }
-binary_expression ::= binary_expression DIVOP   binary_expression. { PUSHB(TOK_DIVOP);   }
-binary_expression ::= binary_expression MODOP   binary_expression. { PUSHB(TOK_MODOP);   }
+binary_expression ::= binary_expression LOGOR   binary_expression. { INS(LOGOR);   }
+binary_expression ::= binary_expression LOGAND  binary_expression. { INS(LOGAND);  }
+binary_expression ::= binary_expression BITOR   binary_expression. { INS(PREINC);  }
+binary_expression ::= binary_expression BITXOR  binary_expression. { INS(BITXOR);  }
+binary_expression ::= binary_expression BITAND  binary_expression. { INS(BITAND);  }
+binary_expression ::= binary_expression EQUALS  binary_expression. { INS(EQUALS);  }
+binary_expression ::= binary_expression NEQUALS binary_expression. { INS(NEQUALS); }
+binary_expression ::= binary_expression ST      binary_expression. { INS(ST);      }
+binary_expression ::= binary_expression SE      binary_expression. { INS(SE);      }
+binary_expression ::= binary_expression GT      binary_expression. { INS(GT);      }
+binary_expression ::= binary_expression GE      binary_expression. { INS(GE);      }
+binary_expression ::= binary_expression ADDOP   binary_expression. { INS(ADDOP);   }
+binary_expression ::= binary_expression SUBOP   binary_expression. { INS(SUBOP);   }
+binary_expression ::= binary_expression MULOP   binary_expression. { INS(MULOP);   }
+binary_expression ::= binary_expression DIVOP   binary_expression. { INS(DIVOP);   }
+binary_expression ::= binary_expression MODOP   binary_expression. { INS(MODOP);   }
 
 // Unary expression
 unary_expression ::= postfix_expression. 
-unary_expression ::= ADDADD unary_expression. { PUSHB(TOK_PREINC); }
-unary_expression ::= SUBSUB unary_expression. { PUSHB(TOK_PRESUB); }
+unary_expression ::= ADDADD unary_expression. { INS(PREINC); }
+unary_expression ::= SUBSUB unary_expression. { INS(PRESUB); }
 
 // Postfix expression
 postfix_expression ::= primary_expression. 
-postfix_expression ::= postfix_expression ADDADD. { PUSHB(TOK_POSTINC); }
-postfix_expression ::= postfix_expression SUBSUB. { PUSHB(TOK_POSTSUB); } 
+postfix_expression ::= postfix_expression ADDADD. { INS(POSTINC); }
+postfix_expression ::= postfix_expression SUBSUB. { INS(POSTSUB); } 
 postfix_expression ::= postfix_expression DOT id_expression.  
-postfix_expression ::= postfix_expression LSBRACKET expression RSBRACKET.  { PUSHB(TOK_INDEX); }
+postfix_expression ::= postfix_expression LSBRACKET expression RSBRACKET.  { INS(INDEX); }
 postfix_expression ::= function_call .
 
 // Primary expression
@@ -155,15 +159,15 @@ primary_expression ::= id_expression.
 primary_expression ::= LRBRACKET expression RRBRACKET.  
 
 // Literals
-literal ::= INTEGER(A) . { p->PushRVal(Variant(std::wstring(A), Variant::stInt)); }
-literal ::= REAL(A) .    { p->PushRVal(Variant(std::wstring(A), Variant::stInt)); }
-literal ::= STRING(A) .  { p->PushRVal(Variant(std::wstring(A), Variant::stString)); }
+literal ::= INTEGER(A) . { p->PushRVal(Variant(String(A), Variant::stInt)); }
+literal ::= REAL(A) .    { p->PushRVal(Variant(String(A), Variant::stInt)); }
+literal ::= STRING(A) .  { p->PushRVal(Variant(String(A), Variant::stString)); }
 literal ::= TRUE .       { p->PushRVal(Variant(true)); }
 literal ::= FALSE .      { p->PushRVal(Variant(false)); }
 literal ::= NULL .       { p->PushRVal(Variant()); }
 
 // Id expression
-id_expression ::= IDENTIFIER(A). { PUSHB(TOK_LVALUE); PUSHQ(p->GetVar(A)); } 
+id_expression ::= IDENTIFIER(A). { INS(LVALUE); PUSHQ(p->GetVar(A)); } 
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -171,11 +175,15 @@ id_expression ::= IDENTIFIER(A). { PUSHB(TOK_LVALUE); PUSHQ(p->GetVar(A)); }
 //
 
 // Function call
-function_call ::= IDENTIFIER(A) LRBRACKET argument_list RRBRACKET . { CALL(A); }
+function_call ::= function_call_start LRBRACKET argument_list RRBRACKET function_call_end .
+
+// Call parts
+function_call_start ::= IDENTIFIER(A) . { PUSHCALL(A); }
+function_call_end   ::= .               { POPCALL(); }
 
 // An argument is any expression. If expression lists become part
 // of the language, this will have to be changed to something else.
-argument ::= expression .
+argument ::= expression . { PUSHARG(); }
 
 // Argument list containing 1 or more arguments
 arguments ::= argument .
@@ -200,13 +208,13 @@ declaration_sequence ::= declaration_sequence COMMA var_declaration .
 
 // Variable declaration
 var_declaration ::= IDENTIFIER(A) . { 
-  PUSHB(TOK_VAR);      
+  INS(VAR);      
   PUSHQ(p->AddVar(A)); 
 }
 
 // Variable declaration with initialization
 var_declaration ::= IDENTIFIER(A) ASSIGN expression . { 
-  PUSHB(TOK_VARINIT);  
+  INS(VARINIT);  
   PUSHQ(p->AddVar(A)); 
 }
 
@@ -247,8 +255,8 @@ function_block_end   ::= RCBRACKET . { POPFRAME();  }
 function_body ::= function_block . { p->PopFunction(); }
 
 // Return statement - leaves return expression on the stack
-return_statement ::= RETURN expression SEMICOLON . { PUSHB(TOK_RET); }
-return_statement ::= RETURN SEMICOLON . { p->PushRVal(Variant()); PUSHB(TOK_RET); }
+return_statement ::= RETURN expression SEMICOLON . { INS(RET); }
+return_statement ::= RETURN SEMICOLON . { p->PushRVal(Variant()); INS(RET); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -258,7 +266,7 @@ return_statement ::= RETURN SEMICOLON . { p->PushRVal(Variant()); PUSHB(TOK_RET)
 
 // Expression statement
 expression_statement ::= SEMICOLON  .
-expression_statement ::= expression SEMICOLON . { PUSHB(TOK_POP); }
+expression_statement ::= expression SEMICOLON . { INS(POP); }
 
 // Declaration statement
 declaration_statement ::= declaration .
@@ -272,7 +280,7 @@ compound_end   ::= RCBRACKET . { POPFRAME();  }
 include_statement ::= INCLUDE STRING(A) SEMICOLON . { p->ParseFile(A); }
 
 // Print statement
-//print_statement ::= PRINT LRBRACKET argument_list RRBRACKET SEMICOLON . { PUSHB(TOK_PRINT); }
+//print_statement ::= PRINT LRBRACKET argument_list RRBRACKET SEMICOLON . { INS(PRINT); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -314,10 +322,10 @@ for_init ::= for_init_statement . {
 
 // For condition
 for_cond ::= for_condition . { 
-  PUSHB(TOK_JZ);
+  INS(JZ);
   p->PushOffset(L"for_patch_1");
   PUSHQ(0);
-  PUSHB(TOK_JMP);
+  INS(JMP);
   p->PushOffset(L"for_patch_2");
   PUSHQ(0);
   p->PushOffset(L"for_label_2"); 
@@ -325,14 +333,14 @@ for_cond ::= for_condition . {
 
 // For expression
 for_expr ::= expression_opt . { 
-  PUSHB(TOK_JMP);
+  INS(JMP);
   PUSHQ(p->PopOffset(L"for_label1"));
   PATCH(L"for_patch_2");
 }
 
 // For end
 for_end ::= statement . {
-  PUSHB(TOK_JMP); 
+  INS(JMP); 
   PUSHQ(p->PopOffset(L"for_label_2"));
   PATCH(L"for_patch_1");
   POPFRAME();
@@ -371,7 +379,7 @@ if_statement ::= IF if_cond statement if_else .
 
 // If condition
 if_cond ::= LRBRACKET expression RRBRACKET . {
-  PUSHB(TOK_JZ);
+  INS(JZ);
   p->PushOffset(L"if_patch_1");
   PUSHQ(0);
 }
@@ -386,7 +394,7 @@ if_else ::= if_else_1 if_else_2 .
 
 // Prefix part
 if_else_1 ::= ELSE . {
-  PUSHB(TOK_JMP);
+  INS(JMP);
   p->PushOffset(L"if_patch_2");
   PUSHQ(0);
   PATCH(L"if_patch_1");
@@ -412,14 +420,14 @@ while_start ::= WHILE . {
 
 // While condition
 while_condition ::= LRBRACKET expression RRBRACKET . {
-  PUSHB(TOK_JZ);
+  INS(JZ);
   p->PushOffset(L"switch_cond_2");
   PUSHQ(0);
 }
 
 // While statement
 while_content ::= statement . {
-  PUSHB(TOK_JMP);
+  INS(JMP);
   PUSHQ(p->PopOffset(L"switch_cond_1"));
   PATCH(L"switch_cond_2");
 }

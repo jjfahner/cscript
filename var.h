@@ -3,7 +3,8 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <string>
+#include "types.h"
+
 #include <map>
 #include "ref.h"
 
@@ -32,7 +33,7 @@ public:
   //
   typedef bool          BoolType;
   typedef __int64       IntType;
-  typedef std::wstring  StringType;
+  typedef String  StringType;
   typedef std::map<Variant, VariantRef> MapType;
 
   //

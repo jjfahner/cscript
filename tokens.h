@@ -9,9 +9,9 @@
 #include "cscript.h"
 
 //
-// String is required for Token
+// Types
 //
-#include <string>
+#include "types.h"
 
 //
 // Define additional instruction values
@@ -44,9 +44,9 @@ struct Token
   size_t          m_size;
   int             m_type;
 
-  operator std::wstring () const
+  operator String () const
   {
-    return std::wstring(m_text, m_size);
+    return String(m_text, m_size);
   }
 };
 

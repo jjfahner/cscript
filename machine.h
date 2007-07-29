@@ -1,7 +1,6 @@
 #ifndef CSCRIPT_MACHINE_H
 #define CSCRIPT_MACHINE_H
 
-#include <string>
 #include <stack>
 #include <vector>
 

@@ -8,27 +8,12 @@
 #include <process.h>
 
 //
-// Native call type
-//
-typedef void (*NativeCall)(StackMachine&);
-
-//
-// Mapping between name and index
-//
-typedef std::map<std::wstring, Quad> NativeCallMap;
-NativeCallMap& getNativeCallMap()
-{
-  static NativeCallMap nativeCallMap;
-  return nativeCallMap;
-}
-
-//
 // Mapping between index and call
 //
-typedef std::vector<NativeCall> NativeCallVec;
-NativeCallVec& getNativeCalls()
+typedef std::vector<Function*> NativeCalls;
+NativeCalls& getNativeCalls()
 {
-  static NativeCallVec nativeCalls;
+  static NativeCalls nativeCalls;
   return nativeCalls;
 }
 
@@ -37,35 +22,44 @@ NativeCallVec& getNativeCalls()
 //
 struct NativeCallRegistrar
 {
-  NativeCallRegistrar(std::wstring const& name, NativeCall call)
+  NativeCallRegistrar(String const& name, NativeCall call, Quad minPar, Quad maxPar)
   {
-    static NativeCallMap& ncm = getNativeCallMap();
-    static NativeCallVec& ncv = getNativeCalls();
-    ncv.push_back(call);
-    ncm[name] = (Quad) (ncv.size() - 1);
+    static NativeCalls& ncv = getNativeCalls();
+    Function* fun = new Function;
+    fun->m_name   = name;
+    fun->m_native = true;
+    fun->m_offset = (Quad)ncv.size();
+    fun->m_minPar = minPar;
+    fun->m_maxPar = maxPar;
+    fun->m_funPtr = call;
+    ncv.push_back(fun);
   }
 };
 
-#define NATIVE_CALL(name)                                       \
-  void Native_##name(StackMachine& machine);                    \
-  NativeCallRegistrar register_##name(L#name, Native_##name);   \
+#define NATIVE_CALL(name,minPar,maxPar)         \
+  void Native_##name(StackMachine& machine);    \
+  NativeCallRegistrar register_##name(L#name,   \
+    Native_##name, minPar, maxPar);             \
   void Native_##name(StackMachine& machine)
 
 //
 // Find a native call index
 //
-Quad 
-FindNative(std::wstring const& name)
+Function* 
+FindNative(String const& name)
 {
-  static NativeCallMap& ncm = getNativeCallMap();
+  static NativeCalls& ncv = getNativeCalls();
 
-  NativeCallMap::iterator it = ncm.find(name);
-  if(it == ncm.end())
+  size_t i = 0, n = ncv.size();
+  for(; i < n; ++i)
   {
-    return -1;
+    if(ncv[i]->m_name == name)
+    {
+      return ncv[i];
+    }
   }
 
-  return it->second;
+  return 0;
 }
 
 //
@@ -74,8 +68,8 @@ FindNative(std::wstring const& name)
 void 
 ExecNative(Quad index, StackMachine& machine)
 {
-  static NativeCallVec& ncv = getNativeCalls();
-  return ncv[index](machine);
+  static NativeCalls& ncv = getNativeCalls();  
+  ncv[index]->m_funPtr(machine);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,12 +77,12 @@ ExecNative(Quad index, StackMachine& machine)
 // Native call implementations
 //
 
-NATIVE_CALL(print)
+NATIVE_CALL(print, 1, 2)
 {
   std::wcout << machine.StackTop()->AsString();
 }
 
-NATIVE_CALL(exit)
+NATIVE_CALL(exit, 0, 1)
 {
   int ret = 0;
   if(machine.StackSize())
@@ -98,7 +92,7 @@ NATIVE_CALL(exit)
   exit(ret);
 }
 
-NATIVE_CALL(quit)
+NATIVE_CALL(quit, 0, 1)
 {
   int ret = 0;
   if(machine.StackSize())
@@ -108,21 +102,26 @@ NATIVE_CALL(quit)
   exit(ret);
 }
 
-NATIVE_CALL(read)
+NATIVE_CALL(read, 0, 0)
 {
-  std::wstring line;
+  String line;
   std::wcin >> line;
   machine.PushStack(line);
 }
 
-NATIVE_CALL(length)
+NATIVE_CALL(length, 1, 1)
 {
-  machine.PushStack(machine.PopStack()->AsString().length());
+  VariantRef ref = machine.PopStack();
+  if(ref->GetType() != Variant::stString)
+  {
+    throw std::runtime_error("Invalid type for length");
+  }
+  machine.PushStack(ref->AsString().length());
 }
 
-NATIVE_CALL(exec)
+NATIVE_CALL(exec, 1, 1)
 {
-  std::wstring cmd = machine.PopStack()->AsString();
+  String cmd = machine.PopStack()->AsString();
   int result = (int)_wspawnlp(_P_NOWAIT, cmd.c_str(), cmd.c_str(), 0);
   machine.PushStack(result);
 }
