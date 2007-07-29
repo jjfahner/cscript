@@ -1,6 +1,3 @@
-#include <iostream>
-#include <fstream>
-
 #include "parser.h"
 #include "machine.h"
 #include "file.h"
@@ -43,11 +40,11 @@ int interactive()
   // Run interactive loop
   for(;;)
   {
-    wchar_t buf[4000];
+    Char buf[4000];
     std::streamsize len = 4000;
 
-    std::wcout << L"\n> ";
-    std::wcin.getline(buf, len);
+    cout << L"\n> ";
+    cin.getline(buf, len);
 
     try
     {
@@ -56,7 +53,7 @@ int interactive()
     }
     catch(std::exception const& e)
     {
-      std::cout << e.what() << std::endl;
+      cout << e.what() << std::endl;
     }
   }
 }
@@ -64,7 +61,7 @@ int interactive()
 //
 // Unicode entry point
 //
-int cscript_main(int argc, wchar_t** argv)
+int cscript_main(int argc, Char** argv)
 {
   // Check arguments
   if(argc == 1)
@@ -85,11 +82,11 @@ int cscript_main(int argc, wchar_t** argv)
   {
     // Let parser parse input
     Parser parser;
-    parser.ParseText((wchar_t*)file.GetData());
+    parser.ParseText((Char*)file.GetData());
     
     // Write code to file
 #   ifdef _DEBUG
-    std::ofstream of("out.csb", std::ios::binary);
+    ofstream of("out.csb", std::ios::binary);
     of.write("\xce\xec", 2);
     of.write((char*)parser.GetCode(), parser.GetSize());
 #   endif
@@ -109,7 +106,7 @@ int cscript_main(int argc, wchar_t** argv)
 //
 // Unicode entry point
 //
-int wmain(int argc, wchar_t** argv)
+int main(int argc, Char** argv)
 {
   int result = EXIT_FAILURE;
   try
@@ -118,16 +115,16 @@ int wmain(int argc, wchar_t** argv)
   }
   catch(std::exception const& e)
   {
-    std::cout << "\nException: " << e.what() << "\n";
+    cout << "\nException: " << e.what() << "\n";
   }
   catch(...)
   {
-    std::cout << "\nUnexpected exception\n";
+    cout << "\nUnexpected exception\n";
   }
 
 #ifdef _DEBUG
-  std::cout << "\n\nPress enter to quit";
-  std::cin.get();
+  cout << "\n\nPress enter to quit";
+  cin.get();
 #endif
 
 	return result;

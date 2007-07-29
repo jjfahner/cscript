@@ -30,7 +30,7 @@ void
 File::Open(String const& filename)
 {
   // Open the input file
-  std::ifstream ifs(filename.c_str(), std::ios::binary);
+  ifstream ifs(filename.c_str(), std::ios::binary);
   if(!ifs.good())
   {
     throw std::runtime_error("Failed to open file");
@@ -109,7 +109,7 @@ File::Open(String const& filename)
     }
 
     // Check supported types
-    if(enctype != UTF16BE)
+    if(enctype != UTF8)
     {
       throw std::runtime_error("Encoding not supported");
     }

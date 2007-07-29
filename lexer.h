@@ -17,7 +17,7 @@ public:
   //
   // Lex from string
   //
-  void SetText(wchar_t* text);
+  void SetText(char* text);
 
   //
   // Fetch next token
@@ -34,9 +34,9 @@ private:
   //
   // Members
   //
-  wchar_t*  m_source;
+  Char*  m_source;
   size_t    m_length;
-  wchar_t*  m_strptr;
+  Char*  m_strptr;
 
 };
 

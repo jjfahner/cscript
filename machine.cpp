@@ -1,7 +1,6 @@
 #include "tokens.h"
 #include "machine.h"
 #include "native.h"
-#include <iostream>
 
 StackMachine::StackMachine()
 {

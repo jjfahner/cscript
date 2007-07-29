@@ -81,7 +81,7 @@ Variant::MakeInt()
   switch(m_type)
   {
   case stBool:    value = m_bln ? 1 : 0; break;
-  case stString:  value = _wtoi64(m_str->c_str()); break;
+  case stString:  value = atoi(m_str->c_str()); break;
   default:        throw std::runtime_error("Invalid conversion");
   }
   Clear();
@@ -92,11 +92,11 @@ Variant::MakeInt()
 void 
 Variant::MakeString()
 {
-  wchar_t buf[50];
+  Char buf[50];
   switch(m_type)
   {
-  case stBool:  wcscpy(buf, m_bln ? L"true" : L"false"); break;
-  case stInt:   _i64tow(m_int, buf, 10); break;
+  case stBool:  strcpy(buf, m_bln ? "true" : "false"); break;
+  case stInt:   sprintf(buf, "%d", (int)m_int); break;
   default:      throw std::runtime_error("Invalid conversion");
   }
   Clear();
@@ -159,7 +159,7 @@ Variant::Compare(Variant const& rhs, bool exact) const
   // String
   if(m_type == stString)
   {
-    int diff = wcscmp(m_str->c_str(), rhs.AsString().c_str());
+    int diff = strcmp(m_str->c_str(), rhs.AsString().c_str());
     if(diff < 0) return -1;
     if(diff > 0) return  1;
     return 0;
@@ -272,7 +272,7 @@ Variant::Read(unsigned char* address)
   if(type == stString)
   {
     m_type = stString;
-    m_str = new StringType((wchar_t const*)address);
+    m_str = new StringType((Char const*)address);
     return;
   }
 
@@ -322,7 +322,7 @@ Variant::Write(unsigned char* address) const
   // String
   if(m_type == stString)
   {
-    wcscpy((wchar_t*)address, m_str->c_str());
+    strcpy((Char*)address, m_str->c_str());
     return;
   }
 

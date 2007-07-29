@@ -1,11 +1,12 @@
 #include "native.h"
 #include "machine.h"
 
-#include <vector>
-#include <map>
-#include <iostream>
-
+#ifdef _MSC_VER
 #include <process.h>
+#define strdup _strdup
+#elif defined(__GNUC__)
+#include <spawn.h>
+#endif
 
 //
 // Mapping between index and call
@@ -38,7 +39,7 @@ struct NativeCallRegistrar
 
 #define NATIVE_CALL(name,minPar,maxPar)                     \
   void Native_##name(StackMachine& machine, Word numArgs);  \
-  NativeCallRegistrar register_##name(L#name,               \
+  NativeCallRegistrar register_##name(#name,                \
     Native_##name, minPar, maxPar);                         \
   void Native_##name(StackMachine& machine, Word numArgs)
 
@@ -81,11 +82,11 @@ void PrintVariant(VariantRef const& ref)
 {
   switch(ref->GetType())
   {
-  case Variant::stNull:   std::wcout << "null"; return;
-  case Variant::stBool:   std::wcout << (ref->GetBool() ? "true" : "false"); return;
-  case Variant::stInt:    std::wcout << ref->GetInt(); return;
-  case Variant::stString: std::wcout << ref->GetString(); return;
-  case Variant::stAssoc:    break;
+  case Variant::stNull:   cout << "null"; return;
+  case Variant::stBool:   cout << (ref->GetBool() ? "true" : "false"); return;
+  case Variant::stInt:    cout << ref->GetInt(); return;
+  case Variant::stString: cout << ref->GetString(); return;
+  case Variant::stAssoc:  break;
   default: throw std::runtime_error("Invalid subtype");
   }
 
@@ -131,7 +132,7 @@ NATIVE_CALL(quit, 0, 1)
 NATIVE_CALL(read, 0, 0)
 {
   String line;
-  std::wcin >> line;
+  cin >> line;
   machine.PushStack(line);
 }
 
@@ -157,18 +158,19 @@ NATIVE_CALL(count, 1, 1)
 
 NATIVE_CALL(exec, 1, -1)
 {
+#ifdef _MSC_VER
   // Init argument list
-  wchar_t* argv[1024];
+  Char* argv[1024];
   memset(argv, 0, sizeof(argv));
 
   // Copy arguments
   for(int i = numArgs - 1; i >= 0; --i)
   {
-    argv[i] = _wcsdup(machine.PopStack()->AsString().c_str());
+    argv[i] = _strdup(machine.PopStack()->AsString().c_str());
   }
 
   // Execute command
-  int result = (int)_wspawnv(_P_NOWAIT, argv[0], argv);
+  int result = (int)_spawnv(_P_NOWAIT, argv[0], argv);
 
   // Free argument strings
   for(Word i = 0; i < numArgs; ++i)
@@ -178,5 +180,8 @@ NATIVE_CALL(exec, 1, -1)
 
   // Put result back on stack
   machine.PushStack(result);
+#else
+  throw std::runtime_error("Exec not supported on this platform");
+#endif
 }
 

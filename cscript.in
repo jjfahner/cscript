@@ -107,17 +107,17 @@ conditional_expression ::= cond_part QUESTION cond_expr_true COLON cond_expr_fal
 // Contitional parts
 cond_part ::= binary_expression . {
   INS(JZ);
-  p->PushOffset(L"cond_exp_1");
+  p->PushOffset("cond_exp_1");
   PUSHQ(0);
 }
 cond_expr_true ::= expression . {
   INS(JMP);
-  p->PushOffset(L"cond_exp_2");
+  p->PushOffset("cond_exp_2");
   PUSHQ(0);
-  p->SetQuad(p->PopOffset(L"cond_exp_1"), p->GetPos());
+  p->SetQuad(p->PopOffset("cond_exp_1"), p->GetPos());
 }
 cond_expr_false ::= assignment_expression . {
-  p->SetQuad(p->PopOffset(L"cond_exp_2"), p->GetPos());
+  p->SetQuad(p->PopOffset("cond_exp_2"), p->GetPos());
 }
 
 // Binary expressions
@@ -328,32 +328,32 @@ for_start ::= FOR . {
 
 // For init statement
 for_init ::= for_init_statement . { 
-  p->PushOffset(L"for_label1"); 
+  p->PushOffset("for_label1"); 
 }
 
 // For condition
 for_cond ::= for_condition . { 
   INS(JZ);
-  p->PushOffset(L"for_patch_1");
+  p->PushOffset("for_patch_1");
   PUSHQ(0);
   INS(JMP);
-  p->PushOffset(L"for_patch_2");
+  p->PushOffset("for_patch_2");
   PUSHQ(0);
-  p->PushOffset(L"for_label_2"); 
+  p->PushOffset("for_label_2"); 
 }
 
 // For expression
 for_expr ::= expression_opt . { 
   INS(JMP);
-  PUSHQ(p->PopOffset(L"for_label1"));
-  PATCH(L"for_patch_2");
+  PUSHQ(p->PopOffset("for_label1"));
+  PATCH("for_patch_2");
 }
 
 // For end
 for_end ::= statement . {
   INS(JMP); 
-  PUSHQ(p->PopOffset(L"for_label_2"));
-  PATCH(L"for_patch_1");
+  PUSHQ(p->PopOffset("for_label_2"));
+  PATCH("for_patch_1");
   POPFRAME();
 }
 
@@ -391,13 +391,13 @@ if_statement ::= IF if_cond statement if_else .
 // If condition
 if_cond ::= LRBRACKET expression RRBRACKET . {
   INS(JZ);
-  p->PushOffset(L"if_patch_1");
+  p->PushOffset("if_patch_1");
   PUSHQ(0);
 }
 
 // Empty else part
 if_else ::= . [LOWER_THAN_ELSE] {
-  PATCH(L"if_patch_1");
+  PATCH("if_patch_1");
 }
 
 // Filled else part
@@ -406,14 +406,14 @@ if_else ::= if_else_1 if_else_2 .
 // Prefix part
 if_else_1 ::= ELSE . {
   INS(JMP);
-  p->PushOffset(L"if_patch_2");
+  p->PushOffset("if_patch_2");
   PUSHQ(0);
-  PATCH(L"if_patch_1");
+  PATCH("if_patch_1");
 }
 
 // Statement part
 if_else_2 ::= statement . {
-  PATCH(L"if_patch_2");
+  PATCH("if_patch_2");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -426,21 +426,21 @@ while_statement ::= while_start while_condition while_content .
 
 // While start
 while_start ::= WHILE . {
-  p->PushOffset(L"switch_cond_1");
+  p->PushOffset("switch_cond_1");
 }
 
 // While condition
 while_condition ::= LRBRACKET expression RRBRACKET . {
   INS(JZ);
-  p->PushOffset(L"switch_cond_2");
+  p->PushOffset("switch_cond_2");
   PUSHQ(0);
 }
 
 // While statement
 while_content ::= statement . {
   INS(JMP);
-  PUSHQ(p->PopOffset(L"switch_cond_1"));
-  PATCH(L"switch_cond_2");
+  PUSHQ(p->PopOffset("switch_cond_1"));
+  PATCH("switch_cond_2");
 }
 
 //////////////////////////////////////////////////////////////////////////
