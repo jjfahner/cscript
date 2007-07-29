@@ -207,6 +207,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\file.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\lexer.cpp"
 				>
 			</File>
@@ -264,6 +268,10 @@
 			>
 			<File
 				RelativePath=".\cscript.h"
+				>
+			</File>
+			<File
+				RelativePath=".\file.h"
 				>
 			</File>
 			<File

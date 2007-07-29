@@ -15,14 +15,9 @@ public:
   Lexer();
 
   //
-  // Lex from stream
-  //
-  void SetFile(String const& filename);
-
-  //
   // Lex from string
   //
-  void SetText(String const& text);
+  void SetText(wchar_t* text);
 
   //
   // Fetch next token

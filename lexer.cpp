@@ -16,59 +16,11 @@ m_strptr (0)
 }
 
 
-void
-Lexer::SetFile(String const& filename)
-{
-  std::wifstream stream(filename.c_str(), std::ios::binary);
-
-  // Read first byte to check file
-  stream.peek();
-  if(!stream.good())
-  {
-    throw std::runtime_error("Failed to read from file");
-  }
-
-  // Read buffers
-  wchar_t line[4000];
-  String source;
-
-  // Read source string
-  for(;;)
-  {
-    // End of file
-    if(stream.eof())
-    {
-      break;
-    }
-
-    // Read line
-    stream.getline(line, 4000);
-    if(stream.bad())
-    {
-      break;
-    }
-
-    // Append newline
-    wcscat(line, L"\n");
-
-    // Append to input
-    source += line;
-  }
-
-  // Set string
-  SetText(source);
-}
-
 void 
-Lexer::SetText(String const& text)
+Lexer::SetText(wchar_t* text)
 {
-  // Copy buffer
-  m_length = text.length();
-  wchar_t* m_source = new wchar_t[m_length + 1];
-  wcscpy(m_source, text.c_str());
-
-  // Point to offset of string
-  m_strptr = m_source; 
+  m_source = text;
+  m_strptr = text; 
 }
 
 bool
