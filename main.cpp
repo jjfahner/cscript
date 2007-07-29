@@ -87,6 +87,13 @@ int cscript_main(int argc, wchar_t** argv)
     Parser parser;
     parser.ParseText((wchar_t*)file.GetData());
     
+    // Write code to file
+#   ifdef _DEBUG
+    std::ofstream of("out.csb", std::ios::binary);
+    of.write("\xce\xec", 2);
+    of.write((char*)parser.GetCode(), parser.GetSize());
+#   endif
+
     // Take code from parser
     code = parser.ReleaseCode();
   }
@@ -94,9 +101,6 @@ int cscript_main(int argc, wchar_t** argv)
   // Execute code
   StackMachine machine;
   machine.Execute(code);
-
-  // Free code
-  free(code);
 
   // Program succeeded
 	return EXIT_SUCCESS;
@@ -128,10 +132,3 @@ int wmain(int argc, wchar_t** argv)
 
 	return result;
 }
-
-//   // Write code to file
-//   #ifdef _DEBUG
-//     std::ofstream of("out.csb", std::ios::binary);
-//     of.write("\xce\xec", 2);
-//     of.write((char*)parser.GetCode(), parser.GetSize());//   #endif
-

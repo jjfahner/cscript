@@ -40,7 +40,6 @@ File::Open(String const& filename)
   std::streamsize len = ep - sp;
   
   // Allocate buffer
-
   Byte* buf = (Byte*)malloc(len + 4);
 
   // Read file and null-terminate
