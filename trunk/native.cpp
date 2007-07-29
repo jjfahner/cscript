@@ -36,11 +36,11 @@ struct NativeCallRegistrar
   }
 };
 
-#define NATIVE_CALL(name,minPar,maxPar)         \
-  void Native_##name(StackMachine& machine);    \
-  NativeCallRegistrar register_##name(L#name,   \
-    Native_##name, minPar, maxPar);             \
-  void Native_##name(StackMachine& machine)
+#define NATIVE_CALL(name,minPar,maxPar)                     \
+  void Native_##name(StackMachine& machine, Word numArgs);  \
+  NativeCallRegistrar register_##name(L#name,               \
+    Native_##name, minPar, maxPar);                         \
+  void Native_##name(StackMachine& machine, Word numArgs)
 
 //
 // Find a native call index
@@ -66,10 +66,10 @@ FindNative(String const& name)
 // Execute a native call
 //
 void 
-ExecNative(Quad index, StackMachine& machine)
+ExecNative(Quad index, StackMachine& machine, Word numArgs)
 {
   static NativeCalls& ncv = getNativeCalls();  
-  ncv[index]->m_funPtr(machine);
+  ncv[index]->m_funPtr(machine, numArgs);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ NATIVE_CALL(print, 1, 2)
 NATIVE_CALL(exit, 0, 1)
 {
   int ret = 0;
-  if(machine.StackSize())
+  if(numArgs == 1)
   {
     ret = (int)machine.StackTop()->AsInt();
   }
@@ -119,9 +119,28 @@ NATIVE_CALL(length, 1, 1)
   machine.PushStack(ref->AsString().length());
 }
 
-NATIVE_CALL(exec, 1, 1)
+NATIVE_CALL(exec, 1, -1)
 {
-  String cmd = machine.PopStack()->AsString();
-  int result = (int)_wspawnlp(_P_NOWAIT, cmd.c_str(), cmd.c_str(), 0);
+  // Init argument list
+  wchar_t* argv[1024];
+  memset(argv, 0, sizeof(argv));
+
+  // Copy arguments
+  for(int i = numArgs - 1; i >= 0; --i)
+  {
+    argv[i] = _wcsdup(machine.PopStack()->AsString().c_str());
+  }
+
+  // Execute command
+  int result = (int)_wspawnv(_P_NOWAIT, argv[0], argv);
+
+  // Free argument strings
+  for(Word i = 0; i < numArgs; ++i)
+  {
+    free(argv[i]);
+  }
+
+  // Put result back on stack
   machine.PushStack(result);
 }
+

@@ -3,6 +3,7 @@
 
 File::File() :
 m_type (empty),
+m_buff (0),
 m_data (0),
 m_size (0)
 {
@@ -30,6 +31,10 @@ File::Open(String const& filename)
 {
   // Open the input file
   std::ifstream ifs(filename.c_str(), std::ios::binary);
+  if(!ifs.good())
+  {
+    throw std::runtime_error("Failed to open file");
+  }
 
   // Determine file size
   ifs.seekg(0, std::ios_base::beg);

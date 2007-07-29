@@ -152,8 +152,9 @@ StackMachine::Execute(Byte* base, Quad offset)
   // Code pointers
   Byte* code = base + offset;
 
-  // Helper
+  // Helpers
   Quad temp;
+  Word w1, w2;
 
   // Execute code
   for(;;)
@@ -221,7 +222,9 @@ StackMachine::Execute(Byte* base, Quad offset)
       break;
 
     case TOK_CALLN:
-      ExecNative(EatQuad(code), *this);
+      w1 = EatWord(code);
+      w2 = EatWord(code);
+      ExecNative(w1, *this, w2);
       break;        
 
     case TOK_RET:
