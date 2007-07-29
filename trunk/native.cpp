@@ -85,11 +85,11 @@ void PrintVariant(VariantRef const& ref)
   case Variant::stBool:   std::wcout << (ref->GetBool() ? "true" : "false"); return;
   case Variant::stInt:    std::wcout << ref->GetInt(); return;
   case Variant::stString: std::wcout << ref->GetString(); return;
-  case Variant::stMap:    break;
+  case Variant::stAssoc:    break;
   default: throw std::runtime_error("Invalid subtype");
   }
 
-  Variant::MapType::const_iterator it, ie;
+  Variant::AssocType::const_iterator it, ie;
   it = ref->GetMap().begin();
   ie = ref->GetMap().end();
   std::wcout << "[";
@@ -148,7 +148,7 @@ NATIVE_CALL(length, 1, 1)
 NATIVE_CALL(count, 1, 1)
 {
   VariantRef ref = machine.PopStack();
-  if(ref->GetType() != Variant::stMap)
+  if(ref->GetType() != Variant::stAssoc)
   {
     throw std::runtime_error("Invalid type for count");
   }

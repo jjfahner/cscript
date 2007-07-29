@@ -19,8 +19,9 @@ Variant::operator = (Variant const& rhs)
   // Copy dynamic types
   switch(m_type)
   {
-  case stString:  m_string = new StringType(*m_string); break;
-  case stMap:     m_map = new MapType(*m_map);          break;
+  case stString:   m_str = new StringType(*m_str); break;
+  case stAssoc:    m_map = new AssocType(*m_map);  break;
+  case stResource: m_res = m_res->Clone();         break;
   }
 
   // Done
@@ -33,8 +34,9 @@ Variant::Clear()
   // Destroy complex types
   switch(m_type)
   {
-  case stString: delete m_string; break;
-  case stMap:    delete m_map;   break;
+  case stString:   delete m_str; break;
+  case stAssoc:    delete m_map; break;
+  case stResource: delete m_res; break;
   }
 
   // Clear data and type
@@ -55,7 +57,7 @@ Variant::SetType(SubTypes type)
   case stBool:    MakeBool();   break;
   case stInt:     MakeInt();    break;
   case stString:  MakeString(); break;
-  case stMap:     MakeMap();    break;
+  case stAssoc:   MakeMap();    break;
   default: throw std::runtime_error("Invalid conversion type");
   }
 }
@@ -68,7 +70,7 @@ Variant::MakeBool()
     MakeInt();
   }
   Clear();
-  m_bool = m_int ? true : false;
+  m_bln = m_int ? true : false;
   m_type = stBool;
 }
 
@@ -78,8 +80,8 @@ Variant::MakeInt()
   IntType value = 0;
   switch(m_type)
   {
-  case stBool:    value = m_bool ? 1 : 0; break;
-  case stString:  value = _wtoi64(m_string->c_str()); break;
+  case stBool:    value = m_bln ? 1 : 0; break;
+  case stString:  value = _wtoi64(m_str->c_str()); break;
   default:        throw std::runtime_error("Invalid conversion");
   }
   Clear();
@@ -93,23 +95,23 @@ Variant::MakeString()
   wchar_t buf[50];
   switch(m_type)
   {
-  case stBool:  wcscpy(buf, m_bool ? L"true" : L"false"); break;
+  case stBool:  wcscpy(buf, m_bln ? L"true" : L"false"); break;
   case stInt:   _i64tow(m_int, buf, 10); break;
   default:      throw std::runtime_error("Invalid conversion");
   }
   Clear();
-  m_string = new String(buf);
+  m_str = new String(buf);
   m_type   = stString;
 }
 
 void 
 Variant::MakeMap()
 {
-  if(m_type != stMap)
+  if(m_type != stAssoc)
   {
     Clear();
-    m_map  = new MapType;
-    m_type = stMap;
+    m_map  = new AssocType;
+    m_type = stAssoc;
   }
 }
 
@@ -140,8 +142,8 @@ Variant::Compare(Variant const& rhs, bool exact) const
   if(m_type == stBool)
   {
     BoolType rbool = rhs.AsBool();
-    if(m_bool == rbool) return 0;
-    if(m_bool) return 1;
+    if(m_bln == rbool) return 0;
+    if(m_bln) return 1;
     return -1;
   }
 
@@ -157,7 +159,7 @@ Variant::Compare(Variant const& rhs, bool exact) const
   // String
   if(m_type == stString)
   {
-    int diff = wcscmp(m_string->c_str(), rhs.AsString().c_str());
+    int diff = wcscmp(m_str->c_str(), rhs.AsString().c_str());
     if(diff < 0) return -1;
     if(diff > 0) return  1;
     return 0;
@@ -173,9 +175,9 @@ Variant::operator += (Variant const& value)
   switch(m_type)
   {
   case stNull  : *this = value; break;
-  case stBool  : m_bool = m_bool ? true : value.AsBool(); break;
+  case stBool  : m_bln = m_bln ? true : value.AsBool(); break;
   case stInt   : m_int += value.AsInt(); break;
-  case stString: *m_string += value.AsString(); break;
+  case stString: *m_str += value.AsString(); break;
   default: throw std::runtime_error("Invalid subtype");
   }
   return *this;
@@ -228,7 +230,7 @@ Variant::operator %= (Variant const& value)
 void 
 Variant::Append(VariantRef const& ref)
 {
-  if(m_type != stMap)
+  if(m_type != stAssoc)
   {
     MakeMap();
   }
@@ -254,7 +256,7 @@ Variant::Read(unsigned char* address)
   if(type == stBool)
   {
     m_type = stBool;
-    m_bool = *address ? true : false;
+    m_bln = *address ? true : false;
     return;
   }
 
@@ -270,7 +272,7 @@ Variant::Read(unsigned char* address)
   if(type == stString)
   {
     m_type = stString;
-    m_string = new StringType((wchar_t const*)address);
+    m_str = new StringType((wchar_t const*)address);
     return;
   }
 
@@ -286,7 +288,7 @@ Variant::WriteLength() const
   case stNull:    return 1;
   case stBool:    return 2;
   case stInt:     return 1 + sizeof(IntType);
-  case stString:  return m_string->length() * 2 + 3;
+  case stString:  return m_str->length() * 2 + 3;
   default: throw std::runtime_error("Invalid subtype");
   }
 }
@@ -306,7 +308,7 @@ Variant::Write(unsigned char* address) const
   // Boolean
   if(m_type == stBool)
   {
-    *address = m_bool ? 1 : 0;
+    *address = m_bln ? 1 : 0;
     return;
   }
 
@@ -320,7 +322,7 @@ Variant::Write(unsigned char* address) const
   // String
   if(m_type == stString)
   {
-    wcscpy((wchar_t*)address, m_string->c_str());
+    wcscpy((wchar_t*)address, m_str->c_str());
     return;
   }
 
