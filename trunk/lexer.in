@@ -1,7 +1,7 @@
 
-int parseNextToken(wchar_t*& start, wchar_t*& end)
+int parseNextToken(Char*& start, Char*& end)
 {
-  wchar_t* qptr = 0;
+  Char* qptr = 0;
   
   if(*start == 0)
   {
@@ -9,7 +9,7 @@ int parseNextToken(wchar_t*& start, wchar_t*& end)
   }
   
   /*!re2c
-  re2c:define:YYCTYPE  = "wchar_t";
+  re2c:define:YYCTYPE  = "Char";
   re2c:define:YYCURSOR = end;
   re2c:define:YYMARKER = qptr;
   re2c:yyfill:enable   = 0;

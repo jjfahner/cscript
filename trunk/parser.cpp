@@ -47,14 +47,14 @@ Parser::ParseFile(String const& filename)
 
   // Create lexer for file
   Lexer lexer;
-  lexer.SetText((wchar_t*)file.GetData());
+  lexer.SetText((Char*)file.GetData());
 
   // Parse
   return ParseImpl(lexer);
 }
 
 Quad
-Parser::ParseText(wchar_t* text)
+Parser::ParseText(Char* text)
 {
   // Create lexer for text
   Lexer lexer;
@@ -295,7 +295,7 @@ Parser::PushFunction(String const& name)
 
   // Generate a jump to bypass function code
   PushByte(TOK_JMP);
-  PushOffset(L"function_declaration");
+  PushOffset("function_declaration");
   PushQuad(0);
 
   // Create new function
@@ -338,7 +338,7 @@ Parser::PopFunction()
   PushByte(TOK_RET);
 
   // Resolve the jump
-  SetQuad(PopOffset(L"function_declaration"), GetPos());
+  SetQuad(PopOffset("function_declaration"), GetPos());
 
   // Finalize function
   m_fun->m_minPar = m_fun->m_maxPar = (Quad) m_fun->m_params.size();

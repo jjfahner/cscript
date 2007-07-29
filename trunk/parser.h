@@ -1,13 +1,9 @@
 #ifndef CSCRIPT_CONTEXT_H
 #define CSCRIPT_CONTEXT_H
 
-#include <list>
-#include <stack>
-#include <algorithm>
-
-#include "var.h"
 #include "types.h"
 #include "tokens.h"
+#include "var.h"
 
 //
 // Forward declares
@@ -43,7 +39,7 @@ public:
   // Code is added to existing buffer.
   // Returns offset of first instruction.
   //
-  Quad ParseText(wchar_t* text);
+  Quad ParseText(Char* text);
 
   //
   // Bytecode info

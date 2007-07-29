@@ -41,7 +41,7 @@
 
 struct Token
 {
-  wchar_t const*  m_text;
+  Char const*  m_text;
   size_t          m_size;
   int             m_type;
 

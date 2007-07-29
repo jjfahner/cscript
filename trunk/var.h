@@ -1,11 +1,7 @@
 #ifndef CSCRIPT_VAR_H
 #define CSCRIPT_VAR_H
 
-#define _CRT_SECURE_NO_WARNINGS
-
 #include "types.h"
-
-#include <map>
 #include "ref.h"
 
 class Variant;
@@ -50,7 +46,7 @@ public:
   // Implementation types
   //
   typedef bool        BoolType;
-  typedef __int64     IntType;
+  typedef int64       IntType;
   typedef String      StringType;
   typedef AssocMap    AssocType;
   typedef Resource    ResType;

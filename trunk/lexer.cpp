@@ -17,7 +17,7 @@ m_strptr (0)
 
 
 void 
-Lexer::SetText(wchar_t* text)
+Lexer::SetText(Char* text)
 {
   m_source = text;
   m_strptr = text; 
@@ -33,8 +33,8 @@ Lexer::Lex(Token& token)
   }
 
   // Parse next token
-  wchar_t* start = m_strptr;
-  wchar_t* end   = start;
+  Char* start = m_strptr;
+  Char* end   = start;
   int type = parseNextToken(start, end);
   
   // Depending on token, do specialized parsing
@@ -59,8 +59,8 @@ Lexer::Lex(Token& token)
 bool 
 Lexer::LexString(Token& token)
 {
-  wchar_t* dst = m_strptr;
-  wchar_t  wch;
+  Char* dst = m_strptr;
+  Char  wch;
 
   // Init token
   token.m_type = TOK_STRING;

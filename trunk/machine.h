@@ -1,9 +1,6 @@
 #ifndef CSCRIPT_MACHINE_H
 #define CSCRIPT_MACHINE_H
 
-#include <stack>
-#include <vector>
-
 #include "types.h"
 #include "var.h"
 
