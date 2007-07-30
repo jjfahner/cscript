@@ -44,19 +44,28 @@ public:
   //
   bool Lex(Token& token);
 
+  //
+  // Current line
+  //
+  Quad GetLine() const {
+    return m_line;
+  }
+
 private:
 
   //
   // Specialized lexing
   //
   bool LexString(Token& token);
+  bool LexComment();
 
   //
   // Members
   //
-  Char*  m_source;
-  size_t    m_length;
-  Char*  m_strptr;
+  Char*   m_source;
+  size_t  m_length;
+  Char*   m_strptr;
+  Quad    m_line;
 
 };
 

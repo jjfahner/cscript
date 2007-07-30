@@ -45,9 +45,9 @@
 #define TOK_RETURN                         45
 #define TOK_INCLUDE                        46
 #define TOK_FOR                            47
-#define TOK_LOWER_THAN_ELSE                48
-#define TOK_ELSE                           49
-#define TOK_IF                             50
-#define TOK_WHILE                          51
-#define TOK_IN                             52
-#define TOK_FOREACH                        53
+#define TOK_IN                             48
+#define TOK_FOREACH                        49
+#define TOK_LOWER_THAN_ELSE                50
+#define TOK_ELSE                           51
+#define TOK_IF                             52
+#define TOK_WHILE                          53

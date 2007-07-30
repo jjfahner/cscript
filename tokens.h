@@ -34,6 +34,13 @@
 #include "types.h"
 
 //
+// Lexer-specific tokens
+//
+#define TOK_COMMENT       80
+#define TOK_NEWLINE       81
+#define TOK_WHITESPACE    82
+
+//
 // Define additional instruction values
 //
 #define TOK_LVALUE        100

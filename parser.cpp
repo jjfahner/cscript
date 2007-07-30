@@ -34,7 +34,8 @@ m_size (0),
 m_used (0),
 m_vnum (0),
 m_fun  (0),
-m_depth(0)
+m_depth(0),
+m_lexer(0)
 {
   // Base frame
   PushFrame();
@@ -69,8 +70,22 @@ Parser::ParseFile(String const& filename)
   Lexer lexer;
   lexer.SetText((Char*)file.GetData());
 
+  // Push lexer on stack
+  Lexer* prevlexer = m_lexer;
+  m_lexer = &lexer;
+
   // Parse
-  return ParseImpl(lexer);
+  try
+  {
+    Quad result = ParseImpl(lexer);
+    m_lexer = prevlexer;
+    return result;
+  }
+  catch(...)
+  {
+    m_lexer = prevlexer;
+    throw;
+  }
 }
 
 Quad
@@ -80,8 +95,22 @@ Parser::ParseText(Char* text)
   Lexer lexer;
   lexer.SetText(text);
 
+  // Push lexer on stack
+  Lexer* prevlexer = m_lexer;
+  m_lexer = &lexer;
+
   // Parse
-  return ParseImpl(lexer);
+  try
+  {
+    Quad result = ParseImpl(lexer);
+    m_lexer = prevlexer;
+    return result;
+  }
+  catch(...)
+  {
+    m_lexer = prevlexer;
+    throw;
+  }
 }
 
 Quad
@@ -102,6 +131,8 @@ Parser::ParseImpl(Lexer& lexer)
 
   // Allocate parser
   void *pParser = CScriptParseAlloc(malloc);
+
+  //CScriptParseTrace(stdout, "> ");
 
   // Store buffer position
   Quad offset = GetPos();
@@ -142,6 +173,22 @@ Parser::ParseImpl(Lexer& lexer)
 
   // Done
   return offset;
+}
+
+void 
+Parser::OnParseFailure()
+{
+  Variant error("Parse failed on line ");
+  error += m_lexer->GetLine();
+  throw std::runtime_error(error.GetString());
+}
+
+void 
+Parser::OnSyntaxError()
+{
+  Variant error("Syntax error on line ");
+  error += m_lexer->GetLine();
+  throw std::runtime_error(error.GetString());
 }
 
 Byte* 
@@ -228,7 +275,7 @@ Parser::AddVar(String const& name)
   // Check whether it exists
   if(frame.m_vars.count(name))
   {
-    throw std::runtime_error("Duplicate variable name");
+    throw std::runtime_error("Duplicate variable name " + name);
   }
 
   // Insert into stack frame
@@ -255,7 +302,7 @@ Parser::GetVar(String const& name)
       break;
     }
   }
-  throw std::runtime_error("Undeclared variable");
+  throw std::runtime_error("Undeclared variable " + name);
 }
 
 void 
@@ -310,7 +357,7 @@ Parser::PushFunction(String const& name)
   // Check for declaration of function
   if(m_functions.count(name))
   {
-    throw std::runtime_error("Duplicate function declaration");
+    throw std::runtime_error("Duplicate function declaration " + name);
   }
 
   // Generate a jump to bypass function code
@@ -374,7 +421,7 @@ Parser::GetFunction(String const& name)
   FunctionMap::iterator it = m_functions.find(name);
   if(it == m_functions.end())
   {
-    throw std::runtime_error("Function undefined");
+    throw std::runtime_error("Function " + name + " undefined");
   }
 
   // Return offset
@@ -405,7 +452,7 @@ Parser::PushCall(String const& name)
   // Unknown function
   if(call.m_fn == 0)
   {
-    throw std::runtime_error("Function undefined");
+    throw std::runtime_error("Function " + name + " undefined");
   }
 
   // Put new call on stack
@@ -422,11 +469,11 @@ Parser::PopCall()
   // Check argument count
   if(call.m_fn->m_minPar != -1 && call.m_args < call.m_fn->m_minPar)
   {
-    throw std::runtime_error("Not enough arguments for call");
+    throw std::runtime_error("Not enough arguments for call to " + call.m_fn->m_name);
   }
   if(call.m_fn->m_maxPar != -1 && call.m_args > call.m_fn->m_maxPar)
   {
-    throw std::runtime_error("Too many arguments for call");
+    throw std::runtime_error("Too many arguments for call to " + call.m_fn->m_name);
   }
 
   // Generate code
@@ -458,7 +505,7 @@ Parser::AddParam(String const& name)
                m_fun->m_params.end(), name) != 
                m_fun->m_params.end())
   {
-    throw std::runtime_error("Duplicate parameter name");
+    throw std::runtime_error("Duplicate parameter name " + name);
   }
 
   // Add to list of parameters

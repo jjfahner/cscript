@@ -37,11 +37,14 @@ int parseNextToken(Char*& start, Char*& end)
   re2c:indent:top      = 1;
   
   /* Whitespace */
-  [ \t\r\n]+                { start = end; return parseNextToken(start, end); }
+  [ \t]+                    { return TOK_WHITESPACE; }
+  
+  /* Newlines */
+  "\r"*"\n"                 { return TOK_NEWLINE; }
   
   /* Comments */
-  "//".*"\n"                { start = end; return parseNextToken(start, end); }
-  "/*".*"*/"                { start = end; return parseNextToken(start, end); }
+  "//"                      { return TOK_COMMENT; }
+  "/*"                      { return TOK_COMMENT; }
 
   /* Keywords */
   "else"                    { return TOK_ELSE; }

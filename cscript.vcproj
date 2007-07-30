@@ -323,6 +323,10 @@
 			RelativePath=".\test.csi"
 			>
 		</File>
+		<File
+			RelativePath=".\testsuite.csc"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

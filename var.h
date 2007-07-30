@@ -152,6 +152,15 @@ public:
   }
 
   //
+  // Const string construction
+  //
+  Variant(char const* value) :
+  m_str   (new StringType(value)),
+  m_type  (stString)
+  {
+  }
+
+  //
   // Assoc construction
   //
   Variant(AssocType const& value) :
