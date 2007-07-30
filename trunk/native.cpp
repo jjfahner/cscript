@@ -93,12 +93,12 @@ void PrintVariant(VariantRef const& ref)
   Variant::AssocType::const_iterator it, ie;
   it = ref->GetMap().begin();
   ie = ref->GetMap().end();
-  std::wcout << "[";
-  std::wstring sep;
+  cout << "[";
+  String sep;
   for(; it != ie; ++it)
   {
-    std::wcout << sep;
-    sep = L",";
+    cout << sep;
+    sep = ",";
     PrintVariant(it->second);
   }
   std::wcout << "]";
