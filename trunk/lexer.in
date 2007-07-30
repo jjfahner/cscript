@@ -78,12 +78,12 @@ int parseNextToken(Char*& start, Char*& end)
   "++"    { return TOK_ADDADD; }
   "--"    { return TOK_SUBSUB; }
   "."     { return TOK_DOT; }
-  "["     { return TOK_LSBRACKET; }
-  "]"     { return TOK_RSBRACKET; }
-  "("     { return TOK_LRBRACKET; }
-  ")"     { return TOK_RRBRACKET; }
-  "{"     { return TOK_LCBRACKET; }
-  "}"     { return TOK_RCBRACKET; }
+  "["     { return TOK_LBRACKET; }
+  "]"     { return TOK_RBRACKET; }
+  "("     { return TOK_LPAREN; }
+  ")"     { return TOK_RPAREN; }
+  "{"     { return TOK_LBRACE; }
+  "}"     { return TOK_RBRACE; }
   
   */
 }

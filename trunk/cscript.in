@@ -149,13 +149,13 @@ postfix_expression ::= primary_expression.
 postfix_expression ::= postfix_expression ADDADD. { INS(POSTINC); }
 postfix_expression ::= postfix_expression SUBSUB. { INS(POSTSUB); } 
 postfix_expression ::= postfix_expression DOT id_expression.  
-postfix_expression ::= postfix_expression LSBRACKET expression RSBRACKET.  { INS(INDEX); }
+postfix_expression ::= postfix_expression LBRACKET expression RBRACKET.  { INS(INDEX); }
 postfix_expression ::= function_call .
 
 // Primary expression
 primary_expression ::= literal.                         
 primary_expression ::= id_expression.
-primary_expression ::= LRBRACKET expression RRBRACKET.  
+primary_expression ::= LPAREN expression RPAREN.  
 primary_expression ::= list_definition .
 
 // Literals
@@ -171,8 +171,8 @@ id_expression ::= IDENTIFIER(A). { INS(LVALUE); PUSHQ(p->GetVar(A)); }
 
 // List definition
 list_definition ::= list_start list_content list_end .
-list_start   ::= LSBRACKET . { p->PushRVal(Variant()); }
-list_end     ::= RSBRACKET .
+list_start   ::= LBRACKET . { p->PushRVal(Variant()); }
+list_end     ::= RBRACKET .
 list_entry   ::= expression . { INS(ARRAY); }
 list_content ::= list_entry . 
 list_content ::= list_content COMMA list_entry .
@@ -183,7 +183,7 @@ list_content ::= list_content COMMA list_entry .
 //
 
 // Function call
-function_call ::= function_call_start LRBRACKET argument_list RRBRACKET function_call_end .
+function_call ::= function_call_start LPAREN argument_list RPAREN function_call_end .
 
 // Call parts
 function_call_start ::= IDENTIFIER(A) . { PUSHCALL(A); }
@@ -230,7 +230,7 @@ init_declaration ::= IDENTIFIER(A) ASSIGN expression . {
 }
 
 // Function declaration
-function_declaration ::= function_name LRBRACKET parameter_list parameters_done RRBRACKET function_body .
+function_declaration ::= function_name LPAREN parameter_list parameters_done RPAREN function_body .
 
 // Function name
 function_name ::= IDENTIFIER(A) . {	p->PushFunction(A); }
@@ -259,8 +259,8 @@ function_statements ::= function_statements function_statement .
 
 // Compound statement
 function_block ::= function_block_start function_statements function_block_end .
-function_block_start ::= LCBRACKET . { PUSHFRAME(); }
-function_block_end   ::= RCBRACKET . { POPFRAME();  }
+function_block_start ::= LBRACE . { PUSHFRAME(); }
+function_block_end   ::= RBRACE . { POPFRAME();  }
 
 // Function body
 function_body ::= function_block . { p->PopFunction(); }
@@ -284,14 +284,14 @@ declaration_statement ::= declaration .
 
 // Compound statement
 compound_statement ::= compound_start statement_sequence_opt compound_end .
-compound_start ::= LCBRACKET . { PUSHFRAME(); }
-compound_end   ::= RCBRACKET . { POPFRAME();  }
+compound_start ::= LBRACE . { PUSHFRAME(); }
+compound_end   ::= RBRACE . { POPFRAME();  }
 
 // Include statement
 include_statement ::= INCLUDE STRING(A) SEMICOLON . { p->ParseFile(A); }
 
 // Print statement
-//print_statement ::= PRINT LRBRACKET argument_list RRBRACKET SEMICOLON . { INS(PRINT); }
+//print_statement ::= PRINT LPAREN argument_list RPAREN SEMICOLON . { INS(PRINT); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -319,7 +319,7 @@ include_statement ::= INCLUDE STRING(A) SEMICOLON . { p->ParseFile(A); }
 //
 
 // For statement - main structure
-for_statement ::= for_start LRBRACKET for_init for_cond SEMICOLON for_expr RRBRACKET for_end . 
+for_statement ::= for_start LPAREN for_init for_cond SEMICOLON for_expr RPAREN for_end . 
 
 // For keyword
 for_start ::= FOR . { 
@@ -389,7 +389,7 @@ for_init_statement ::= declaration_statement .
 if_statement ::= IF if_cond statement if_else .
 
 // If condition
-if_cond ::= LRBRACKET expression RRBRACKET . {
+if_cond ::= LPAREN expression RPAREN . {
   INS(JZ);
   p->PushOffset("if_patch_1");
   PUSHQ(0);
@@ -430,7 +430,7 @@ while_start ::= WHILE . {
 }
 
 // While condition
-while_condition ::= LRBRACKET expression RRBRACKET . {
+while_condition ::= LPAREN expression RPAREN . {
   INS(JZ);
   p->PushOffset("switch_cond_2");
   PUSHQ(0);
@@ -448,7 +448,7 @@ while_content ::= statement . {
 // Foreach statement
 //
 
-foreach_statement ::= foreach_init LRBRACKET for_lvalue IN for_expression RRBRACKET statement foreach_end .
+foreach_statement ::= foreach_init LPAREN for_lvalue IN for_expression RPAREN statement foreach_end .
 
 foreach_init ::= FOREACH . { PUSHFRAME(); }
 

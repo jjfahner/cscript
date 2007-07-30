@@ -91,6 +91,13 @@ Lexer::LexString(Token& token)
       *dst = wch;
       break;
 
+      // TODO
+//     case '{':
+//       while(++m_strptr)
+//       {
+// 
+//       }
+
     default:
       *dst = *m_strptr;
       break;
