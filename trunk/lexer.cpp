@@ -30,7 +30,8 @@
 //
 
 Lexer::Lexer() :
-m_strptr (0)
+m_strptr  (0),
+m_line    (0)
 {
 }
 
@@ -39,40 +40,47 @@ void
 Lexer::SetText(Char* text)
 {
   m_source = text;
-  m_strptr = text; 
+  m_strptr = text;
+  m_line   = 1;
 }
 
 bool
 Lexer::Lex(Token& token)
 {
-  // End of input
-  if(m_strptr == 0 || *m_strptr == 0)
+  for(;;)
   {
-    return false;
+    // End of input
+    if(m_strptr == 0 || *m_strptr == 0)
+    {
+      return false;
+    }
+
+    // Parse next token
+    Char* start = m_strptr;
+    Char* end   = start;
+    int type = parseNextToken(start, end);
+    
+    // Depending on token, do specialized parsing
+    switch(type)
+    {
+    case 0:               return false;
+    case TOK_WHITESPACE:  m_strptr = end; continue;
+    case TOK_STRING:      m_strptr = end; return LexString(token);
+    case TOK_NEWLINE:     m_strptr = end; ++m_line; continue;
+    case TOK_COMMENT:     LexComment(); continue;
+    }
+
+    // Copy into token
+    token.m_type = type;
+    token.m_text = start;
+    token.m_size = end - start;
+
+    //std::cout << "'" << std::string(token.m_text, token.m_size) << "'  ";
+
+    // Move pointer
+    m_strptr = end;
+    return true;
   }
-
-  // Parse next token
-  Char* start = m_strptr;
-  Char* end   = start;
-  int type = parseNextToken(start, end);
-  
-  // Depending on token, do specialized parsing
-  switch(type)
-  {
-  case 0:          return false;
-  case TOK_STRING: m_strptr = end; return LexString(token);
-  }
-
-  // Copy into token
-  token.m_type = type;
-  token.m_text = start;
-  token.m_size = end - start;
-
-  // Move pointer
-  m_strptr = end;
-
-  // Succeeded
-  return true;
 }
 
 bool 
@@ -123,3 +131,34 @@ Lexer::LexString(Token& token)
     }
   }
 }
+
+bool 
+Lexer::LexComment()
+{
+  // Single-line comment
+  if(*++m_strptr == '/')
+  {
+    while(*m_strptr && *m_strptr != '\n')
+    {
+      ++m_strptr;
+    }
+  }
+  else // Multiline comment
+  {
+    while(*m_strptr)
+    {
+      if(*m_strptr == '\n')
+      {
+        ++m_line;
+      }
+      else if(*m_strptr == '*' && *(m_strptr+1) == '/')
+      {
+        m_strptr += 2;
+        break;
+      }
+      ++m_strptr;
+    }
+  }
+  return true;
+}
+

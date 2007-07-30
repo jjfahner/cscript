@@ -31,10 +31,10 @@
 
 // Error handlers
 %parse_failure {
-  throw std::runtime_error("Parse failed");
+  p->OnParseFailure();
 }
 %syntax_error {
-  throw std::runtime_error("Syntax error");
+  p->OnSyntaxError();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -102,6 +102,7 @@ statement ::= compound_statement .
 statement ::= if_statement .
 statement ::= while_statement .
 statement ::= foreach_statement .
+statement ::= return_statement .
 
 // Expression
 expression ::= assignment_expression.
@@ -268,21 +269,20 @@ parameter_list ::= parameters .
 // Helper - generate code for body
 parameters_done ::= . { p->GenFunProlog(); }
 
-// Function-level statements
-function_statement ::= statement .
-function_statement ::= return_statement .
-
-// Function_statements
-function_statements ::= .
-function_statements ::= function_statements function_statement .
+// Function body
+function_body ::= function_block . { p->PopFunction(); }
 
 // Compound statement
 function_block ::= function_block_start function_statements function_block_end .
 function_block_start ::= LBRACE . { PUSHFRAME(); }
 function_block_end   ::= RBRACE . { POPFRAME();  }
 
-// Function body
-function_body ::= function_block . { p->PopFunction(); }
+// Function-level statements
+function_statement ::= statement .
+
+// Function_statements
+function_statements ::= .
+function_statements ::= function_statements function_statement .
 
 // Return statement - leaves return expression on the stack
 return_statement ::= RETURN expression SEMICOLON . { INS(RET); }
@@ -308,9 +308,6 @@ compound_end   ::= RBRACE . { POPFRAME();  }
 
 // Include statement
 include_statement ::= INCLUDE STRING(A) SEMICOLON . { p->ParseFile(A); }
-
-// Print statement
-//print_statement ::= PRINT LPAREN argument_list RPAREN SEMICOLON . { INS(PRINT); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -383,6 +380,24 @@ for_condition ::= expression .
 // Initializer
 for_init_statement ::= expression_statement .
 for_init_statement ::= declaration_statement .
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Foreach statement
+//
+
+foreach_statement ::= foreach_init LPAREN for_lvalue IN for_expression RPAREN statement foreach_end .
+
+foreach_init ::= FOREACH .
+
+for_lvalue ::= id_expression .
+for_lvalue ::= VAR simple_declaration .
+
+for_expression ::= expression . { }
+
+foreach_end ::= . { POPFRAME(); }
+
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -461,22 +476,3 @@ while_content ::= statement . {
   PUSHQ(p->PopOffset("switch_cond_1"));
   PATCH("switch_cond_2");
 }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Foreach statement
-//
-
-foreach_statement ::= foreach_init LPAREN for_lvalue IN for_expression RPAREN statement foreach_end .
-
-foreach_init ::= FOREACH . { PUSHFRAME(); }
-
-for_lvalue ::= id_expression .
-for_lvalue ::= VAR simple_declaration .
-
-for_expression ::= expression . { }
-
-foreach_end ::= . { POPFRAME(); }
-
-
-

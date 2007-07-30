@@ -117,6 +117,12 @@ public:
   void PopCall();
   void PushArg();
 
+  //
+  // Error handlers
+  //
+  void OnParseFailure();
+  void OnSyntaxError();
+
 private:
 
   //
@@ -184,6 +190,7 @@ private:
   FunctionMap   m_functions;
   Function*     m_fun;
   CallStack     m_calls;
+  Lexer*        m_lexer;
 
  };
 

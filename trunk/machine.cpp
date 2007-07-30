@@ -316,6 +316,41 @@ StackMachine::Execute(Byte* base, Quad offset)
       PushStack(P0);
       break;
 
+    case TOK_ASSADD:
+      PopStack(1);
+      PopStack(0);
+      R0 += R1;
+      PushStack(P0);
+      break;
+
+    case TOK_ASSSUB:
+      PopStack(1);
+      PopStack(0);
+      R0 -= R1;
+      PushStack(P0);
+      break;
+
+    case TOK_ASSMUL:
+      PopStack(1);
+      PopStack(0);
+      R0 *= R1;
+      PushStack(P0);
+      break;
+
+    case TOK_ASSDIV:
+      PopStack(1);
+      PopStack(0);
+      R0 /= R1;
+      PushStack(P0);
+      break;
+
+    case TOK_ASSMOD:
+      PopStack(1);
+      PopStack(0);
+      R0 %= R1;
+      PushStack(P0);
+      break;
+
     default:
       throw std::runtime_error("Invalid instruction");
     }
