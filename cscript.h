@@ -25,10 +25,10 @@
 #define TOK_ADDADD                         25
 #define TOK_SUBSUB                         26
 #define TOK_DOT                            27
-#define TOK_LSBRACKET                      28
-#define TOK_RSBRACKET                      29
-#define TOK_LRBRACKET                      30
-#define TOK_RRBRACKET                      31
+#define TOK_LBRACKET                       28
+#define TOK_RBRACKET                       29
+#define TOK_LPAREN                         30
+#define TOK_RPAREN                         31
 #define TOK_INTEGER                        32
 #define TOK_REAL                           33
 #define TOK_STRING                         34
@@ -40,8 +40,8 @@
 #define TOK_VAR                            40
 #define TOK_SEMICOLON                      41
 #define TOK_FUN                            42
-#define TOK_LCBRACKET                      43
-#define TOK_RCBRACKET                      44
+#define TOK_LBRACE                         43
+#define TOK_RBRACE                         44
 #define TOK_RETURN                         45
 #define TOK_INCLUDE                        46
 #define TOK_FOR                            47
