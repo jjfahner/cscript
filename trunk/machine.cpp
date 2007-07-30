@@ -41,18 +41,6 @@ inline Quad EatQuad(Byte*& source)
   return q;
 }
 
-inline void 
-StackMachine::PushStackFrame()
-{
-  m_varStack.push(StackFrame());
-}
-
-inline void 
-StackMachine::PopStackFrame()
-{
-  m_varStack.pop();
-}
-
 void 
 StackMachine::AddVar(Quad id)
 {
@@ -89,45 +77,6 @@ StackMachine::PushLiteral(Byte* address)
   VariantRef ref(new Variant);
   ref->Read(address);
   m_stack.push(ref);
-}
-
-inline void 
-StackMachine::PopStack(size_t index)
-{
-#ifdef _DEBUG
-  if(m_stack.size() == 0)
-  {
-    throw std::runtime_error("Stack underflow");
-  }
-#endif
-  m_registers[index] = m_stack.top();
-  m_stack.pop();
-}
-
-inline void 
-StackMachine::PushStack(VariantRef const& value)
-{
-  m_stack.push(value);
-}
-
-inline void 
-StackMachine::PushStack(Variant const& value)
-{
-  m_stack.push(VariantRef(new Variant(value)));
-}
-
-inline void 
-StackMachine::PushRet(Quad offset)
-{
-  m_return.push(offset);
-}
-
-inline Quad 
-StackMachine::PopRet()
-{
-  Quad top = m_return.top();
-  m_return.pop();
-  return top;
 }
 
 //

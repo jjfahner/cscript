@@ -160,31 +160,4 @@ NATIVE_CALL(exec, 1, 1)
 {
   // Pass to system
   machine.PushStack(system(machine.PopStack()->GetString().c_str()));
-// 
-// #ifdef _MSC_VER
-//   // Init argument list
-//   Char* argv[1024];
-//   memset(argv, 0, sizeof(argv));
-// 
-//   // Copy arguments
-//   for(int i = numArgs - 1; i >= 0; --i)
-//   {
-//     argv[i] = _strdup(machine.PopStack()->AsString().c_str());
-//   }
-// 
-//   // Execute command
-//   int result = (int)_spawnv(_P_NOWAIT, argv[0], argv);
-// 
-//   // Free argument strings
-//   for(Word i = 0; i < numArgs; ++i)
-//   {
-//     free(argv[i]);
-//   }
-// 
-//   // Put result back on stack
-//   machine.PushStack(result);
-// #else
-//   throw std::runtime_error("Exec not supported on this platform");
-// #endif
 }
-
