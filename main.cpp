@@ -90,9 +90,16 @@ int compile(CmdArgs const& args)
   Parser parser;
   parser.ParseFile(files.begin()->first);
 
-  // Write to output file
+  // Create output file
   std::ofstream ofs(outFile.c_str(), std::ios::binary);
+
+  // Write file header
+  ofs.write("\xce\xec", 2);
+
+  // Write code
   ofs.write((char*)parser.GetCode(), parser.GetSize());
+
+  // Close file
   ofs.close();
 
   // Succeeded
