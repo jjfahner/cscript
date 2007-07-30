@@ -59,9 +59,10 @@ typedef std::ifstream   ifstream;
 typedef std::ofstream   ofstream;
 
 //
-// Stringlist
+// String maps
 //
 typedef std::list<String> StringList;
+typedef std::map<String, String> StringMap;
 
 //
 // Native call pointer

@@ -1,7 +1,9 @@
 #include "parser.h"
 #include "machine.h"
 #include "file.h"
+#include "cmdargs.h"
 
+//////////////////////////////////////////////////////////////////////////
 //
 // Print version
 //
@@ -11,31 +13,45 @@ void version()
   cout << "Written by Jan-Jaap Fahner\n\n";
 }
 
+//////////////////////////////////////////////////////////////////////////
 //
 // Print command line parameters
 //
+
 void usage()
 {
   version();
   cout << 
     "Usage: cscript [options] file\n"
-//     "Options:\n"
-//     "-i interactive\t\tRuns cscript in interactive mode\n"
-//     "-c compile <src> <dst>\tCompiles src to dst\n"
+    "Options:\n"
+    "-i interactive\t\tRuns cscript in interactive mode\n"
+    "-c compile <src> <dst>\tCompiles src to dst\n"
     ;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Compile mode
+//
+
+int compile(CmdArgs const& args)
+{
+  return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
 //
 // Interactive mode
 //
-int interactive()
+
+int interactive(CmdArgs const& args)
 {
   Parser parser;
   StackMachine machine;
 
   // Welcome message
   version();
-  cout << "CScript is running in interactive mode.\n\n";
+  cout << "CScript is running in interactive mode.\n";
 
   // Run interactive loop
   for(;;)
@@ -58,16 +74,27 @@ int interactive()
   }
 }
 
+//////////////////////////////////////////////////////////////////////////
 //
-// Unicode entry point
+// Application entry point
 //
+
 int cscript_main(int argc, Char** argv)
 {
-  // Check arguments
-  if(argc == 1)
+  CmdArgs args(argc, argv);
+  StringList files = args.GetValues();
+  StringList opts = args.GetOpts();
+
+  // Compile files
+  if(args.IsSet("-c"))
   {
-    interactive();
-    return EXIT_SUCCESS;
+    return compile(args);
+  }
+  
+  // Interactive mode
+  if(args.IsSet("-i"))
+  {
+    return interactive(args);
   }
 
   // Open the file
@@ -104,7 +131,7 @@ int cscript_main(int argc, Char** argv)
 }
 
 //
-// Unicode entry point
+// CScript entry point. Exception handling root.
 //
 int main(int argc, Char** argv)
 {
@@ -122,7 +149,8 @@ int main(int argc, Char** argv)
     cout << "\nUnexpected exception\n";
   }
 
-#ifdef _DEBUG
+  // Keep console running under MSC devenv
+#if defined(_MSC_VER) && defined(_DEBUG)
   cout << "\n\nPress enter to quit";
   cin.get();
 #endif
