@@ -19,7 +19,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////
+//
 // Assert whether a result matches the expectation
+//
 function assert(description, result, expected)
 {
   print(description + "...");
@@ -35,12 +38,18 @@ function assert(description, result, expected)
   }
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
 // Test cases
+//
 function main()
 {
-  print("Welcome to the cscript test suite.\n");
+  print("cscript test suite\n\n");
  
+  // Error count
   var errors = 0;
+  
+  // Arithmetic operations
   errors += assert("Add", 2 + 2, 4);
   errors += assert("Add", -2 + 4, 2);
   errors += assert("Subtract", 2 - 2, 0);
@@ -50,6 +59,39 @@ function main()
   errors += assert("Multiply", 2 * 2, 4);
   errors += assert("Multiply", 1 * 4, 4);
   errors += assert("Multiply", 1 * 0, 0);
+  errors += assert("Modulo",   3 % 2, 1);
+  errors += assert("Modulo",   2 % 2, 0);
+  
+  // String functionality
+  errors += assert("String length", length(""), 0);
+  errors += assert("String length", length("Hello"), 5);  
+
+  // Inline variable initialization
+  var a = 10, b = 12;
+  errors += assert("Variable initialization", a, 10);
+  errors += assert("Variable initialization", b, 12);
+
+  // Conditional operator
+  errors += assert("Conditional", true  ? 1 : 2, 1);  
+  errors += assert("Conditional", false ? 1 : 2, 2);
+
+  // Associative arrays
+  errors += assert("Array", [1,2][0], 1);
+  errors += assert("Array", [1,2][1], 2);
+  errors += assert("Array", count([1,2]), 2);
+  errors += assert("Nested array", [1,[2,3]][0],    1);
+  errors += assert("Nested array", [1,[2,3]][1][0], 2);
+  errors += assert("Nested array", [1,[2,3]][1][1], 3);
+  
+  // For loops
+  for(a = 0; a < 10; ++a) {}
+  errors += assert("For", a, 10);
+  
+  // Conditions
+  if(true) a = 1; else a = 2;
+  errors += assert("If", a, 1);
+  if(false) a = 1; else a = 2;
+  errors += assert("If", a, 2);
   
   // Print result
   if(errors == 0)
@@ -62,7 +104,12 @@ function main()
   }
 }
 
-function foo() {}
 
+//////////////////////////////////////////////////////////////////////////
+//
 // Start by invoking main()
+//
+
 main();
+
+// EOF
