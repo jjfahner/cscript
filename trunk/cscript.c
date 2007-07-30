@@ -4,7 +4,7 @@
 /* First off, code is include which follows the "include" declaration
 ** in the input file. */
 #include <stdio.h>
-#line 25 "cscript.in"
+#line 44 "cscript.in"
 
 
 #include "tokens.h"
@@ -1250,43 +1250,43 @@ static void yy_reduce(
       case 131:
       case 133:
       case 134:
-#line 67 "cscript.in"
+#line 86 "cscript.in"
 {
 }
 #line 1258 "cscript.c"
         break;
       case 17:
-#line 96 "cscript.in"
+#line 115 "cscript.in"
 { INS(ASSIGN); }
 #line 1263 "cscript.c"
         break;
       case 18:
-#line 97 "cscript.in"
+#line 116 "cscript.in"
 { INS(ASSADD); }
 #line 1268 "cscript.c"
         break;
       case 19:
-#line 98 "cscript.in"
+#line 117 "cscript.in"
 { INS(ASSSUB); }
 #line 1273 "cscript.c"
         break;
       case 20:
-#line 99 "cscript.in"
+#line 118 "cscript.in"
 { INS(ASSMUL); }
 #line 1278 "cscript.c"
         break;
       case 21:
-#line 100 "cscript.in"
+#line 119 "cscript.in"
 { INS(ASSDIV); }
 #line 1283 "cscript.c"
         break;
       case 22:
-#line 101 "cscript.in"
+#line 120 "cscript.in"
 { INS(ASSMOD); }
 #line 1288 "cscript.c"
         break;
       case 25:
-#line 108 "cscript.in"
+#line 127 "cscript.in"
 {
   INS(JZ);
   p->PushOffset("cond_exp_1");
@@ -1295,7 +1295,7 @@ static void yy_reduce(
 #line 1297 "cscript.c"
         break;
       case 26:
-#line 113 "cscript.in"
+#line 132 "cscript.in"
 {
   INS(JMP);
   p->PushOffset("cond_exp_2");
@@ -1305,171 +1305,171 @@ static void yy_reduce(
 #line 1307 "cscript.c"
         break;
       case 27:
-#line 119 "cscript.in"
+#line 138 "cscript.in"
 {
   p->SetQuad(p->PopOffset("cond_exp_2"), p->GetPos());
 }
 #line 1314 "cscript.c"
         break;
       case 29:
-#line 125 "cscript.in"
+#line 144 "cscript.in"
 { INS(LOGOR);   }
 #line 1319 "cscript.c"
         break;
       case 30:
-#line 126 "cscript.in"
+#line 145 "cscript.in"
 { INS(LOGAND);  }
 #line 1324 "cscript.c"
         break;
       case 31:
-#line 127 "cscript.in"
+#line 146 "cscript.in"
 { INS(PREINC);  }
 #line 1329 "cscript.c"
         break;
       case 32:
-#line 128 "cscript.in"
+#line 147 "cscript.in"
 { INS(BITXOR);  }
 #line 1334 "cscript.c"
         break;
       case 33:
-#line 129 "cscript.in"
+#line 148 "cscript.in"
 { INS(BITAND);  }
 #line 1339 "cscript.c"
         break;
       case 34:
-#line 130 "cscript.in"
+#line 149 "cscript.in"
 { INS(EQUALS);  }
 #line 1344 "cscript.c"
         break;
       case 35:
-#line 131 "cscript.in"
+#line 150 "cscript.in"
 { INS(NEQUALS); }
 #line 1349 "cscript.c"
         break;
       case 36:
-#line 132 "cscript.in"
+#line 151 "cscript.in"
 { INS(ST);      }
 #line 1354 "cscript.c"
         break;
       case 37:
-#line 133 "cscript.in"
+#line 152 "cscript.in"
 { INS(SE);      }
 #line 1359 "cscript.c"
         break;
       case 38:
-#line 134 "cscript.in"
+#line 153 "cscript.in"
 { INS(GT);      }
 #line 1364 "cscript.c"
         break;
       case 39:
-#line 135 "cscript.in"
+#line 154 "cscript.in"
 { INS(GE);      }
 #line 1369 "cscript.c"
         break;
       case 40:
-#line 136 "cscript.in"
+#line 155 "cscript.in"
 { INS(ADDOP);   }
 #line 1374 "cscript.c"
         break;
       case 41:
-#line 137 "cscript.in"
+#line 156 "cscript.in"
 { INS(SUBOP);   }
 #line 1379 "cscript.c"
         break;
       case 42:
-#line 138 "cscript.in"
+#line 157 "cscript.in"
 { INS(MULOP);   }
 #line 1384 "cscript.c"
         break;
       case 43:
-#line 139 "cscript.in"
+#line 158 "cscript.in"
 { INS(DIVOP);   }
 #line 1389 "cscript.c"
         break;
       case 44:
-#line 140 "cscript.in"
+#line 159 "cscript.in"
 { INS(MODOP);   }
 #line 1394 "cscript.c"
         break;
       case 46:
-#line 144 "cscript.in"
+#line 163 "cscript.in"
 { INS(PREINC); }
 #line 1399 "cscript.c"
         break;
       case 47:
-#line 145 "cscript.in"
+#line 164 "cscript.in"
 { INS(PRESUB); }
 #line 1404 "cscript.c"
         break;
       case 49:
-#line 149 "cscript.in"
+#line 168 "cscript.in"
 { INS(POSTINC); }
 #line 1409 "cscript.c"
         break;
       case 50:
-#line 150 "cscript.in"
+#line 169 "cscript.in"
 { INS(POSTSUB); }
 #line 1414 "cscript.c"
         break;
       case 52:
-#line 152 "cscript.in"
+#line 171 "cscript.in"
 { INS(INDEX); }
 #line 1419 "cscript.c"
         break;
       case 58:
       case 59:
-#line 162 "cscript.in"
+#line 181 "cscript.in"
 { p->PushRVal(Variant(String(yymsp[0].minor.yy0), Variant::stInt)); }
 #line 1425 "cscript.c"
         break;
       case 60:
-#line 164 "cscript.in"
+#line 183 "cscript.in"
 { p->PushRVal(Variant(String(yymsp[0].minor.yy0), Variant::stString)); }
 #line 1430 "cscript.c"
         break;
       case 61:
-#line 165 "cscript.in"
+#line 184 "cscript.in"
 { p->PushRVal(Variant(true)); }
 #line 1435 "cscript.c"
         break;
       case 62:
-#line 166 "cscript.in"
+#line 185 "cscript.in"
 { p->PushRVal(Variant(false)); }
 #line 1440 "cscript.c"
         break;
       case 63:
       case 66:
-#line 167 "cscript.in"
+#line 186 "cscript.in"
 { p->PushRVal(Variant()); }
 #line 1446 "cscript.c"
         break;
       case 64:
-#line 170 "cscript.in"
+#line 189 "cscript.in"
 { INS(LVALUE); PUSHQ(p->GetVar(yymsp[0].minor.yy0)); }
 #line 1451 "cscript.c"
         break;
       case 68:
-#line 176 "cscript.in"
+#line 195 "cscript.in"
 { INS(ARRAY); }
 #line 1456 "cscript.c"
         break;
       case 72:
-#line 189 "cscript.in"
+#line 208 "cscript.in"
 { PUSHCALL(yymsp[0].minor.yy0); }
 #line 1461 "cscript.c"
         break;
       case 73:
-#line 190 "cscript.in"
+#line 209 "cscript.in"
 { POPCALL(); }
 #line 1466 "cscript.c"
         break;
       case 74:
-#line 194 "cscript.in"
+#line 213 "cscript.in"
 { PUSHARG(); }
 #line 1471 "cscript.c"
         break;
       case 85:
-#line 221 "cscript.in"
+#line 240 "cscript.in"
 { 
   INS(VAR);      
   PUSHQ(p->AddVar(yymsp[0].minor.yy0)); 
@@ -1477,7 +1477,7 @@ static void yy_reduce(
 #line 1479 "cscript.c"
         break;
       case 86:
-#line 227 "cscript.in"
+#line 246 "cscript.in"
 { 
   INS(VARINIT);  
   PUSHQ(p->AddVar(yymsp[-2].minor.yy0)); 
@@ -1485,74 +1485,74 @@ static void yy_reduce(
 #line 1487 "cscript.c"
         break;
       case 88:
-#line 236 "cscript.in"
+#line 255 "cscript.in"
 {	p->PushFunction(yymsp[0].minor.yy0); }
 #line 1492 "cscript.c"
         break;
       case 89:
-#line 239 "cscript.in"
+#line 258 "cscript.in"
 { p->AddParam(yymsp[0].minor.yy0); }
 #line 1497 "cscript.c"
         break;
       case 94:
-#line 250 "cscript.in"
+#line 269 "cscript.in"
 { p->GenFunProlog(); }
 #line 1502 "cscript.c"
         break;
       case 100:
       case 109:
       case 132:
-#line 262 "cscript.in"
+#line 281 "cscript.in"
 { PUSHFRAME(); }
 #line 1509 "cscript.c"
         break;
       case 101:
       case 110:
-#line 263 "cscript.in"
+#line 282 "cscript.in"
 { POPFRAME();  }
 #line 1515 "cscript.c"
         break;
       case 102:
-#line 266 "cscript.in"
+#line 285 "cscript.in"
 { p->PopFunction(); }
 #line 1520 "cscript.c"
         break;
       case 103:
-#line 269 "cscript.in"
+#line 288 "cscript.in"
 { INS(RET); }
 #line 1525 "cscript.c"
         break;
       case 104:
-#line 270 "cscript.in"
+#line 289 "cscript.in"
 { p->PushRVal(Variant()); INS(RET); }
 #line 1530 "cscript.c"
         break;
       case 106:
-#line 280 "cscript.in"
+#line 299 "cscript.in"
 { INS(POP); }
 #line 1535 "cscript.c"
         break;
       case 111:
-#line 291 "cscript.in"
+#line 310 "cscript.in"
 { p->ParseFile(yymsp[-1].minor.yy0); }
 #line 1540 "cscript.c"
         break;
       case 113:
-#line 325 "cscript.in"
+#line 344 "cscript.in"
 { 
   PUSHFRAME(); 
 }
 #line 1547 "cscript.c"
         break;
       case 114:
-#line 330 "cscript.in"
+#line 349 "cscript.in"
 { 
   p->PushOffset("for_label1"); 
 }
 #line 1554 "cscript.c"
         break;
       case 115:
-#line 335 "cscript.in"
+#line 354 "cscript.in"
 { 
   INS(JZ);
   p->PushOffset("for_patch_1");
@@ -1565,7 +1565,7 @@ static void yy_reduce(
 #line 1567 "cscript.c"
         break;
       case 116:
-#line 346 "cscript.in"
+#line 365 "cscript.in"
 { 
   INS(JMP);
   PUSHQ(p->PopOffset("for_label1"));
@@ -1574,7 +1574,7 @@ static void yy_reduce(
 #line 1576 "cscript.c"
         break;
       case 117:
-#line 353 "cscript.in"
+#line 372 "cscript.in"
 {
   INS(JMP); 
   PUSHQ(p->PopOffset("for_label_2"));
@@ -1584,7 +1584,7 @@ static void yy_reduce(
 #line 1586 "cscript.c"
         break;
       case 122:
-#line 392 "cscript.in"
+#line 411 "cscript.in"
 {
   INS(JZ);
   p->PushOffset("if_patch_1");
@@ -1593,14 +1593,14 @@ static void yy_reduce(
 #line 1595 "cscript.c"
         break;
       case 123:
-#line 399 "cscript.in"
+#line 418 "cscript.in"
 {
   PATCH("if_patch_1");
 }
 #line 1602 "cscript.c"
         break;
       case 125:
-#line 407 "cscript.in"
+#line 426 "cscript.in"
 {
   INS(JMP);
   p->PushOffset("if_patch_2");
@@ -1610,21 +1610,21 @@ static void yy_reduce(
 #line 1612 "cscript.c"
         break;
       case 126:
-#line 415 "cscript.in"
+#line 434 "cscript.in"
 {
   PATCH("if_patch_2");
 }
 #line 1619 "cscript.c"
         break;
       case 128:
-#line 428 "cscript.in"
+#line 447 "cscript.in"
 {
   p->PushOffset("switch_cond_1");
 }
 #line 1626 "cscript.c"
         break;
       case 129:
-#line 433 "cscript.in"
+#line 452 "cscript.in"
 {
   INS(JZ);
   p->PushOffset("switch_cond_2");
@@ -1633,7 +1633,7 @@ static void yy_reduce(
 #line 1635 "cscript.c"
         break;
       case 130:
-#line 440 "cscript.in"
+#line 459 "cscript.in"
 {
   INS(JMP);
   PUSHQ(p->PopOffset("switch_cond_1"));
@@ -1642,12 +1642,12 @@ static void yy_reduce(
 #line 1644 "cscript.c"
         break;
       case 135:
-#line 458 "cscript.in"
+#line 477 "cscript.in"
 { }
 #line 1649 "cscript.c"
         break;
       case 136:
-#line 460 "cscript.in"
+#line 479 "cscript.in"
 { POPFRAME(); }
 #line 1654 "cscript.c"
         break;
@@ -1693,7 +1693,7 @@ static void yy_parse_failed(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser fails */
-#line 14 "cscript.in"
+#line 33 "cscript.in"
 
   throw std::runtime_error("Parse failed");
 #line 1702 "cscript.c"
@@ -1710,7 +1710,7 @@ static void yy_syntax_error(
 ){
   CScriptParseARG_FETCH;
 #define TOKEN (yyminor.yy0)
-#line 17 "cscript.in"
+#line 36 "cscript.in"
 
   throw std::runtime_error("Syntax error");
 #line 1720 "cscript.c"
