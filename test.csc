@@ -9,10 +9,10 @@ if((1 - 2 - 3) != -4)
 print("Precedence test: " + div(mul(10, 2), 4) + "\n");
 
 // For test
-for(var a = 0; a < 1000; ++a)
+for(var a = 0; a < 100000; ++a)
 {
   var a = a + 1;
-  if(a % 20 == 0)
+  if(a % 2000 == 0)
   {
     doPrint(".");
   }
