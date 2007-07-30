@@ -1,3 +1,23 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2007 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
 #include "parser.h"
 #include "machine.h"
 #include "file.h"
@@ -9,8 +29,7 @@
 //
 void version()
 {
-  cout << "CScript 0.2 interpreter\n";
-  cout << "Written by Jan-Jaap Fahner\n\n";
+  cout << "CScript 0.3  Copyright (C) 2007  Jan-Jaap Fahner.\n\n";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -18,15 +37,22 @@ void version()
 // Print command line parameters
 //
 
-void usage()
+int usage()
 {
   version();
   cout << 
-    "Usage: cscript [options] file\n"
-    "Options:\n"
-    "-i interactive\t\tRuns cscript in interactive mode\n"
-    "-c compile <src> <dst>\tCompiles src to dst\n"
+    "Usage: cscript [options] [file]\n\n"
+    "Options:\n\n"
+    "-i --interactive   Run interpreter in interactive mode\n"
+    "-c --compile=FILE  Compile source file\n"
+    "-o --output=FILE   Name of the compiled output file\n"
+    "-e --execute=FILE  Name of a file to execute\n"
+    "\n"
+    "This program comes with ABSOLUTELY NO WARRANTY.\n"
+    "This is free software, and you are welcome to redistribute it\n"
+    "under certain conditions; type `--info' for details.\n\n";
     ;
+  return EXIT_SUCCESS;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,7 +62,41 @@ void usage()
 
 int compile(CmdArgs const& args)
 {
-  return 0;
+  // Check output filename
+  String outFile;
+  if(args.IsSet("-o"))
+  {
+    outFile = args["-o"];
+  }
+  else if(args.IsSet("--output"))
+  {
+    outFile = args["--output"];
+  }
+  if(outFile.empty())
+  {
+    usage();
+    return EXIT_FAILURE;
+  }
+
+  // Determine source filename
+  StringMap files = args.GetValues();
+  if(files.size() != 1)
+  {
+    usage();
+    return EXIT_FAILURE;
+  }
+
+  // Parse the input file
+  Parser parser;
+  parser.ParseFile(files.begin()->first);
+
+  // Write to output file
+  std::ofstream ofs(outFile.c_str(), std::ios::binary);
+  ofs.write((char*)parser.GetCode(), parser.GetSize());
+  ofs.close();
+
+  // Succeeded
+  return EXIT_SUCCESS;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,30 +136,22 @@ int interactive(CmdArgs const& args)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Application entry point
+// Execute a file
 //
 
-int cscript_main(int argc, Char** argv)
+int execute(CmdArgs const& args)
 {
-  CmdArgs args(argc, argv);
-  StringList files = args.GetValues();
-  StringList opts = args.GetOpts();
-
-  // Compile files
-  if(args.IsSet("-c"))
+  // Find files to execute
+  StringMap files = args.GetValues();
+  if(files.size() != 1)
   {
-    return compile(args);
-  }
-  
-  // Interactive mode
-  if(args.IsSet("-i"))
-  {
-    return interactive(args);
+    usage();
+    return EXIT_FAILURE;
   }
 
   // Open the file
   File file;
-  file.Open(argv[1]);
+  file.Open(files.begin()->first);
 
   // Fetch code pointer from file
   Byte* code = file.GetData();
@@ -111,13 +163,6 @@ int cscript_main(int argc, Char** argv)
     Parser parser;
     parser.ParseText((Char*)file.GetData());
     
-    // Write code to file
-#   ifdef _DEBUG
-    ofstream of("out.csb", std::ios::binary);
-    of.write("\xce\xec", 2);
-    of.write((char*)parser.GetCode(), parser.GetSize());
-#   endif
-
     // Take code from parser
     code = parser.ReleaseCode();
   }
@@ -128,6 +173,37 @@ int cscript_main(int argc, Char** argv)
 
   // Program succeeded
 	return EXIT_SUCCESS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Application entry point
+//
+
+int cscript_main(int argc, Char** argv)
+{
+  CmdArgs args(argc, argv);
+
+  // Version info
+  if(args.IsSet("-v") || args.IsSet("--version"))
+  {
+    return usage();
+  }
+
+  // Interactive mode
+  if(args.IsSet("-i"))
+  {
+    return interactive(args);
+  }
+
+  // Compile mode
+  if(args.IsSet("-c") || args.IsSet("--compile"))
+  {
+    return compile(args);
+  }
+
+  // Execute mode
+  return execute(args);
 }
 
 //

@@ -1,3 +1,23 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2007 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
 #include "cmdargs.h"
 
 CmdArgs::CmdArgs(int argc, Char** argv)
@@ -5,12 +25,12 @@ CmdArgs::CmdArgs(int argc, Char** argv)
   Char opt[3] = { '-', 0, 0 };
 
   String* val = 0;
-  for(int i = 0; i < argc; ++i)
+  for(int i = 1; i < argc; ++i)
   {
     Char* ptr = argv[i];
     if(*ptr == '-')
     {
-      if(*++ptr == '-')
+      if(*ptr == '-')
       {
         if(char* eq = strchr(ptr, '='))
         {
@@ -52,39 +72,20 @@ struct IsOpt {
   }
 };
 
-template <typename Container>
-struct key_insert_iterator : public std::back_insert_iterator<Container> {
-  key_insert_iterator(Container& cont) : std::back_insert_iterator<Container>(cont) {
-  }
-  key_insert_iterator<Container>& operator=(std::pair<String const, String> const& val) {
-      std::back_insert_iterator<Container>::operator = (val.first);
-      return *this;
-  }
-  key_insert_iterator<Container>& operator*() {
-    return *this;
-  }
-  key_insert_iterator operator ++ (int) {
-    return *this;
-  }
-};
-
-template <typename Container>
-key_insert_iterator<Container> key_inserter(Container& container) {
-  return key_insert_iterator<Container>(container);
-}
-
-StringList 
+StringMap
 CmdArgs::GetValues() const
 {
-  StringList result;
-  std::remove_copy_if(m_args.begin(), m_args.end(), key_inserter(result), IsOpt());
+  StringMap result;
+  std::remove_copy_if(m_args.begin(), m_args.end(), 
+    std::inserter(result, result.end()), IsOpt());
   return result;
 }
 
-StringList 
+StringMap 
 CmdArgs::GetOpts() const
 {
-  StringList result;
-  std::remove_copy_if(m_args.begin(), m_args.end(), key_inserter(result), std::not1(IsOpt()));
+  StringMap result;
+  std::remove_copy_if(m_args.begin(), m_args.end(), 
+    std::inserter(result, result.end()), std::not1(IsOpt()));
   return result;
 }
