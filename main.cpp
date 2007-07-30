@@ -7,8 +7,8 @@
 //
 void version()
 {
-  std::wcout << "CScript 0.2 interpreter\n";
-  std::wcout << "Written by Jan-Jaap Fahner\n\n";
+  cout << "CScript 0.2 interpreter\n";
+  cout << "Written by Jan-Jaap Fahner\n\n";
 }
 
 //
@@ -17,7 +17,7 @@ void version()
 void usage()
 {
   version();
-  std::wcout << 
+  cout << 
     "Usage: cscript [options] file\n"
 //     "Options:\n"
 //     "-i interactive\t\tRuns cscript in interactive mode\n"
@@ -35,7 +35,7 @@ int interactive()
 
   // Welcome message
   version();
-  std::wcout << "CScript is running in interactive mode.\n\n";
+  cout << "CScript is running in interactive mode.\n\n";
 
   // Run interactive loop
   for(;;)
@@ -43,7 +43,7 @@ int interactive()
     Char buf[4000];
     std::streamsize len = 4000;
 
-    cout << L"\n> ";
+    cout << "\n> ";
     cin.getline(buf, len);
 
     try
