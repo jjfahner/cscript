@@ -61,6 +61,9 @@
 #define TOK_CALLN         115
 #define TOK_RET           116
 #define TOK_ARRAY         117
+#define TOK_STATEMENT     118
+#define TOK_STATEMENTSEQ  119
+#define TOK_ARGUMENTS     120
 
 //
 // Define token structure

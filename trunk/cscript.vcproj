@@ -183,6 +183,24 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\ast.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\astgen.in"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating parser"
+						CommandLine="lemon.exe astgen.in"
+						Outputs="astgen.c"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\cmdargs.cpp"
 				>
 			</File>
@@ -270,6 +288,14 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\any.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast.h"
+				>
+			</File>
 			<File
 				RelativePath=".\cmdargs.h"
 				>
