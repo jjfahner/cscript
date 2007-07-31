@@ -1,0 +1,394 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2007 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
+
+//
+// Lemon language definition for cscript
+//
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Include section
+//
+%include {
+
+#include "tokens.h"
+#include "ast.h"
+
+#pragma warning(disable:4065)
+
+} 
+//
+// End inclusion block
+//
+//////////////////////////////////////////////////////////////////////////
+
+// Set prefix for tokens
+%name             AstGenParse
+%token_prefix     TOK_
+%token_type       { Token }
+%extra_argument   { AstGen* p }
+%default_type     { Ast* }
+
+// Error handlers
+%parse_failure {
+  p->OnParseFailure();
+}
+%syntax_error {
+  p->OnSyntaxError();
+}
+
+// Precedence rules for binary operators
+%left LOGOR .
+%left LOGAND .
+%left BITOR .
+%left BITXOR .
+%left BITAND .
+%left EQUALS NEQUALS .
+%left ST SE GT GE .
+%left ADDOP SUBOP .
+%left MULOP DIVOP MODOP .
+%right ASSIGN ASSADD ASSSUB ASSMUL ASSDIV ASSMOD .
+
+// Start symbol
+translation_unit ::= statement_sequence_opt(A) . { p->SetRoot(A); }
+
+// Statement sequence
+statement_sequence(R) ::= statement(A) . { R = A; }
+statement_sequence(R) ::= statement_sequence(A) statement(B) . { R = new Ast(statement_sequence, A, B); }
+
+// Optional statement sequence
+statement_sequence_opt(R) ::= . { R = 0; }
+statement_sequence_opt(R) ::= statement_sequence(A) . { R = A; }
+
+// Statement
+statement(R) ::= include_statement(A) .     { R = A; }
+statement(R) ::= expression_statement(A) .  { R = A; }
+statement(R) ::= declaration_statement(A) . { R = A; }
+statement(R) ::= for_statement(A) .         { R = A; }
+statement(R) ::= compound_statement(A) .    { R = A; }
+statement(R) ::= if_statement(A) .          { R = A; }
+statement(R) ::= while_statement(A) .       { R = A; }
+statement(R) ::= foreach_statement(A) .     { R = A; }
+statement(R) ::= return_statement(A) .      { R = A; }
+
+// Expression
+expression(R) ::= assignment_expression(A) . { R = A; }
+
+// Optional expression
+expression_opt(R) ::= .               { R = 0; }
+expression_opt(R) ::= expression(A) . { R = A; }
+
+// Assignment
+assignment_expression(R) ::= conditional_expression(A) . { R = A; }
+assignment_expression(R) ::= binary_expression(A) assignment_operator(T) assignment_expression(B) . { R = new Ast(assignment_expression, T, A, B); }
+
+// Assignment operator
+%type assignment_operator { int }
+assignment_operator(R) ::= ASSIGN . { R = TOK_ASSIGN; }
+assignment_operator(R) ::= ASSADD . { R = TOK_ASSADD; }
+assignment_operator(R) ::= ASSSUB . { R = TOK_ASSSUB; }
+assignment_operator(R) ::= ASSMUL . { R = TOK_ASSMUL; }
+assignment_operator(R) ::= ASSDIV . { R = TOK_ASSDIV; }
+assignment_operator(R) ::= ASSMOD . { R = TOK_ASSMOD; }
+
+// Conditional
+conditional_expression(R) ::= binary_expression(A) . { R = A; }
+conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON assignment_expression(C) . { R = new Ast(ternary_expression, A, B, C); }
+
+// Binary expressions
+binary_expression(R) ::= unary_expression(A) . { R = A; }
+binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = new Ast(binary_expression, TOK_LOGOR,   A, B); }
+binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = new Ast(binary_expression, TOK_LOGAND,  A, B); }
+binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = new Ast(binary_expression, TOK_BITOR,   A, B); }
+binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R = new Ast(binary_expression, TOK_BITXOR,  A, B); }
+binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = new Ast(binary_expression, TOK_BITAND,  A, B); }
+binary_expression(R) ::= binary_expression(A) EQUALS  binary_expression(B). { R = new Ast(binary_expression, TOK_EQUALS,  A, B); }
+binary_expression(R) ::= binary_expression(A) NEQUALS binary_expression(B). { R = new Ast(binary_expression, TOK_NEQUALS, A, B); }
+binary_expression(R) ::= binary_expression(A) ST      binary_expression(B). { R = new Ast(binary_expression, TOK_ST,      A, B); }
+binary_expression(R) ::= binary_expression(A) SE      binary_expression(B). { R = new Ast(binary_expression, TOK_SE,      A, B); }
+binary_expression(R) ::= binary_expression(A) GT      binary_expression(B). { R = new Ast(binary_expression, TOK_GT,      A, B); }
+binary_expression(R) ::= binary_expression(A) GE      binary_expression(B). { R = new Ast(binary_expression, TOK_GE,      A, B); }
+binary_expression(R) ::= binary_expression(A) ADDOP   binary_expression(B). { R = new Ast(binary_expression, TOK_ADDOP,   A, B); }
+binary_expression(R) ::= binary_expression(A) SUBOP   binary_expression(B). { R = new Ast(binary_expression, TOK_SUBOP,   A, B); }
+binary_expression(R) ::= binary_expression(A) MULOP   binary_expression(B). { R = new Ast(binary_expression, TOK_MULOP,   A, B); }
+binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R = new Ast(binary_expression, TOK_DIVOP,   A, B); }
+binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = new Ast(binary_expression, TOK_MODOP,   A, B); }
+
+// Unary expression
+unary_expression(R) ::= postfix_expression(A) .      { R = A; } 
+unary_expression(R) ::= ADDADD unary_expression(A) . { R = new Ast(prefix_expression, TOK_ADDADD, A); }
+unary_expression(R) ::= SUBSUB unary_expression(A) . { R = new Ast(prefix_expression, TOK_SUBSUB, A); }
+
+// Postfix expression
+postfix_expression(R) ::= primary_expression(A) .                                 { R = A; }
+postfix_expression(R) ::= postfix_expression(A) ADDADD.                           { R = new Ast(postfix_expression, TOK_ADDADD, A); }
+postfix_expression(R) ::= postfix_expression(A) SUBSUB.                           { R = new Ast(postfix_expression, TOK_SUBSUB, A); }
+postfix_expression(R) ::= postfix_expression(A) DOT id_expression(B).             { R = new Ast(member_expression, A, B); }
+postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = new Ast(index_expression, A, B); }
+postfix_expression(R) ::= postfix_expression(A) LPAREN argument_list(B) RPAREN .  { R = new Ast(function_call, A, B); }
+
+// Primary expression
+primary_expression(R) ::= literal(A) .                  { R = A; }
+primary_expression(R) ::= id_expression(A) .            { R = A; }
+primary_expression(R) ::= LPAREN expression(A) RPAREN . { R = A; }
+primary_expression(R) ::= list_definition(A) .          { R = A; }
+
+// Literals
+literal(R) ::= INTEGER(A) . { R = new Ast(integer, String(A)); }
+literal(R) ::= REAL(A) .    { R = new Ast(real,    String(A)); } 
+literal(R) ::= STRING(A) .  { R = new Ast(string,  String(A)); }
+literal(R) ::= TRUE .       { R = new Ast(boolean, true);  }
+literal(R) ::= FALSE .      { R = new Ast(boolean, false); }
+literal(R) ::= NULL .       { R = new Ast(null);  }
+
+// Id expression
+id_expression(R) ::= IDENTIFIER(A) . { R = new Ast(identifier, String(A)); }
+
+// List definition
+list_definition ::= list_start list_content list_end .
+list_start   ::= LBRACKET .
+list_end     ::= RBRACKET .
+list_entry   ::= expression .
+list_content ::= list_entry . 
+list_content ::= list_content COMMA list_entry .
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Function calls
+//
+
+// An argument is any expression. If expression lists become part
+// of the language, this will have to be changed to something else.
+argument(R) ::= expression(A) . { R = A; }
+
+// Argument list containing 1 or more arguments
+arguments(R) ::= argument(A) . { R = A; }
+arguments(R) ::= arguments(A) COMMA argument(B) . { R = new Ast(argument_list, A, B); }
+
+// Argument list
+argument_list(R) ::= . { R = 0; }
+argument_list(R) ::= arguments(A) . { R = A; }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Declarations
+//
+
+// Declaration starting point
+declaration ::= VAR declaration_sequence SEMICOLON .
+declaration ::= FUN function_declaration .
+
+// Declaration sequence
+declaration_sequence ::= var_declaration .
+declaration_sequence ::= declaration_sequence COMMA var_declaration .
+
+var_declaration ::= simple_declaration .
+var_declaration ::= init_declaration .
+
+// Variable declaration
+simple_declaration ::= IDENTIFIER .
+
+// Variable declaration with initialization
+init_declaration ::= IDENTIFIER ASSIGN expression .
+
+// Function declaration
+function_declaration ::= function_name LPAREN parameter_list parameters_done RPAREN function_body .
+
+// Function name
+function_name ::= IDENTIFIER .
+
+// Single parameter
+parameter ::= IDENTIFIER .
+
+// One or more paremeters
+parameters ::= parameter .
+parameters ::= parameters COMMA parameter .
+
+// Parameters
+parameter_list ::= .
+parameter_list ::= parameters .
+
+// Helper - generate code for body
+parameters_done ::= .
+
+// Function body
+function_body ::= function_block .
+
+// Compound statement
+function_block ::= function_block_start function_statements function_block_end .
+function_block_start ::= LBRACE .
+function_block_end   ::= RBRACE .
+
+// Function-level statements
+function_statement ::= statement .
+
+// Function_statements
+function_statements ::= .
+function_statements ::= function_statements function_statement .
+
+// Return statement - leaves return expression on the stack
+return_statement ::= RETURN expression SEMICOLON .
+return_statement ::= RETURN SEMICOLON .
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Statements
+//
+
+// Expression statement
+expression_statement(R) ::= SEMICOLON .               { R = 0; }
+expression_statement(R) ::= expression(A) SEMICOLON . { R = new Ast(expression_statement, A); }
+
+// Declaration statement
+declaration_statement ::= declaration .
+
+// Compound statement
+compound_statement ::= compound_start statement_sequence_opt compound_end .
+compound_start ::= LBRACE .
+compound_end   ::= RBRACE .
+
+// Include statement
+include_statement ::= INCLUDE STRING SEMICOLON .
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For statement
+//
+// Because reordering of subexpressions is decidedly non-trivial in this
+// parser implementation, layout of for expressions is fairly complex:
+//
+//   init_statement
+// 
+//   label1:
+// 	  condition
+// 	  jz label4  <patch 1>
+// 	  jmp label3 <patch 2>
+// 
+//   label2:
+// 	  expression
+// 	  jmp label1
+// 
+//   label3:
+// 	  statements
+// 	  jmp label2
+// 
+//   label4:
+//
+
+// For statement - main structure
+for_statement ::= for_start LPAREN for_init for_cond SEMICOLON for_expr RPAREN for_end . 
+
+// For keyword
+for_start ::= FOR .
+
+// For init statement
+for_init ::= for_init_statement .
+
+// For condition
+for_cond ::= for_condition .
+
+// For expression
+for_expr ::= expression_opt .
+
+// For end
+for_end ::= statement .
+
+// For Condition
+//for_condition ::= .
+for_condition ::= expression .
+
+// Initializer
+for_init_statement ::= expression_statement .
+for_init_statement ::= declaration_statement .
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Foreach statement
+//
+
+foreach_statement ::= foreach_init LPAREN for_lvalue IN for_expression RPAREN statement foreach_end .
+
+foreach_init ::= FOREACH .
+
+for_lvalue ::= id_expression .
+for_lvalue ::= VAR simple_declaration .
+
+for_expression ::= expression .
+
+foreach_end ::= .
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// If statement
+//
+// Layout for the if statement
+//
+//   condition
+//   jz label1 <patch 1>
+//
+//   statement
+//   jmp label2 <patch 2>
+//
+//   label1:
+//   statement
+//
+//   label2:
+
+%left LOWER_THAN_ELSE.
+%left ELSE.
+
+// Main if statement
+if_statement ::= IF if_cond statement if_else .
+
+// If condition
+if_cond ::= LPAREN expression RPAREN .
+
+// Empty else part
+if_else ::= . [LOWER_THAN_ELSE]
+
+// Filled else part
+if_else ::= if_else_1 if_else_2 .
+
+// Prefix part
+if_else_1 ::= ELSE .
+
+// Statement part
+if_else_2 ::= statement .
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While statement
+//
+
+// Basic while
+while_statement ::= while_start while_condition while_content .
+
+// While start
+while_start ::= WHILE .
+
+// While condition
+while_condition ::= LPAREN expression RPAREN .
+
+// While statement
+while_content ::= statement .

@@ -22,6 +22,7 @@
 #include "machine.h"
 #include "file.h"
 #include "cmdargs.h"
+#include "ast.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -218,6 +219,8 @@ int cscript_main(int argc, Char** argv)
 //
 int main(int argc, Char** argv)
 {
+  //return AstGen::main(argc, argv);
+
   int result = EXIT_FAILURE;
   try
   {
