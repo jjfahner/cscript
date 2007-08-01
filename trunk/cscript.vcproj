@@ -205,6 +205,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\codegen.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\cscript.in"
 				>
 				<FileConfiguration
@@ -322,6 +326,10 @@
 			</File>
 			<File
 				RelativePath=".\native.h"
+				>
+			</File>
+			<File
+				RelativePath=".\opcodes.h"
 				>
 			</File>
 			<File

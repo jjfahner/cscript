@@ -2,6 +2,7 @@
 #include "astgen.c"
 #include "file.h"
 #include "lexer.h"
+#include "codegen.h"
 
 int
 AstGen::main(int argc, char** argv)
@@ -12,7 +13,12 @@ AstGen::main(int argc, char** argv)
   astGen.Parse("test.csc");
 
   // Enumerate contents
-  astGen.Enumerate(astGen.m_root);
+  //astGen.Enumerate(astGen.m_root);
+
+  // Generate code
+  CodeGenerator cg;
+  cg.Generate(astGen.m_root);
+  cg.Write();
 
   // Wait for input
   std::cin.get();
@@ -27,7 +33,7 @@ m_root (0)
 
 }
 
-void 
+void
 AstGen::Parse(String const& filename)
 {
   // Create file
@@ -43,8 +49,6 @@ AstGen::Parse(String const& filename)
   // Create lexer for file
   Lexer lexer;
   lexer.SetText((Char*)file.GetData());
-
-  //AstGenParseTrace(stdout, "> ");
 
   // Allocate parser
   void *pParser = AstGenParseAlloc(malloc);
@@ -88,14 +92,15 @@ AstGen::OnSyntaxError()
   throw std::runtime_error("Syntax error");
 }
 
+Ast*
+AstGen::GetRoot() const
+{
+  return m_root;
+}
+
 void 
 AstGen::SetRoot(Ast* root)
 {
-  if(m_root)
-  {
-    delete m_root;
-    m_root = 0;
-  }
   m_root = root;
 }
 
@@ -137,7 +142,7 @@ AstGen::Enumerate(Ast* node)
     break;
 
   case function_call:
-    Enumerate(any_cast<Ast*>(node->m_a1)); std::cout << ",";
+    std::cout << any_cast<String>(node->m_a1); std::cout << ",";
     Enumerate(any_cast<Ast*>(node->m_a2));
     break;
   

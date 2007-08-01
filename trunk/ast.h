@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "any.h"
+#include "opcodes.h"
 
 class Ast;
 typedef std::vector<any> AnyVec;
@@ -33,8 +34,9 @@ public:
   void Parse(String const& filename);
 
   //
-  // Set the root node
+  // Root node
   //
+  Ast* GetRoot() const;
   void SetRoot(Ast* root);
 
   //
