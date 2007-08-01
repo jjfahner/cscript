@@ -228,7 +228,7 @@ argument_list ::= arguments .
 
 // Declaration starting point
 declaration ::= VAR declaration_sequence SEMICOLON .
-declaration ::= FUN function_declaration .
+declaration ::= FUNCTION function_declaration .
 
 // Declaration sequence
 declaration_sequence ::= var_declaration .

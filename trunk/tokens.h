@@ -26,7 +26,11 @@
 //
 // Include lemon-generated symbols
 //
+#ifdef AST_IMPL
+#include "astgen.h"
+#else
 #include "cscript.h"
+#endif
 
 //
 // Types

@@ -61,6 +61,11 @@ typedef int64_t           int64;
 #endif
 
 //
+// Switch between current and new implementation
+//
+//#define AST_IMPL
+
+//
 // Char type
 //
 typedef char Char;

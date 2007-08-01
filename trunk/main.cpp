@@ -219,12 +219,14 @@ int cscript_main(int argc, Char** argv)
 //
 int main(int argc, Char** argv)
 {
-  //return AstGen::main(argc, argv);
-
   int result = EXIT_FAILURE;
   try
   {
+#   ifdef AST_IMPL
+    return AstGen::main(argc, argv);
+#   else
     result = cscript_main(argc, argv);
+#   endif
   }
   catch(std::exception const& e)
   {

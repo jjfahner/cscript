@@ -44,6 +44,8 @@ AstGen::Parse(String const& filename)
   Lexer lexer;
   lexer.SetText((Char*)file.GetData());
 
+  //AstGenParseTrace(stdout, "> ");
+
   // Allocate parser
   void *pParser = AstGenParseAlloc(malloc);
 
@@ -54,6 +56,7 @@ AstGen::Parse(String const& filename)
     Token token;
     while(lexer.Lex(token))
     {
+      //std::cout << "- " << String(token) << std::endl;
       AstGenParse(pParser, token.m_type, token, this);
     }
     
@@ -76,17 +79,13 @@ AstGen::Parse(String const& filename)
 void 
 AstGen::OnParseFailure()
 {
-  //Variant error("Parse failed on line ");
-  //error += m_lexer->GetLine();
-  //throw std::runtime_error(error.GetString());
+  throw std::runtime_error("Parse failure");
 }
 
 void 
 AstGen::OnSyntaxError()
 {
-  //Variant error("Syntax error on line ");
-  //error += m_lexer->GetLine();
-  //throw std::runtime_error(error.GetString());
+  throw std::runtime_error("Syntax error");
 }
 
 void 
@@ -141,15 +140,84 @@ AstGen::Enumerate(Ast* node)
     Enumerate(any_cast<Ast*>(node->m_a1)); std::cout << ",";
     Enumerate(any_cast<Ast*>(node->m_a2));
     break;
-
   
-//   prefix_expression,
-//   postfix_expression,
-//   member_expression,
-//   index_expression,
-//   function_call,
- //argument_list,
+  case prefix_expression:
+    Enumerate(any_cast<Ast*>(node->m_a2));
+    break;
 
+  case postfix_expression:
+    Enumerate(any_cast<Ast*>(node->m_a2));
+    break;
+
+  case member_expression:
+    Enumerate(any_cast<Ast*>(node->m_a1)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a1));
+    break;
+
+  case argument_list:
+    Enumerate(any_cast<Ast*>(node->m_a1)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a1));
+    break;
+
+  case function_declaration:
+    std::cout << any_cast<String>(node->m_a1); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a2)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a3)); std::cout << ",";
+    break;
+
+  case parameter:
+    std::cout << any_cast<String>(node->m_a1);
+    break;
+
+  case parameter_list:
+    Enumerate(any_cast<Ast*>(node->m_a1)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a1));
+    break;
+
+  case variable_declaration:
+    std::cout << any_cast<String>(node->m_a1);
+    if(!node->m_a2.empty()) 
+    {
+      std::cout << ","; 
+      Enumerate(any_cast<Ast*>(node->m_a2));
+    }
+    break;
+
+  case declaration_sequence:
+    Enumerate(any_cast<Ast*>(node->m_a1)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a1));
+    break;
+
+  case include_statement:
+    std::cout << any_cast<String>(node->m_a1);
+    break;
+
+  case for_statement:
+    Enumerate(any_cast<Ast*>(node->m_a1)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a2)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a3)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a4));
+    break;
+
+  case foreach_statement:
+    Enumerate(any_cast<Ast*>(node->m_a1)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a2)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a3));
+    break;
+
+  case if_statement:
+    Enumerate(any_cast<Ast*>(node->m_a1)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a2));
+    break;
+
+  case while_statement:
+    Enumerate(any_cast<Ast*>(node->m_a1)); std::cout << ",";
+    Enumerate(any_cast<Ast*>(node->m_a2));
+    break;
+
+  case return_statement:
+    Enumerate(any_cast<Ast*>(node->m_a1));
+    break;
 
   case integer:
     std::cout << any_cast<String>(node->m_a1);

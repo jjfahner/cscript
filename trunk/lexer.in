@@ -50,8 +50,8 @@ int parseNextToken(Char*& start, Char*& end)
   "else"                    { return TOK_ELSE; }
   "false"                   { return TOK_FALSE; }
   "for"                     { return TOK_FOR; }
-  "foreach"                 { return TOK_FOREACH; }
-  "function"				        { return TOK_FUN; }
+  /* "foreach"                 { return TOK_FOREACH; } */
+  "function"				        { return TOK_FUNCTION; }
   "if"                      { return TOK_IF; }
   "in"                      { return TOK_IN; }
   "include"                 { return TOK_INCLUDE; }

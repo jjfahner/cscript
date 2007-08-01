@@ -195,7 +195,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating parser"
-						CommandLine="lemon.exe astgen.in"
+						CommandLine="lemon.exe astgen.in&#x0D;&#x0A;"
 						Outputs="astgen.c"
 					/>
 				</FileConfiguration>
@@ -298,6 +298,10 @@
 			</File>
 			<File
 				RelativePath=".\cmdargs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\codegen.h"
 				>
 			</File>
 			<File
