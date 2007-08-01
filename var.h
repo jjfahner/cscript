@@ -43,6 +43,7 @@ public:
     stNull,
     stBool,
     stInt,
+    stReal,
     stString,
     stAssoc,
     stResource,

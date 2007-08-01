@@ -2,6 +2,7 @@
 #define CSCRIPT_CODEGEN_H
 
 #include "ast.h"
+#include "var.h"
 
 class CodeGenerator
 {
@@ -46,6 +47,11 @@ private:
   // Push call to function
   //
   void PushCall(String const& name);
+  
+  //
+  // Push reference to literal
+  //
+  void PushLiteral(Variant const&);
 
   //
   // Push empty quad, return offset
@@ -65,6 +71,8 @@ private:
   typedef std::map<String, QuadList> CallList;
   typedef std::pair<Ast*, Quad> Function;
   typedef std::map<String, Function> Functions;
+  typedef std::pair<Variant, Quad> Literal;
+  typedef std::list<Literal> Literals;
 
   //
   // Member data
@@ -74,6 +82,7 @@ private:
   Quad      m_used;
   Functions m_funs;
   CallList  m_calls;
+  Literals  m_literals;
 
 };
 
