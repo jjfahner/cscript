@@ -72,7 +72,17 @@ translation_unit ::= statement_sequence_opt(A) . { p->SetRoot(A); }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
-statement_sequence(R) ::= statement_sequence(A) statement(B) . { R = new Ast(statement_sequence, A, B); }
+statement_sequence(R) ::= statement_sequence(A) statement(B) . { 
+  if(A->m_type == statement_sequence) {
+    R = A;
+  }
+  else {
+    R = new Ast(statement_sequence, new AstList);
+    any_cast<AstList*>(R->m_a1)->push_back(A);
+  }
+  any_cast<AstList*>(R->m_a1)->push_back(B);
+}
+
 
 // Optional statement sequence
 statement_sequence_opt(R) ::= . { R = 0; }
@@ -106,13 +116,13 @@ assignment_expression(R) ::= conditional_expression(A) . { R = A; }
 assignment_expression(R) ::= binary_expression(A) assignment_operator(T) assignment_expression(B) . { R = new Ast(assignment_expression, T, A, B); }
 
 // Assignment operator
-%type assignment_operator { int }
-assignment_operator(R) ::= ASSIGN . { R = TOK_ASSIGN; }
-assignment_operator(R) ::= ASSADD . { R = TOK_ASSADD; }
-assignment_operator(R) ::= ASSSUB . { R = TOK_ASSSUB; }
-assignment_operator(R) ::= ASSMUL . { R = TOK_ASSMUL; }
-assignment_operator(R) ::= ASSDIV . { R = TOK_ASSDIV; }
-assignment_operator(R) ::= ASSMOD . { R = TOK_ASSMOD; }
+%type assignment_operator { opcodes }
+assignment_operator(R) ::= ASSIGN . { R = op_assign; }
+assignment_operator(R) ::= ASSADD . { R = op_assadd; }
+assignment_operator(R) ::= ASSSUB . { R = op_asssub; }
+assignment_operator(R) ::= ASSMUL . { R = op_assmul; }
+assignment_operator(R) ::= ASSDIV . { R = op_assdiv; }
+assignment_operator(R) ::= ASSMOD . { R = op_assmod; }
 
 // Conditional
 conditional_expression(R) ::= binary_expression(A) . { R = A; }
@@ -120,35 +130,35 @@ conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON 
 
 // Binary expressions
 binary_expression(R) ::= unary_expression(A) . { R = A; }
-binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = new Ast(binary_expression, TOK_LOGOR,   A, B); }
-binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = new Ast(binary_expression, TOK_LOGAND,  A, B); }
-binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = new Ast(binary_expression, TOK_BITOR,   A, B); }
-binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R = new Ast(binary_expression, TOK_BITXOR,  A, B); }
-binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = new Ast(binary_expression, TOK_BITAND,  A, B); }
-binary_expression(R) ::= binary_expression(A) EQUALS  binary_expression(B). { R = new Ast(binary_expression, TOK_EQUALS,  A, B); }
-binary_expression(R) ::= binary_expression(A) NEQUALS binary_expression(B). { R = new Ast(binary_expression, TOK_NEQUALS, A, B); }
-binary_expression(R) ::= binary_expression(A) ST      binary_expression(B). { R = new Ast(binary_expression, TOK_ST,      A, B); }
-binary_expression(R) ::= binary_expression(A) SE      binary_expression(B). { R = new Ast(binary_expression, TOK_SE,      A, B); }
-binary_expression(R) ::= binary_expression(A) GT      binary_expression(B). { R = new Ast(binary_expression, TOK_GT,      A, B); }
-binary_expression(R) ::= binary_expression(A) GE      binary_expression(B). { R = new Ast(binary_expression, TOK_GE,      A, B); }
-binary_expression(R) ::= binary_expression(A) ADDOP   binary_expression(B). { R = new Ast(binary_expression, TOK_ADDOP,   A, B); }
-binary_expression(R) ::= binary_expression(A) SUBOP   binary_expression(B). { R = new Ast(binary_expression, TOK_SUBOP,   A, B); }
-binary_expression(R) ::= binary_expression(A) MULOP   binary_expression(B). { R = new Ast(binary_expression, TOK_MULOP,   A, B); }
-binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R = new Ast(binary_expression, TOK_DIVOP,   A, B); }
-binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = new Ast(binary_expression, TOK_MODOP,   A, B); }
+binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = new Ast(binary_expression, op_logor,   A, B); }
+binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = new Ast(binary_expression, op_logand,  A, B); }
+binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = new Ast(binary_expression, op_bitor,   A, B); }
+binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R = new Ast(binary_expression, op_bitxor,  A, B); }
+binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = new Ast(binary_expression, op_bitand,  A, B); }
+binary_expression(R) ::= binary_expression(A) EQUALS  binary_expression(B). { R = new Ast(binary_expression, op_eq,   A, B); }
+binary_expression(R) ::= binary_expression(A) NEQUALS binary_expression(B). { R = new Ast(binary_expression, op_ne,   A, B); }
+binary_expression(R) ::= binary_expression(A) ST      binary_expression(B). { R = new Ast(binary_expression, op_lt,   A, B); }
+binary_expression(R) ::= binary_expression(A) SE      binary_expression(B). { R = new Ast(binary_expression, op_le,   A, B); }
+binary_expression(R) ::= binary_expression(A) GT      binary_expression(B). { R = new Ast(binary_expression, op_gt,   A, B); }
+binary_expression(R) ::= binary_expression(A) GE      binary_expression(B). { R = new Ast(binary_expression, op_ge,   A, B); }
+binary_expression(R) ::= binary_expression(A) ADDOP   binary_expression(B). { R = new Ast(binary_expression, op_add,  A, B); }
+binary_expression(R) ::= binary_expression(A) SUBOP   binary_expression(B). { R = new Ast(binary_expression, op_sub,  A, B); }
+binary_expression(R) ::= binary_expression(A) MULOP   binary_expression(B). { R = new Ast(binary_expression, op_mul,  A, B); }
+binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R = new Ast(binary_expression, op_div,  A, B); }
+binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = new Ast(binary_expression, op_mod,  A, B); }
 
 // Unary expression
 unary_expression(R) ::= postfix_expression(A) .      { R = A; } 
-unary_expression(R) ::= ADDADD unary_expression(A) . { R = new Ast(prefix_expression, TOK_ADDADD, A); }
-unary_expression(R) ::= SUBSUB unary_expression(A) . { R = new Ast(prefix_expression, TOK_SUBSUB, A); }
+unary_expression(R) ::= ADDADD unary_expression(A) . { R = new Ast(prefix_expression, op_inc, A); }
+unary_expression(R) ::= SUBSUB unary_expression(A) . { R = new Ast(prefix_expression, op_dec, A); }
 
 // Postfix expression
 postfix_expression(R) ::= primary_expression(A) .                                 { R = A; }
-postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = new Ast(postfix_expression, TOK_ADDADD, A); }
-postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = new Ast(postfix_expression, TOK_SUBSUB, A); }
+postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = new Ast(postfix_expression, op_inc, A); }
+postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = new Ast(postfix_expression, op_dec, A); }
 postfix_expression(R) ::= postfix_expression(A) DOT id_expression(B).             { R = new Ast(member_expression, A, B); }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = new Ast(index_expression, A, B); }
-postfix_expression(R) ::= postfix_expression(A) LPAREN argument_list(B) RPAREN .  { R = new Ast(function_call, A, B); }
+postfix_expression(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN .          { R = new Ast(function_call, String(A), B); }
 
 // Primary expression
 primary_expression(R) ::= literal(A) .                  { R = A; }
@@ -205,7 +215,7 @@ expression_statement(R) ::= expression(A) SEMICOLON . { R = new Ast(expression_s
 compound_statement(R) ::= LBRACE statement_sequence_opt(A) RBRACE . { R = A; }
 
 // Include statement
-include_statement(R) ::= INCLUDE STRING(A) SEMICOLON . { R = new Ast(include_statement, String(A)); }
+include_statement(R) ::= INCLUDE STRING(A) SEMICOLON . { p->Parse(A); R = p->GetRoot(); }
 
 // Return statement - leaves return expression on the stack
 return_statement(R) ::= RETURN expression(A) SEMICOLON . { R = new Ast(return_statement, A); }

@@ -1,5 +1,10 @@
 include "test.csi";
 
+function foo()
+{
+  return 0;
+}
+
 // Precedence parsing check
 if((1 - 2 - 3) != -4)
 {
