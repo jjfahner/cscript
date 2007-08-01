@@ -39,7 +39,7 @@
 #define TOK_COMMA                          39
 #define TOK_VAR                            40
 #define TOK_SEMICOLON                      41
-#define TOK_FUN                            42
+#define TOK_FUNCTION                       42
 #define TOK_LBRACE                         43
 #define TOK_RBRACE                         44
 #define TOK_RETURN                         45

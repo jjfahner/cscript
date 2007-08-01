@@ -43,7 +43,7 @@ public:
   //
   bool empty() const
   {
-    return m_holder != 0;
+    return m_holder == 0;
   }
 
   //
@@ -103,6 +103,15 @@ public:
   bool equals(any const& rhs) const
   {
     return m_holder ? m_holder->equals(rhs.m_holder) : 0;
+  }
+
+  //
+  // Determine type
+  //
+  template <typename T>
+  bool istype() const
+  {
+    return m_holder && dynamic_cast<holder<T>*>(m_holder) != 0;
   }
 
   //

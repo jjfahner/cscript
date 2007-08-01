@@ -4,9 +4,9 @@
 #include "types.h"
 #include "any.h"
 
-typedef std::vector<any> AnyVec;
-
 class Ast;
+typedef std::vector<any> AnyVec;
+typedef std::list<Ast*> AstList;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -82,6 +82,17 @@ enum AstTypes
   null,
   identifier,
   argument_list,
+  function_declaration,
+  parameter,
+  parameter_list,
+  variable_declaration,
+  declaration_sequence,
+  include_statement,
+  for_statement,
+  foreach_statement,
+  if_statement,
+  while_statement,
+  return_statement,
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,10 +107,11 @@ public:
   //
   // Construction
   //
-  Ast(int type);
-  Ast(int type, any const& a1);
-  Ast(int type, any const& a1, any const& a2);
-  Ast(int type, any const& a1, any const& a2, any const& a3);
+  Ast(AstTypes type);
+  Ast(AstTypes type, any const& a1);
+  Ast(AstTypes type, any const& a1, any const& a2);
+  Ast(AstTypes type, any const& a1, any const& a2, any const& a3);
+  Ast(AstTypes type, any const& a1, any const& a2, any const& a3, any const& a4);
 
   //
   // Destruction
@@ -110,10 +122,11 @@ public:
   //
   // Members
   //
-  int     m_type;
-  any     m_a1;
-  any     m_a2;
-  any     m_a3;
+  AstTypes  m_type;
+  any       m_a1;
+  any       m_a2;
+  any       m_a3;
+  any       m_a4;
 
 };
 
@@ -123,20 +136,20 @@ public:
 //
 
 inline 
-Ast::Ast(int type) :
+Ast::Ast(AstTypes type) :
 m_type (type)
 {
 }
 
 inline 
-Ast::Ast(int type, any const& a1) :
+Ast::Ast(AstTypes type, any const& a1) :
 m_type (type),
 m_a1   (a1)
 {
 }
 
 inline 
-Ast::Ast(int type, any const& a1, any const& a2) :
+Ast::Ast(AstTypes type, any const& a1, any const& a2) :
 m_type (type),
 m_a1   (a1),
 m_a2   (a2)
@@ -144,11 +157,21 @@ m_a2   (a2)
 }
 
 inline 
-Ast::Ast(int type, any const& a1, any const& a2, any const& a3) :
+Ast::Ast(AstTypes type, any const& a1, any const& a2, any const& a3) :
 m_type (type),
 m_a1   (a1),
 m_a2   (a2),
 m_a3   (a3)
+{
+}
+
+inline 
+Ast::Ast(AstTypes type, any const& a1, any const& a2, any const& a3, any const& a4) :
+m_type (type),
+m_a1   (a1),
+m_a2   (a2),
+m_a3   (a3),
+m_a4   (a4)
 {
 }
 

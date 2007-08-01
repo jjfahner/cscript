@@ -89,6 +89,11 @@ statement(R) ::= while_statement(A) .       { R = A; }
 statement(R) ::= foreach_statement(A) .     { R = A; }
 statement(R) ::= return_statement(A) .      { R = A; }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Expressions
+//
+
 // Expression
 expression(R) ::= assignment_expression(A) . { R = A; }
 
@@ -139,8 +144,8 @@ unary_expression(R) ::= SUBSUB unary_expression(A) . { R = new Ast(prefix_expres
 
 // Postfix expression
 postfix_expression(R) ::= primary_expression(A) .                                 { R = A; }
-postfix_expression(R) ::= postfix_expression(A) ADDADD.                           { R = new Ast(postfix_expression, TOK_ADDADD, A); }
-postfix_expression(R) ::= postfix_expression(A) SUBSUB.                           { R = new Ast(postfix_expression, TOK_SUBSUB, A); }
+postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = new Ast(postfix_expression, TOK_ADDADD, A); }
+postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = new Ast(postfix_expression, TOK_SUBSUB, A); }
 postfix_expression(R) ::= postfix_expression(A) DOT id_expression(B).             { R = new Ast(member_expression, A, B); }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = new Ast(index_expression, A, B); }
 postfix_expression(R) ::= postfix_expression(A) LPAREN argument_list(B) RPAREN .  { R = new Ast(function_call, A, B); }
@@ -189,192 +194,94 @@ argument_list(R) ::= arguments(A) . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Declarations
-//
-
-// Declaration starting point
-declaration ::= VAR declaration_sequence SEMICOLON .
-declaration ::= FUN function_declaration .
-
-// Declaration sequence
-declaration_sequence ::= var_declaration .
-declaration_sequence ::= declaration_sequence COMMA var_declaration .
-
-var_declaration ::= simple_declaration .
-var_declaration ::= init_declaration .
-
-// Variable declaration
-simple_declaration ::= IDENTIFIER .
-
-// Variable declaration with initialization
-init_declaration ::= IDENTIFIER ASSIGN expression .
-
-// Function declaration
-function_declaration ::= function_name LPAREN parameter_list parameters_done RPAREN function_body .
-
-// Function name
-function_name ::= IDENTIFIER .
-
-// Single parameter
-parameter ::= IDENTIFIER .
-
-// One or more paremeters
-parameters ::= parameter .
-parameters ::= parameters COMMA parameter .
-
-// Parameters
-parameter_list ::= .
-parameter_list ::= parameters .
-
-// Helper - generate code for body
-parameters_done ::= .
-
-// Function body
-function_body ::= function_block .
-
-// Compound statement
-function_block ::= function_block_start function_statements function_block_end .
-function_block_start ::= LBRACE .
-function_block_end   ::= RBRACE .
-
-// Function-level statements
-function_statement ::= statement .
-
-// Function_statements
-function_statements ::= .
-function_statements ::= function_statements function_statement .
-
-// Return statement - leaves return expression on the stack
-return_statement ::= RETURN expression SEMICOLON .
-return_statement ::= RETURN SEMICOLON .
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Statements
+// Simple statements
 //
 
 // Expression statement
 expression_statement(R) ::= SEMICOLON .               { R = 0; }
 expression_statement(R) ::= expression(A) SEMICOLON . { R = new Ast(expression_statement, A); }
 
-// Declaration statement
-declaration_statement ::= declaration .
-
 // Compound statement
-compound_statement ::= compound_start statement_sequence_opt compound_end .
-compound_start ::= LBRACE .
-compound_end   ::= RBRACE .
+compound_statement(R) ::= LBRACE statement_sequence_opt(A) RBRACE . { R = A; }
 
 // Include statement
-include_statement ::= INCLUDE STRING SEMICOLON .
+include_statement(R) ::= INCLUDE STRING(A) SEMICOLON . { R = new Ast(include_statement, String(A)); }
+
+// Return statement - leaves return expression on the stack
+return_statement(R) ::= RETURN expression(A) SEMICOLON . { R = new Ast(return_statement, A); }
+return_statement(R) ::= RETURN SEMICOLON .               { R = new Ast(return_statement);    }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Declarations
+//
+
+// Declaration starting point
+declaration_statement(R) ::= declaration_sequence(A) SEMICOLON . { R = A; }
+declaration_statement(R) ::= function_declaration(A) .           { R = A; }
+
+// Declaration sequence
+declaration_sequence(R) ::= VAR variable_declaration(A) . { R = A; }
+declaration_sequence(R) ::= declaration_sequence(A) COMMA variable_declaration(B) . { R = new Ast(declaration_sequence, A, B); }
+
+// Variable declaration
+variable_declaration(R) ::= simple_declaration(A) . { R = A; }
+variable_declaration(R) ::= init_declaration(A) .   { R = A; }
+
+// Variable declaration
+simple_declaration(R) ::= IDENTIFIER(A) . { R = new Ast(variable_declaration, String(A)); }
+
+// Variable declaration with initialization
+init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = new Ast(variable_declaration, String(A), B); }
+
+// Function declaration
+function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list_opt(B) RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), B, C); }
+
+// Single parameter
+parameter(R) ::= IDENTIFIER(A) . { R = new Ast(parameter, String(A)); }
+
+// Parameters
+parameter_list(R) ::= parameter(A) . { R = A; }
+parameter_list(R) ::= parameter_list(A) COMMA parameter(B) . { R = new Ast(parameter_list, A, B); }
+
+// Optional parameter list
+parameter_list_opt(R) ::= . { R = 0; }
+parameter_list_opt(R) ::= parameter_list(A) . { R = A; }
+
+// Function body. Traditionally, this is a compound statement, but
+// there's no actual need for that.
+function_body(R) ::= statement(A) . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
 // For statement
 //
-// Because reordering of subexpressions is decidedly non-trivial in this
-// parser implementation, layout of for expressions is fairly complex:
-//
-//   init_statement
-// 
-//   label1:
-// 	  condition
-// 	  jz label4  <patch 1>
-// 	  jmp label3 <patch 2>
-// 
-//   label2:
-// 	  expression
-// 	  jmp label1
-// 
-//   label3:
-// 	  statements
-// 	  jmp label2
-// 
-//   label4:
-//
 
 // For statement - main structure
-for_statement ::= for_start LPAREN for_init for_cond SEMICOLON for_expr RPAREN for_end . 
-
-// For keyword
-for_start ::= FOR .
+for_statement(R) ::= FOR LPAREN for_init_statement(A) expression(B) SEMICOLON expression_opt(C) RPAREN statement(D) . { R = new Ast(for_statement, A, B, C, D); }
 
 // For init statement
-for_init ::= for_init_statement .
-
-// For condition
-for_cond ::= for_condition .
-
-// For expression
-for_expr ::= expression_opt .
-
-// For end
-for_end ::= statement .
-
-// For Condition
-//for_condition ::= .
-for_condition ::= expression .
-
-// Initializer
-for_init_statement ::= expression_statement .
-for_init_statement ::= declaration_statement .
+for_init_statement(R) ::= expression_statement(A) .           { R = A; }
+for_init_statement(R) ::= declaration_sequence(A) SEMICOLON . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Foreach statement
 //
 
-foreach_statement ::= foreach_init LPAREN for_lvalue IN for_expression RPAREN statement foreach_end .
-
-foreach_init ::= FOREACH .
-
-for_lvalue ::= id_expression .
-for_lvalue ::= VAR simple_declaration .
-
-for_expression ::= expression .
-
-foreach_end ::= .
-
-
+foreach_statement(R) ::= FOR LPAREN id_expression(A) IN expression(B) RPAREN statement(C) . { R = new Ast(foreach_statement, A, B, C); }
 
 //////////////////////////////////////////////////////////////////////////
 //
 // If statement
 //
-// Layout for the if statement
-//
-//   condition
-//   jz label1 <patch 1>
-//
-//   statement
-//   jmp label2 <patch 2>
-//
-//   label1:
-//   statement
-//
-//   label2:
 
 %left LOWER_THAN_ELSE.
 %left ELSE.
 
 // Main if statement
-if_statement ::= IF if_cond statement if_else .
-
-// If condition
-if_cond ::= LPAREN expression RPAREN .
-
-// Empty else part
-if_else ::= . [LOWER_THAN_ELSE]
-
-// Filled else part
-if_else ::= if_else_1 if_else_2 .
-
-// Prefix part
-if_else_1 ::= ELSE .
-
-// Statement part
-if_else_2 ::= statement .
+if_statement(R) ::= IF LPAREN expression(A) RPAREN statement(B) . [LOWER_THAN_ELSE] { R = new Ast(if_statement, A, B); } 
+if_statement(R) ::= IF LPAREN expression(A) RPAREN statement(B) ELSE statement(C) . { R = new Ast(if_statement, A, B, C); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -382,13 +289,4 @@ if_else_2 ::= statement .
 //
 
 // Basic while
-while_statement ::= while_start while_condition while_content .
-
-// While start
-while_start ::= WHILE .
-
-// While condition
-while_condition ::= LPAREN expression RPAREN .
-
-// While statement
-while_content ::= statement .
+while_statement(R) ::= WHILE LPAREN expression(A) RPAREN statement(B) . { R = new Ast(while_statement, A,  B); }
