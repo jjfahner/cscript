@@ -26,6 +26,16 @@ CodeGenerator::Write()
 }
 
 void 
+CodeGenerator::Reserve(Quad size)
+{
+  if(m_size - m_used < size)
+  {
+    m_code = (Byte*)realloc(m_code, size * 2);
+    m_size = size * 2;
+  }
+}
+
+void 
 CodeGenerator::PushData(Byte* data, Quad size)
 {
   Reserve(m_used + size);
@@ -79,13 +89,10 @@ CodeGenerator::FixPatch(Quad pos)
 }
 
 void 
-CodeGenerator::Reserve(Quad size)
+CodeGenerator::PushLiteral(Variant const& value)
 {
-  if(m_size - m_used < size)
-  {
-    m_code = (Byte*)realloc(m_code, size * 2);
-    m_size = size * 2;
-  }
+  m_literals.push_back(Literal(value, m_used));
+  PushQuad(0);
 }
 
 void 
@@ -137,6 +144,22 @@ CodeGenerator::Generate(Ast* node)
     {
       *(Quad*)(m_code + *oi) = fi->second.second;
     }
+  }
+
+  // Generate literals
+  Literals::iterator li, le;
+  li = m_literals.begin();
+  le = m_literals.end();
+  for(; li != le; ++li)
+  {
+    // Patch source with current offset
+    *(Quad*)(m_code + li->second) = m_used;
+    
+    // Write literal at current offset
+    size_t len = li->first.WriteLength();
+    Reserve(m_used + len);
+    li->first.Write(m_code + m_used);
+    m_used += (Quad)len;
   }
 }
 
@@ -259,27 +282,27 @@ CodeGenerator::GenerateCode(Ast* node)
 
   case integer:
     PushByte(op_pushl);
-    PushQuad(0);
+    PushLiteral(Variant(any_cast<String>(node->m_a1), Variant::stInt));
     break;
 
   case real:
     PushByte(op_pushl);
-    PushQuad(0);
+    PushLiteral(Variant(any_cast<String>(node->m_a1), Variant::stReal));
     break;
 
   case string:
     PushByte(op_pushl);
-    PushQuad(0);
+    PushLiteral(Variant(any_cast<String>(node->m_a1), Variant::stString));
     break;
 
   case boolean:
     PushByte(op_pushl);
-    PushQuad(0);
+    PushLiteral(Variant(any_cast<String>(node->m_a1), Variant::stBool));
     break;
 
   case null:
     PushByte(op_pushl);
-    PushQuad(0);
+    PushLiteral(Variant());
     break;
 
   case identifier:
@@ -318,7 +341,9 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case variable_declaration:
-    std::cout << "Declaring " << any_cast<String>(node->m_a1) << "\n";
+    std::cout << "Declaring " 
+              << any_cast<String>(node->m_a1) 
+              << "\n";
     break;
 
   case declaration_sequence:
@@ -329,7 +354,8 @@ CodeGenerator::GenerateCode(Ast* node)
   case function_declaration:
     if(m_funs.count(node->m_a1))
     {
-      std::cout << "Error: redeclaration of function " << any_cast<String>(node->m_a1) << "\n";
+      std::cout << "Error: redeclaration of function " 
+                << any_cast<String>(node->m_a1) << "\n";
     }
     else
     {
