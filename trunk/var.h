@@ -291,6 +291,18 @@ public:
     }
     return Variant(*this, stAssoc).AsMap();
   }
+
+  //
+  // Implicit boolean conversions
+  //
+  operator bool () const
+  {
+    return AsBool();
+  }
+  bool operator ! () const
+  {
+    return !AsBool();
+  }
   
   //
   // Append item to map
@@ -407,37 +419,37 @@ operator % (Variant const& lhs, Variant const& rhs)
 // Comparison
 //
 
-inline bool 
+inline Variant 
 operator == (Variant const& lhs, Variant const& rhs)
 {
   return lhs.Compare(rhs) == 0;
 }
 
-inline bool 
+inline Variant 
 operator != (Variant const& lhs, Variant const& rhs)
 {
   return lhs.Compare(rhs) != 0;
 }
 
-inline bool 
+inline Variant 
 operator < (Variant const& lhs, Variant const& rhs)
 {
   return lhs.Compare(rhs) < 0;
 }
 
-inline bool 
+inline Variant 
 operator <= (Variant const& lhs, Variant const& rhs)
 {
   return lhs.Compare(rhs) <= 0;
 }
 
-inline bool 
+inline Variant 
 operator > (Variant const& lhs, Variant const& rhs)
 {
   return lhs.Compare(rhs) > 0;
 }
 
-inline bool 
+inline Variant 
 operator >= (Variant const& lhs, Variant const& rhs)
 {
   return lhs.Compare(rhs) >= 0;
@@ -448,13 +460,13 @@ operator >= (Variant const& lhs, Variant const& rhs)
 // Boolean operations
 //
 
-inline bool 
+inline Variant 
 operator || (Variant const& lhs, Variant const& rhs)
 {
   return lhs.AsBool() || rhs.AsBool();
 }
 
-inline bool 
+inline Variant 
 operator && (Variant const& lhs, Variant const& rhs)
 {
   return lhs.AsBool() && rhs.AsBool();

@@ -11,6 +11,18 @@ class Scope;
 // Naming scope
 //
 
+struct VarInfo 
+{
+  VarInfo(Scope* scope = 0, Quad offset = 0) :
+  m_scope  (scope),
+  m_offset (offset)
+  {
+  }
+
+  Scope* m_scope;
+  Quad  m_offset;
+};
+
 class Scope
 {
 public:
@@ -21,6 +33,11 @@ public:
   Scope(Frame* frame, Scope* parent);
 
   //
+  // Number of variables in scope
+  //
+  Quad GetVarCount() const;
+
+  //
   // Add a variable to this scope
   //
   Quad AddVar(String const& name);
@@ -28,7 +45,7 @@ public:
   //
   // Find a previously declared variable
   //
-  Quad FindVar(String const& name);
+  VarInfo FindVar(String const& name);
 
   //
   // Push a deeper scope
@@ -55,7 +72,7 @@ protected:
   //
   // Find the offset of a variable.
   //
-  virtual Quad FindVarImpl(String const& name);
+  virtual VarInfo FindVarImpl(String const& name);
 
   //
   // Types
@@ -106,7 +123,7 @@ protected:
   //
   // Find the offset of a variable.
   //
-  virtual Quad FindVarImpl(String const& name);
+  virtual VarInfo FindVarImpl(String const& name);
 
   //
   // Members

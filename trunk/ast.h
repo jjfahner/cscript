@@ -40,11 +40,6 @@ public:
   void SetRoot(Ast* root);
 
   //
-  // Enumerate contents of ast node
-  //
-  void Enumerate(Ast* node);
-
-  //
   // Error handlers
   //
   void OnParseFailure();
@@ -82,7 +77,7 @@ enum AstTypes
   string,
   boolean,
   null,
-  identifier,
+  lvalue,
   list_literal,
   argument_list,
   function_declaration,

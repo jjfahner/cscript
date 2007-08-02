@@ -56,6 +56,15 @@ public:
   }
 
   //
+  // Construct from reference to Counted
+  //
+  Ref(T const& counted) :
+  m_counted (new T(counted))
+  {
+    ++m_counted->m_refs;
+  }
+
+  //
   // Copy construction
   //
   Ref(Ref const& rhs) :
