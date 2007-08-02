@@ -2,11 +2,14 @@
 #include "opcodes.h"
 
 CodeGenerator::CodeGenerator() :
-m_code (0),
-m_size (0),
-m_used (0)
+m_code    (0),
+m_size    (0),
+m_used    (0),
+m_globals (0),
+m_scope   (0)
 {
-
+  m_globals = new Frame();
+  m_scope = m_globals;
 }
 
 CodeGenerator::~CodeGenerator()
@@ -15,6 +18,7 @@ CodeGenerator::~CodeGenerator()
   {
     free(m_code);
   }
+  delete m_globals;
 }
 
 void 
@@ -112,6 +116,9 @@ CodeGenerator::Generate(Ast* node)
 
     // TODO Generate parameter code
 
+    // Push function stack frame
+    m_scope = m_scope->PushFrame();
+
     // Generate function content
     GenerateCode(it->second.first->m_a3);
 
@@ -120,6 +127,9 @@ CodeGenerator::Generate(Ast* node)
     PushByte(op_pushl);
     PushQuad(0);
     PushByte(op_ret);
+
+    // Pop the stack frame
+    m_scope = m_scope->PopFrame();
   }
 
   // Fix calls to functions
@@ -206,6 +216,15 @@ CodeGenerator::GenerateCode(Ast* node)
       PushQuad(0);
     }
     PushByte(op_ret);
+    break;
+
+  case compound_statement:
+    if(any_cast<Ast*>(node->m_a1) != 0)
+    {
+      m_scope = m_scope->PushScope();
+      GenerateCode(node->m_a1);
+      m_scope = m_scope->PopScope();
+    }
     break;
 
   case for_statement:
@@ -305,9 +324,7 @@ CodeGenerator::GenerateCode(Ast* node)
     PushLiteral(Variant());
     break;
 
-  case identifier:
-    PushByte(op_pushv);
-    PushQuad(0);
+  case list_literal:
     break;
 
   case prefix_expression:
@@ -340,10 +357,20 @@ CodeGenerator::GenerateCode(Ast* node)
     GenerateCode(node->m_a1);
     break;
 
+  case identifier:
+    PushByte(op_pushv);
+    PushQuad(m_scope->FindVar(node->m_a1));
+    break;
+
   case variable_declaration:
-    std::cout << "Declaring " 
-              << any_cast<String>(node->m_a1) 
-              << "\n";
+    m_scope->AddVar(node->m_a1);
+    if(!node->m_a2.empty())
+    {
+      PushByte(op_pushl);
+      PushQuad(m_scope->FindVar(node->m_a1));
+      GenerateCode(node->m_a2);
+      PushByte(op_assign);
+    }
     break;
 
   case declaration_sequence:

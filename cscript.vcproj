@@ -283,6 +283,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\scope.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\var.cpp"
 				>
 			</File>
@@ -338,6 +342,10 @@
 			</File>
 			<File
 				RelativePath=".\ref.h"
+				>
+			</File>
+			<File
+				RelativePath=".\scope.h"
 				>
 			</File>
 			<File

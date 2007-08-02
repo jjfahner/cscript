@@ -178,12 +178,18 @@ literal(R) ::= NULL .       { R = new Ast(null);  }
 id_expression(R) ::= IDENTIFIER(A) . { R = new Ast(identifier, String(A)); }
 
 // List definition
-list_definition ::= list_start list_content list_end .
-list_start   ::= LBRACKET .
-list_end     ::= RBRACKET .
-list_entry   ::= expression .
-list_content ::= list_entry . 
-list_content ::= list_content COMMA list_entry .
+list_definition(R) ::= LBRACKET list_content(A) RBRACKET . { R = A; }
+list_content(R) ::= expression(A) . { R = A; }
+list_content(R) ::= list_content(A) COMMA expression(B) . { 
+  if(A->m_type == list_literal) {
+    R = A;
+  }
+  else {
+    R = new Ast(list_literal, new AstList);
+    any_cast<AstList*>(R->m_a1)->push_back(A);
+  }
+  any_cast<AstList*>(R->m_a1)->push_back(B);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -212,7 +218,7 @@ expression_statement(R) ::= SEMICOLON .               { R = 0; }
 expression_statement(R) ::= expression(A) SEMICOLON . { R = new Ast(expression_statement, A); }
 
 // Compound statement
-compound_statement(R) ::= LBRACE statement_sequence_opt(A) RBRACE . { R = A; }
+compound_statement(R) ::= LBRACE statement_sequence_opt(A) RBRACE . { R = new Ast(compound_statement, A); }
 
 // Include statement
 include_statement(R) ::= INCLUDE STRING(A) SEMICOLON . { p->Parse(A); R = p->GetRoot(); }
@@ -242,7 +248,7 @@ variable_declaration(R) ::= init_declaration(A) .   { R = A; }
 simple_declaration(R) ::= IDENTIFIER(A) . { R = new Ast(variable_declaration, String(A)); }
 
 // Variable declaration with initialization
-init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = new Ast(variable_declaration, String(A), B); }
+init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { if(B == 0) { __asm int 3 } R = new Ast(variable_declaration, String(A), B); }
 
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list_opt(B) RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), B, C); }
