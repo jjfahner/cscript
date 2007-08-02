@@ -83,6 +83,7 @@ enum AstTypes
   boolean,
   null,
   identifier,
+  list_literal,
   argument_list,
   function_declaration,
   parameter,
@@ -95,6 +96,7 @@ enum AstTypes
   if_statement,
   while_statement,
   return_statement,
+  compound_statement,
 };
 
 //////////////////////////////////////////////////////////////////////////

@@ -53,6 +53,8 @@ AstGen::Parse(String const& filename)
   // Allocate parser
   void *pParser = AstGenParseAlloc(malloc);
 
+  //AstGenParseTrace(stdout, "> ");
+
   // Try block for parser memory management
   try 
   {
@@ -60,7 +62,6 @@ AstGen::Parse(String const& filename)
     Token token;
     while(lexer.Lex(token))
     {
-      //std::cout << "- " << String(token) << std::endl;
       AstGenParse(pParser, token.m_type, token, this);
     }
     
