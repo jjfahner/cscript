@@ -29,6 +29,11 @@ public:
   //
   void Write();
 
+  //
+  // Execute code
+  //
+  void Execute();
+
 private:
 
   //

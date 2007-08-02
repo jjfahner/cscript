@@ -193,6 +193,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case statement_sequence:
+  case parameter_list:
     {
       AstList* list = any_cast<AstList*>(node->m_a1);
       AstList::iterator si, se;
@@ -228,6 +229,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case for_statement:
+    m_scope = m_scope->PushScope();
     GenerateCode(node->m_a1);
     offset0 = m_used;
     GenerateCode(node->m_a2);
@@ -238,6 +240,7 @@ CodeGenerator::GenerateCode(Ast* node)
     PushByte(op_jmp);
     PushQuad(offset0);
     FixPatch(offset1);
+    m_scope = m_scope->PopScope();
     break;
 
   case if_statement:
@@ -343,7 +346,7 @@ CodeGenerator::GenerateCode(Ast* node)
   case index_expression:
     GenerateCode(node->m_a1);
     GenerateCode(node->m_a2);
-    PushByte(op_idx);
+    PushByte(op_pushi);
     break;
 
   case function_call:
@@ -353,21 +356,41 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case argument_list:
-    GenerateCode(node->m_a2); // Reverse order
+    GenerateCode(node->m_a2);
     GenerateCode(node->m_a1);
     break;
 
-  case identifier:
-    PushByte(op_pushv);
-    PushQuad(m_scope->FindVar(node->m_a1));
+  case lvalue:
+    {
+      VarInfo var = m_scope->FindVar(node->m_a1);
+      if(var.m_scope == m_globals)
+      {
+        PushByte(op_pushg);
+        PushQuad(var.m_offset);
+      }
+      else
+      {
+        PushByte(op_pushv);
+        PushQuad(var.m_offset);
+      }
+    }
     break;
 
   case variable_declaration:
     m_scope->AddVar(node->m_a1);
     if(!node->m_a2.empty())
     {
-      PushByte(op_pushl);
-      PushQuad(m_scope->FindVar(node->m_a1));
+      VarInfo var = m_scope->FindVar(node->m_a1);
+      if(var.m_scope == m_globals)
+      {
+        PushByte(op_pushg);
+        PushQuad(var.m_offset);
+      }
+      else
+      {
+        PushByte(op_pushl);
+        PushQuad(var.m_offset);
+      }
       GenerateCode(node->m_a2);
       PushByte(op_assign);
     }
@@ -391,11 +414,270 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case parameter:
-  case parameter_list:
+    GenerateCode(node->m_a1);
     break;
 
   default:
     std::cout << " " << node->m_type << " ";
     throw std::runtime_error("Unknown node type");
   }
+}
+
+inline Byte NextByte(Byte*& code)
+{
+  Byte b = *code;
+  code += 1;
+  return b;
+}
+
+inline Word NextWord(Byte*& code)
+{
+  Word b = *(Word*)code;
+  code += 2;
+  return b;
+}
+
+inline Quad NextQuad(Byte*& code)
+{
+  Quad b = *(Quad*)code;
+  code += 4;
+  return b;
+}
+
+inline Variant ReadLiteral(Byte* code)
+{
+  Variant v;
+  v.Read(code);
+  return v;
+}
+
+void 
+CodeGenerator::Execute()
+{
+  // Instruction pointers
+  #define ipb (NextByte(code))
+  #define ipw (NextWord(code))
+  #define ipq (NextQuad(code))
+
+  // Set code pointers
+  Byte* base = m_code;
+  Byte* code = m_code;
+
+  // Create stacks
+  std::stack<VariantRef>  tstack; // Temporaries
+  std::stack<Quad>        rstack; // Return stack
+  std::vector<VariantRef> vstack; // Variable stack
+  std::vector<VariantRef> gstack; // Global stack
+
+  // Resize stacks
+  vstack.resize(10000);
+  gstack.resize(10000);
+
+  // Stack manipulation
+  #define PUSH(arg) tstack.push(arg)
+  #define POP(arg)  arg = tstack.top(); tstack.pop();
+
+  // Temporaries
+  VariantRef P0, P1;
+  #define R0 (*P0)
+  #define R1 (*P1)
+  Quad q0;
+
+  // Start of instruction
+begin:
+
+  // Execute single instruction
+  switch(ipb)
+  {
+  case op_halt:
+    return;
+
+  case op_pushg:
+    PUSH(gstack[ipq]);
+    break;
+
+  case op_pushl:
+    PUSH(ReadLiteral(base + ipq));
+    break;
+
+  case op_pushv:
+    PUSH(vstack[ipq]);
+    break;
+
+  case op_pushi:
+    POP(P1);
+    POP(P0);
+    PUSH((R0)[R1]);
+    break;
+
+  case op_pop:
+    POP(P0);
+    break;
+
+  case op_jmp:
+    code = base + ipq;
+    break;
+
+  case op_jz:
+    q0 = ipq;
+    POP(P0);
+    if(!R0) code = base + q0;
+    break;
+
+  case op_jnz:
+    q0 = ipq;
+    POP(P0);
+    if(R0) code = base + q0;
+    break;
+
+  case op_call:
+    code = base + ipq;
+    rstack.push(code - base);
+    break;
+
+  case op_ret:
+    code = base + rstack.top();
+    rstack.pop();
+    break;
+
+  case op_inc:
+  case op_dec:
+    break;
+
+  case op_add:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 + R1);
+    break;
+
+  case op_sub:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 - R1);
+    break;
+
+  case op_mul:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 * R1);
+    break;
+
+  case op_div:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 / R1);
+    break;
+
+  case op_mod:  
+    POP(P1);
+    POP(P0);
+    PUSH(R0 % R1);
+    break;
+
+  case op_logor:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 || R1);
+    break;
+
+  case op_logand:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 && R1);
+    break;
+
+  case op_eq:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 == R1);
+    break;
+
+  case op_ne:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 != R1);
+    break;
+
+  case op_lt:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 < R1);
+    break;
+
+  case op_le:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 <= R1);
+    break;
+
+  case op_gt:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 > R1);
+    break;
+
+  case op_ge:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 >= R1);
+    break;
+
+  case op_assign:
+    POP(P1);
+    POP(P0);
+    R0 = R1;
+    PUSH(P0);
+    break;
+
+  case op_assadd:
+    POP(P1);
+    POP(P0);
+    R0 += R1;
+    PUSH(P0);
+    break;
+
+  case op_asssub:
+    POP(P1);
+    POP(P0);
+    R0 -= R1;
+    PUSH(P0);
+    break;
+
+  case op_assmul:
+    POP(P1);
+    POP(P0);
+    R0 *= R1;
+    PUSH(P0);
+    break;
+
+  case op_assdiv:
+    POP(P1);
+    POP(P0);
+    R0 /= R1;
+    PUSH(P0);
+    break;
+
+  case op_assmod:
+    POP(P1);
+    POP(P0);
+    R0 %= R1;
+    PUSH(P0);
+    break;
+
+//   case op_bitor:
+//   case op_bitxor:
+//   case op_bitand:  
+//     break;
+
+  default:
+    goto invalid;
+  }
+
+  // Next instruction
+  goto begin;
+
+// Invalid instruction
+invalid:
+
+  std::cout << "Invalid instruction\n";
 }

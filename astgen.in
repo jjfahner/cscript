@@ -175,7 +175,7 @@ literal(R) ::= FALSE .      { R = new Ast(boolean, false); }
 literal(R) ::= NULL .       { R = new Ast(null);  }
 
 // Id expression
-id_expression(R) ::= IDENTIFIER(A) . { R = new Ast(identifier, String(A)); }
+id_expression(R) ::= IDENTIFIER(A) . { R = new Ast(lvalue, String(A)); }
 
 // List definition
 list_definition(R) ::= LBRACKET list_content(A) RBRACKET . { R = A; }

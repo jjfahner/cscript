@@ -3,24 +3,22 @@
 
 enum opcodes
 {
-  op_halt,
-  
-  op_pushl,
-  op_pushv,
-  op_pop,
+  op_halt,        // Halt execution
 
-  op_mov,
+  op_pushg,       // Push global on stack
+  op_pushl,       // Push literal on stack
+  op_pushv,       // Push variable on stack  
+  op_pushi,       // Push stack0[stack1]
+  op_pop,         // Pop topmost from stack
 
-  op_jmp,
-  op_jz,
-  op_jnz,
-  op_call,
-  op_ret,
+  op_jmp,         // Unconditional jump
+  op_jz,          // Jump if stack top == 0
+  op_jnz,         // Jump if stack top != 0
+  op_call,        // Call function
+  op_ret,         // Return from function
 
-  op_idx,
-
-  op_inc,
-  op_dec,
+  op_inc,         // Add 1 to value on top of stack
+  op_dec,         // Subtract 1 to value on top of stack
 
   op_add,
   op_sub,

@@ -12,19 +12,25 @@ m_parent  (parent)
 }
 
 Quad 
+Scope::GetVarCount() const
+{
+  return m_vars.size();
+}
+
+Quad 
 Scope::AddVar(String const& name)
 {
   // Check local scope
   if(m_vars.count(name))
   {
-    std::cout << "Error: variable " << name << " already declared in this scope\n";
+    std::cout << "Error: variable '" << name << "' already declared in this scope\n";
     return 0;
   }
 
   // Check for shadowing
-  if(FindVarImpl(name))
+  if(FindVarImpl(name).m_offset)
   {
-    std::cout << "Warning: variable " << name << " hides a variable in a parent scope\n";
+    std::cout << "Warning: variable '" << name << "' hides a variable in a parent scope\n";
   }
 
   // Request id from frame
@@ -37,21 +43,21 @@ Scope::AddVar(String const& name)
   return id;
 }
 
-Quad 
+VarInfo 
 Scope::FindVar(String const& name)
 {
   // Find the variable offset
-  Quad offset = FindVarImpl(name);
-  if(offset == 0)
+  VarInfo var = FindVarImpl(name);
+  if(var.m_offset == 0)
   {
-    std::cout << "Error: variable " << name << " is not declared in the current scope\n";
+    std::cout << "Error: variable '" << name << "' is not declared in the current scope\n";
   }
 
-  // Always return offset, even if zero
-  return offset;
+  // Done
+  return var;
 }
 
-Quad 
+VarInfo
 Scope::FindVarImpl(String const& name)
 {
   // Find variable in local scope
@@ -59,17 +65,17 @@ Scope::FindVarImpl(String const& name)
   it = m_vars.find(name);
   if(it != m_vars.end())
   {
-    return it->second;
+    return VarInfo(this, it->second);
   }
 
   // Find variable in parent scope(s)
   if(m_parent)
   {
-    return m_parent->FindVar(name);
+    return m_parent->FindVarImpl(name);
   }
 
   // Unknown variable
-  return 0;
+  return VarInfo();
 }
 
 Scope* 
@@ -116,14 +122,14 @@ Frame::MakeVarId()
   return ++m_varIds;
 }
 
-Quad 
+VarInfo
 Frame::FindVarImpl(String const& name)
 {
   // Find in regular scope
-  Quad offset = Scope::FindVarImpl(name);
-  if(offset)
+  VarInfo var = Scope::FindVarImpl(name);
+  if(var.m_offset)
   {
-    return offset;
+    return var;
   }
 
   // Find in global scope
@@ -133,7 +139,7 @@ Frame::FindVarImpl(String const& name)
   }
 
   // Failed
-  return 0;
+  return VarInfo();
 }
 
 Scope* 
