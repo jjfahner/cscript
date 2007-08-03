@@ -15,36 +15,17 @@ inline bool IsType(Ast* node, AstTypes type)
   return node->m_type == type;
 }
 
-inline bool IsLiteral(Ast* node)
-{
-  return IsType(node, literal);
-}
-
-inline bool IsEmptyStatement(Ast* node)
-{
-  return IsType(node, empty_statement);
-}
-
 Ast*
 CodeGenerator::Optimize(Ast* node)
 {
   switch(node->m_type)
   {
   case statement_sequence:
-    {
-      AstList* list = any_cast<AstList*>(node->m_a1);
-      AstList::iterator si, se;
-      si = list->begin();
-      se = list->end();
-      for(; si != se; ++si)
-      {
-        *si = Optimize(*si);
-      }
-    }
+    ReduceStatementSequence(node);
     break;
 
   case expression_statement:
-    node->m_a1 = Optimize(node->m_a1);
+    node = ReduceExpressionStatement(node);
     break;
 
   case assignment_expression:
@@ -135,10 +116,7 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case compound_statement:
-    if(!node->m_a1.empty())
-    {
-      node->m_a1 = Optimize(node->m_a1);
-    }
+    node = ReduceCompoundStatement(node);
     break;
 
   default:
@@ -184,11 +162,23 @@ CodeGenerator::ReduceIfStatement(Ast* node)
   // Reduce if branch
   node->m_a2 = Optimize(node->m_a2);
 
+//   // Emptyness
+//   bool le = IsType(node->m_a2, empty_statement);
+//   bool re = true;
+
   // Reduce else branch
   if(!node->m_a3.empty())
   {
     node->m_a3 = Optimize(node->m_a3);
+//     re = IsType(node->m_a3, empty_statement);
   }
+
+//   // Empty substatements
+//   if(le && re)
+//   {
+//     delete node;
+//     return 
+//   }
 
   // Return original node
   return node;
@@ -216,7 +206,7 @@ CodeGenerator::ReduceForStatement(Ast* node)
 
   // Create body statement
   Ast* body = 0;
-  if(IsEmptyStatement(node->m_a4))
+  if(IsType(node->m_a4, empty_statement))
   {
     if(node->m_a3.empty())
     {
@@ -244,7 +234,7 @@ CodeGenerator::ReduceForStatement(Ast* node)
   Ast* root = new Ast(while_statement, cond, body);
 
   // Empty init statement means we're done
-  if(!IsEmptyStatement(node->m_a1))
+  if(!IsType(node->m_a1, empty_statement))
   {
     // Create sequence for init-expression and while
     AstList* list = new AstList;
@@ -273,16 +263,16 @@ CodeGenerator::ReduceBinaryExpression(Ast* node)
   node->m_a2 = Optimize(node->m_a2);
 
   // Reduce left side of short-circuited logical operators
-  if(node->m_a1 == op_logor    && 
-     IsLiteral(node->m_a2)     && 
-     LiteralAsBool(node->m_a2) )
+  if(node->m_a1 == op_logor     && 
+     IsType(node->m_a2, literal)&& 
+     LiteralAsBool(node->m_a2)  )
   {
     std::cout << "Reducing binary expression\n";
     delete node;
     return new Ast(literal, Variant(true));
   }
   if(node->m_a1 == op_logand    &&
-     IsLiteral(node->m_a2)      &&
+     IsType(node->m_a2, literal)&&
      !LiteralAsBool(node->m_a2) )
   {
     std::cout << "Reducing binary expression\n";
@@ -294,7 +284,7 @@ CodeGenerator::ReduceBinaryExpression(Ast* node)
   node->m_a3 = Optimize(node->m_a3);
 
   // Check whether both sides are literals
-  if(!IsLiteral(node->m_a2) || !IsLiteral(node->m_a3))
+  if(!IsType(node->m_a2, literal) || !IsType(node->m_a3, literal))
   {
     // Nothing to do here
     return node;
@@ -323,6 +313,7 @@ CodeGenerator::ReduceBinaryExpression(Ast* node)
   case op_le:     rep = new Ast(literal, lhs <= rhs); break;
   case op_gt:     rep = new Ast(literal, lhs >  rhs); break;
   case op_ge:     rep = new Ast(literal, lhs >= rhs); break;
+  default:        std::cout << "Cannot reduce unknown binary operator\n"; break;
   }
 
   // Replace previous node
@@ -343,7 +334,7 @@ CodeGenerator::ReduceTernaryExpression(Ast* node)
   node->m_a1 = Optimize(node->m_a1);
 
   // Reduce for literal condition
-  if(IsLiteral(node->m_a1))
+  if(IsType(node->m_a1, literal))
   {
     std::cout << "Reducing ternary expression\n";
 
@@ -371,3 +362,97 @@ CodeGenerator::ReduceTernaryExpression(Ast* node)
   // Succeeded
   return node;
 }
+
+
+Ast* 
+CodeGenerator::ReduceStatementSequence(Ast* node)
+{
+  // Determine old and new list
+  AstList* old = any_cast<AstList*>(node->m_a1);
+  AstList* rep = new AstList;
+
+  // Enumerate statements
+  AstList::iterator si, se;
+  si = old->begin();
+  se = old->end();
+  for(; si != se; ++si)
+  {
+    // Optimize the statement
+    Ast* opt = Optimize(*si);
+
+    // If not empty, place in new list
+    if(!IsType(opt, empty_statement))
+    {
+      rep->push_back(opt);
+    }
+  }
+
+  // The new list is empty
+  if(rep->size() == 0)
+  {
+    delete node;
+    delete old;
+    delete rep;
+    return new Ast(empty_statement);
+  }
+
+  // The new list contains one statement
+  if(rep->size() == 1)
+  {
+    delete node;
+    node = *rep->begin();
+    delete old;
+    delete rep;
+    return node;
+  }
+
+  // Replace old list
+  delete old;
+  node->m_a1 = rep;
+  return node;
+}
+
+Ast*
+CodeGenerator::ReduceExpressionStatement(Ast* node)
+{
+  // Reduce expression
+  node->m_a1 = Optimize(node->m_a1);
+
+  // Replace literal with empty statement
+  if(IsType(node->m_a1, literal))
+  {
+    delete node;
+    node = new Ast(empty_statement);
+  }
+
+  // Done
+  return node;
+}
+
+Ast* 
+CodeGenerator::ReduceCompoundStatement(Ast* node)
+{
+  // If empty, return empty statement
+  if(node->m_a1.empty())
+  {
+    std::cout << "Reducing compound statement\n";
+    delete node;
+    return new Ast(empty_statement);
+  }
+
+  // Reduce content
+  node->m_a1 = Optimize(node->m_a1);
+
+  // If empty, reduce further
+  if(IsType(node->m_a1, empty_statement))
+  {
+    std::cout << "Reducing compound statement\n";
+    Ast* res = node->m_a1;
+    delete node;
+    node = res;
+  }
+
+  // Done
+  return node;
+}
+

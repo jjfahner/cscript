@@ -121,6 +121,7 @@ public:
   // Members
   //
   AstTypes  m_type;
+  bool      m_idem;
   any       m_a1;
   any       m_a2;
   any       m_a3;
@@ -135,13 +136,15 @@ public:
 
 inline 
 Ast::Ast(AstTypes type) :
-m_type (type)
+m_type (type),
+m_idem(false)
 {
 }
 
 inline 
 Ast::Ast(AstTypes type, any const& a1) :
 m_type (type),
+m_idem (false),
 m_a1   (a1)
 {
 }
@@ -149,6 +152,7 @@ m_a1   (a1)
 inline 
 Ast::Ast(AstTypes type, any const& a1, any const& a2) :
 m_type (type),
+m_idem (false),
 m_a1   (a1),
 m_a2   (a2)
 {
@@ -157,6 +161,7 @@ m_a2   (a2)
 inline 
 Ast::Ast(AstTypes type, any const& a1, any const& a2, any const& a3) :
 m_type (type),
+m_idem (false),
 m_a1   (a1),
 m_a2   (a2),
 m_a3   (a3)
@@ -166,6 +171,7 @@ m_a3   (a3)
 inline 
 Ast::Ast(AstTypes type, any const& a1, any const& a2, any const& a3, any const& a4) :
 m_type (type),
+m_idem (false),
 m_a1   (a1),
 m_a2   (a2),
 m_a3   (a3),
