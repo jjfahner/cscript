@@ -120,61 +120,34 @@ CodeGenerator::PopScope()
 }
 
 void 
-CodeGenerator::Generate(Ast* node)
+CodeGenerator::Generate(Ast* node, bool release)
 {
-  // Optimize the input tree
-  Optimize(node);
+  // Validate tree
+  Validate(node);
+
+  // Release optimizations
+  if(release)
+  {
+    // Optimize tree
+    Optimize(node);
+
+    // Re-validate optimized tree
+    Validate(node);
+  }
+
+  // Gather information
+  Annotate(node);
 
   // Generate top-level code
   GenerateCode(node);
 
-  // Generate functions
-  Functions::iterator it, ie;
-  it = m_funs.begin();
-  ie = m_funs.end();
-  for(; it != ie; ++it)
-  {
-    // Store function offset with function
-    it->second.second = m_used;
-
-    // Push stack grow instruction and reserve
-    // space to store the stack grow size
-    PushByte(op_stg);
-    Quad offset = m_used;
-    PushQuad(0);
-
-    // Push a new stack frame for the function
-    m_scope = m_scope->PushFrame();
-
-    // TODO Generate parameter code
-
-    // Generate function content
-    GenerateCode(it->second.first->m_a3);
-
-    // Update the stack size
-    FillQuad(offset, m_scope->GetVarCount());
-
-    // Write stack cleanup
-    PushByte(op_sts);
-    PushQuad(m_scope->GetVarCount());
-
-    // Pop the stack frame
-    m_scope = m_scope->PopFrame();
-
-    // Generate return statement
-    // TODO only required if not present
-    PushByte(op_pushl);
-    PushQuad(0);
-    PushByte(op_ret);
-  }
-
-  // Fix calls to functions
+  // Resolve calls to functions
   CallList::iterator ci, ce;
   ci = m_calls.begin();
   ce = m_calls.end();
   for(; ci != ce; ++ci)
   {
-    // Find corresponding function
+    // Find ast node for function
     Functions::iterator fi = m_funs.find(ci->first);
     if(fi == m_funs.end())
     {
@@ -182,13 +155,16 @@ CodeGenerator::Generate(Ast* node)
       continue;
     }
 
+    // Generate function
+    Quad offset = GenerateFunction(fi->second);
+
     // Fix offsets
     QuadList::iterator oi, oe;
     oi = ci->second.begin();
     oe = ci->second.end();
     for(; oi != oe; ++oi)
     {
-      *(Quad*)(m_code + *oi) = fi->second.second;
+      *(Quad*)(m_code + *oi) = offset;
     }
   }
 
@@ -207,6 +183,46 @@ CodeGenerator::Generate(Ast* node)
     li->first.Write(m_code + m_used);
     m_used += (Quad)len;
   }
+}
+
+Quad 
+CodeGenerator::GenerateFunction(Ast* node)
+{
+  // Store function offset
+  Quad fnOffset = m_used;
+
+  // Push stack grow instruction and reserve
+  // space to store the stack grow size
+  PushByte(op_stg);
+  Quad offset = m_used;
+  PushQuad(0);
+
+  // Push a new stack frame for the function
+  m_scope = m_scope->PushFrame();
+
+  // TODO Generate parameter code
+
+  // Generate function content
+  GenerateCode(node->m_a3);
+
+  // Update the stack size
+  FillQuad(offset, m_scope->GetVarCount());
+
+  // Write stack cleanup
+  PushByte(op_sts);
+  PushQuad(m_scope->GetVarCount());
+
+  // Pop the stack frame
+  m_scope = m_scope->PopFrame();
+
+  // Generate return statement
+  // TODO only required if not present
+  PushByte(op_pushl);
+  PushQuad(0);
+  PushByte(op_ret);
+
+  // Done
+  return fnOffset;
 }
 
 void 
@@ -426,7 +442,7 @@ CodeGenerator::GenerateCode(Ast* node)
     }
     else
     {
-      m_funs[node->m_a1] = Function(node, 0);
+      m_funs[node->m_a1] = node;
     }
     break;
 
