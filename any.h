@@ -243,5 +243,4 @@ operator != (any const& lhs, any const& rhs)
   return !lhs.equals(rhs);
 }
 
-
 #endif  //  #ifndef VARIANT_H

@@ -20,6 +20,11 @@ public:
   ~CodeGenerator();
 
   //
+  // Optimize parse tree
+  //
+  Ast* Optimize(Ast*);
+
+  //
   // Generate code in parse tree
   //
   void Generate(Ast*);
@@ -37,9 +42,18 @@ public:
 private:
 
   //
+  // Optimization routines
+  //
+  Ast* ReduceIfStatement(Ast*);
+  Ast* ReduceForStatement(Ast*);
+  Ast* ReduceBinaryExpression(Ast*);
+  Ast* ReduceTernaryExpression(Ast*);
+
+  //
   // High-level code generation
   //
   void GenerateCode(Ast*);
+  void GenerateFunctionCall(Ast*);
 
   //
   // Low-level code generation
@@ -48,16 +62,24 @@ private:
   void PushByte(Byte);
   void PushWord(Word);
   void PushQuad(Quad);
-  
-  //
-  // Push call to function
-  //
-  void PushCall(String const& name);
+  void FillQuad(Quad offset, Quad data);
   
   //
   // Push reference to literal
   //
   void PushLiteral(Variant const&);
+
+  //
+  // Stack frames
+  //
+  void PushFrame();
+  void PopFrame();
+
+  //
+  // Scopes
+  //
+  void PushScope();
+  void PopScope();
 
   //
   // Push empty quad, return offset
@@ -66,7 +88,7 @@ private:
   void FixPatch(Quad);
 
   //
-  // Reserve space
+  // Reserve space for code
   //
   void Reserve(Quad);
 

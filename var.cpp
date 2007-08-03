@@ -20,6 +20,11 @@
 //////////////////////////////////////////////////////////////////////////
 #include "var.h"
 
+/*static*/ const Variant Variant::Null;
+/*static*/ const Variant Variant::True(true);
+/*static*/ const Variant Variant::False(false);
+
+
 Variant const& 
 Variant::operator = (Variant const& rhs)
 {

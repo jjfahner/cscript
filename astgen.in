@@ -167,12 +167,12 @@ primary_expression(R) ::= LPAREN expression(A) RPAREN . { R = A; }
 primary_expression(R) ::= list_definition(A) .          { R = A; }
 
 // Literals
-literal(R) ::= INTEGER(A) . { R = new Ast(integer, String(A)); }
-literal(R) ::= REAL(A) .    { R = new Ast(real,    String(A)); } 
-literal(R) ::= STRING(A) .  { R = new Ast(string,  String(A)); }
-literal(R) ::= TRUE .       { R = new Ast(boolean, true);  }
-literal(R) ::= FALSE .      { R = new Ast(boolean, false); }
-literal(R) ::= NULL .       { R = new Ast(null);  }
+literal(R) ::= INTEGER(A) . { R = new Ast(literal, Variant(String(A), Variant::stInt)); }
+literal(R) ::= REAL(A) .    { R = new Ast(literal, Variant(String(A), Variant::stReal)); } 
+literal(R) ::= STRING(A) .  { R = new Ast(literal, Variant(String(A), Variant::stString)); }
+literal(R) ::= TRUE .       { R = new Ast(literal, Variant(true));    }
+literal(R) ::= FALSE .      { R = new Ast(literal, Variant(false));   }
+literal(R) ::= NULL .       { R = new Ast(literal, Variant());        }
 
 // Id expression
 id_expression(R) ::= IDENTIFIER(A) . { R = new Ast(lvalue, String(A)); }
@@ -214,7 +214,7 @@ argument_list(R) ::= arguments(A) . { R = A; }
 //
 
 // Expression statement
-expression_statement(R) ::= SEMICOLON .               { R = 0; }
+expression_statement(R) ::= SEMICOLON .               { R = new Ast(empty_statement); }
 expression_statement(R) ::= expression(A) SEMICOLON . { R = new Ast(expression_statement, A); }
 
 // Compound statement

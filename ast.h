@@ -3,6 +3,8 @@
 
 #include "types.h"
 #include "any.h"
+#include "var.h"
+
 #include "opcodes.h"
 
 class Ast;
@@ -72,11 +74,7 @@ enum AstTypes
   member_expression,
   index_expression,
   function_call,
-  integer,
-  real,
-  string,
-  boolean,
-  null,
+  literal,
   lvalue,
   list_literal,
   argument_list,
@@ -85,6 +83,7 @@ enum AstTypes
   parameter_list,
   variable_declaration,
   declaration_sequence,
+  empty_statement,
   include_statement,
   for_statement,
   foreach_statement,
