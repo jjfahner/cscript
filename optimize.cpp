@@ -1,5 +1,10 @@
 #include "codegen.h"
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Helpers
+//
+
 inline Variant LiteralAsVariant(Ast* node)
 {
   return any_cast<Variant>(node->m_a1);
@@ -15,30 +20,39 @@ inline bool IsType(Ast* node, AstTypes type)
   return node->m_type == type;
 }
 
+inline bool IsIdempotent(Ast* node)
+{
+  return node->m_idempotent;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Top-level recursive optimizer
+//
+
 Ast*
 CodeGenerator::Optimize(Ast* node)
 {
   switch(node->m_type)
   {
   case statement_sequence:
-    ReduceStatementSequence(node);
+    node = OptimizeStatementSequence(node);
     break;
 
   case expression_statement:
-    node = ReduceExpressionStatement(node);
+    node = OptimizeExpressionStatement(node);
     break;
 
   case assignment_expression:
-    node->m_a2 = Optimize(node->m_a2);
-    node->m_a3 = Optimize(node->m_a3);
+    node = OptimizeAssignmentExpression(node);
     break;
 
   case binary_expression:
-    node = ReduceBinaryExpression(node);
+    node = OptimizeBinaryExpression(node);
     break;
 
   case ternary_expression:
-    node = ReduceTernaryExpression(node);
+    node = OptimizeTernaryExpression(node);
     break;
 
   case prefix_expression:
@@ -70,11 +84,14 @@ CodeGenerator::Optimize(Ast* node)
     node->m_a3 = Optimize(node->m_a3);
     break;
 
-  case literal:
   case list_literal:
-  case lvalue:
   case parameter:
   case parameter_list:
+    break;
+
+  case literal:
+  case lvalue:
+    node->m_idempotent = true;
     break;
 
   case variable_declaration:
@@ -93,14 +110,14 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case for_statement:
-    node = ReduceForStatement(node);
+    node = OptimizeForStatement(node);
     break;
 
   case foreach_statement:
     break;
 
   case if_statement:
-    node = ReduceIfStatement(node);
+    node = OptimizeIfStatement(node);
     break;
 
   case while_statement:
@@ -116,7 +133,7 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case compound_statement:
-    node = ReduceCompoundStatement(node);
+    node = OptimizeCompoundStatement(node);
     break;
 
   default:
@@ -126,13 +143,18 @@ CodeGenerator::Optimize(Ast* node)
   return node;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Optimizer methods
+//
+
 Ast* 
-CodeGenerator::ReduceIfStatement(Ast* node)
+CodeGenerator::OptimizeIfStatement(Ast* node)
 {
-  // Reduce condition expression
+  // Optimize condition expression
   node->m_a1 = Optimize(node->m_a1);
   
-  // If the condition is constant, reduce to corresponding branch
+  // If the condition is constant, Optimize to corresponding branch
   if(any_cast<Ast*>(node->m_a1)->m_type == literal)
   {
     std::cout << "Reducing if statement\n";
@@ -154,23 +176,23 @@ CodeGenerator::ReduceIfStatement(Ast* node)
       return res;
     }
 
-    // Reduce to null statement
+    // Optimize to null statement
     delete node;
     return new Ast(empty_statement);
   }
 
-  // Reduce if branch
+  // Optimize if branch
   node->m_a2 = Optimize(node->m_a2);
 
-//   // Emptyness
-//   bool le = IsType(node->m_a2, empty_statement);
-//   bool re = true;
+  // Emptyness
+  bool le = IsType(node->m_a2, empty_statement);
+  bool re = true;
 
-  // Reduce else branch
+  // Optimize else branch
   if(!node->m_a3.empty())
   {
     node->m_a3 = Optimize(node->m_a3);
-//     re = IsType(node->m_a3, empty_statement);
+    re = IsType(node->m_a3, empty_statement);
   }
 
 //   // Empty substatements
@@ -185,9 +207,9 @@ CodeGenerator::ReduceIfStatement(Ast* node)
 }
 
 Ast* 
-CodeGenerator::ReduceForStatement(Ast* node)
+CodeGenerator::OptimizeForStatement(Ast* node)
 {
-  // Reduce subexpressions
+  // Optimize subexpressions
   node->m_a1 = Optimize(node->m_a1);
   node->m_a2 = Optimize(node->m_a2);
   node->m_a3 = Optimize(node->m_a3);
@@ -257,34 +279,58 @@ CodeGenerator::ReduceForStatement(Ast* node)
 }
 
 Ast* 
-CodeGenerator::ReduceBinaryExpression(Ast* node)
+CodeGenerator::OptimizeAssignmentExpression(Ast* node)
 {
-  // Reduce left-hand side
+  // Optimize left side
   node->m_a2 = Optimize(node->m_a2);
 
-  // Reduce left side of short-circuited logical operators
+  // Optimize right side
+  node->m_a3 = Optimize(node->m_a3);
+
+  // Done
+  return node;
+}
+
+Ast* 
+CodeGenerator::OptimizeBinaryExpression(Ast* node)
+{
+  // Optimize left-hand side
+  node->m_a2 = Optimize(node->m_a2);
+
+  // Or with literal true on left side
   if(node->m_a1 == op_logor     && 
      IsType(node->m_a2, literal)&& 
      LiteralAsBool(node->m_a2)  )
   {
     std::cout << "Reducing binary expression\n";
     delete node;
-    return new Ast(literal, Variant(true));
+    node = new Ast(literal, Variant(true));
+    node->m_idempotent = true;
+    return node;
   }
+
+  // And with literal false on left side
   if(node->m_a1 == op_logand    &&
      IsType(node->m_a2, literal)&&
      !LiteralAsBool(node->m_a2) )
   {
     std::cout << "Reducing binary expression\n";
     delete node;
-    return new Ast(literal, Variant(false));
+    node = new Ast(literal, Variant(false));
+    node->m_idempotent = true;
+    return node;
   }
 
-  // Reduce right side
+  // Optimize right side
   node->m_a3 = Optimize(node->m_a3);
 
+  // Determine idempotence
+  node->m_idempotent = IsIdempotent(node->m_a2) && 
+                       IsIdempotent(node->m_a3) ;
+
   // Check whether both sides are literals
-  if(!IsType(node->m_a2, literal) || !IsType(node->m_a3, literal))
+  if(!IsType(node->m_a2, literal) || 
+     !IsType(node->m_a3, literal) )
   {
     // Nothing to do here
     return node;
@@ -313,12 +359,13 @@ CodeGenerator::ReduceBinaryExpression(Ast* node)
   case op_le:     rep = new Ast(literal, lhs <= rhs); break;
   case op_gt:     rep = new Ast(literal, lhs >  rhs); break;
   case op_ge:     rep = new Ast(literal, lhs >= rhs); break;
-  default:        std::cout << "Cannot reduce unknown binary operator\n"; break;
+  default:        std::cout << "Cannot Optimize unknown binary operator\n"; break;
   }
 
   // Replace previous node
   if(rep)
   {
+    rep->m_idempotent = true;
     delete node;
     node = rep;
   }
@@ -328,12 +375,14 @@ CodeGenerator::ReduceBinaryExpression(Ast* node)
 }
 
 Ast* 
-CodeGenerator::ReduceTernaryExpression(Ast* node)
+CodeGenerator::OptimizeTernaryExpression(Ast* node)
 {
-  // Reduce condition node
+  // Optimize nodes
   node->m_a1 = Optimize(node->m_a1);
+  node->m_a2 = Optimize(node->m_a2);
+  node->m_a3 = Optimize(node->m_a3);
 
-  // Reduce for literal condition
+  // Optimize for literal condition
   if(IsType(node->m_a1, literal))
   {
     std::cout << "Reducing ternary expression\n";
@@ -341,22 +390,24 @@ CodeGenerator::ReduceTernaryExpression(Ast* node)
     // Decide which branch to pick
     if(LiteralAsBool(node->m_a2))
     {
-      Ast* res = Optimize(node->m_a2);
+      Ast* res = node->m_a2;
       delete node;
       node = res;
     }
     else
     {
-      Ast* res = Optimize(node->m_a3);
+      Ast* res = node->m_a3;
       delete node;
       node = res;
     }
   }
   else
   {
-    // Reduce both branches
-    node->m_a2 = Optimize(node->m_a2);
-    node->m_a3 = Optimize(node->m_a3);
+    // Determine idempotence
+    node->m_idempotent = 
+      IsIdempotent(node->m_a1) &&
+      IsIdempotent(node->m_a2) &&
+      IsIdempotent(node->m_a3) ;
   }
 
   // Succeeded
@@ -365,11 +416,14 @@ CodeGenerator::ReduceTernaryExpression(Ast* node)
 
 
 Ast* 
-CodeGenerator::ReduceStatementSequence(Ast* node)
+CodeGenerator::OptimizeStatementSequence(Ast* node)
 {
   // Determine old and new list
   AstList* old = any_cast<AstList*>(node->m_a1);
   AstList* rep = new AstList;
+
+  // Check for idempotence
+  bool idempotent = true;
 
   // Enumerate statements
   AstList::iterator si, se;
@@ -380,10 +434,11 @@ CodeGenerator::ReduceStatementSequence(Ast* node)
     // Optimize the statement
     Ast* opt = Optimize(*si);
 
-    // If not empty, place in new list
+    // Add to list
     if(!IsType(opt, empty_statement))
     {
       rep->push_back(opt);
+      idempotent &= opt->m_idempotent;
     }
   }
 
@@ -393,7 +448,9 @@ CodeGenerator::ReduceStatementSequence(Ast* node)
     delete node;
     delete old;
     delete rep;
-    return new Ast(empty_statement);
+    node = new Ast(empty_statement);
+    node->m_idempotent = true;
+    return node;
   }
 
   // The new list contains one statement
@@ -409,20 +466,23 @@ CodeGenerator::ReduceStatementSequence(Ast* node)
   // Replace old list
   delete old;
   node->m_a1 = rep;
+  node->m_idempotent = idempotent;
   return node;
 }
 
 Ast*
-CodeGenerator::ReduceExpressionStatement(Ast* node)
+CodeGenerator::OptimizeExpressionStatement(Ast* node)
 {
-  // Reduce expression
+  // Optimize expression
   node->m_a1 = Optimize(node->m_a1);
 
-  // Replace literal with empty statement
-  if(IsType(node->m_a1, literal))
+  // Replace idempotent expression with empty statement
+  if(IsIdempotent(node->m_a1))
   {
+    std::cout << "Reducing expression statement\n";
     delete node;
     node = new Ast(empty_statement);
+    node->m_idempotent = true;
   }
 
   // Done
@@ -430,20 +490,22 @@ CodeGenerator::ReduceExpressionStatement(Ast* node)
 }
 
 Ast* 
-CodeGenerator::ReduceCompoundStatement(Ast* node)
+CodeGenerator::OptimizeCompoundStatement(Ast* node)
 {
   // If empty, return empty statement
   if(node->m_a1.empty())
   {
     std::cout << "Reducing compound statement\n";
     delete node;
-    return new Ast(empty_statement);
+    node = new Ast(empty_statement);
+    node->m_idempotent = true;
+    return node;
   }
 
-  // Reduce content
+  // Optimize content
   node->m_a1 = Optimize(node->m_a1);
 
-  // If empty, reduce further
+  // If empty, Optimize further
   if(IsType(node->m_a1, empty_statement))
   {
     std::cout << "Reducing compound statement\n";
@@ -455,4 +517,3 @@ CodeGenerator::ReduceCompoundStatement(Ast* node)
   // Done
   return node;
 }
-

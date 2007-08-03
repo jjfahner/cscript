@@ -20,14 +20,9 @@ public:
   ~CodeGenerator();
 
   //
-  // Optimize parse tree
-  //
-  Ast* Optimize(Ast*);
-
-  //
   // Generate code in parse tree
   //
-  void Generate(Ast*);
+  void Generate(Ast* root, bool release);
 
   //
   // Write to output
@@ -42,20 +37,34 @@ public:
 private:
 
   //
-  // Optimization routines
+  // Validation
   //
-  Ast* ReduceIfStatement(Ast*);
-  Ast* ReduceForStatement(Ast*);
-  Ast* ReduceBinaryExpression(Ast*);
-  Ast* ReduceTernaryExpression(Ast*);
-  Ast* ReduceStatementSequence(Ast*);
-  Ast* ReduceExpressionStatement(Ast*);
-  Ast* ReduceCompoundStatement(Ast*);
+  void Validate(Ast*);
+  
+  //
+  // Annotation
+  //
+  void Annotate(Ast*);
+  void AnnotateStatementSequence(Ast*);
+
+  //
+  // Optimization
+  //
+  Ast* Optimize(Ast*);
+  Ast* OptimizeIfStatement(Ast*);
+  Ast* OptimizeForStatement(Ast*);
+  Ast* OptimizeBinaryExpression(Ast*);
+  Ast* OptimizeTernaryExpression(Ast*);
+  Ast* OptimizeStatementSequence(Ast*);
+  Ast* OptimizeExpressionStatement(Ast*);
+  Ast* OptimizeCompoundStatement(Ast*);
+  Ast* OptimizeAssignmentExpression(Ast*);
 
   //
   // High-level code generation
   //
   void GenerateCode(Ast*);
+  Quad GenerateFunction(Ast*);
   void GenerateFunctionCall(Ast*);
 
   //
@@ -66,7 +75,7 @@ private:
   void PushWord(Word);
   void PushQuad(Quad);
   void FillQuad(Quad offset, Quad data);
-  
+
   //
   // Push reference to literal
   //
@@ -100,8 +109,7 @@ private:
   //
   typedef std::list<Quad> QuadList;
   typedef std::map<String, QuadList> CallList;
-  typedef std::pair<Ast*, Quad> Function;
-  typedef std::map<String, Function> Functions;
+  typedef std::map<String, Ast*> Functions;
   typedef std::pair<Variant, Quad> Literal;
   typedef std::list<Literal> Literals;
 

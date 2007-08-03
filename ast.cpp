@@ -14,7 +14,7 @@ AstGen::main(int argc, char** argv)
 
   // Generate code
   CodeGenerator cg;
-  cg.Generate(astGen.m_root);
+  cg.Generate(astGen.m_root, true);
   cg.Write();
   cg.Execute();
 
