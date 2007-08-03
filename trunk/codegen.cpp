@@ -71,19 +71,18 @@ CodeGenerator::PushQuad(Quad data)
   m_used += sizeof(Quad);
 }
 
+void 
+CodeGenerator::FillQuad(Quad offset, Quad data)
+{
+  *(Quad*)(m_code + offset) = data;
+}
+
 Quad 
 CodeGenerator::PushPatch()
 {
   Quad pos = m_used;
   PushQuad(0);
   return pos;
-}
-
-void 
-CodeGenerator::PushCall(String const& name)
-{
-  m_calls[name].push_back(m_used);
-  PushQuad(0);
 }
 
 void
@@ -100,8 +99,32 @@ CodeGenerator::PushLiteral(Variant const& value)
 }
 
 void 
+CodeGenerator::PushFrame()
+{
+}
+
+void 
+CodeGenerator::PopFrame()
+{
+}
+
+void 
+CodeGenerator::PushScope()
+{
+}
+
+void 
+CodeGenerator::PopScope()
+{
+
+}
+
+void 
 CodeGenerator::Generate(Ast* node)
 {
+  // Optimize the input tree
+  Optimize(node);
+
   // Generate top-level code
   GenerateCode(node);
 
@@ -114,22 +137,35 @@ CodeGenerator::Generate(Ast* node)
     // Store function offset with function
     it->second.second = m_used;
 
-    // TODO Generate parameter code
+    // Push stack grow instruction and reserve
+    // space to store the stack grow size
+    PushByte(op_stg);
+    Quad offset = m_used;
+    PushQuad(0);
 
-    // Push function stack frame
+    // Push a new stack frame for the function
     m_scope = m_scope->PushFrame();
+
+    // TODO Generate parameter code
 
     // Generate function content
     GenerateCode(it->second.first->m_a3);
+
+    // Update the stack size
+    FillQuad(offset, m_scope->GetVarCount());
+
+    // Write stack cleanup
+    PushByte(op_sts);
+    PushQuad(m_scope->GetVarCount());
+
+    // Pop the stack frame
+    m_scope = m_scope->PopFrame();
 
     // Generate return statement
     // TODO only required if not present
     PushByte(op_pushl);
     PushQuad(0);
     PushByte(op_ret);
-
-    // Pop the stack frame
-    m_scope = m_scope->PopFrame();
   }
 
   // Fix calls to functions
@@ -302,29 +338,9 @@ CodeGenerator::GenerateCode(Ast* node)
     FixPatch(offset1);
     break;
 
-  case integer:
+  case literal:
     PushByte(op_pushl);
-    PushLiteral(Variant(any_cast<String>(node->m_a1), Variant::stInt));
-    break;
-
-  case real:
-    PushByte(op_pushl);
-    PushLiteral(Variant(any_cast<String>(node->m_a1), Variant::stReal));
-    break;
-
-  case string:
-    PushByte(op_pushl);
-    PushLiteral(Variant(any_cast<String>(node->m_a1), Variant::stString));
-    break;
-
-  case boolean:
-    PushByte(op_pushl);
-    PushLiteral(Variant(any_cast<String>(node->m_a1), Variant::stBool));
-    break;
-
-  case null:
-    PushByte(op_pushl);
-    PushLiteral(Variant());
+    PushLiteral(node->m_a1);
     break;
 
   case list_literal:
@@ -352,7 +368,8 @@ CodeGenerator::GenerateCode(Ast* node)
   case function_call:
     GenerateCode(node->m_a2);
     PushByte(op_call);
-    PushCall(node->m_a1);
+    m_calls[node->m_a1].push_back(m_used);
+    PushQuad(0);
     break;
 
   case argument_list:
@@ -415,6 +432,9 @@ CodeGenerator::GenerateCode(Ast* node)
 
   case parameter:
     GenerateCode(node->m_a1);
+    break;
+
+  case empty_statement:
     break;
 
   default:
@@ -532,7 +552,7 @@ begin:
 
   case op_call:
     code = base + ipq;
-    rstack.push(code - base);
+    rstack.push((Quad)(code - base));
     break;
 
   case op_ret:

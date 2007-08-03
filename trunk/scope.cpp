@@ -14,7 +14,7 @@ m_parent  (parent)
 Quad 
 Scope::GetVarCount() const
 {
-  return m_vars.size();
+  return (Quad)m_vars.size();
 }
 
 Quad 

@@ -50,6 +50,13 @@ public:
   };
 
   //
+  // Constants
+  //
+  static const Variant Null;
+  static const Variant True;
+  static const Variant False;
+
+  //
   // Map from variant to variant ref
   //
   typedef std::map<Variant, VariantRef> AssocMap;
