@@ -1,3 +1,10 @@
+if(true)
+{
+  1;
+  2 == 2;
+  "true";
+}
+
 include "test.csi";
 
 function foo()
@@ -26,7 +33,6 @@ print("\n");
 
 // Precedence
 print((1 == 0 ? "Not true" : 0 == 1 ? "Not true" : "True") + "\n");
-
 
 var piet = "Hallo wereld" + "!!!";
 var c, d;

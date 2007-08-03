@@ -48,6 +48,9 @@ private:
   Ast* ReduceForStatement(Ast*);
   Ast* ReduceBinaryExpression(Ast*);
   Ast* ReduceTernaryExpression(Ast*);
+  Ast* ReduceStatementSequence(Ast*);
+  Ast* ReduceExpressionStatement(Ast*);
+  Ast* ReduceCompoundStatement(Ast*);
 
   //
   // High-level code generation
