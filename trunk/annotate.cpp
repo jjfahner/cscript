@@ -114,8 +114,8 @@ CodeGenerator::Annotate(Ast* node)
     break;
 
   case argument_list:
-    Annotate(node->m_a2);
     Annotate(node->m_a1);
+    Annotate(node->m_a2);
     node->m_argcount = 
       ArgCount(node->m_a1) +
       ArgCount(node->m_a2) ;
@@ -151,6 +151,9 @@ CodeGenerator::Annotate(Ast* node)
     break;
 
   case variable_declaration:
+    // Annotate init expresion *before* declaring the variable,
+    // to make sure that the init expresion uses the previously
+    // declared variable when initializing a shadowing variable.
     if(!node->m_a2.empty())
     {
       Annotate(node->m_a2);

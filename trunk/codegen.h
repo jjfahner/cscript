@@ -157,6 +157,7 @@ private:
   Functions m_funs;
   CallList  m_calls;
   Literals  m_literals;
+  QuadList  m_returns;
 
   //
   // Stack for scoping. Used during annotation phase.

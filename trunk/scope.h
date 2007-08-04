@@ -81,7 +81,10 @@ private:
   {
     if(m_node->m_type == function_declaration)
     {
-      return -int(++m_node->m_parcount);
+      // Return negative paramcount - 1 to accomodate
+      // the return value that is stored at [ST-1], so
+      // that argument n is found at [ST-1-n]
+      return -int(++m_node->m_parcount) - 1;
     }
     throw std::logic_error("Invalid node for parameter declaration");
   }
