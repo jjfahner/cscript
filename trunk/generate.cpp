@@ -69,14 +69,24 @@ CodeGenerator::Generate(Ast* node, bool release)
   le = m_literals.end();
   for(; li != le; ++li)
   {
-    // Patch source with current offset
-    *(Quad*)(m_code + li->second) = m_used;
-    
-    // Write literal at current offset
+    // Store current offset
+    Quad offset = m_used;
+
+    // Write literal
     size_t len = li->first.WriteLength();
     Reserve(m_used + len);
     li->first.Write(m_code + m_used);
     m_used += (Quad)len;
+
+    // Patch with current offset
+    QuadList::iterator qi, qe;
+    qi = li->second.begin();
+    qe = li->second.end();
+    for(; qi != qe; ++qi)
+    {
+      *(Quad*)(m_code + *qi) = offset;
+    }
+    
   }
 
   // Decompile code
@@ -275,20 +285,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case function_call:
-    if(!node->m_a2.empty())
-    {
-      GenerateCode(node->m_a2);
-    }
-    PushByte(op_pushl);
-    PushLiteral(Variant::Null);
-    PushByte(op_call);
-    m_calls[node->m_a1].push_back(m_used);
-    PushQuad(0);
-    if(node->m_argcount)
-    {
-      PushByte(op_stackt);
-      PushQuad(node->m_argcount);
-    }
+    GenerateFunctionCall(node);
     break;
 
   case argument_list:
@@ -351,5 +348,34 @@ CodeGenerator::GenerateCode(Ast* node)
   default:
     std::cout << " " << node->m_type << " ";
     throw std::runtime_error("Unknown node type");
+  }
+}
+
+void 
+CodeGenerator::GenerateFunctionCall(Ast* node)
+{
+  // Generate argument list
+  if(!node->m_a2.empty())
+  {
+    GenerateCode(node->m_a2);
+  }
+
+  // Push space for return value
+  PushByte(op_pushl);
+  PushLiteral(Variant::Null);
+
+  // Determine call type
+
+
+  // Push call to function
+  PushByte(op_call);
+  m_calls[node->m_a1].push_back(m_used);
+  PushQuad(0);
+
+  // Write cleanup code for argument list
+  if(node->m_argcount)
+  {
+    PushByte(op_stackt);
+    PushQuad(node->m_argcount);
   }
 }

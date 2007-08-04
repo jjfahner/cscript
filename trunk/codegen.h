@@ -117,18 +117,6 @@ private:
   void PushLiteral(Variant const&);
 
   //
-  // Stack frames
-  //
-  void PushFrame();
-  void PopFrame();
-
-  //
-  // Scopes
-  //
-  void PushScope();
-  void PopScope();
-
-  //
   // Push empty quad, return offset
   //
   Quad PushPatch();
@@ -145,8 +133,7 @@ private:
   typedef std::list<Quad> QuadList;
   typedef std::map<String, QuadList> CallList;
   typedef std::map<String, Ast*> Functions;
-  typedef std::pair<Variant, Quad> Literal;
-  typedef std::list<Literal> Literals;
+  typedef std::map<Variant, QuadList, Variant::LessExact> Literals;
 
   //
   // Member data

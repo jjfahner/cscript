@@ -77,10 +77,10 @@ a[0][1] = 0;
 while(a[0][1] < 10)
 {
   doPrint(".");
-  ++a[0][1];
+  a[0][1] = a[0][1] + 1;
 }
 print("\n");
 
 // List notation
-var arr = [1, 2, 3, ["true", "false"], [[1], true, false]];
-print(arr); print("\n");
+//var arr = [1, 2, 3, ["true", "false"], [[1], true, false]];
+//print(arr); print("\n");

@@ -109,29 +109,8 @@ CodeGenerator::FixPatch(Quad pos)
 void 
 CodeGenerator::PushLiteral(Variant const& value)
 {
-  m_literals.push_back(Literal(value, m_used));
+  m_literals[value].push_back(m_used);
   PushQuad(0);
-}
-
-void 
-CodeGenerator::PushFrame()
-{
-}
-
-void 
-CodeGenerator::PopFrame()
-{
-}
-
-void 
-CodeGenerator::PushScope()
-{
-}
-
-void 
-CodeGenerator::PopScope()
-{
-
 }
 
 inline Byte NextByte(Byte*& code)
@@ -188,7 +167,7 @@ CodeGenerator::Execute()
 
   // Stack manipulation
   #define PUSH(arg) stack[SP++] = arg
-  #define POP(arg)  arg = stack[--SP]
+  #define POP(arg)  { arg = stack[--SP]; stack[SP].Clear(); }
 
   // Temporaries
   VariantRef P0, P1;
@@ -219,7 +198,7 @@ begin:
 
   case op_stackt:
     Q0 = ipq;
-    *stack[SP - Q0 - 1] = *stack[SP - 1];
+    stack[SP - Q0 - 1] = stack[SP - 1];
     SP -= Q0;
     break;
 
