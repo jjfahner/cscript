@@ -125,6 +125,9 @@ CodeGenerator::Generate(Ast* node, bool release)
   // Validate tree
   Validate(node);
 
+  // Print tree
+  Print("cscript-debug-tree.txt", node);
+
   // Release optimizations
   if(release)
   {
@@ -133,6 +136,9 @@ CodeGenerator::Generate(Ast* node, bool release)
 
     // Re-validate optimized tree
     Validate(node);
+
+    // Print tree
+    Print("cscript-release-tree.txt", node);
   }
 
   // Gather information
@@ -718,3 +724,189 @@ invalid:
   std::cout << "Invalid instruction\n";
 }
 
+void
+CodeGenerator::Print(String filename, Ast* node)
+{
+  std::ofstream s(filename.c_str());
+  PrintImpl(node, 0, s);
+}
+
+void 
+CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
+{
+  String indent;
+  for(int i = 0; i < level; ++i)
+  {
+    indent += " ";
+  }
+
+  AstList::iterator si, se;
+  switch(node->m_type)
+  {
+  case statement_sequence:
+    si = any_cast<AstList*>(node->m_a1)->begin();
+    se = any_cast<AstList*>(node->m_a1)->end();
+    for(; si != se; ++si)
+    {
+      PrintImpl(*si, level, s);
+    }
+    break;
+
+  case expression_statement:
+    s << indent;
+    PrintImpl(node->m_a1, level, s);
+    s << ";\n";
+    break;
+
+  case assignment_expression:
+    PrintImpl(node->m_a2, level, s);
+    s << " assop ";
+    PrintImpl(node->m_a3, level, s);
+    break;
+
+  case binary_expression:
+    s << "(";
+    PrintImpl(node->m_a2, level, s);
+    s << " binop ";
+    PrintImpl(node->m_a3, level, s);
+    s << ")";
+    break;
+
+  case ternary_expression:
+    PrintImpl(node->m_a1, level, s);
+    s << " ? ";
+    PrintImpl(node->m_a2, level, s);
+    s << " : ";
+    PrintImpl(node->m_a3, level, s);
+    break;
+
+  case prefix_expression:
+    s << "++";
+    PrintImpl(node->m_a2, level, s);
+    break;
+
+  case postfix_expression:
+    PrintImpl(node->m_a2, level, s);
+    s << "++";
+    break;
+
+  case member_expression:
+    break;
+
+  case index_expression:
+    PrintImpl(node->m_a1, level, s);
+    s << "[";
+    PrintImpl(node->m_a2, level, s);
+    s << "]";
+    break;
+
+  case function_call:
+    s << any_cast<String>(node->m_a1);
+    s << "(";
+    PrintImpl(node->m_a2, level, s);
+    s << ")";
+    break;
+
+  case literal:
+    s << any_cast<Variant>(node->m_a1).AsString();
+    break;
+
+  case lvalue:
+    s << any_cast<String>(node->m_a1);
+    break;
+
+  case list_literal:
+    // TODO
+    return;
+
+  case argument_list:
+    PrintImpl(node->m_a1, level, s);
+    s << ", ";
+    PrintImpl(node->m_a2, level, s);
+    break;
+
+  case function_declaration:
+    s << "function ";
+    s << any_cast<String>(node->m_a1);
+    s << "(";
+//     if(!node->m_a2.empty())
+//     {
+//       PrintImpl(node->m_a2, level, s);
+//     }
+    s << ")\n{\n";
+    PrintImpl(node->m_a3, level + 2, s);
+    s << "}\n\n";
+    break;
+
+  case parameter:
+    s << any_cast<String>(node->m_a1);
+    break;
+
+  case parameter_list:
+    PrintImpl(node->m_a1, level, s);
+    s << ", ";
+    PrintImpl(node->m_a2, level, s);
+    break;
+
+  case variable_declaration:
+    s << "var ";
+    s << any_cast<String>(node->m_a1);
+    if(!node->m_a2.empty())
+    {
+      s << " = ";
+      PrintImpl(node->m_a2, level, s);
+    }
+    s << ";\n";
+    break;
+
+  case declaration_sequence:
+    // TODO
+    return;
+
+  case empty_statement:
+    s << indent << ";\n";
+    break;
+
+  case include_statement:
+    s << indent << "include \"" << any_cast<String>(node->m_a1) << "\";\n";
+    break;
+
+  case for_statement:
+    s << indent << "for(";
+    PrintImpl(node->m_a1, level, s);
+    s << ";";
+    PrintImpl(node->m_a2, level, s);
+    s << ";";
+    PrintImpl(node->m_a3, level, s);
+    s << ")\n";
+    PrintImpl(node->m_a4, level, s);
+    break;
+
+  case foreach_statement:
+    break;
+
+  case if_statement:
+    s << indent << "if(";
+    PrintImpl(node->m_a1, level, s);
+    s << ")\n";
+    PrintImpl(node->m_a2, level, s);
+    break;
+
+  case while_statement:
+    s << "while(";
+    PrintImpl(node->m_a1, level, s);
+    s << ")\n";
+    PrintImpl(node->m_a2, level, s);
+    break;
+
+  case return_statement:
+    break;
+
+  case compound_statement:
+    s << "{\n";
+    PrintImpl(node->m_a1, level + 2, s);
+    s << "}\n";
+    break;
+
+  }
+}
