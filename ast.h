@@ -45,7 +45,7 @@ enum AstTypes
   if_statement,
   while_statement,
   return_statement,
-  compound_statement,
+  compound_statement
 };
 
 //////////////////////////////////////////////////////////////////////////

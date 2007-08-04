@@ -34,6 +34,11 @@ public:
   //
   void Execute();
 
+  //
+  // Print code
+  //
+  void Print(String filename, Ast* node);
+  
 private:
 
   //
@@ -59,6 +64,11 @@ private:
   Ast* OptimizeExpressionStatement(Ast*);
   Ast* OptimizeCompoundStatement(Ast*);
   Ast* OptimizeAssignmentExpression(Ast*);
+
+  //
+  // Printing
+  //
+  void PrintImpl(Ast* node, int level, std::ostream& s);
 
   //
   // High-level code generation
