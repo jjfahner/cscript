@@ -4,12 +4,8 @@
 CodeGenerator::CodeGenerator() :
 m_code    (0),
 m_size    (0),
-m_used    (0),
-m_globals (0),
-m_scope   (0)
+m_used    (0)
 {
-  m_globals = new Frame();
-  m_scope = m_globals;
 }
 
 CodeGenerator::~CodeGenerator()
@@ -18,7 +14,6 @@ CodeGenerator::~CodeGenerator()
   {
     free(m_code);
   }
-  delete m_globals;
 }
 
 void 
@@ -125,9 +120,6 @@ CodeGenerator::Generate(Ast* node, bool release)
   // Validate tree
   Validate(node);
 
-  // Print tree
-  Print("cscript-debug-tree.txt", node);
-
   // Release optimizations
   if(release)
   {
@@ -136,13 +128,14 @@ CodeGenerator::Generate(Ast* node, bool release)
 
     // Re-validate optimized tree
     Validate(node);
-
-    // Print tree
-    Print("cscript-release-tree.txt", node);
   }
 
   // Gather information
+  m_scopeStack.push(Scope(node, 0));
   Annotate(node);
+
+  // Print tree
+  Print("cscript-tree.txt", node);
 
   // Generate top-level code
   GenerateCode(node);
@@ -197,32 +190,18 @@ CodeGenerator::GenerateFunction(Ast* node)
   // Store function offset
   Quad fnOffset = m_used;
 
-  // Push stack grow instruction and reserve
-  // space to store the stack grow size
-  PushByte(op_stg);
-  Quad offset = m_used;
-  PushQuad(0);
-
-  // Push a new stack frame for the function
-  m_scope = m_scope->PushFrame();
-
-  // TODO Generate parameter code
+  // Push stack growth instruction
+  PushByte(op_stackg);
+  PushQuad(node->m_varcount);
 
   // Generate function content
   GenerateCode(node->m_a3);
 
-  // Update the stack size
-  FillQuad(offset, m_scope->GetVarCount());
-
   // Write stack cleanup
-  PushByte(op_sts);
-  PushQuad(m_scope->GetVarCount());
-
-  // Pop the stack frame
-  m_scope = m_scope->PopFrame();
+  PushByte(op_stacks);
+  PushQuad(node->m_varcount);
 
   // Generate return statement
-  // TODO only required if not present
   PushByte(op_pushl);
   PushQuad(0);
   PushByte(op_ret);
@@ -280,14 +259,11 @@ CodeGenerator::GenerateCode(Ast* node)
   case compound_statement:
     if(any_cast<Ast*>(node->m_a1) != 0)
     {
-      m_scope = m_scope->PushScope();
       GenerateCode(node->m_a1);
-      m_scope = m_scope->PopScope();
     }
     break;
 
   case for_statement:
-    m_scope = m_scope->PushScope();
     GenerateCode(node->m_a1);
     offset0 = m_used;
     GenerateCode(node->m_a2);
@@ -298,7 +274,6 @@ CodeGenerator::GenerateCode(Ast* node)
     PushByte(op_jmp);
     PushQuad(offset0);
     FixPatch(offset1);
-    m_scope = m_scope->PopScope();
     break;
 
   case if_statement:
@@ -388,7 +363,10 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case function_call:
-    GenerateCode(node->m_a2);
+    if(!node->m_a2.empty())
+    {
+      GenerateCode(node->m_a2);
+    }
     PushByte(op_call);
     m_calls[node->m_a1].push_back(m_used);
     PushQuad(0);
@@ -400,39 +378,28 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case lvalue:
-    {
-      VarInfo var = m_scope->FindVar(node->m_a1);
-      if(var.m_scope == m_globals)
-      {
-        PushByte(op_pushg);
-        PushQuad(var.m_offset);
-      }
-      else
-      {
-        PushByte(op_pushv);
-        PushQuad(var.m_offset);
-      }
-    }
+    PushByte(op_pushv);
+    PushQuad(node->m_stackpos);
     break;
 
   case variable_declaration:
-    m_scope->AddVar(node->m_a1);
-    if(!node->m_a2.empty())
-    {
-      VarInfo var = m_scope->FindVar(node->m_a1);
-      if(var.m_scope == m_globals)
-      {
-        PushByte(op_pushg);
-        PushQuad(var.m_offset);
-      }
-      else
-      {
-        PushByte(op_pushl);
-        PushQuad(var.m_offset);
-      }
-      GenerateCode(node->m_a2);
-      PushByte(op_assign);
-    }
+//     m_scope->AddVar(node->m_a1);
+//     if(!node->m_a2.empty())
+//     {
+//       VarInfo var = m_scope->FindVar(node->m_a1);
+//       if(var.m_scope == m_globals)
+//       {
+//         PushByte(op_pushg);
+//         PushQuad(var.m_offset);
+//       }
+//       else
+//       {
+//         PushByte(op_pushl);
+//         PushQuad(var.m_offset);
+//       }
+//       GenerateCode(node->m_a2);
+//       PushByte(op_assign);
+//     }
     break;
 
   case declaration_sequence:

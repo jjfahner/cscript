@@ -132,8 +132,12 @@ private:
   Functions m_funs;
   CallList  m_calls;
   Literals  m_literals;
-  Frame*    m_globals;
-  Scope*    m_scope;
+
+  //
+  // Stack for scoping. Used during annotation phase.
+  //
+  typedef std::stack<Scope> VarIdStack;
+  VarIdStack m_scopeStack;
 
 };
 

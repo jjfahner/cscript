@@ -2,137 +2,93 @@
 #define CSCRIPT_SCOPE_H
 
 #include "types.h"
+#include "ast.h"
 
-class Frame;
-class Scope;
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Naming scope
-//
-
-struct VarInfo 
+class Scope 
 {
-  VarInfo(Scope* scope = 0, Quad offset = 0) :
-  m_scope  (scope),
-  m_offset (offset)
+public:
+
+  //
+  // Construction
+  //
+  Scope(Ast* node, Scope* parent) :
+  m_node    (node),
+  m_parent  (parent)
   {
   }
 
-  Scope* m_scope;
-  Quad  m_offset;
-};
-
-class Scope
-{
-public:
-
   //
-  // Construction
+  // Register a name
   //
-  Scope(Frame* frame, Scope* parent);
+  int DeclareParameter(String const& name)
+  {
+    int id = MakeParameterId();
+    m_names[name] = id;
+    return id;
+  }
 
   //
-  // Number of variables in scope
+  // Declare a name
   //
-  Quad GetVarCount() const;
+  int DeclareVariable(String const& name)
+  {
+    int id = MakeVariableId();
+    m_names[name] = id;
+    return id;
+  }
 
   //
-  // Add a variable to this scope
+  // Find a name
   //
-  Quad AddVar(String const& name);
+  int Lookup(String const& name) const
+  {
+    Names::const_iterator it;
+    if((it = m_names.find(name)) != m_names.end())
+    {
+      return it->second;
+    }
+    if(m_node->m_type != function_declaration && m_parent)
+    {
+      return m_parent->Lookup(name);
+    }
+    std::cout << "Error: variable or parameter '" << name << "' not found\n";
+    return 0x7F000000; // TODO
+  }
 
-  //
-  // Find a previously declared variable
-  //
-  VarInfo FindVar(String const& name);
+private:
 
-  //
-  // Push a deeper scope
-  //
-  Scope* PushScope();
+  int MakeParameterId()
+  {
+    if(m_node->m_type == function_declaration)
+    {
+      return -int(++m_node->m_parcount);
+    }
+    throw std::logic_error("Invalid node for parameter declaration");
+  }
 
-  //
-  // Pop this scope
-  //
-  Scope* PopScope();
+  int MakeVariableId()
+  {
+    if(m_node->m_type == function_declaration)
+    {
+      return m_node->m_varcount++;
+    }
+    if(m_parent == 0)
+    {
+      return m_node->m_varcount++;
+    }
+    return m_parent->MakeVariableId();
+  }
 
-  //
-  // Push a stack frame
-  //
-  Scope* PushFrame();
 
-  //
-  // Pop a stack frame
-  //
-  Scope* PopFrame();
-
-protected:
-
-  //
-  // Find the offset of a variable.
-  //
-  virtual VarInfo FindVarImpl(String const& name);
-
-  //
-  // Types
-  //
-  typedef std::map<String, Quad> Variables;
-
-  //
-  // Member data
-  //
-
-  Frame*    m_frame;
-  Scope*    m_parent;
-  Variables m_vars;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Stack frame
-//
-
-class Frame : public Scope
-{
-public:
-
-  //
-  // Construction
-  //
-  Frame(Frame* globals = 0);
-
-  //
-  // Return new id
-  //
-  Quad MakeVarId();
-
-  //
-  // Push a stack frame
-  //
-  Scope* PushFrame();
-
-  //
-  // Pop a stack frame
-  //
-  Scope* PopFrame();
-
-protected:
-
-  //
-  // Find the offset of a variable.
-  //
-  virtual VarInfo FindVarImpl(String const& name);
+  typedef std::map<String, int> Names;
 
   //
   // Members
   //
-  Frame*  m_globals;
-  Quad    m_varIds;
+  Scope*  m_parent;
+  Ast*    m_node;
+  Names   m_names;
 
 };
-
-
 
 #endif // CSCRIPT_SCOPE_H

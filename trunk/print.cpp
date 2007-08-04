@@ -119,7 +119,10 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
   case function_call:
     s << any_cast<String>(node->m_a1);
     s << "(";
-    PrintImpl(node->m_a2, level, s);
+    if(!node->m_a2.empty())
+    {
+      PrintImpl(node->m_a2, level, s);
+    }
     s << ")";
     break;
 
@@ -141,7 +144,8 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     break;
 
   case lvalue:
-    s << any_cast<String>(node->m_a1);
+    //s << any_cast<String>(node->m_a1) << "<" << node->m_stackpos << ">";
+    s << "@" << node->m_stackpos;
     break;
 
   case list_literal:
@@ -177,12 +181,13 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     {
       PrintImpl(node->m_a2, level, s);
     }
-    s << ")\n";
+    s << ") [" << node->m_varcount << "]\n";
     PrintImpl(node->m_a3, level, s);
     break;
 
   case parameter:
-    s << any_cast<String>(node->m_a1);
+    //s << any_cast<String>(node->m_a1);
+    s << "@" << node->m_stackpos;
     break;
 
   case parameter_list:
@@ -193,7 +198,8 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
 
   case variable_declaration:
     s << indent << "var ";
-    s << any_cast<String>(node->m_a1);
+    s << "@" << node->m_stackpos;
+    //s << any_cast<String>(node->m_a1);
     if(!node->m_a2.empty())
     {
       s << " = ";
@@ -244,6 +250,12 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     break;
 
   case return_statement:
+    s << indent << "return ";
+    if(!node->m_a1.empty())
+    {
+      PrintImpl(node->m_a1, level, s);
+    }
+    s << ";\n";
     break;
 
   case compound_statement:

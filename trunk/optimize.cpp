@@ -72,7 +72,10 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case function_call:
-    node->m_a2 = Optimize(node->m_a2);
+    if(!node->m_a2.empty())
+    {
+      node->m_a2 = Optimize(node->m_a2);
+    }
     break;
 
   case argument_list:
@@ -503,7 +506,10 @@ CodeGenerator::OptimizeCompoundStatement(Ast* node)
   }
 
   // Optimize content
-  node->m_a1 = Optimize(node->m_a1);
+  if(!node->m_a1.empty())
+  {
+    node->m_a1 = Optimize(node->m_a1);
+  }
 
   // If empty, Optimize further
   if(IsType(node->m_a1, empty_statement))

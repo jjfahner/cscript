@@ -14,3 +14,18 @@ function div(a, b)
 {
   return a/b;
 }
+
+function vartest(a, b, c)
+{
+  var d, e;
+  if(a == b)
+  {
+    var f;
+    for(var g = 0; g < 10; ++g)
+    {
+      var h, i;
+    }
+  }
+}
+
+vartest(1, 2, 3);
