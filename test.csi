@@ -21,7 +21,7 @@ function vartest(a, b, c)
   if(a == b)
   {
     var f;
-    for(var g = 0; g < 10; ++g)
+    for(var g = 0; g < 10; g = g + 1)
     {
       var h, i;
     }

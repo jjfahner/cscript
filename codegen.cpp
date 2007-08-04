@@ -1,3 +1,23 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2007 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
 #include "codegen.h"
 #include "opcodes.h"
 
@@ -114,324 +134,6 @@ CodeGenerator::PopScope()
 
 }
 
-void 
-CodeGenerator::Generate(Ast* node, bool release)
-{
-  // Validate tree
-  Validate(node);
-
-  // Release optimizations
-  if(release)
-  {
-    // Optimize tree
-    Optimize(node);
-
-    // Re-validate optimized tree
-    Validate(node);
-  }
-
-  // Gather information
-  m_scopeStack.push(Scope(node, 0));
-  Annotate(node);
-
-  // Print tree
-  Print("cscript-tree.txt", node);
-
-  // Generate top-level code
-  GenerateCode(node);
-
-  // Resolve calls to functions
-  CallList::iterator ci, ce;
-  ci = m_calls.begin();
-  ce = m_calls.end();
-  for(; ci != ce; ++ci)
-  {
-    // Find ast node for function
-    Functions::iterator fi = m_funs.find(ci->first);
-    if(fi == m_funs.end())
-    {
-      std::cout << "Error: function " << ci->first << " doesn't exist\n";
-      continue;
-    }
-
-    // Generate function
-    Quad offset = GenerateFunction(fi->second);
-
-    // Fix offsets
-    QuadList::iterator oi, oe;
-    oi = ci->second.begin();
-    oe = ci->second.end();
-    for(; oi != oe; ++oi)
-    {
-      *(Quad*)(m_code + *oi) = offset;
-    }
-  }
-
-  // Generate literals
-  Literals::iterator li, le;
-  li = m_literals.begin();
-  le = m_literals.end();
-  for(; li != le; ++li)
-  {
-    // Patch source with current offset
-    *(Quad*)(m_code + li->second) = m_used;
-    
-    // Write literal at current offset
-    size_t len = li->first.WriteLength();
-    Reserve(m_used + len);
-    li->first.Write(m_code + m_used);
-    m_used += (Quad)len;
-  }
-}
-
-Quad 
-CodeGenerator::GenerateFunction(Ast* node)
-{
-  // Store function offset
-  Quad fnOffset = m_used;
-
-  // Push stack growth instruction
-  PushByte(op_stackg);
-  PushQuad(node->m_varcount);
-
-  // Generate function content
-  GenerateCode(node->m_a3);
-
-  // Write stack cleanup
-  PushByte(op_stacks);
-  PushQuad(node->m_varcount);
-
-  // Generate return statement
-  PushByte(op_pushl);
-  PushQuad(0);
-  PushByte(op_ret);
-
-  // Done
-  return fnOffset;
-}
-
-void 
-CodeGenerator::GenerateCode(Ast* node)
-{
-  // Offset storage
-  Quad offset0;
-  Quad offset1;
-
-  // Generate type-specific code
-  switch(node->m_type)
-  {
-
-    // TODO
-  case foreach_statement:
-    break;
-
-  case include_statement:
-    // Already handled by parser
-    break;
-
-  case statement_sequence:
-  case parameter_list:
-    {
-      AstList* list = any_cast<AstList*>(node->m_a1);
-      AstList::iterator si, se;
-      si = list->begin();
-      se = list->end();
-      for(; si != se; ++si)
-      {
-        GenerateCode(*si);
-      }
-    }
-    break;
-
-  case return_statement:
-    if(node->m_a1.empty())
-    {
-      GenerateCode(node->m_a1);
-    }
-    else
-    {
-      PushByte(op_pushl);
-      PushQuad(0);
-    }
-    PushByte(op_ret);
-    break;
-
-  case compound_statement:
-    if(any_cast<Ast*>(node->m_a1) != 0)
-    {
-      GenerateCode(node->m_a1);
-    }
-    break;
-
-  case for_statement:
-    GenerateCode(node->m_a1);
-    offset0 = m_used;
-    GenerateCode(node->m_a2);
-    PushByte(op_jz);
-    offset1 = PushPatch();
-    GenerateCode(node->m_a4);
-    GenerateCode(node->m_a3);
-    PushByte(op_jmp);
-    PushQuad(offset0);
-    FixPatch(offset1);
-    break;
-
-  case if_statement:
-    GenerateCode(node->m_a1);
-    PushByte(op_jz);
-    offset0 = PushPatch();
-    GenerateCode(node->m_a2);
-    if(node->m_a3.empty())
-    {
-      FixPatch(offset0);
-    }
-    else
-    {
-      PushByte(op_jmp);
-      offset1 = PushPatch();
-      FixPatch(offset0);
-      GenerateCode(node->m_a3);
-      FixPatch(offset1);
-    }
-    break;
-
-  case while_statement:
-    offset0 = m_used;
-    GenerateCode(node->m_a1);
-    PushByte(op_jz);
-    offset1 = PushPatch();
-    GenerateCode(node->m_a2);
-    PushByte(op_jmp);
-    PushQuad(offset0);
-    FixPatch(offset1);
-    break;
-
-  case expression_statement:
-    GenerateCode(node->m_a1);
-    PushByte(op_pop);
-    break;
-
-  case assignment_expression:
-    GenerateCode(node->m_a2);
-    GenerateCode(node->m_a3);
-    PushByte((opcodes)node->m_a1);
-    break;
-
-  case binary_expression:
-    GenerateCode(node->m_a2);
-    GenerateCode(node->m_a3);
-    PushByte((opcodes)node->m_a1);
-    break;
-
-  case ternary_expression:
-    GenerateCode(node->m_a1);
-    PushByte(op_jz);
-    offset0 = PushPatch();
-    GenerateCode(node->m_a2);
-    PushByte(op_jmp);
-    offset1 = PushPatch();
-    FixPatch(offset0);
-    GenerateCode(node->m_a3);
-    FixPatch(offset1);
-    break;
-
-  case literal:
-    PushByte(op_pushl);
-    PushLiteral(node->m_a1);
-    break;
-
-  case list_literal:
-    break;
-
-  case prefix_expression:
-    GenerateCode(node->m_a2);
-    PushByte((opcodes)node->m_a1);
-    break;
-
-  case postfix_expression:
-    GenerateCode(node->m_a2);
-    PushByte((opcodes)node->m_a1);
-    break;
-
-  case member_expression:
-    break;
-
-  case index_expression:
-    GenerateCode(node->m_a1);
-    GenerateCode(node->m_a2);
-    PushByte(op_pushi);
-    break;
-
-  case function_call:
-    if(!node->m_a2.empty())
-    {
-      GenerateCode(node->m_a2);
-    }
-    PushByte(op_call);
-    m_calls[node->m_a1].push_back(m_used);
-    PushQuad(0);
-    break;
-
-  case argument_list:
-    GenerateCode(node->m_a2);
-    GenerateCode(node->m_a1);
-    break;
-
-  case lvalue:
-    PushByte(op_pushv);
-    PushQuad(node->m_stackpos);
-    break;
-
-  case variable_declaration:
-//     m_scope->AddVar(node->m_a1);
-//     if(!node->m_a2.empty())
-//     {
-//       VarInfo var = m_scope->FindVar(node->m_a1);
-//       if(var.m_scope == m_globals)
-//       {
-//         PushByte(op_pushg);
-//         PushQuad(var.m_offset);
-//       }
-//       else
-//       {
-//         PushByte(op_pushl);
-//         PushQuad(var.m_offset);
-//       }
-//       GenerateCode(node->m_a2);
-//       PushByte(op_assign);
-//     }
-    break;
-
-  case declaration_sequence:
-    GenerateCode(node->m_a1);
-    GenerateCode(node->m_a2);
-    break;
-
-  case function_declaration:
-    if(m_funs.count(node->m_a1))
-    {
-      std::cout << "Error: redeclaration of function " 
-                << any_cast<String>(node->m_a1) << "\n";
-    }
-    else
-    {
-      m_funs[node->m_a1] = node;
-    }
-    break;
-
-  case parameter:
-    GenerateCode(node->m_a1);
-    break;
-
-  case empty_statement:
-    break;
-
-  default:
-    std::cout << " " << node->m_type << " ";
-    throw std::runtime_error("Unknown node type");
-  }
-}
-
 inline Byte NextByte(Byte*& code)
 {
   Byte b = *code;
@@ -473,18 +175,20 @@ CodeGenerator::Execute()
   Byte* code = m_code;
 
   // Create stacks
-  std::stack<VariantRef>  tstack; // Temporaries
-  std::stack<Quad>        rstack; // Return stack
-  std::vector<VariantRef> vstack; // Variable stack
-  std::vector<VariantRef> gstack; // Global stack
+  std::vector<VariantRef> stack;    // Temporaries
+  std::stack<Quad>        tstack;   // Stack top
+  std::stack<Quad>        rstack;   // Return stack
 
-  // Resize stacks
-  vstack.resize(10000);
-  gstack.resize(10000);
+  // Resize stack
+  stack.resize(10000);
+
+  // Stack info
+  Quad st = 0;
+  Quad sp = 0;
 
   // Stack manipulation
-  #define PUSH(arg) tstack.push(arg)
-  #define POP(arg)  arg = tstack.top(); tstack.pop();
+  #define PUSH(arg) stack[sp++] = arg
+  #define POP(arg)  arg = stack[--sp]
 
   // Temporaries
   VariantRef P0, P1;
@@ -501,8 +205,20 @@ begin:
   case op_halt:
     return;
 
-  case op_pushg:
-    PUSH(gstack[ipq]);
+  case op_stackg:
+    tstack.push(st);
+    st = sp;
+    sp = sp + ipq;
+    break;
+
+  case op_stacks:
+    st = tstack.top();
+    sp = sp - ipq;
+    tstack.pop();
+    break;
+
+  case op_stackt:
+    sp += (int)ipq;
     break;
 
   case op_pushl:
@@ -510,7 +226,12 @@ begin:
     break;
 
   case op_pushv:
-    PUSH(vstack[ipq]);
+    PUSH(stack[st + (int)ipq]);
+    break;
+
+  case op_store:
+    POP(P0);
+    stack[st + (int)ipq] = R0;
     break;
 
   case op_pushi:
@@ -540,8 +261,12 @@ begin:
     break;
 
   case op_call:
-    code = base + ipq;
-    rstack.push((Quad)(code - base));
+    q0 = ipq;
+    if(q0 != 0)
+    {
+      rstack.push((Quad)(code - base));
+      code = base + q0;
+    }
     break;
 
   case op_ret:
