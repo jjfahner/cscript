@@ -120,6 +120,7 @@ Variant::MakeString()
   Char buf[50];
   switch(m_type)
   {
+  case stNull:  buf[0] = 0;
   case stBool:  strcpy(buf, m_bln ? "true" : "false"); break;
   case stInt:   sprintf(buf, "%d", (int)m_int); break;
   default:      throw std::runtime_error("Invalid conversion");

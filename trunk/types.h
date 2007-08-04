@@ -63,7 +63,7 @@ typedef int64_t           int64;
 //
 // Switch between current and new implementation
 //
-//#define AST_IMPL
+#define AST_IMPL
 
 //
 // Char type

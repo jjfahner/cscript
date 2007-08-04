@@ -199,7 +199,7 @@ list_content(R) ::= list_content(A) COMMA expression(B) . {
 
 // An argument is any expression. If expression lists become part
 // of the language, this will have to be changed to something else.
-argument(R) ::= expression(A) . { R = A; }
+argument(R) ::= expression(A) . { R = new Ast(argument, A); }
 
 // Argument list containing 1 or more arguments
 argument_list(R) ::= argument(A) . { R = A; }

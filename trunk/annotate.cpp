@@ -1,3 +1,23 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2007 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
 #include "codegen.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -8,6 +28,16 @@
 inline Quad VarCount(Ast* ast)
 {
   return ast->m_varcount;
+}
+
+inline Quad ParCount(Ast* ast)
+{
+  return ast->m_parcount;
+}
+
+inline Quad ArgCount(Ast* ast)
+{
+  return ast->m_argcount;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,7 +61,6 @@ CodeGenerator::Annotate(Ast* node)
 
   case expression_statement:
     Annotate(node->m_a1);
-    node->m_varcount = VarCount(node->m_a1);
     break;
 
   case assignment_expression:
@@ -66,13 +95,6 @@ CodeGenerator::Annotate(Ast* node)
     Annotate(node->m_a2);
     break;
 
-  case function_call:
-    if(!node->m_a2.empty())
-    {
-      Annotate(node->m_a2);
-    }
-    break;
-
   case literal:
     break;
 
@@ -83,9 +105,25 @@ CodeGenerator::Annotate(Ast* node)
   case list_literal:
     break;
 
+  case function_call:
+    if(!node->m_a2.empty())
+    {
+      Annotate(node->m_a2);
+      node->m_argcount = ArgCount(node->m_a2);
+    }
+    break;
+
   case argument_list:
     Annotate(node->m_a2);
     Annotate(node->m_a1);
+    node->m_argcount = 
+      ArgCount(node->m_a1) +
+      ArgCount(node->m_a2) ;
+    break;
+
+  case argument:
+    Annotate(node->m_a1);
+    node->m_argcount = 1;
     break;
 
   case function_declaration:
@@ -97,6 +135,10 @@ CodeGenerator::Annotate(Ast* node)
     Annotate(node->m_a3);
     node->m_varcount = VarCount(node->m_a3);
     m_scopeStack.pop();
+    if(node->m_varcount != node->m_framesize)
+    {
+      throw std::logic_error("Invalid frame size");
+    }
     break;
 
   case parameter:
@@ -132,8 +174,14 @@ CodeGenerator::Annotate(Ast* node)
     break;
 
   case for_statement:
+    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
     Annotate(node->m_a1);
+    Annotate(node->m_a2);
+    Annotate(node->m_a3);
+    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
     Annotate(node->m_a4);
+    m_scopeStack.pop();
+    m_scopeStack.pop();
     node->m_varcount = 
       VarCount(node->m_a1) + 
       VarCount(node->m_a4);
@@ -144,12 +192,17 @@ CodeGenerator::Annotate(Ast* node)
 
   case if_statement:
     Annotate(node->m_a1);
+    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
     Annotate(node->m_a2);
+    m_scopeStack.pop();
     node->m_varcount = VarCount(node->m_a2);
     break;
 
   case while_statement:
+    Annotate(node->m_a1);
+    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
     Annotate(node->m_a2);
+    m_scopeStack.pop();
     node->m_varcount = VarCount(node->m_a2);
     break;
 
@@ -161,7 +214,9 @@ CodeGenerator::Annotate(Ast* node)
     break;
 
   case compound_statement:
+    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
     Annotate(node->m_a1);
+    m_scopeStack.pop();
     node->m_varcount = VarCount(node->m_a1);
     break;
   }

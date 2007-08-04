@@ -1,3 +1,23 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2007 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
 #ifndef CSCRIPT_OPCODES_H
 #define CSCRIPT_OPCODES_H
 
@@ -5,7 +25,6 @@ enum opcodes
 {
   op_halt,        // Halt execution
 
-  op_pushg,       // Push global on stack
   op_pushl,       // Push literal on stack
   op_pushv,       // Push variable on stack  
   op_pushi,       // Push stack0[stack1]
@@ -18,6 +37,9 @@ enum opcodes
   op_ret,         // Return from function
   op_stackg,      // Grow stack frame
   op_stacks,      // Shrink stack frame
+  op_stackt,      // Move stack top
+
+  op_store,       // Store top of stack in location
 
   op_inc,         // Add 1 to value on top of stack
   op_dec,         // Subtract 1 to value on top of stack
