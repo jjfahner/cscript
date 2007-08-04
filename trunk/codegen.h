@@ -132,7 +132,8 @@ private:
   //
   typedef std::list<Quad> QuadList;
   typedef std::map<String, QuadList> CallList;
-  typedef std::map<String, Ast*> Functions;
+  typedef std::pair<Ast*, Quad> Function;
+  typedef std::map<String, Function> Functions;
   typedef std::map<Variant, QuadList, Variant::LessExact> Literals;
 
   //

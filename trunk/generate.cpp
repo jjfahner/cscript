@@ -1,4 +1,5 @@
 #include "codegen.h"
+#include "native.h"
 
 void 
 CodeGenerator::Generate(Ast* node, bool release)
@@ -33,30 +34,62 @@ CodeGenerator::Generate(Ast* node, bool release)
   // Generate halt instruction
   PushByte(op_halt);
 
+  // Generate functions
+  Functions::iterator fi, fe;
+  fi = m_funs.begin();
+  fe = m_funs.end();
+  for(; fi != fe; ++fi)
+  {
+    // Generate function
+    Quad offset = GenerateFunction(fi->second.first);
+
+    // Store offset
+    fi->second.second = offset;
+  }
+
   // Resolve calls to functions
   CallList::iterator ci, ce;
   ci = m_calls.begin();
   ce = m_calls.end();
   for(; ci != ce; ++ci)
   {
+    Byte opcode = 0;
+    Quad offset = 0;
+
     // Find ast node for function
     Functions::iterator fi = m_funs.find(ci->first);
     if(fi == m_funs.end())
     {
-      std::cout << "Error: function " << ci->first << " doesn't exist\n";
-      continue;
+      // Find native function
+      NativeCallInfo* f = FindNative(ci->first);
+      if(f)
+      {
+        opcode = op_calln;
+        offset = f->m_offset; 
+      }
+      else
+      {
+        std::cout << "Error: function " << ci->first << " doesn't exist\n";
+        continue;
+      }
+    }
+    else
+    {
+      // Generate function
+      opcode = op_call;
+      offset = fi->second.second;
     }
 
-    // Generate function
-    Quad offset = GenerateFunction(fi->second);
-
-    // Fix offsets
+    // Fix calls
     QuadList::iterator oi, oe;
     oi = ci->second.begin();
     oe = ci->second.end();
     for(; oi != oe; ++oi)
     {
-      *(Quad*)(m_code + *oi) = offset;
+      Quad pos = *oi;
+      *(Byte*)(m_code + pos)     = opcode;
+      *(Quad*)(m_code + pos + 1) = offset;
+      pos = 0;
     }
   }
   
@@ -334,7 +367,7 @@ CodeGenerator::GenerateCode(Ast* node)
     }
     else
     {
-      m_funs[node->m_a1] = node;
+      m_funs[node->m_a1] = Function(node, 0);
     }
     break;
 
@@ -364,12 +397,9 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
   PushByte(op_pushl);
   PushLiteral(Variant::Null);
 
-  // Determine call type
-
-
   // Push call to function
-  PushByte(op_call);
   m_calls[node->m_a1].push_back(m_used);
+  PushByte(op_call);
   PushQuad(0);
 
   // Write cleanup code for argument list

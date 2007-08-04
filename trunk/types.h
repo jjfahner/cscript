@@ -89,23 +89,4 @@ typedef std::ofstream   ofstream;
 typedef std::list<String> StringList;
 typedef std::map<String, String> StringMap;
 
-//
-// Native call pointer
-//
-typedef void (*NativeCall)(class StackMachine&, Word);
-
-//
-// Function information
-//
-struct Function 
-{
-  String        m_name;
-  bool          m_native;
-  Quad          m_offset;
-  Quad          m_minPar;
-  Quad          m_maxPar;
-  StringList    m_params;
-  NativeCall    m_funPtr;
-};
-
 #endif // #ifndef CSCRIPT_TYPES_H

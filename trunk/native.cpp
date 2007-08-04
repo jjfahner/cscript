@@ -31,7 +31,7 @@
 //
 // Mapping between index and call
 //
-typedef std::vector<Function*> NativeCalls;
+typedef std::vector<NativeCallInfo*> NativeCalls;
 NativeCalls& getNativeCalls()
 {
   static NativeCalls nativeCalls;
@@ -46,7 +46,7 @@ struct NativeCallRegistrar
   NativeCallRegistrar(String const& name, NativeCall call, Quad minPar, Quad maxPar)
   {
     static NativeCalls& ncv = getNativeCalls();
-    Function* fun = new Function;
+    NativeCallInfo* fun = new NativeCallInfo;
     fun->m_name   = name;
     fun->m_native = true;
     fun->m_offset = (Quad)ncv.size();
@@ -58,15 +58,15 @@ struct NativeCallRegistrar
 };
 
 #define NATIVE_CALL(name,minPar,maxPar)                     \
-  void Native_##name(StackMachine& machine, Word numArgs);  \
+  void Native_##name(std::vector<VariantRef>&, Quad);       \
   NativeCallRegistrar register_##name(#name,                \
     Native_##name, minPar, maxPar);                         \
-  void Native_##name(StackMachine& machine, Word numArgs)
+  void Native_##name(std::vector<VariantRef>& stack, Quad SP)
 
 //
 // Find a native call index
 //
-Function* 
+NativeCallInfo* 
 FindNative(String const& name)
 {
   static NativeCalls& ncv = getNativeCalls();
@@ -87,10 +87,10 @@ FindNative(String const& name)
 // Execute a native call
 //
 void 
-ExecNative(Quad index, StackMachine& machine, Word numArgs)
+ExecNative(Quad index, std::vector<VariantRef>& stack, Quad SP)
 {
-  static NativeCalls& ncv = getNativeCalls();  
-  ncv[index]->m_funPtr(machine, numArgs);
+  static NativeCalls& ncv = getNativeCalls();
+  ncv[index]->m_funPtr(stack, SP);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -126,58 +126,59 @@ void PrintVariant(VariantRef const& ref)
 
 NATIVE_CALL(print, 1, 2)
 {
-  PrintVariant(machine.StackTop());
+  PrintVariant(stack[SP-2]);
+  stack[SP-1] = stack[SP-2];
 }
 
 NATIVE_CALL(exit, 0, 1)
 {
-  int ret = 0;
-  if(numArgs == 1)
-  {
-    ret = (int)machine.StackTop()->AsInt();
-  }
+   int ret = 0;
+//   if(numArgs == 1)
+//   {
+//     ret = (int)machine.StackTop()->AsInt();
+//   }
   exit(ret);
 }
 
 NATIVE_CALL(quit, 0, 1)
 {
-  int ret = 0;
-  if(machine.StackSize())
-  {
-    ret = (int)machine.StackTop()->AsInt();
-  }
+   int ret = 0;
+//   if(machine.StackSize())
+//   {
+//     ret = (int)machine.StackTop()->AsInt();
+//   }
   exit(ret);
 }
 
 NATIVE_CALL(read, 0, 0)
 {
-  String line;
-  cin >> line;
-  machine.PushStack(line);
+//   String line;
+//   cin >> line;
+//   machine.PushStack(line);
 }
 
 NATIVE_CALL(length, 1, 1)
 {
-  VariantRef ref = machine.PopStack();
-  if(ref->GetType() != Variant::stString)
-  {
-    throw std::runtime_error("Invalid type for length");
-  }
-  machine.PushStack(ref->GetString().length());
+//   VariantRef ref = machine.PopStack();
+//   if(ref->GetType() != Variant::stString)
+//   {
+//     throw std::runtime_error("Invalid type for length");
+//   }
+//   machine.PushStack(ref->GetString().length());
 }
 
 NATIVE_CALL(count, 1, 1)
 {
-  VariantRef ref = machine.PopStack();
-  if(ref->GetType() != Variant::stAssoc)
-  {
-    throw std::runtime_error("Invalid type for count");
-  }
-  machine.PushStack(ref->GetMap().size());
+//   VariantRef ref = machine.PopStack();
+//   if(ref->GetType() != Variant::stAssoc)
+//   {
+//     throw std::runtime_error("Invalid type for count");
+//   }
+//   machine.PushStack(ref->GetMap().size());
 }
 
 NATIVE_CALL(exec, 1, 1)
 {
-  // Pass to system
-  machine.PushStack(system(machine.PopStack()->GetString().c_str()));
+//   // Pass to system
+//   machine.PushStack(system(machine.PopStack()->GetString().c_str()));
 }

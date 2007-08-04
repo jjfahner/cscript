@@ -24,17 +24,34 @@
 #include "types.h"
 #include "var.h"
 
-class StackMachine;
+//
+// Native call pointer
+//
+typedef void (*NativeCall)(std::vector<VariantRef>& stack, Quad SP);
+
+//
+// Function information
+//
+struct NativeCallInfo
+{
+  String        m_name;
+  bool          m_native;
+  Quad          m_offset;
+  Quad          m_minPar;
+  Quad          m_maxPar;
+  StringList    m_params;
+  NativeCall    m_funPtr;
+};
 
 //
 // Resolve a native call by name
 //
-Function* FindNative(String const& name);
+NativeCallInfo* FindNative(String const& name);
 
 //
 // Execute a native call
 //
-void ExecNative(Quad index, StackMachine& machine, Word numArgs);
+void ExecNative(Quad index, std::vector<VariantRef>& stack, Quad SP);
 
 
 #endif // #ifndef CSCRIPT_NATIVE_CALLS_H
