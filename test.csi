@@ -7,16 +7,19 @@ function doPrint(a)
 
 function mul(a, b)
 {
+  print("In mul\n");
   return a*b;
 }
 
 function div(a, b)
 {
+  print("In div\n");
   return a/b;
 }
 
 function vartest(a, b, c)
 {
+  print("In varstack\n");
   var d, e;
   if(a == b)
   {

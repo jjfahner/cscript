@@ -241,7 +241,7 @@ begin:
     break;
 
   case op_pop:
-    POP(P0);
+    --sp;
     break;
 
   case op_jmp:
@@ -262,7 +262,12 @@ begin:
 
   case op_call:
     q0 = ipq;
-    if(q0 != 0)
+    if(q0 == 0)
+    {
+      // Very dirty hack
+      std::cout << (*stack[sp-1]).AsString();
+    }
+    else
     {
       rstack.push((Quad)(code - base));
       code = base + q0;
