@@ -291,6 +291,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\print.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\scope.cpp"
 				>
 			</File>
