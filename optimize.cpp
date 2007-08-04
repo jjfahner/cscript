@@ -184,8 +184,6 @@ CodeGenerator::OptimizeIfStatement(Ast* node)
   // If the condition is constant, Optimize to corresponding branch
   if(any_cast<Ast*>(node->m_a1)->m_type == literal)
   {
-    std::cout << "Reducing if statement\n";
-
     // Use if branch
     if(any_cast<Variant>(any_cast<Ast*>(node->m_a1)->m_a1).AsBool())
     {
@@ -332,7 +330,6 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
      IsType(node->m_a2, literal)&& 
      LiteralAsBool(node->m_a2)  )
   {
-    std::cout << "Reducing binary expression\n";
     delete node;
     node = new Ast(literal, Variant(true));
     node->m_idempotent = true;
@@ -344,7 +341,6 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
      IsType(node->m_a2, literal)&&
      !LiteralAsBool(node->m_a2) )
   {
-    std::cout << "Reducing binary expression\n";
     delete node;
     node = new Ast(literal, Variant(false));
     node->m_idempotent = true;
@@ -365,8 +361,6 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
     // Nothing to do here
     return node;
   }
-
-  std::cout << "Reducing binary expression\n";
 
   // Extract values
   Variant lhs = LiteralAsVariant(node->m_a2);
@@ -415,8 +409,6 @@ CodeGenerator::OptimizeTernaryExpression(Ast* node)
   // Optimize for literal condition
   if(IsType(node->m_a1, literal))
   {
-    std::cout << "Reducing ternary expression\n";
-
     // Decide which branch to pick
     if(LiteralAsBool(node->m_a2))
     {
@@ -509,7 +501,6 @@ CodeGenerator::OptimizeExpressionStatement(Ast* node)
   // Replace idempotent expression with empty statement
   if(IsIdempotent(node->m_a1))
   {
-    std::cout << "Reducing expression statement\n";
     delete node;
     node = new Ast(empty_statement);
     node->m_idempotent = true;
@@ -525,7 +516,6 @@ CodeGenerator::OptimizeCompoundStatement(Ast* node)
   // If empty, return empty statement
   if(node->m_a1.empty())
   {
-    std::cout << "Reducing compound statement\n";
     delete node;
     node = new Ast(empty_statement);
     node->m_idempotent = true;
@@ -541,7 +531,6 @@ CodeGenerator::OptimizeCompoundStatement(Ast* node)
   // If empty, Optimize further
   if(IsType(node->m_a1, empty_statement))
   {
-    std::cout << "Reducing compound statement\n";
     Ast* res = node->m_a1;
     delete node;
     node = res;
