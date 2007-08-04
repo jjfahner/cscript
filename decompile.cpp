@@ -100,7 +100,7 @@ CodeGenerator::Decompile(Byte* source, Quad len, std::ostream& ofs)
     case op_stackg: ofs << "stackg  "; ofs << ipq; break;
     case op_stacks: ofs << "stacks  "; ofs << ipq; break;
     case op_stackt: ofs << "stackt  "; ofs << (int)ipq; break;
-    case op_store:  ofs << "store   "; ipq; break;
+    case op_store:  ofs << "store   "; ofs << (int)ipq; break;
     case op_inc:    ofs << "inc     "; break;
     case op_dec:    ofs << "dec     "; break;
     case op_add:    ofs << "add     "; break;

@@ -91,25 +91,28 @@ CodeGenerator::GenerateFunction(Ast* node)
   Quad fnOffset = m_used;
 
   // Push stack growth instruction
-  if(node->m_framesize)
-  {
-    PushByte(op_stackg);
-    PushQuad(node->m_framesize);
-  }
+  PushByte(op_stackg);
+  PushQuad(node->m_framesize);
 
   // Generate function content
   GenerateCode(node->m_a3);
 
-  // Write stack cleanup
-  if(node->m_framesize)
-  {
-    PushByte(op_stacks);
-    PushQuad(node->m_framesize);
-  }
-
-  // Generate default return statement
+  // Push return value
   PushByte(op_pushl);
   PushLiteral(Variant::Null);
+
+  // Patch return statements
+  while(m_returns.size())
+  {
+    FixPatch(m_returns.front());
+    m_returns.pop_front();
+  }
+
+  // Write function epilog
+  PushByte(op_store);
+  PushQuad((Quad)-1);
+  PushByte(op_stacks);
+  PushQuad(node->m_framesize);
 
   // Generate return
   PushByte(op_ret);
@@ -161,7 +164,8 @@ CodeGenerator::GenerateCode(Ast* node)
       PushByte(op_pushl);
       PushLiteral(Variant::Null);
     }
-    PushByte(op_ret);
+    PushByte(op_jmp);
+    m_returns.push_back(PushPatch());
     break;
 
   case compound_statement:
@@ -275,14 +279,22 @@ CodeGenerator::GenerateCode(Ast* node)
     {
       GenerateCode(node->m_a2);
     }
+    PushByte(op_pushl);
+    PushLiteral(Variant::Null);
     PushByte(op_call);
     m_calls[node->m_a1].push_back(m_used);
     PushQuad(0);
-    PushByte(op_stackt);
-    PushQuad(-(int)node->m_argcount);
+    if(node->m_argcount)
+    {
+      PushByte(op_stackt);
+      PushQuad(node->m_argcount);
+    }
     break;
 
   case argument_list:
+    // Generate argument list in reverse order. This is done
+    // to allow variadic arg lists, where named argument can
+    // always be found at fixed offsets from ST.
     GenerateCode(node->m_a2);
     GenerateCode(node->m_a1);
     break;

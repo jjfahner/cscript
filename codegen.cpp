@@ -183,18 +183,18 @@ CodeGenerator::Execute()
   stack.resize(10000);
 
   // Stack info
-  Quad st = 0;
-  Quad sp = 0;
+  Quad ST = 0;
+  Quad SP = 0;
 
   // Stack manipulation
-  #define PUSH(arg) stack[sp++] = arg
-  #define POP(arg)  arg = stack[--sp]
+  #define PUSH(arg) stack[SP++] = arg
+  #define POP(arg)  arg = stack[--SP]
 
   // Temporaries
   VariantRef P0, P1;
   #define R0 (*P0)
   #define R1 (*P1)
-  Quad q0;
+  Quad Q0;
 
   // Start of instruction
 begin:
@@ -206,19 +206,21 @@ begin:
     return;
 
   case op_stackg:
-    tstack.push(st);
-    st = sp;
-    sp = sp + ipq;
+    tstack.push(ST);
+    ST = SP;
+    SP = SP + ipq;
     break;
 
   case op_stacks:
-    st = tstack.top();
-    sp = sp - ipq;
+    ST = tstack.top();
+    SP = SP - ipq;
     tstack.pop();
     break;
 
   case op_stackt:
-    sp += (int)ipq;
+    Q0 = ipq;
+    *stack[SP - Q0 - 1] = *stack[SP - 1];
+    SP -= Q0;
     break;
 
   case op_pushl:
@@ -226,12 +228,12 @@ begin:
     break;
 
   case op_pushv:
-    PUSH(stack[st + (int)ipq]);
+    PUSH(stack[ST + (int)ipq]);
     break;
 
   case op_store:
     POP(P0);
-    stack[st + (int)ipq] = R0;
+    stack[ST + (int)ipq] = R0;
     break;
 
   case op_pushi:
@@ -241,7 +243,7 @@ begin:
     break;
 
   case op_pop:
-    --sp;
+    --SP;
     break;
 
   case op_jmp:
@@ -249,28 +251,29 @@ begin:
     break;
 
   case op_jz:
-    q0 = ipq;
+    Q0 = ipq;
     POP(P0);
-    if(!R0) code = base + q0;
+    if(!R0) code = base + Q0;
     break;
 
   case op_jnz:
-    q0 = ipq;
+    Q0 = ipq;
     POP(P0);
-    if(R0) code = base + q0;
+    if(R0) code = base + Q0;
     break;
 
   case op_call:
-    q0 = ipq;
-    if(q0 == 0)
+    Q0 = ipq;
+    if(Q0 == 0)
     {
       // Very dirty hack
-      std::cout << (*stack[sp-1]).AsString();
+      std::cout << (*stack[SP-2]).AsString();
+      stack[SP-1] = Variant::Null;
     }
     else
     {
       rstack.push((Quad)(code - base));
-      code = base + q0;
+      code = base + Q0;
     }
     break;
 
