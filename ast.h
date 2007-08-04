@@ -125,6 +125,8 @@ public:
   //
   bool      m_idempotent;   // Content is idempotent
   Quad      m_varcount;     // Number of declared variables
+  Quad      m_parcount;     // Number of declared parameters
+  int       m_stackpos;     // Offset against stack frame (may be negative)
 
 };
 
@@ -137,7 +139,9 @@ inline
 Ast::Ast(AstTypes type) :
 m_type (type),
 m_idempotent(false),
-m_varcount(0)
+m_varcount(0),
+m_parcount(0),
+m_stackpos(0)
 {
 }
 
@@ -146,6 +150,8 @@ Ast::Ast(AstTypes type, any const& a1) :
 m_type (type),
 m_idempotent (false),
 m_varcount(0),
+m_parcount(0),
+m_stackpos(0),
 m_a1   (a1)
 {
 }
@@ -155,6 +161,8 @@ Ast::Ast(AstTypes type, any const& a1, any const& a2) :
 m_type (type),
 m_idempotent (false),
 m_varcount(0),
+m_parcount(0),
+m_stackpos(0),
 m_a1   (a1),
 m_a2   (a2)
 {
@@ -165,6 +173,8 @@ Ast::Ast(AstTypes type, any const& a1, any const& a2, any const& a3) :
 m_type (type),
 m_idempotent (false),
 m_varcount(0),
+m_parcount(0),
+m_stackpos(0),
 m_a1   (a1),
 m_a2   (a2),
 m_a3   (a3)
@@ -176,6 +186,8 @@ Ast::Ast(AstTypes type, any const& a1, any const& a2, any const& a3, any const& 
 m_type (type),
 m_idempotent (false),
 m_varcount(0),
+m_parcount(0),
+m_stackpos(0),
 m_a1   (a1),
 m_a2   (a2),
 m_a3   (a3),

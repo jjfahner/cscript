@@ -16,8 +16,8 @@ enum opcodes
   op_jnz,         // Jump if stack top != 0
   op_call,        // Call function
   op_ret,         // Return from function
-  op_stg,         // Grow stack frame
-  op_sts,         // Shrink stack frame
+  op_stackg,      // Grow stack frame
+  op_stacks,      // Shrink stack frame
 
   op_inc,         // Add 1 to value on top of stack
   op_dec,         // Subtract 1 to value on top of stack
