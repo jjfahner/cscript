@@ -295,10 +295,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\parser.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\print.cpp"
 				>
 			</File>
@@ -358,10 +354,6 @@
 			</File>
 			<File
 				RelativePath=".\opcodes.h"
-				>
-			</File>
-			<File
-				RelativePath=".\parser.h"
 				>
 			</File>
 			<File

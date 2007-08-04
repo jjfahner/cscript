@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include "codegen.h"
 #include "opcodes.h"
+#include "native.h"
 
 CodeGenerator::CodeGenerator() :
 m_code    (0),
@@ -243,17 +244,12 @@ begin:
 
   case op_call:
     Q0 = ipq;
-    if(Q0 == 0)
-    {
-      // Very dirty hack
-      std::cout << (*stack[SP-2]).AsString();
-      stack[SP-1] = Variant::Null;
-    }
-    else
-    {
-      rstack.push((Quad)(code - base));
-      code = base + Q0;
-    }
+    rstack.push((Quad)(code - base));
+    code = base + Q0;
+    break;
+
+  case op_calln:
+    ExecNative(ipq, stack, SP);
     break;
 
   case op_ret:

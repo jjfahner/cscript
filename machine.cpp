@@ -199,7 +199,7 @@ StackMachine::Execute(Byte* base, Quad offset)
     case TOK_CALLN:
       w1 = EatWord(code);
       w2 = EatWord(code);
-      ExecNative(w1, *this, w2);
+      //ExecNative(w1, *this, w2);
       break;        
 
     case TOK_RET:

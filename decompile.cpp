@@ -96,6 +96,7 @@ CodeGenerator::Decompile(Byte* source, Quad len, std::ostream& ofs)
     case op_jz:     ofs << "jz      "; ofs << Hex(ipq); break;
     case op_jnz:    ofs << "jnz     "; ofs << Hex(ipq); break;
     case op_call:   ofs << "call    "; ofs << Hex(ipq); break;
+    case op_calln:  ofs << "calln   "; ofs << Hex(ipq); break;
     case op_ret:    ofs << "ret     "; break;
     case op_stackg: ofs << "stackg  "; ofs << ipq; break;
     case op_stacks: ofs << "stacks  "; ofs << ipq; break;
