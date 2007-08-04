@@ -251,7 +251,8 @@ simple_declaration(R) ::= IDENTIFIER(A) . { R = new Ast(variable_declaration, St
 init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { if(B == 0) { __asm int 3 } R = new Ast(variable_declaration, String(A), B); }
 
 // Function declaration
-function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list_opt(B) RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), B, C); }
+function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), B, C); }
+function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN                   RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), any(), C); }
 
 // Single parameter
 parameter(R) ::= IDENTIFIER(A) . { R = new Ast(parameter, String(A)); }
@@ -259,10 +260,6 @@ parameter(R) ::= IDENTIFIER(A) . { R = new Ast(parameter, String(A)); }
 // Parameters
 parameter_list(R) ::= parameter(A) . { R = A; }
 parameter_list(R) ::= parameter_list(A) COMMA parameter(B) . { R = new Ast(parameter_list, A, B); }
-
-// Optional parameter list
-parameter_list_opt(R) ::= . { R = 0; }
-parameter_list_opt(R) ::= parameter_list(A) . { R = A; }
 
 // Function body. Traditionally, this is a compound statement, but
 // there's no actual need for that.

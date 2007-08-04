@@ -103,7 +103,7 @@ CodeGenerator::Optimize(Ast* node)
 
   case declaration_sequence:
     node->m_a1 = Optimize(node->m_a1);
-    node->m_a2 = Optimize(node->m_a1);
+    node->m_a2 = Optimize(node->m_a2);
     break;
 
   case include_statement:
