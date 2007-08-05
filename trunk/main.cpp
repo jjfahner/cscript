@@ -44,10 +44,12 @@ int usage()
   cout << 
     "Usage: cscript [options] [file]\n\n"
     "Options:\n\n"
-    "-i --interactive   Run interpreter in interactive mode\n"
-    "-c --compile=FILE  Compile source file\n"
-    "-o --output=FILE   Name of the compiled output file\n"
-    "-e --execute=FILE  Name of a file to execute\n"
+    "-a --annotate=FILE   Annotate source file (requires -o)\n"
+    "-c --compile=FILE    Compile source file (requires -o)\n"
+    "-d --decompile=FILE  Decompile binary code (requires -o)\n"
+    "-e --execute=FILE    Name of a file to execute\n"
+    "-i --interactive     Run interpreter in interactive mode\n"
+    "-o --output=FILE     Name of output file\n"
     "\n"
     "This program comes with ABSOLUTELY NO WARRANTY.\n"
     "This is free software, and you are welcome to redistribute it\n"
@@ -58,11 +60,27 @@ int usage()
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Compile mode
+// Annotation mode
 //
 
-int compile(CmdArgs const& args)
+int annotate(CmdArgs const& args)
 {
+  // Check input
+  String srcFile;
+  if(args.IsSet("-a"))
+  {
+    srcFile = args["-a"];
+  }
+  else if(args.IsSet("--annotate"))
+  {
+    srcFile = args["--annotate"];
+  }
+  if(srcFile.empty())
+  {
+    usage();
+    return EXIT_FAILURE;
+  }
+
   // Check output filename
   String outFile;
   if(args.IsSet("-o"))
@@ -79,9 +97,62 @@ int compile(CmdArgs const& args)
     return EXIT_FAILURE;
   }
 
-  // Determine source filename
-  StringMap files = args.GetValues();
-  if(files.size() != 1)
+  AstGen astGen;
+  CodeGenerator cg;
+
+  // Generate ast
+  astGen.Parse(srcFile);
+  
+  // Optimize code
+  Ast* root = cg.Optimize(astGen.GetRoot());
+
+  // Annotate code
+  cg.Annotate(root);
+
+  // Print annotated code
+  cg.Print(outFile, root);
+
+  // Done
+  return 0;
+
+  // Succeeded
+  return EXIT_SUCCESS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Compile mode
+//
+
+int compile(CmdArgs const& args)
+{
+  // Check input
+  String srcFile;
+  if(args.IsSet("-c"))
+  {
+    srcFile = args["-c"];
+  }
+  else if(args.IsSet("--compile"))
+  {
+    srcFile = args["--compile"];
+  }
+  if(srcFile.empty())
+  {
+    usage();
+    return EXIT_FAILURE;
+  }
+
+  // Check output filename
+  String outFile;
+  if(args.IsSet("-o"))
+  {
+    outFile = args["-o"];
+  }
+  else if(args.IsSet("--output"))
+  {
+    outFile = args["--output"];
+  }
+  if(outFile.empty())
   {
     usage();
     return EXIT_FAILURE;
@@ -89,7 +160,7 @@ int compile(CmdArgs const& args)
 
   // Generate ast
   AstGen astGen;
-  astGen.Parse("test.csc");
+  astGen.Parse(srcFile);
 
   // Generate code
   CodeGenerator cg;
@@ -107,6 +178,73 @@ int compile(CmdArgs const& args)
   // Close file
   ofs.close();
   
+  // Done
+  return 0;
+
+  // Succeeded
+  return EXIT_SUCCESS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Decompile binary code
+//
+
+int decompile(CmdArgs const& args)
+{
+  // Check input
+  String srcFile;
+  if(args.IsSet("-d"))
+  {
+    srcFile = args["-d"];
+  }
+  else if(args.IsSet("--decompile"))
+  {
+    srcFile = args["--decompile"];
+  }
+  if(srcFile.empty())
+  {
+    usage();
+    return EXIT_FAILURE;
+  }
+
+  // Check output filename
+  String outFile;
+  if(args.IsSet("-o"))
+  {
+    outFile = args["-o"];
+  }
+  else if(args.IsSet("--output"))
+  {
+    outFile = args["--output"];
+  }
+  if(outFile.empty())
+  {
+    usage();
+    return EXIT_FAILURE;
+  }
+
+  // Open input file
+  File file;
+  file.Open(srcFile);
+
+  // Check for binary file
+  if(file.GetType() != File::binary)
+  {
+    std::cout << "Error: invalid file format\n";
+    return EXIT_FAILURE;
+  }
+
+  // Create output file
+  std::ofstream ofs(outFile.c_str());
+
+  // Decompile source code
+  CodeGenerator cg;
+  cg.Decompile(file.GetData(), file.GetSize(), ofs);
+
+  // Close file
+  ofs.close();
+
   // Done
   return 0;
 
@@ -216,15 +354,35 @@ int cscript_main(int argc, Char** argv)
     return interactive(args);
   }
 
+  // Annotate mode
+  if(args.IsSet("-a") || args.IsSet("--annotate"))
+  {
+    return annotate(args);
+  }
+
   // Compile mode
   if(args.IsSet("-c") || args.IsSet("--compile"))
   {
     return compile(args);
   }
 
+  // Decompile
+  if(args.IsSet("-d") || args.IsSet("--decompile"))
+  {
+    return decompile(args);
+  }
+
   // Execute mode
   return execute(args);
 }
+
+//
+// For keeping debug window open
+//
+#if defined(_MSC_VER) && defined(_DEBUG)
+#define _WIN32_WINNT 0x0400
+#include <windows.h>
+#endif
 
 //
 // CScript entry point. Exception handling root.
@@ -247,8 +405,11 @@ int main(int argc, Char** argv)
 
   // Keep console running under MSC devenv
 #if defined(_MSC_VER) && defined(_DEBUG)
-  cout << "\n\nPress enter to quit";
-  cin.get();
+  if(IsDebuggerPresent())
+  {
+    cout << "\n\nPress enter to quit";
+    cin.get();
+  }
 #endif
 
 	return result;

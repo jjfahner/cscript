@@ -42,17 +42,22 @@ inline Quad ArgCount(Ast* ast)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Main annotation driver
+// Annotation
 //
 
 void
 CodeGenerator::Annotate(Ast* node)
 {
-  if(m_scopeStack.empty())
-  {
-    m_scopeStack.push(Scope(node, 0));
-  }
+  // Push initial frame
+  m_scopeStack.push(Scope(node, 0));
 
+  // Annotate tree
+  AnnotateImpl(node);
+}
+
+void
+CodeGenerator::AnnotateImpl(Ast* node)
+{
   switch(node->m_type)
   {
   case statement_sequence:
@@ -60,39 +65,39 @@ CodeGenerator::Annotate(Ast* node)
     break;
 
   case expression_statement:
-    Annotate(node->m_a1);
+    AnnotateImpl(node->m_a1);
     break;
 
   case assignment_expression:
-    Annotate(node->m_a2);
-    Annotate(node->m_a3);
+    AnnotateImpl(node->m_a2);
+    AnnotateImpl(node->m_a3);
     break;
 
   case binary_expression:
-    Annotate(node->m_a2);
-    Annotate(node->m_a3);
+    AnnotateImpl(node->m_a2);
+    AnnotateImpl(node->m_a3);
     break;
 
   case ternary_expression:
-    Annotate(node->m_a1);
-    Annotate(node->m_a2);
-    Annotate(node->m_a3);
+    AnnotateImpl(node->m_a1);
+    AnnotateImpl(node->m_a2);
+    AnnotateImpl(node->m_a3);
     break;
 
   case prefix_expression:
-    Annotate(node->m_a2);
+    AnnotateImpl(node->m_a2);
     break;
 
   case postfix_expression:
-    Annotate(node->m_a2);
+    AnnotateImpl(node->m_a2);
     break;
 
   case member_expression:
     break;
 
   case index_expression:
-    Annotate(node->m_a1);
-    Annotate(node->m_a2);
+    AnnotateImpl(node->m_a1);
+    AnnotateImpl(node->m_a2);
     break;
 
   case literal:
@@ -103,14 +108,14 @@ CodeGenerator::Annotate(Ast* node)
     break;
 
   case list_literal:
-    Annotate(node->m_a1);
+    AnnotateImpl(node->m_a1);
     break;
     
   case list_content:
-    Annotate(node->m_a1);
+    AnnotateImpl(node->m_a1);
     if(!node->m_a2.empty())
     {
-      Annotate(node->m_a2);
+      AnnotateImpl(node->m_a2);
     }
     break;
     
@@ -121,21 +126,21 @@ CodeGenerator::Annotate(Ast* node)
   case function_call:
     if(!node->m_a2.empty())
     {
-      Annotate(node->m_a2);
+      AnnotateImpl(node->m_a2);
       node->m_argcount = ArgCount(node->m_a2);
     }
     break;
 
   case argument_list:
-    Annotate(node->m_a1);
-    Annotate(node->m_a2);
+    AnnotateImpl(node->m_a1);
+    AnnotateImpl(node->m_a2);
     node->m_argcount = 
       ArgCount(node->m_a1) +
       ArgCount(node->m_a2) ;
     break;
 
   case argument:
-    Annotate(node->m_a1);
+    AnnotateImpl(node->m_a1);
     node->m_argcount = 1;
     break;
 
@@ -143,9 +148,9 @@ CodeGenerator::Annotate(Ast* node)
     m_scopeStack.push(Scope(node, &m_scopeStack.top()));
     if(!node->m_a2.empty())
     {
-      Annotate(node->m_a2);
+      AnnotateImpl(node->m_a2);
     }
-    Annotate(node->m_a3);
+    AnnotateImpl(node->m_a3);
     node->m_varcount = VarCount(node->m_a3);
     m_scopeStack.pop();
     if(node->m_varcount != node->m_framesize)
@@ -159,25 +164,25 @@ CodeGenerator::Annotate(Ast* node)
     break;
 
   case parameter_list:
-    Annotate(node->m_a1);
-    Annotate(node->m_a2);
+    AnnotateImpl(node->m_a1);
+    AnnotateImpl(node->m_a2);
     break;
 
   case variable_declaration:
-    // Annotate init expresion *before* declaring the variable,
+    // AnnotateImpl init expresion *before* declaring the variable,
     // to make sure that the init expresion uses the previously
     // declared variable when initializing a shadowing variable.
     if(!node->m_a2.empty())
     {
-      Annotate(node->m_a2);
+      AnnotateImpl(node->m_a2);
     }
     node->m_varcount = 1;
     node->m_stackpos = m_scopeStack.top().DeclareVariable(node->m_a1);
     break;
 
   case declaration_sequence:
-    Annotate(node->m_a1);
-    Annotate(node->m_a2);
+    AnnotateImpl(node->m_a1);
+    AnnotateImpl(node->m_a2);
     node->m_varcount = 
       VarCount(node->m_a1) + 
       VarCount(node->m_a2);
@@ -191,11 +196,11 @@ CodeGenerator::Annotate(Ast* node)
 
   case for_statement:
     m_scopeStack.push(Scope(node, &m_scopeStack.top()));
-    Annotate(node->m_a1);
-    Annotate(node->m_a2);
-    Annotate(node->m_a3);
+    AnnotateImpl(node->m_a1);
+    AnnotateImpl(node->m_a2);
+    AnnotateImpl(node->m_a3);
     m_scopeStack.push(Scope(node, &m_scopeStack.top()));
-    Annotate(node->m_a4);
+    AnnotateImpl(node->m_a4);
     m_scopeStack.pop();
     m_scopeStack.pop();
     node->m_varcount = 
@@ -207,21 +212,21 @@ CodeGenerator::Annotate(Ast* node)
     break;
 
   case if_statement:
-    Annotate(node->m_a1);
+    AnnotateImpl(node->m_a1);
     m_scopeStack.push(Scope(node, &m_scopeStack.top()));
-    Annotate(node->m_a2);
+    AnnotateImpl(node->m_a2);
     if(!node->m_a3.empty())
     {
-      Annotate(node->m_a3);
+      AnnotateImpl(node->m_a3);
     }
     m_scopeStack.pop();
     node->m_varcount = VarCount(node->m_a2);
     break;
 
   case while_statement:
-    Annotate(node->m_a1);
+    AnnotateImpl(node->m_a1);
     m_scopeStack.push(Scope(node, &m_scopeStack.top()));
-    Annotate(node->m_a2);
+    AnnotateImpl(node->m_a2);
     m_scopeStack.pop();
     node->m_varcount = VarCount(node->m_a2);
     break;
@@ -229,13 +234,13 @@ CodeGenerator::Annotate(Ast* node)
   case return_statement:
     if(!node->m_a1.empty())
     {
-      Annotate(node->m_a1);
+      AnnotateImpl(node->m_a1);
     }
     break;
 
   case compound_statement:
     m_scopeStack.push(Scope(node, &m_scopeStack.top()));
-    Annotate(node->m_a1);
+    AnnotateImpl(node->m_a1);
     m_scopeStack.pop();
     node->m_varcount = VarCount(node->m_a1);
     break;
@@ -254,8 +259,8 @@ CodeGenerator::AnnotateStatementSequence(Ast* node)
   se = list->end();
   for(; si != se; ++si)
   {
-    // Annotate statement
-    Annotate(*si);
+    // AnnotateImpl statement
+    AnnotateImpl(*si);
 
     // Add to count
     node->m_varcount += (*si)->m_varcount;

@@ -45,6 +45,17 @@ public:
   void Generate(Ast* root, bool release);
 
   //
+  // Annotation
+  //
+  void Annotate(Ast*);
+
+  //
+  // Optimize node. Returned node may be
+  // different from the input node.
+  //
+  Ast* Optimize(Ast*);
+
+  //
   // Write to output
   //
   void Write();
@@ -79,13 +90,12 @@ private:
   //
   // Annotation
   //
-  void Annotate(Ast*);
+  void AnnotateImpl(Ast*);
   void AnnotateStatementSequence(Ast*);
 
   //
   // Optimization
   //
-  Ast* Optimize(Ast*);
   Ast* OptimizeIfStatement(Ast*);
   Ast* OptimizeForStatement(Ast*);
   Ast* OptimizeBinaryExpression(Ast*);
