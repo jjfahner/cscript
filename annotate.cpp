@@ -103,6 +103,19 @@ CodeGenerator::Annotate(Ast* node)
     break;
 
   case list_literal:
+    Annotate(node->m_a1);
+    break;
+    
+  case list_content:
+    Annotate(node->m_a1);
+    if(!node->m_a2.empty())
+    {
+      Annotate(node->m_a2);
+    }
+    break;
+    
+  case list_entry:
+    node->m_a1 = Optimize(node->m_a1);
     break;
 
   case function_call:

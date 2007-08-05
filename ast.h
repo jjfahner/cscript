@@ -52,6 +52,8 @@ enum AstTypes
   literal,
   lvalue,
   list_literal,
+  list_content,
+  list_entry,
   argument_list,
   argument,
   function_declaration,

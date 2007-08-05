@@ -389,6 +389,10 @@
 			RelativePath=".\testsuite.csc"
 			>
 		</File>
+		<File
+			RelativePath=".\TODO"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
