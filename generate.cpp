@@ -18,11 +18,7 @@ CodeGenerator::Generate(Ast* node, bool release)
   }
 
   // Gather information
-  m_scopeStack.push(Scope(node, 0));
   Annotate(node);
-
-  // Print tree
-  Print("cscript-tree.txt", node);
 
   // Generate initial stack frame
   PushByte(op_stackg);
