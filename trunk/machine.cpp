@@ -120,6 +120,10 @@ begin:
     PUSH(stack[ST + (int)ipq]);
     break;
 
+  case op_pushg:
+    PUSH(stack[ipq]);
+    break;
+
   case op_pusha:
     POP(P1);
     POP(P0);
