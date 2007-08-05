@@ -324,6 +324,10 @@ public:
   //
   // Operators
   //
+  Variant operator ++ (int);
+  Variant operator -- (int);
+  Variant const& operator ++ ();
+  Variant const& operator -- ();
   Variant const& operator += (Variant const& value);
   Variant const& operator -= (Variant const& value);
   Variant const& operator *= (Variant const& value);
@@ -380,6 +384,36 @@ private:
 //
 // Mathematical operations
 //
+
+inline Variant 
+Variant::operator ++ (int)
+{
+  Variant tmp(*this);
+  ++(*this);
+  return tmp;
+}
+
+inline Variant 
+Variant::operator -- (int)
+{
+  Variant tmp(*this);
+  --(*this);
+  return tmp;
+}
+
+inline Variant const& 
+Variant::operator ++ ()
+{
+  *this += 1;
+  return *this;
+}
+
+inline Variant const& 
+Variant::operator -- ()
+{
+  *this -= 1;
+  return *this;
+}
 
 inline Variant 
 operator + (Variant const& lhs, Variant const& rhs)

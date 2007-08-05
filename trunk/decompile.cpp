@@ -60,10 +60,21 @@ inline String Var(Byte* code, Quad offset)
   Variant v;
   v.Read(code + offset);
   String s = v.AsString();
-  size_t pos;
-  while((pos = s.find("\n")) != String::npos)
+  switch(v.GetType())
   {
-    s.replace(pos, 1, "\\n");
+  case Variant::stNull:
+    s = "<null>";
+    break;
+  case Variant::stString:
+    {
+      size_t pos;
+      while((pos = s.find("\n")) != String::npos)
+      {
+        s.replace(pos, 1, "\\n");
+      }
+      s = "\"" + s + "\"";
+    }
+    break;
   }
   return s;
 }
@@ -87,46 +98,48 @@ CodeGenerator::Decompile(Byte* source, Quad len, std::ostream& ofs)
     // Write instruction
     switch(ipb)
     {
-    case op_halt:   ofs << "halt    "; break;
-    case op_pushl:  ofs << "pushl   "; ofs << Var(source, ipq); break;
-    case op_pushv:  ofs << "pushv   "; ofs << ipq; break;
-    case op_pushi:  ofs << "pushi   "; break;
-    case op_pop:    ofs << "pop     "; break;
-    case op_jmp:    ofs << "jmp     "; ofs << Hex(ipq); break;
-    case op_jz:     ofs << "jz      "; ofs << Hex(ipq); break;
-    case op_jnz:    ofs << "jnz     "; ofs << Hex(ipq); break;
-    case op_call:   ofs << "call    "; ofs << Hex(ipq); break;
-    case op_calln:  ofs << "calln   "; ofs << Hex(ipq); break;
-    case op_ret:    ofs << "ret     "; break;
-    case op_stackg: ofs << "stackg  "; ofs << ipq; break;
-    case op_stacks: ofs << "stacks  "; ofs << ipq; break;
-    case op_stackt: ofs << "stackt  "; ofs << (int)ipq; break;
-    case op_store:  ofs << "store   "; ofs << (int)ipq; break;
-    case op_inc:    ofs << "inc     "; break;
-    case op_dec:    ofs << "dec     "; break;
-    case op_add:    ofs << "add     "; break;
-    case op_sub:    ofs << "sub     "; break;
-    case op_mul:    ofs << "mul     "; break;
-    case op_div:    ofs << "div     "; break;
-    case op_mod:    ofs << "mod     "; break;    
-    case op_logor:  ofs << "logor   "; break;
-    case op_logand: ofs << "logand  "; break;
-    case op_bitor:  ofs << "bitor   "; break;
-    case op_bitxor: ofs << "bitxor  "; break;
-    case op_bitand: ofs << "bitand  "; break;    
-    case op_eq:     ofs << "eq      "; break;
-    case op_ne:     ofs << "ne      "; break;
-    case op_lt:     ofs << "lt      "; break;
-    case op_le:     ofs << "le      "; break;
-    case op_gt:     ofs << "gt      "; break;
-    case op_ge:     ofs << "ge      "; break;
-    case op_assign: ofs << "assign  "; break;
-    case op_assadd: ofs << "assadd  "; break;
-    case op_asssub: ofs << "asssub  "; break;
-    case op_assmul: ofs << "assmul  "; break;
-    case op_assdiv: ofs << "assdiv  "; break;
-    case op_assmod: ofs << "assmod  "; break;
-    default:        ofs << "unknown "; break;
+    case op_halt:     ofs << "halt    "; break;
+    case op_pushl:    ofs << "pushl   "; ofs << Var(source, ipq); break;
+    case op_pushv:    ofs << "pushv   "; ofs << (int)ipq; break;
+    case op_pushi:    ofs << "pushi   "; break;
+    case op_pop:      ofs << "pop     "; break;
+    case op_jmp:      ofs << "jmp     "; ofs << Hex(ipq); break;
+    case op_jz:       ofs << "jz      "; ofs << Hex(ipq); break;
+    case op_jnz:      ofs << "jnz     "; ofs << Hex(ipq); break;
+    case op_call:     ofs << "call    "; ofs << Hex(ipq); break;
+    case op_calln:    ofs << "calln   "; ofs << Hex(ipq); break;
+    case op_ret:      ofs << "ret     "; break;
+    case op_stackg:   ofs << "stackg  "; ofs << ipq; break;
+    case op_stacks:   ofs << "stacks  "; ofs << ipq; break;
+    case op_stackt:   ofs << "stackt  "; ofs << (int)ipq; break;
+    case op_store:    ofs << "store   "; ofs << (int)ipq; break;
+    case op_preinc:   ofs << "preinc  "; break;
+    case op_predec:   ofs << "predec  "; break;
+    case op_postinc:  ofs << "postinc "; break;
+    case op_postdec:  ofs << "postdec "; break;
+    case op_add:      ofs << "add     "; break;
+    case op_sub:      ofs << "sub     "; break;
+    case op_mul:      ofs << "mul     "; break;
+    case op_div:      ofs << "div     "; break;
+    case op_mod:      ofs << "mod     "; break;    
+    case op_logor:    ofs << "logor   "; break;
+    case op_logand:   ofs << "logand  "; break;
+    case op_bitor:    ofs << "bitor   "; break;
+    case op_bitxor:   ofs << "bitxor  "; break;
+    case op_bitand:   ofs << "bitand  "; break;    
+    case op_eq:       ofs << "eq      "; break;
+    case op_ne:       ofs << "ne      "; break;
+    case op_lt:       ofs << "lt      "; break;
+    case op_le:       ofs << "le      "; break;
+    case op_gt:       ofs << "gt      "; break;
+    case op_ge:       ofs << "ge      "; break;
+    case op_assign:   ofs << "assign  "; break;
+    case op_assadd:   ofs << "assadd  "; break;
+    case op_asssub:   ofs << "asssub  "; break;
+    case op_assmul:   ofs << "assmul  "; break;
+    case op_assdiv:   ofs << "assdiv  "; break;
+    case op_assmod:   ofs << "assmod  "; break;
+    default:          ofs << "unknown "; break;
     }
     ofs << "\n";
   }

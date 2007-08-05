@@ -19,6 +19,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Assert whether a result matches the expectation
@@ -76,12 +78,12 @@ function main()
   errors += assert("Conditional", false ? 1 : 2, 2);
 
   // Associative arrays
-  errors += assert("Array", [1,2][0], 1);
-  errors += assert("Array", [1,2][1], 2);
-  errors += assert("Array", count([1,2]), 2);
-  errors += assert("Nested array", [1,[2,3]][0],    1);
-  errors += assert("Nested array", [1,[2,3]][1][0], 2);
-  errors += assert("Nested array", [1,[2,3]][1][1], 3);
+  //errors += assert("Array", [1,2][0], 1);
+  //errors += assert("Array", [1,2][1], 2);
+  //errors += assert("Array", count([1,2]), 2);
+  //errors += assert("Nested array", [1,[2,3]][0],    1);
+  //errors += assert("Nested array", [1,[2,3]][1][0], 2);
+  //errors += assert("Nested array", [1,[2,3]][1][1], 3);
   
   // For loops
   for(a = 0; a < 10; ++a) {}

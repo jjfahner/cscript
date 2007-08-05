@@ -198,7 +198,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case return_statement:
-    if(node->m_a1.empty())
+    if(!node->m_a1.empty())
     {
       GenerateCode(node->m_a1);
     }
@@ -306,6 +306,7 @@ CodeGenerator::GenerateCode(Ast* node)
   case postfix_expression:
     GenerateCode(node->m_a2);
     PushByte((opcodes)node->m_a1);
+    GenerateCode(node->m_a2);
     break;
 
   case member_expression:

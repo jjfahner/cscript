@@ -30,7 +30,7 @@ AstGen::main(int argc, char** argv)
   AstGen astGen;
 
   // Parse file
-  astGen.Parse("testsuite.csc");
+  astGen.Parse("test.csc");
 
   // Generate code
   CodeGenerator cg;

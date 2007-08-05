@@ -84,3 +84,11 @@ print("\n");
 // List notation
 //var arr = [1, 2, 3, ["true", "false"], [[1], true, false]];
 //print(arr); print("\n");
+
+for(var q = 0; q < 100000; ++q)
+{
+  if(q % 100 == 0)
+  {
+    print(".");
+  }
+}

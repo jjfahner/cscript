@@ -257,8 +257,22 @@ begin:
     rstack.pop();
     break;
 
-  case op_inc:
-  case op_dec:
+  case op_preinc:
+    ++(*stack[SP-1]);
+    break;
+  case op_predec:
+    --(*stack[SP-1]);
+    break;
+
+  case op_postinc:
+    POP(P0);
+    PUSH(R0);
+    ++R0;
+    break;
+  case op_postdec:
+    POP(P0);
+    PUSH(R0);
+    --R0;
     break;
 
   case op_add:

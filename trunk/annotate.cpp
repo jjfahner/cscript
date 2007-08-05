@@ -197,6 +197,10 @@ CodeGenerator::Annotate(Ast* node)
     Annotate(node->m_a1);
     m_scopeStack.push(Scope(node, &m_scopeStack.top()));
     Annotate(node->m_a2);
+    if(!node->m_a3.empty())
+    {
+      Annotate(node->m_a3);
+    }
     m_scopeStack.pop();
     node->m_varcount = VarCount(node->m_a2);
     break;

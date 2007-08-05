@@ -159,22 +159,22 @@ NATIVE_CALL(read, 0, 0)
 
 NATIVE_CALL(length, 1, 1)
 {
-//   VariantRef ref = machine.PopStack();
-//   if(ref->GetType() != Variant::stString)
-//   {
-//     throw std::runtime_error("Invalid type for length");
-//   }
-//   machine.PushStack(ref->GetString().length());
+  VariantRef ref = stack[SP-2];
+  if(ref->GetType() != Variant::stString)
+  {
+    throw std::runtime_error("Invalid type for length");
+  }
+  stack[SP-1] = Variant(ref->GetString().length());
 }
 
 NATIVE_CALL(count, 1, 1)
 {
-//   VariantRef ref = machine.PopStack();
-//   if(ref->GetType() != Variant::stAssoc)
-//   {
-//     throw std::runtime_error("Invalid type for count");
-//   }
-//   machine.PushStack(ref->GetMap().size());
+  VariantRef ref = stack[SP-2];
+  if(ref->GetType() != Variant::stAssoc)
+  {
+    throw std::runtime_error("Invalid type for count");
+  }
+  stack[SP-1] = Variant(ref->GetMap().size());
 }
 
 NATIVE_CALL(exec, 1, 1)
