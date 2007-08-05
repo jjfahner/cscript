@@ -85,7 +85,7 @@ print("\n");
 //var arr = [1, 2, 3, ["true", "false"], [[1], true, false]];
 //print(arr); print("\n");
 
-for(var q = 0; q < 100000; ++q)
+for(var q = 0; q < 10000; ++q)
 {
   if(q % 100 == 0)
   {
