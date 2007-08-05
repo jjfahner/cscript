@@ -21,6 +21,8 @@
 #include "file.h"
 #include "cmdargs.h"
 #include "ast.h"
+#include "codegen.h"
+#include "machine.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -85,21 +87,28 @@ int compile(CmdArgs const& args)
     return EXIT_FAILURE;
   }
 
-//   // Parse the input file
-//   Parser parser;
-//   parser.ParseFile(files.begin()->first);
-// 
-//   // Create output file
-//   std::ofstream ofs(outFile.c_str(), std::ios::binary);
-// 
-//   // Write file header
-//   ofs.write("\xce\xec", 2);
-// 
-//   // Write code
-//   ofs.write((char*)parser.GetCode(), parser.GetSize());
-// 
-//   // Close file
-//   ofs.close();
+  // Generate ast
+  AstGen astGen;
+  astGen.Parse("test.csc");
+
+  // Generate code
+  CodeGenerator cg;
+  cg.Generate(astGen.GetRoot(), true);
+
+  // Create output file
+  std::ofstream ofs(outFile.c_str(), std::ios::binary);
+
+  // Write file header
+  ofs.write("\xce\xec", 2);
+
+  // Write code
+  ofs.write((char*)cg.GetCode(), cg.GetSize());
+
+  // Close file
+  ofs.close();
+  
+  // Done
+  return 0;
 
   // Succeeded
   return EXIT_SUCCESS;
@@ -163,20 +172,24 @@ int execute(CmdArgs const& args)
   // Fetch code pointer from file
   Byte* code = file.GetData();
 
-//   // Compile code if required
-//   if(file.GetType() == File::source)
-//   {
-//     // Let parser parse input
-//     Parser parser;
-//     parser.ParseText((Char*)file.GetData());
-//     
-//     // Take code from parser
-//     code = parser.ReleaseCode();
-//   }
-// 
-//   // Execute code
-//   StackMachine machine;
-//   machine.Execute(code);
+  // Compile code if required
+  CodeGenerator cg;
+  if(file.GetType() == File::source)
+  {
+    // Generate ast
+    AstGen astGen;
+    astGen.Parse(file);
+
+    // Generate code
+    cg.Generate(astGen.GetRoot(), true);
+    
+    // Take code from parser
+    code = cg.GetCode();
+  }
+
+  // Execute code
+  Machine machine;
+  machine.Execute(code);
 
   // Program succeeded
 	return EXIT_SUCCESS;
@@ -221,11 +234,7 @@ int main(int argc, Char** argv)
   int result = EXIT_FAILURE;
   try
   {
-#   ifdef AST_IMPL
-    return AstGen::main(argc, argv);
-#   else
     result = cscript_main(argc, argv);
-#   endif
   }
   catch(std::exception const& e)
   {

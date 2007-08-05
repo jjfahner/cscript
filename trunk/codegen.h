@@ -50,11 +50,6 @@ public:
   void Write();
 
   //
-  // Execute code
-  //
-  void Execute();
-
-  //
   // Print code
   //
   void Print(String filename, Ast* node);
@@ -63,6 +58,16 @@ public:
   // Decompile code
   //
   void Decompile(Byte* code, Quad len, std::ostream& ofs);
+
+  //
+  // Retrieve code pointer
+  //
+  Byte* GetCode() const;
+
+  //
+  // Retrieve used buffer size
+  //
+  Quad GetSize() const;
   
 private:
 
@@ -157,5 +162,16 @@ private:
 
 };
 
+inline Byte* 
+CodeGenerator::GetCode() const
+{
+  return m_code;
+}
+
+inline Quad 
+CodeGenerator::GetSize() const
+{
+  return m_used;
+}
 
 #endif // CSCRIPT_CODEGEN_H
