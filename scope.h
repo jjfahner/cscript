@@ -60,17 +60,36 @@ public:
   //
   // Find a name
   //
-  int Lookup(String const& name) const
+  int Lookup(String const& name, bool& global) const
   {
+    // Find in local scope
     Names::const_iterator it;
     if((it = m_names.find(name)) != m_names.end())
     {
+      if(m_parent == 0)
+      {
+        global = true;
+      }
       return it->second;
     }
+    
+    // Look in parent scope up to function boundary
     if(m_node->m_type != function_declaration && m_parent)
     {
-      return m_parent->Lookup(name);
+      return m_parent->Lookup(name, global);
     }
+
+    // Find global scope
+    Scope* parent = m_parent;
+    while(parent)
+    {
+      if(parent->m_parent == 0)
+      {
+        return parent->Lookup(name, global);
+      }
+      parent = parent->m_parent;
+    }
+
     std::cout << "Error: variable or parameter '" << name << "' not found\n";
     return 0x7F000000; // TODO
   }

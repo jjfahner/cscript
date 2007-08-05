@@ -356,7 +356,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case lvalue:
-    PushByte(op_pushv);
+    PushByte(node->m_globalvar ? op_pushg : op_pushv);
     PushQuad(node->m_stackpos);
     break;
 

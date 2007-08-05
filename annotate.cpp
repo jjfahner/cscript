@@ -104,7 +104,7 @@ CodeGenerator::AnnotateImpl(Ast* node)
     break;
 
   case lvalue:
-    node->m_stackpos = m_scopeStack.top().Lookup(node->m_a1);
+    node->m_stackpos = m_scopeStack.top().Lookup(node->m_a1, node->m_globalvar);
     break;
 
   case list_literal:
@@ -169,7 +169,7 @@ CodeGenerator::AnnotateImpl(Ast* node)
     break;
 
   case variable_declaration:
-    // AnnotateImpl init expresion *before* declaring the variable,
+    // Annotate init expresion *before* declaring the variable,
     // to make sure that the init expresion uses the previously
     // declared variable when initializing a shadowing variable.
     if(!node->m_a2.empty())

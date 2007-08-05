@@ -149,6 +149,7 @@ public:
   Quad      m_parcount;     // Number of declared parameters
   Quad      m_framesize;    // Size of stack frame
   int       m_stackpos;     // Offset against stack frame (may be negative for parameters)
+  bool      m_globalvar;    // Variable is global
 
 };
 
@@ -165,7 +166,8 @@ m_varcount(0),
 m_argcount(0),
 m_parcount(0),
 m_framesize(0),
-m_stackpos(0)
+m_stackpos(0),
+m_globalvar(0)
 {
 }
 
@@ -178,6 +180,7 @@ m_argcount(0),
 m_parcount(0),
 m_framesize(0),
 m_stackpos(0),
+m_globalvar(0),
 m_a1   (a1)
 {
 }
@@ -191,6 +194,7 @@ m_argcount(0),
 m_parcount(0),
 m_framesize(0),
 m_stackpos(0),
+m_globalvar(0),
 m_a1   (a1),
 m_a2   (a2)
 {
@@ -205,6 +209,7 @@ m_argcount(0),
 m_parcount(0),
 m_framesize(0),
 m_stackpos(0),
+m_globalvar(0),
 m_a1   (a1),
 m_a2   (a2),
 m_a3   (a3)
@@ -220,6 +225,7 @@ m_argcount(0),
 m_parcount(0),
 m_framesize(0),
 m_stackpos(0),
+m_globalvar(0),
 m_a1   (a1),
 m_a2   (a2),
 m_a3   (a3),
