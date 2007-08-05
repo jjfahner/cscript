@@ -112,6 +112,21 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case list_literal:
+    node->m_a1 = Optimize(node->m_a1);
+    break;
+    
+  case list_content:
+    node->m_a1 = Optimize(node->m_a1);
+    if(!node->m_a2.empty())
+    {
+      node->m_a2 = Optimize(node->m_a2);
+    }
+    break;
+    
+  case list_entry:
+    node->m_a1 = Optimize(node->m_a1);
+    break;
+
   case parameter:
   case parameter_list:
     break;

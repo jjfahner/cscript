@@ -1,0 +1,16 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// TODO file for cscript
+//
+
+//
+// Core logic
+//
+- Argument count checking for function calls
+- Integrate function resolving into annotation logic
+- Convert stack to pointers instead of Ref<Variant>
+
+//
+// Application
+//
+- Rebuild command line infrastructure

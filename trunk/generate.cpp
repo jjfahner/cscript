@@ -305,7 +305,23 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case list_literal:
+    PushByte(op_pushl);
+    PushLiteral(Variant::Null);
+    GenerateCode(node->m_a1);
     break;
+
+  case list_content:
+    GenerateCode(node->m_a1);
+    if(!node->m_a2.empty())
+    {
+      GenerateCode(node->m_a2);
+    }
+    break;
+
+  case list_entry:
+    GenerateCode(node->m_a1);
+    PushByte(op_pusha);
+    break;   
 
   case prefix_expression:
     GenerateCode(node->m_a2);

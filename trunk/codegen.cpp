@@ -212,6 +212,13 @@ begin:
     PUSH(stack[ST + (int)ipq]);
     break;
 
+  case op_pusha:
+    POP(P1);
+    POP(P0);
+    R0.Append(P1);
+    PUSH(P0);
+    break;
+
   case op_store:
     POP(P0);
     stack[ST + (int)ipq] = R0;

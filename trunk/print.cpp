@@ -171,21 +171,23 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
   case list_literal:
     {
       s << "[";
-      AstList* list = any_cast<AstList*>(node->m_a1);
-      AstList::iterator si, se;
-      si = list->begin();
-      se = list->end();
-      String sep = "";
-      for(; si != se; ++si)
-      {
-        s << sep;
-        sep = ",";
-        PrintImpl(*si, level, s);
-      }
+      PrintImpl(node->m_a1, level, s);
       s << "]";
     }
     break;
-    return;
+
+  case list_content:
+    PrintImpl(node->m_a1, level, s);
+    if(!node->m_a2.empty())
+    {
+      s << ",";
+      PrintImpl(node->m_a2, level, s);
+    }
+    break;
+
+  case list_entry:
+    PrintImpl(node->m_a1, level, s);
+    break;
 
   case argument_list:
     PrintImpl(node->m_a1, level, s);

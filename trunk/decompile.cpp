@@ -102,6 +102,7 @@ CodeGenerator::Decompile(Byte* source, Quad len, std::ostream& ofs)
     case op_pushl:    ofs << "pushl   "; ofs << Var(source, ipq); break;
     case op_pushv:    ofs << "pushv   "; ofs << (int)ipq; break;
     case op_pushi:    ofs << "pushi   "; break;
+    case op_pusha:    ofs << "pusha   "; break;
     case op_pop:      ofs << "pop     "; break;
     case op_jmp:      ofs << "jmp     "; ofs << Hex(ipq); break;
     case op_jz:       ofs << "jz      "; ofs << Hex(ipq); break;

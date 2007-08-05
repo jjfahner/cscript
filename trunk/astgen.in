@@ -165,7 +165,7 @@ postfix_expression(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN .        
 primary_expression(R) ::= literal(A) .                  { R = A; }
 primary_expression(R) ::= id_expression(A) .            { R = A; }
 primary_expression(R) ::= LPAREN expression(A) RPAREN . { R = A; }
-primary_expression(R) ::= list_definition(A) .          { R = A; }
+primary_expression(R) ::= list_literal(A) .             { R = A; }
 
 // Literals
 literal(R) ::= INTEGER(A) . { R = new Ast(literal, Variant(String(A), Variant::stInt)); }
@@ -179,18 +179,12 @@ literal(R) ::= NULL .       { R = new Ast(literal, Variant());        }
 id_expression(R) ::= IDENTIFIER(A) . { R = new Ast(lvalue, String(A)); }
 
 // List definition
-list_definition(R) ::= LBRACKET list_content(A) RBRACKET . { R = A; }
-list_content(R) ::= expression(A) . { R = A; }
-list_content(R) ::= list_content(A) COMMA expression(B) . { 
-  if(A->m_type == list_literal) {
-    R = A;
-  }
-  else {
-    R = new Ast(list_literal, new AstList);
-    any_cast<AstList*>(R->m_a1)->push_back(A);
-  }
-  any_cast<AstList*>(R->m_a1)->push_back(B);
-}
+list_literal(R) ::= LBRACKET list_content(A) RBRACKET . { R = new Ast(list_literal, A); }
+
+list_content(R) ::= list_entry(A) . { R = new Ast(list_content, A); }
+list_content(R) ::= list_content(A) COMMA list_entry(B) . { R = new Ast(list_content, A, B); }
+
+list_entry(R)   ::= expression(A) . { R = new Ast(list_entry, A); }
 
 //////////////////////////////////////////////////////////////////////////
 //
