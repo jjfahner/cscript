@@ -24,10 +24,12 @@
 #include "types.h"
 #include "var.h"
 
+typedef std::vector<VariantRef> RefStack;
+
 //
 // Native call pointer
 //
-typedef VariantRef (*NativeCall)(std::vector<VariantRef>& stack, Quad numArgs);
+typedef VariantRef (*NativeCall)(RefStack& stack, Quad numArgs);
 
 //
 // Function information
@@ -51,7 +53,7 @@ NativeCallInfo* FindNative(String const& name);
 //
 // Execute a native call
 //
-void ExecNative(Quad index, Quad numArgs, std::vector<VariantRef>& stack, Quad SP);
+void ExecNative(Quad index, Quad numArgs, RefStack& stack, Quad SP);
 
 
 #endif // #ifndef CSCRIPT_NATIVE_CALLS_H

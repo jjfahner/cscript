@@ -1,15 +1,10 @@
+include "test.csi";
+
 if(true)
 {
   1;
   2 == 2;
   "true";
-}
-
-include "test.csi";
-
-function foo()
-{
-  return 0;
 }
 
 // Precedence parsing check

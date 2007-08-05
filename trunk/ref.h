@@ -97,6 +97,14 @@ public:
   }
 
   //
+  // State
+  //
+  bool Empty() const
+  {
+    return m_counted == 0;
+  }
+
+  //
   // Assignment
   //
   Ref const& operator = (Ref const& rhs)
