@@ -149,13 +149,13 @@ binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R 
 
 // Unary expression
 unary_expression(R) ::= postfix_expression(A) .      { R = A; } 
-unary_expression(R) ::= ADDADD unary_expression(A) . { R = new Ast(prefix_expression, op_inc, A); }
-unary_expression(R) ::= SUBSUB unary_expression(A) . { R = new Ast(prefix_expression, op_dec, A); }
+unary_expression(R) ::= ADDADD unary_expression(A) . { R = new Ast(prefix_expression, op_preinc, A); }
+unary_expression(R) ::= SUBSUB unary_expression(A) . { R = new Ast(prefix_expression, op_predec, A); }
 
 // Postfix expression
 postfix_expression(R) ::= primary_expression(A) .                                 { R = A; }
-postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = new Ast(postfix_expression, op_inc, A); }
-postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = new Ast(postfix_expression, op_dec, A); }
+postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = new Ast(postfix_expression, op_postinc, A); }
+postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = new Ast(postfix_expression, op_postdec, A); }
 postfix_expression(R) ::= postfix_expression(A) DOT id_expression(B).             { R = new Ast(member_expression, A, B); }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = new Ast(index_expression, A, B); }
 postfix_expression(R) ::= IDENTIFIER(A) LPAREN                  RPAREN .          { R = new Ast(function_call, String(A)); }

@@ -264,6 +264,11 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     PrintImpl(node->m_a1, level, s);
     s << ")\n";
     PrintImpl(node->m_a2, level, s);
+    if(!node->m_a3.empty())
+    {
+      s << indent << "else\n";
+      PrintImpl(node->m_a3, level, s);
+    }
     break;
 
   case while_statement:

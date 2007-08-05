@@ -42,8 +42,10 @@ enum opcodes
 
   op_store,       // Store top of stack in location
 
-  op_inc,         // Add 1 to value on top of stack
-  op_dec,         // Subtract 1 to value on top of stack
+  op_preinc,      // Add 1 to value on top of stack
+  op_predec,      // Subtract 1 to value on top of stack
+  op_postinc,     // Add 1 to value on top of stack
+  op_postdec,     // Subtract 1 to value on top of stack
 
   op_add,
   op_sub,

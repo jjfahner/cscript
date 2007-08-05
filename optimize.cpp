@@ -410,7 +410,7 @@ CodeGenerator::OptimizeTernaryExpression(Ast* node)
   if(IsType(node->m_a1, literal))
   {
     // Decide which branch to pick
-    if(LiteralAsBool(node->m_a2))
+    if(LiteralAsBool(node->m_a1))
     {
       Ast* res = node->m_a2;
       delete node;
