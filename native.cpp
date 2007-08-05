@@ -58,10 +58,10 @@ struct NativeCallRegistrar
 };
 
 #define NATIVE_CALL(name,minPar,maxPar)                     \
-  VariantRef Native_##name(std::vector<VariantRef>&, Quad); \
+  VariantRef Native_##name(RefStack&, Quad);                \
   NativeCallRegistrar register_##name(#name,                \
     Native_##name, minPar, maxPar);                         \
-  VariantRef Native_##name(std::vector<VariantRef>& args, Quad numArgs)
+  VariantRef Native_##name(RefStack& args, Quad numArgs)
 
 //
 // Find a native call index
@@ -87,7 +87,7 @@ FindNative(String const& name)
 // Execute a native call
 //
 void 
-ExecNative(Quad index, Quad numArgs, std::vector<VariantRef>& stack, Quad SP)
+ExecNative(Quad index, Quad numArgs, RefStack& stack, Quad SP)
 {
   static NativeCalls& ncv = getNativeCalls();
 
@@ -104,6 +104,18 @@ ExecNative(Quad index, Quad numArgs, std::vector<VariantRef>& stack, Quad SP)
   // Call function
   stack[SP-1] = ncv[index]->m_funPtr(args, numArgs);
 }
+
+inline void 
+AssertType(RefStack& args, Quad index, Variant::SubTypes type, char const* function)
+{
+  if(args[index].Empty() || args[index]->GetType() != type)
+  {
+    throw std::runtime_error("Invalid argument passed to " + String(function));
+  }
+}
+
+#define ASSERT_TYPE(idx,type) \
+  AssertType(args, idx, Variant::type, __FUNCTION__)
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -177,15 +189,6 @@ NATIVE_CALL(read, 0, 0)
   return Variant(line);
 }
 
-NATIVE_CALL(length, 1, 1)
-{
-  if(args[0]->GetType() != Variant::stString)
-  {
-    throw std::runtime_error("Invalid type for length");
-  }
-  return Variant(args[0]->GetString().length());
-}
-
 NATIVE_CALL(count, 1, 1)
 {
   if(args[0]->GetType() != Variant::stAssoc)
@@ -200,3 +203,80 @@ NATIVE_CALL(exec, 1, 1)
   // Pass to system
   return Variant(system(args[0]->GetString().c_str()));
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// String functions
+//
+
+NATIVE_CALL(length, 1, 1)
+{
+  ASSERT_TYPE(0, stString);
+  return Variant(args[0]->GetString().length());
+}
+
+NATIVE_CALL(substr, 2, 3)
+{
+  ASSERT_TYPE(0, stString);
+  ASSERT_TYPE(1, stInt);
+  if(numArgs == 2)
+  {
+    return Variant(
+      args[0]->GetString().substr(
+      (int)args[1]->GetInt()));
+  }
+  ASSERT_TYPE(2, stInt);
+  return Variant(
+    args[0]->GetString().substr(
+    (int)args[1]->GetInt(), 
+    (int)args[2]->GetInt()));
+}
+
+NATIVE_CALL(strstr, 2, 3)
+{
+  ASSERT_TYPE(0, stString);
+  ASSERT_TYPE(1, stString);
+  Quad offset = 0;
+  if(numArgs == 3)
+  {
+    ASSERT_TYPE(2, stInt);
+    offset = (Quad)args[2]->GetInt();
+  }
+  String const& src = args[0]->GetString();
+  String const& str = args[1]->GetString();
+  if(str.length() < 1)
+  {
+    throw std::runtime_error("Empty string in call to strstr");
+  }
+  size_t res = src.find(str, offset);
+  if(res == String::npos)
+  {
+    return Variant(-1);
+  }
+  return Variant(res);
+}
+
+NATIVE_CALL(strchr, 2, 3)
+{
+  ASSERT_TYPE(0, stString);
+  ASSERT_TYPE(1, stString);
+  Quad offset = 0;
+  if(numArgs == 3)
+  {
+    ASSERT_TYPE(2, stInt);
+    offset = (Quad)args[2]->GetInt();
+  }
+  String const& src = args[0]->GetString();
+  String const& chr = args[1]->GetString();
+  if(chr.length() < 1)
+  {
+    throw std::runtime_error("Empty string in call to strchr");
+  }
+  size_t res = src.find(chr[0], offset);
+  if(res == String::npos)
+  {
+    return Variant(-1);
+  }
+  return Variant(res);
+}
+

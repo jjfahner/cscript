@@ -196,18 +196,18 @@ CodeGenerator::OptimizeIfStatement(Ast* node)
   // Optimize condition expression
   node->m_a1 = Optimize(node->m_a1);
   
-  // If the condition is constant, Optimize to corresponding branch
-  if(any_cast<Ast*>(node->m_a1)->m_type == literal)
+  // If the condition is constant, reduce to the corresponding branch
+  if(IsType(node->m_a1, literal))
   {
-    // Use if branch
-    if(any_cast<Variant>(any_cast<Ast*>(node->m_a1)->m_a1).AsBool())
+    // Use true branch
+    if(LiteralAsBool(node->m_a1))
     {
       Ast* res = Optimize(node->m_a2);
       delete node;
       return res;
     }
 
-    // Use else branch
+    // Use false branch
     if(!node->m_a3.empty())
     {
       // Use 'false' branch
@@ -221,14 +221,14 @@ CodeGenerator::OptimizeIfStatement(Ast* node)
     return new Ast(empty_statement);
   }
 
-  // Optimize if branch
+  // Optimize true branch
   node->m_a2 = Optimize(node->m_a2);
 
   // Emptyness
   bool le = IsType(node->m_a2, empty_statement);
   bool re = true;
 
-  // Optimize else branch
+  // Optimize false branch
   if(!node->m_a3.empty())
   {
     node->m_a3 = Optimize(node->m_a3);

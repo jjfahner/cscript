@@ -95,6 +95,20 @@ function main()
   if(false) a = 1; else a = 2;
   errors += assert("If", a, 2);
   
+  // Substring
+  a = "Hello world";
+  errors += assert("Substring", substr(a, 0, 5), "Hello");
+  errors += assert("Substring", substr(a, 6),    "world");
+  errors += assert("Strchr",    strchr(a, "H"),     0);
+  errors += assert("Strchr",    strchr(a, "h"),    -1);
+  errors += assert("Strchr",    strchr(a, "o"),     4);
+  errors += assert("Strchr",    strchr(a, "o", 5),  7);
+  errors += assert("Strstr",    strstr(a, "He"),    0);
+  errors += assert("Strstr",    strstr(a, "wo"),    6);
+  errors += assert("Strstr",    strstr(a, "wa"),   -1);
+  errors += assert("Strstr",    strstr(a, "wo", 2), 6);
+
+
   // Print result
   if(errors == 0)
   {
