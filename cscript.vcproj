@@ -213,30 +213,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cscript.in"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating parser"
-						CommandLine="lemon.exe cscript.in&#x0D;&#x0A;"
-						Outputs="cscript.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Compiling grammar"
-						CommandLine="lemon cscript.in&#x0D;&#x0A;"
-						Outputs="cscript.c"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\decompile.cpp"
 				>
 			</File>
