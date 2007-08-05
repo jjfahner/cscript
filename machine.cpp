@@ -18,341 +18,315 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "tokens.h"
+#include "opcodes.h"
 #include "machine.h"
 #include "native.h"
 
-StackMachine::StackMachine()
+inline Byte NextByte(Byte*& code)
 {
-  // Create initial stack frame
-  PushStackFrame();
-}
-
-StackMachine::~StackMachine()
-{
-  // Pop initial stack frame
-  PopStackFrame();
-
-  // Check stack
-  if(m_varStack.size() != 0)
-  {
-    throw std::runtime_error("Stack not empty");
-  }
-}
-
-inline Byte EatByte(Byte*& source)
-{
-  Byte b = *source;
-  ++source;
+  Byte b = *code;
+  code += 1;
   return b;
 }
 
-inline Word EatWord(Byte*& source)
+inline Word NextWord(Byte*& code)
 {
-  Word w = *(Word*)source;
-  source += 2;
-  return w;
+  Word b = *(Word*)code;
+  code += 2;
+  return b;
 }
 
-inline Quad EatQuad(Byte*& source)
+inline Quad NextQuad(Byte*& code)
 {
-  Quad q = *(Quad*)source;
-  source += 4;
-  return q;
+  Quad b = *(Quad*)code;
+  code += 4;
+  return b;
 }
 
-void 
-StackMachine::AddVar(Quad id)
+inline Variant ReadLiteral(Byte* code)
 {
-  m_varStack.top()[id] = VariantRef(new Variant);
-}
-
-void 
-StackMachine::AddVar(Quad id, VariantRef const& value)
-{
-  m_varStack.top()[id] = value;
-}
-
-void
-StackMachine::DelVar(Quad id)
-{
-  m_varStack.top().erase(id);
+  Variant v;
+  v.Read(code);
+  return v;
 }
 
 void 
-StackMachine::PushVar(Quad id)
+Machine::Execute(Byte* source, Quad offset)
 {
-#ifdef _DEBUG
-  if(m_varStack.top().count(id) == 0)
-  {
-    throw std::runtime_error("Variable not created");
-  }
-#endif
-  m_stack.push(m_varStack.top()[id]);
-}
+  // Instruction pointers
+  #define ipb (NextByte(code))
+  #define ipw (NextWord(code))
+  #define ipq (NextQuad(code))
 
-void
-StackMachine::PushLiteral(Byte* address)
-{
-  VariantRef ref(new Variant);
-  ref->Read(address);
-  m_stack.push(ref);
-}
+  // Set code pointers
+  Byte* base = source;
+  Byte* code = source + offset;
 
-//
-// Main loop
-//
-void 
-StackMachine::Execute(Byte* base, Quad offset)
-{
-  // Create registers
-  m_registers.clear();
-  m_registers.resize(2);
+  // Create stacks
+  std::vector<VariantRef> stack;    // Temporaries
+  std::stack<Quad>        tstack;   // Stack top
+  std::stack<Quad>        rstack;   // Return stack
 
-  // Create register refs
-  VariantRef& P0 = m_registers[0];
-  VariantRef& P1 = m_registers[1];
+  // Resize stack
+  stack.resize(10000);
 
-  // Define aliasses
+  // Stack info
+  Quad ST = 0;
+  Quad SP = 0;
+
+  // Stack manipulation
+  #define PUSH(arg) stack[SP++] = arg
+  #define POP(arg)  { arg = stack[--SP]; stack[SP].Clear(); }
+
+  // Temporaries
+  VariantRef P0, P1;
   #define R0 (*P0)
   #define R1 (*P1)
+  Quad Q0;
+  Word W0, W1;
 
-  // Code pointers
-  Byte* code = base + offset;
+  // Start of instruction
+begin:
 
-  // Helpers
-  Quad temp;
-  Word w1, w2;
-
-  // Execute code
-  for(;;)
+  // Execute single instruction
+  switch(ipb)
   {
-    Byte ins = EatByte(code);
-    switch(ins)
-    {
-    case TOK_HALT:
-      return;
+  case op_halt:
+    return;
 
-    case TOK_VAR:      
-      AddVar(EatQuad(code));
-      break;
+  case op_stackg:
+    tstack.push(ST);
+    ST = SP;
+    SP = SP + ipq;
+    break;
 
-    case TOK_VARINIT:
-      PopStack(0);
-      AddVar(EatQuad(code), P0);
-      break;
+  case op_stacks:
+    ST = tstack.top();
+    SP = SP - ipq;
+    tstack.pop();
+    break;
 
-    case TOK_LVALUE:
-      PushVar(EatQuad(code));
-      break;
+  case op_stackt:
+    Q0 = ipq;
+    stack[SP - Q0 - 1] = stack[SP - 1];
+    SP -= Q0;
+    break;
 
-    case TOK_RVALUE:
-      PushLiteral(base + EatQuad(code));
-      break;
+  case op_pushl:
+    PUSH(ReadLiteral(base + ipq));
+    break;
 
-    case TOK_INDEX:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0[R1]);
-      break;
+  case op_pushv:
+    PUSH(stack[ST + (int)ipq]);
+    break;
 
-    case TOK_ARRAY:
-      PopStack(1);
-      PopStack(0);
-      R0.Append(P1);
-      PushStack(P0);
-      break;
+  case op_pusha:
+    POP(P1);
+    POP(P0);
+    R0.Append(P1);
+    PUSH(P0);
+    break;
 
-    case TOK_POP:
-      m_stack.pop();
-      break;
+  case op_store:
+    POP(P0);
+    stack[ST + (int)ipq] = R0;
+    break;
 
-    case TOK_UNDEF:
-      DelVar(EatQuad(code));
-      break;
+  case op_pushi:
+    POP(P1);
+    POP(P0);
+    PUSH((R0)[R1]);
+    break;
 
-    case TOK_JMP:
-      code = base + EatQuad(code);
-      break;
+  case op_pop:
+    --SP;
+    break;
 
-    case TOK_JZ:
-      PopStack(0);
-      temp = EatQuad(code);
-      if(!R0.AsBool())
-        code = base + temp;
-      break;
+  case op_jmp:
+    code = base + ipq;
+    break;
 
-    case TOK_JNZ:
-      PopStack(0);
-      temp = EatQuad(code);
-      if(R0.AsBool())
-        code = base + temp;
-      break;
+  case op_jz:
+    Q0 = ipq;
+    POP(P0);
+    if(!R0) code = base + Q0;
+    break;
 
-    case TOK_CALL:
-      temp = EatQuad(code);
-      PushRet((Quad)(code - base));      
-      code = base + temp;
-      PushStackFrame();
-      break;
+  case op_jnz:
+    Q0 = ipq;
+    POP(P0);
+    if(R0) code = base + Q0;
+    break;
 
-    case TOK_CALLN:
-      w1 = EatWord(code);
-      w2 = EatWord(code);
-      //ExecNative(w1, *this, w2);
-      break;        
+  case op_call:
+    Q0 = ipq;
+    rstack.push((Quad)(code - base));
+    code = base + Q0;
+    break;
 
-    case TOK_RET:
-      code = base + PopRet();
-      PopStackFrame();
-      break;
+  case op_calln:
+    W0 = ipw;
+    W1 = ipw;
+    ExecNative(W0, W1, stack, SP);
+    break;
 
-    case TOK_ADDOP:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 + R1);
-      break;
+  case op_ret:
+    code = base + rstack.top();
+    rstack.pop();
+    break;
 
-    case TOK_SUBOP:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 - R1);
-      break;
+  case op_preinc:
+    ++(*stack[SP-1]);
+    break;
+  case op_predec:
+    --(*stack[SP-1]);
+    break;
 
-    case TOK_MULOP:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 * R1);
-      break;
+  case op_postinc:
+    POP(P0);
+    PUSH(R0);
+    ++R0;
+    break;
+  case op_postdec:
+    POP(P0);
+    PUSH(R0);
+    --R0;
+    break;
 
-    case TOK_DIVOP:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 / R1);
-      break;
+  case op_add:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 + R1);
+    break;
 
-    case TOK_MODOP:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 % R1);
-      break;
+  case op_sub:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 - R1);
+    break;
 
-    case TOK_LOGOR:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 || R1);
-      break;
+  case op_mul:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 * R1);
+    break;
 
-    case TOK_LOGAND:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 && R1);
-      break;
+  case op_div:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 / R1);
+    break;
 
-    case TOK_GT:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 > R1);
-     break;
+  case op_mod:  
+    POP(P1);
+    POP(P0);
+    PUSH(R0 % R1);
+    break;
 
-    case TOK_GE:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 >= R1);
-      break;
+  case op_logor:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 || R1);
+    break;
 
-    case TOK_ST:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 < R1);
-      break;
+  case op_logand:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 && R1);
+    break;
 
-    case TOK_SE:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 <= R1);
-      break;
+  case op_eq:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 == R1);
+    break;
 
-    case TOK_EQUALS:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 == R1);
-      break;
+  case op_ne:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 != R1);
+    break;
 
-    case TOK_NEQUALS:
-      PopStack(1);
-      PopStack(0);
-      PushStack(R0 != R1);
-      break;
+  case op_lt:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 < R1);
+    break;
 
-    case TOK_PREINC:
-      PopStack(0);
-      R0 += 1LL;
-      PushStack(P1);
-      break;
+  case op_le:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 <= R1);
+    break;
 
-    case TOK_PRESUB:
-      PopStack(0);
-      R0 -= 1LL;
-      PushStack(P1);
-      break;
+  case op_gt:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 > R1);
+    break;
 
-    case TOK_POSTINC:
-      PopStack(0);
-      PushStack(R0);
-      R0 += 1LL;
-      break;
+  case op_ge:
+    POP(P1);
+    POP(P0);
+    PUSH(R0 >= R1);
+    break;
 
-    case TOK_POSTSUB:
-      PopStack(0);
-      PushStack(R0);
-      R0 -= 1LL;
-      break;
+  case op_assign:
+    POP(P1);
+    POP(P0);
+    R0 = R1;
+    PUSH(P0);
+    break;
 
-    case TOK_ASSIGN:
-      PopStack(1);
-      PopStack(0);
-      R0 = R1;
-      PushStack(P0);
-      break;
+  case op_assadd:
+    POP(P1);
+    POP(P0);
+    R0 += R1;
+    PUSH(P0);
+    break;
 
-    case TOK_ASSADD:
-      PopStack(1);
-      PopStack(0);
-      R0 += R1;
-      PushStack(P0);
-      break;
+  case op_asssub:
+    POP(P1);
+    POP(P0);
+    R0 -= R1;
+    PUSH(P0);
+    break;
 
-    case TOK_ASSSUB:
-      PopStack(1);
-      PopStack(0);
-      R0 -= R1;
-      PushStack(P0);
-      break;
+  case op_assmul:
+    POP(P1);
+    POP(P0);
+    R0 *= R1;
+    PUSH(P0);
+    break;
 
-    case TOK_ASSMUL:
-      PopStack(1);
-      PopStack(0);
-      R0 *= R1;
-      PushStack(P0);
-      break;
+  case op_assdiv:
+    POP(P1);
+    POP(P0);
+    R0 /= R1;
+    PUSH(P0);
+    break;
 
-    case TOK_ASSDIV:
-      PopStack(1);
-      PopStack(0);
-      R0 /= R1;
-      PushStack(P0);
-      break;
+  case op_assmod:
+    POP(P1);
+    POP(P0);
+    R0 %= R1;
+    PUSH(P0);
+    break;
 
-    case TOK_ASSMOD:
-      PopStack(1);
-      PopStack(0);
-      R0 %= R1;
-      PushStack(P0);
-      break;
+//   case op_bitor:
+//   case op_bitxor:
+//   case op_bitand:  
+//     break;
 
-    default:
-      throw std::runtime_error("Invalid instruction");
-    }
+  default:
+    goto invalid;
   }
+
+  // Next instruction
+  goto begin;
+
+// Invalid instruction
+invalid:
+
+  std::cout << "Invalid instruction\n";
 }

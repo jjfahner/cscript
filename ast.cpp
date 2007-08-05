@@ -23,27 +23,7 @@
 #include "file.h"
 #include "lexer.h"
 #include "codegen.h"
-
-int
-AstGen::main(int argc, char** argv)
-{
-  AstGen astGen;
-
-  // Parse file
-  astGen.Parse("testsuite.csc");
-
-  // Generate code
-  CodeGenerator cg;
-  cg.Generate(astGen.m_root, true);
-  cg.Write();
-  cg.Execute();
-
-  // Wait for input
-  std::cin.get();
-
-  // Done
-  return 0;
-}
+#include "machine.h"
 
 AstGen::AstGen() :
 m_root (0)
@@ -58,6 +38,13 @@ AstGen::Parse(String const& filename)
   File file;
   file.Open(filename);
 
+  // Parse file
+  Parse(file);
+}
+
+void
+AstGen::Parse(File& file)
+{
   // Check type
   if(file.GetType() != File::source)
   {
@@ -70,8 +57,6 @@ AstGen::Parse(String const& filename)
 
   // Allocate parser
   void *pParser = AstGenParseAlloc(malloc);
-
-  //AstGenParseTrace(stdout, "> ");
 
   // Try block for parser memory management
   try 

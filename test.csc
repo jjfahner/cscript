@@ -82,8 +82,8 @@ while(a[0][1] < 10)
 print("\n");
 
 // List notation
-//var arr = [1, 2, 3, ["true", "false"], [[1], true, false]];
-//print(arr); print("\n");
+var arr = [1, 2, 3, ["true", "false"], [[1], true, false]];
+print(arr); print("\n");
 
 for(var q = 0; q < 10000; ++q)
 {

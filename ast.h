@@ -28,6 +28,7 @@
 #include "opcodes.h"
 
 class Ast;
+class File;
 typedef std::vector<any> AnyVec;
 typedef std::list<Ast*> AstList;
 
@@ -81,11 +82,6 @@ class AstGen
 public:
 
   //
-  // Entry point
-  //
-  static int main(int argc, char** argv);
-
-  //
   // Construction
   //
   AstGen();
@@ -93,6 +89,7 @@ public:
   //
   // Parse a file
   //
+  void Parse(File& file);
   void Parse(String const& filename);
 
   //
