@@ -174,7 +174,7 @@ NATIVE_CALL(read, 0, 0)
 {
   String line;
   cin >> line;
-  return line;
+  return Variant(line);
 }
 
 NATIVE_CALL(length, 1, 1)
