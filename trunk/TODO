@@ -11,5 +11,11 @@
 - Convert stack to pointers instead of Ref<Variant>
 
 //
+// Binary format
+//
+- Implement proper binary header with segment offsets
+  and length, and propably a checksum.
+
+//
 // Application
 //

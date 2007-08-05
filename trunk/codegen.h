@@ -104,6 +104,7 @@ private:
   Ast* OptimizeExpressionStatement(Ast*);
   Ast* OptimizeCompoundStatement(Ast*);
   Ast* OptimizeAssignmentExpression(Ast*);
+  Ast* OptimizePrefixExpression(Ast*);
 
   //
   // Printing

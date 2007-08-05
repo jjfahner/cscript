@@ -149,6 +149,7 @@ binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R 
 
 // Unary expression
 unary_expression(R) ::= postfix_expression(A) .      { R = A; } 
+unary_expression(R) ::= SUBOP  unary_expression(A) . { R = new Ast(prefix_expression, op_negate, A); }
 unary_expression(R) ::= ADDADD unary_expression(A) . { R = new Ast(prefix_expression, op_preinc, A); }
 unary_expression(R) ::= SUBSUB unary_expression(A) . { R = new Ast(prefix_expression, op_predec, A); }
 
