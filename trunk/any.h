@@ -92,7 +92,7 @@ public:
   //
   //  Type info for current type
   //
-  type_info const& typeinfo() const
+  std::type_info const& typeinfo() const
   {
     if(m_holder)
     {
@@ -163,7 +163,7 @@ private:
     virtual holder_base* clone() const = 0;
 
     //  Retrieve type id for contained type
-    virtual type_info const& typeinfo() const = 0;
+    virtual std::type_info const& typeinfo() const = 0;
 
     //  Compare to one another
     virtual bool equals(holder_base const*) const = 0;
@@ -193,7 +193,7 @@ private:
     }
 
     //  Type info
-    virtual type_info const& typeinfo() const
+    virtual std::type_info const& typeinfo() const
     {
       return typeid(m_value);
     }
