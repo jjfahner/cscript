@@ -138,7 +138,7 @@ public:
   //  Implicit conversion
   //
   template <typename T>
-  operator T const& () const
+  operator T () const
   {
     if(holder<T>* h = dynamic_cast<holder<T>*>(m_holder))
     {
