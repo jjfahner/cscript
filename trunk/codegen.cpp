@@ -175,6 +175,7 @@ CodeGenerator::Execute()
   #define R0 (*P0)
   #define R1 (*P1)
   Quad Q0;
+  Word W0, W1;
 
   // Start of instruction
 begin:
@@ -249,7 +250,9 @@ begin:
     break;
 
   case op_calln:
-    ExecNative(ipq, stack, SP);
+    W0 = ipw;
+    W1 = ipw;
+    ExecNative(W0, W1, stack, SP);
     break;
 
   case op_ret:

@@ -81,14 +81,23 @@ CodeGenerator::Generate(Ast* node, bool release)
     }
 
     // Fix calls
-    QuadList::iterator oi, oe;
+    Calls::iterator oi, oe;
     oi = ci->second.begin();
     oe = ci->second.end();
     for(; oi != oe; ++oi)
     {
-      Quad pos = *oi;
-      *(Byte*)(m_code + pos)     = opcode;
-      *(Quad*)(m_code + pos + 1) = offset;
+      Quad pos = oi->first;
+      if(opcode == op_call)
+      {
+        *(Byte*)(m_code + pos)     = opcode;
+        *(Quad*)(m_code + pos + 1) = offset;
+      }
+      else
+      {
+        *(Byte*)(m_code + pos)     = opcode;
+        *(Word*)(m_code + pos + 1) = offset;
+        *(Word*)(m_code + pos + 3) = oi->second;
+      }
       pos = 0;
     }
   }
@@ -399,7 +408,7 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
   PushLiteral(Variant::Null);
 
   // Push call to function
-  m_calls[node->m_a1].push_back(m_used);
+  m_calls[node->m_a1].push_back(Call(m_used, node->m_argcount));
   PushByte(op_call);
   PushQuad(0);
 

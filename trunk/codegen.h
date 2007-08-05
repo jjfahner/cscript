@@ -131,7 +131,9 @@ private:
   // Containers
   //
   typedef std::list<Quad> QuadList;
-  typedef std::map<String, QuadList> CallList;
+  typedef std::pair<Quad, Quad> Call;
+  typedef std::list<Call> Calls;
+  typedef std::map<String, Calls> CallList;
   typedef std::pair<Ast*, Quad> Function;
   typedef std::map<String, Function> Functions;
   typedef std::map<Variant, QuadList, Variant::LessExact> Literals;
