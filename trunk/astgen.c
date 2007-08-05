@@ -1355,7 +1355,7 @@ static void yy_reduce(
         break;
       case 86:
 #line 243 "astgen.in"
-{ if(yymsp[0].minor.yy127 == 0) { __asm int 3 } yygotominor.yy127 = new Ast(variable_declaration, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy127); }
+{ yygotominor.yy127 = new Ast(variable_declaration, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy127); }
 #line 1361 "astgen.c"
         break;
       case 87:
