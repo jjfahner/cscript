@@ -322,12 +322,17 @@ public:
   int Compare(Variant const& rhs, bool exact = false) const;
 
   //
-  // Operators
+  // Unary operators
   //
+  Variant operator - () const;
   Variant operator ++ (int);
   Variant operator -- (int);
   Variant const& operator ++ ();
   Variant const& operator -- ();
+
+  //
+  // Binary operators
+  //
   Variant const& operator += (Variant const& value);
   Variant const& operator -= (Variant const& value);
   Variant const& operator *= (Variant const& value);
@@ -384,6 +389,18 @@ private:
 //
 // Mathematical operations
 //
+
+inline Variant 
+Variant::operator - () const
+{
+  if(m_type != stInt)
+  {
+    throw std::runtime_error("Invalid subtype for unary minus");
+  }
+  Variant tmp(*this);
+  tmp.m_int = -tmp.m_int;
+  return tmp;
+}
 
 inline Variant 
 Variant::operator ++ (int)

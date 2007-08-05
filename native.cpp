@@ -209,7 +209,7 @@ NATIVE_CALL(exec, 1, 1)
 // String functions
 //
 
-NATIVE_CALL(length, 1, 1)
+NATIVE_CALL(strlen, 1, 1)
 {
   ASSERT_TYPE(0, stString);
   return Variant(args[0]->GetString().length());

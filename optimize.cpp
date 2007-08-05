@@ -76,7 +76,7 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case prefix_expression:
-    node->m_a2 = Optimize(node->m_a2);
+    node = OptimizePrefixExpression(node);
     break;
 
   case postfix_expression:
@@ -547,6 +547,24 @@ CodeGenerator::OptimizeCompoundStatement(Ast* node)
   if(IsType(node->m_a1, empty_statement))
   {
     Ast* res = node->m_a1;
+    delete node;
+    node = res;
+  }
+
+  // Done
+  return node;
+}
+
+Ast* 
+CodeGenerator::OptimizePrefixExpression(Ast* node)
+{
+  // Optimize subexpression
+  node->m_a2 = Optimize(node->m_a2);
+
+  // Reduce negation of literal
+  if(IsType(node->m_a2, literal))
+  {
+    Ast* res = new Ast(literal, -LiteralAsVariant(node->m_a2));
     delete node;
     node = res;
   }

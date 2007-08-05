@@ -179,6 +179,11 @@ begin:
     rstack.pop();
     break;
 
+  case op_negate:
+    POP(P0);
+    PUSH(-R0);
+    break;
+
   case op_preinc:
     ++(*stack[SP-1]);
     break;

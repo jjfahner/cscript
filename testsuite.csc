@@ -49,24 +49,28 @@ function assert(description, result, expected)
 function main()
 {
   print("cscript test suite\n\n");
- 
-  // Arithmetic operations
-  assert("Add", 2 + 2, 4);
-  assert("Add", -2 + 4, 2);
-  assert("Subtract", 2 - 2, 0);
-  assert("Subtract", 2 - 4, -2);
-  assert("Subtract", 4 - 2, 2);
-  assert("Subtract", 2 - 2, 0);
-  assert("Multiply", 2 * 2, 4);
-  assert("Multiply", 1 * 4, 4);
-  assert("Multiply", 1 * 0, 0);
-  assert("Modulo",   3 % 2, 1);
-  assert("Modulo",   2 % 2, 0);
-  
-  // String functionality
-  assert("String length", length(""), 0);
-  assert("String length", length("Hello"), 5);  
 
+  // To fool the optimizer, use variables
+  // instead of literals in expressions.
+  var a0 = 0;
+  var a1 = 1;
+  var a2 = 2;
+  var a3 = 3;
+  var a4 = 4;
+
+  // Arithmetic operations
+  assert("Add",       a2 + a2, a4);
+  assert("Add",      -a2 + a4, a2);
+  assert("Subtract",  a2 - a2, a0);
+  assert("Subtract",  a2 - a4, -a2);
+  assert("Subtract",  a4 - a2, a2);
+  assert("Subtract",  a2 - a2, a0);
+  assert("Multiply",  a2 * a2, a4);
+  assert("Multiply",  a1 * a4, a4);
+  assert("Multiply",  a1 * a0, a0);
+  assert("Modulo",    a3 % a2, a1);
+  assert("Modulo",    a2 % a2, a0);
+  
   // Inline variable initialization
   var a = 10, b = 12;
   assert("Variable initialization", a, 10);
@@ -96,16 +100,17 @@ function main()
   
   // Substring
   a = "Hello world";
-  assert("Substring", substr(a, 0, 5), "Hello");
-  assert("Substring", substr(a, 6),    "world");
-  assert("Strchr",    strchr(a, "H"),     0);
-  assert("Strchr",    strchr(a, "h"),    -1);
-  assert("Strchr",    strchr(a, "o"),     4);
-  assert("Strchr",    strchr(a, "o", 5),  7);
-  assert("Strstr",    strstr(a, "He"),    0);
-  assert("Strstr",    strstr(a, "wo"),    6);
-  assert("Strstr",    strstr(a, "wa"),   -1);
-  assert("Strstr",    strstr(a, "wo", 2), 6);
+  assert("substr", substr(a, 0, 5), "Hello");
+  assert("substr", substr(a, 6),    "world");
+  assert("strlen", strlen(a),         11);
+  assert("strchr", strchr(a, "H"),     0);
+  assert("strchr", strchr(a, "h"),    -1);
+  assert("strchr", strchr(a, "o"),     4);
+  assert("strchr", strchr(a, "o", 5),  7);
+  assert("strstr", strstr(a, "He"),    0);
+  assert("strstr", strstr(a, "wo"),    6);
+  assert("strstr", strstr(a, "wa"),   -1);
+  assert("strstr", strstr(a, "wo", 2), 6);
 
 
   // Print result
