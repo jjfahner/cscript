@@ -1,5 +1,6 @@
 #include "codegen.h"
 #include "native.h"
+#include "file.h"
 
 void 
 CodeGenerator::Generate(Ast* node, bool release)
@@ -20,6 +21,14 @@ CodeGenerator::Generate(Ast* node, bool release)
   // Gather information
   Annotate(node);
 
+  // Reserve header space
+  Reserve(sizeof(BinHeader));
+  m_used += sizeof(BinHeader);
+  memset(m_code, 0, sizeof(BinHeader));
+
+  // Store start of global code segment
+  ((BinHeader*)m_code)->m_codeseg = m_used;
+
   // Generate initial stack frame
   PushByte(op_stackg);
   PushQuad(node->m_framesize);
@@ -29,6 +38,12 @@ CodeGenerator::Generate(Ast* node, bool release)
 
   // Generate halt instruction
   PushByte(op_halt);
+
+  // Store length of code segment
+  ((BinHeader*)m_code)->m_codelen = m_used - ((BinHeader*)m_code)->m_codeseg;
+
+  // Store start of function segment
+  ((BinHeader*)m_code)->m_procseg = m_used;
 
   // Generate functions
   Functions::iterator fi, fe;
@@ -97,9 +112,12 @@ CodeGenerator::Generate(Ast* node, bool release)
       pos = 0;
     }
   }
-  
-  // Remember last code position
-  Quad used = m_used;
+
+  // Store length of proc segment
+  ((BinHeader*)m_code)->m_proclen = m_used - ((BinHeader*)m_code)->m_procseg;
+
+  // Start of data segment
+  ((BinHeader*)m_code)->m_dataseg = m_used;
 
   // Generate literals
   Literals::iterator li, le;
@@ -123,13 +141,19 @@ CodeGenerator::Generate(Ast* node, bool release)
     for(; qi != qe; ++qi)
     {
       *(Quad*)(m_code + *qi) = offset;
-    }
-    
+    }  
   }
 
-  // Decompile code
-  std::ofstream ofs("cscript-dec.txt");
-  Decompile(m_code, used, ofs);
+  // Store length of data segment
+  ((BinHeader*)m_code)->m_datalen = m_used - ((BinHeader*)m_code)->m_dataseg;
+
+  // Store total length
+  ((BinHeader*)m_code)->m_filelen = m_used;
+
+  // Finalize header
+  ((BinHeader*)m_code)->m_magic   = FILE_MAGIC;
+  ((BinHeader*)m_code)->m_compver = COMPVER;
+  ((BinHeader*)m_code)->m_machver = MACHVER;
 }
 
 Quad 

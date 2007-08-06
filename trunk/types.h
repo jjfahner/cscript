@@ -60,10 +60,22 @@ typedef int64_t           int64;
 
 #endif
 
+#define MAKEVER(major,minor,revision,patch) ((major<<24)|(minor<<16)|(revision<<8)|patch)
+
 //
-// Switch between current and new implementation
+// Compiler version
 //
-#define AST_IMPL
+#define COMPVER (MAKEVER(0,4,0,0))
+
+//
+// Machine version
+//
+#define MACHVER (MAKEVER(0,4,0,0))
+
+//
+// File magic
+//
+#define FILE_MAGIC (MAKEVER(0xc0,0xc1,0xa0,0xa1))
 
 //
 // Char type

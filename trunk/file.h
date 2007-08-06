@@ -23,6 +23,33 @@
 
 #include "types.h"
 
+//
+// Header for compiled file
+//
+struct BinHeader
+{
+  // General
+  Quad    m_magic;
+  Quad    m_compver;
+  Quad    m_machver;
+  Quad    m_filelen;
+
+  // Global code segment
+  Quad    m_codeseg;
+  Quad    m_codelen;
+
+  // Procedure segment
+  Quad    m_procseg;
+  Quad    m_proclen;
+
+  // Data segment
+  Quad    m_dataseg;
+  Quad    m_datalen;
+};
+
+//
+// File wrapper
+//
 class File 
 {
 public:
@@ -73,6 +100,11 @@ public:
   // File type
   //
   FileTypes GetType() const;
+
+  //
+  // Binary header
+  //
+  BinHeader* GetHeader() const;
 
   //
   // Get length

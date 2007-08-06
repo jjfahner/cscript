@@ -45,6 +45,11 @@ public:
   void Generate(Ast* root, bool release);
 
   //
+  // Release code pointe
+  //
+  Byte* ReleaseCode();
+
+  //
   // Annotation
   //
   void Annotate(Ast*);
@@ -68,7 +73,7 @@ public:
   //
   // Decompile code
   //
-  void Decompile(Byte* code, Quad len, std::ostream& ofs);
+  void Decompile(Byte* code, Quad offset, Quad len, std::ostream& ofs);
 
   //
   // Retrieve code pointer
