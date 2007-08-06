@@ -77,6 +77,7 @@ Machine::Execute(Byte* source, Quad offset)
   // Stack manipulation
   #define PUSH(arg) stack[SP++] = arg
   #define POP(arg)  { arg = stack[--SP]; stack[SP].Clear(); }
+  #define TOP (*(stack[SP-1]))
 
   // Temporaries
   VariantRef P0, P1;
@@ -162,6 +163,18 @@ begin:
     if(R0) code = base + Q0;
     break;
 
+  case op_je:
+    Q0 = ipq;
+    POP(P0);
+    if(R0 == TOP) code = base + Q0;
+    break;
+
+  case op_jne:
+    Q0 = ipq;
+    POP(P0);
+    if(R0 != TOP) code = base + Q0;
+    break;
+
   case op_call:
     Q0 = ipq;
     rstack.push((Quad)(code - base));
@@ -185,10 +198,10 @@ begin:
     break;
 
   case op_preinc:
-    ++(*stack[SP-1]);
+    ++TOP;
     break;
   case op_predec:
-    --(*stack[SP-1]);
+    --TOP;
     break;
 
   case op_postinc:

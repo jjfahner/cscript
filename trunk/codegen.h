@@ -123,6 +123,7 @@ private:
   Quad GenerateFunction(Ast*);
   void GenerateFunctionCall(Ast*);
   void GenerateBinaryExpression(Ast*);
+  void GenerateSwitchExpression(Ast*);
 
   //
   // Low-level code generation

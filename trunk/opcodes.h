@@ -41,6 +41,8 @@ enum opcodes
   op_stackg,      // Grow stack frame
   op_stacks,      // Shrink stack frame
   op_stackt,      // Move stack top
+  op_je,          // Pop top, compare with top, jump if equal
+  op_jne,         // Pop top, compare with top, jump if different
 
   op_store,       // Store top of stack in location
 

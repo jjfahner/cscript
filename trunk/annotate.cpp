@@ -244,6 +244,28 @@ CodeGenerator::AnnotateImpl(Ast* node)
     m_scopeStack.pop();
     node->m_varcount = VarCount(node->m_a1);
     break;
+
+  case switch_statement:
+    {
+      AnnotateImpl(node->m_a1);
+      AstList* list = node->m_a2;
+      AstList::iterator it, ie;
+      it = list->begin();
+      ie = list->end();
+      for(; it != ie; ++it)
+      {
+        AnnotateImpl(*it);
+      }
+    }
+    break;
+
+  case switch_case:
+    AnnotateImpl(node->m_a2);
+    break;
+
+  case default_case:
+    AnnotateImpl(node->m_a1);
+    break;
   }
 }
 

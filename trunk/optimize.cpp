@@ -178,6 +178,9 @@ CodeGenerator::Optimize(Ast* node)
     node = OptimizeCompoundStatement(node);
     break;
 
+  case switch_statement:
+    break;
+
   default:
     throw std::runtime_error("Unknown node type");
   }

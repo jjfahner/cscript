@@ -98,6 +98,9 @@ statement(R) ::= if_statement(A) .          { R = A; }
 statement(R) ::= while_statement(A) .       { R = A; }
 statement(R) ::= foreach_statement(A) .     { R = A; }
 statement(R) ::= return_statement(A) .      { R = A; }
+statement(R) ::= switch_statement(A) .      { R = A; }
+statement(R) ::= break_statement(A) .       { R = A; }
+statement(R) ::= continue_statement(A) .    { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -220,6 +223,10 @@ include_statement(R) ::= INCLUDE STRING(A) SEMICOLON . { p->Parse(A); R = p->Get
 return_statement(R) ::= RETURN expression(A) SEMICOLON . { R = new Ast(return_statement, A); }
 return_statement(R) ::= RETURN SEMICOLON .               { R = new Ast(return_statement);    }
 
+// Break/continue
+break_statement(R)    ::= BREAK SEMICOLON .    { R = new Ast(break_statement); }
+continue_statement(R) ::= CONTINUE SEMICOLON . { R = new Ast(continue_statement); }
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Declarations
@@ -296,3 +303,26 @@ if_statement(R) ::= IF LPAREN expression(A) RPAREN statement(B) ELSE statement(C
 
 // Basic while
 while_statement(R) ::= WHILE LPAREN expression(A) RPAREN statement(B) . { R = new Ast(while_statement, A,  B); }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Switch statement
+//
+
+// Main switch statement
+switch_statement(R) ::= SWITCH LPAREN expression(A) RPAREN LBRACE switch_body(B) RBRACE . { R = new Ast(switch_statement, A, B); }
+
+// Switch content
+%type switch_body { AstList* }
+switch_body(R) ::= . { R = new AstList; }
+switch_body(R) ::= switch_body(A) switch_case(B)  . { R = A; R->push_back(B); }
+switch_body(R) ::= switch_body(A) default_case(B) . { R = A; R->push_back(B); }
+
+// Regular case
+switch_case(R) ::= CASE literal(A) COLON case_statements(B) . { R = new Ast(switch_case, A, B); }
+
+// Default case
+default_case(R) ::= DEFAULT COLON case_statements(A) . { R = new Ast(default_case, A); }
+
+// Case content
+case_statements(R) ::= statement_sequence(A) . { R = A; }

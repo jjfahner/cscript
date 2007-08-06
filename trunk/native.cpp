@@ -108,6 +108,10 @@ ExecNative(Quad index, Quad numArgs, RefStack& stack, Quad SP)
 inline void 
 AssertType(RefStack& args, Quad index, Variant::SubTypes type, char const* function)
 {
+  if(index >= args.size())
+  {
+    throw std::runtime_error("Invalid number of arguments passed to " + String(function));
+  }
   if(args[index].Empty() || args[index]->GetType() != type)
   {
     throw std::runtime_error("Invalid argument passed to " + String(function));
@@ -150,6 +154,7 @@ void PrintVariant(VariantRef const& ref)
 
 NATIVE_CALL(print, 1, 2)
 {
+  ASSERT_TYPE(0, stString);
   PrintVariant(args[0]);
   return args[0];
 }

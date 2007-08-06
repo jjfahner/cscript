@@ -69,7 +69,13 @@ enum AstTypes
   if_statement,
   while_statement,
   return_statement,
-  compound_statement
+  compound_statement,
+  break_statement,
+  continue_statement,
+  switch_statement,
+  switch_body,
+  switch_case,
+  default_case,
 };
 
 //////////////////////////////////////////////////////////////////////////
