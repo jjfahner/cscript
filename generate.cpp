@@ -302,9 +302,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case binary_expression:
-    GenerateCode(node->m_a2);
-    GenerateCode(node->m_a3);
-    PushByte((opcodes)node->m_a1);
+    GenerateBinaryExpression(node);
     break;
 
   case ternary_expression:
@@ -351,7 +349,6 @@ CodeGenerator::GenerateCode(Ast* node)
   case postfix_expression:
     GenerateCode(node->m_a2);
     PushByte((opcodes)node->m_a1);
-    GenerateCode(node->m_a2);
     break;
 
   case member_expression:
@@ -454,4 +451,57 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
     PushByte(op_stackt);
     PushQuad(node->m_argcount);
   }
+}
+
+void 
+CodeGenerator::GenerateBinaryExpression(Ast* node)
+{
+  opcodes op = any_cast<opcodes>(node->m_a1);
+
+  // Short-circuited logical or
+  if(op == op_logor)
+  {
+    GenerateCode(node->m_a2);
+    PushByte(op_jnz);
+    Quad off1 = PushPatch();
+    GenerateCode(node->m_a3);
+    PushByte(op_jnz);
+    Quad off2 = PushPatch();
+    PushByte(op_pushl);
+    PushLiteral(Variant::False);
+    PushByte(op_jmp);
+    Quad off3 = PushPatch();
+    FixPatch(off1);
+    FixPatch(off2);
+    PushByte(op_pushl);
+    PushLiteral(Variant::True);
+    FixPatch(off3);
+    return;
+  }
+
+  // Short-circuited logical and
+  if(op == op_logand)
+  {
+    GenerateCode(node->m_a2);
+    PushByte(op_jz);
+    Quad off1 = PushPatch();
+    GenerateCode(node->m_a3);
+    PushByte(op_jz);
+    Quad off2 = PushPatch();
+    PushByte(op_pushl);
+    PushLiteral(Variant::True);
+    PushByte(op_jmp);
+    Quad off3 = PushPatch();
+    FixPatch(off1);
+    FixPatch(off2);
+    PushByte(op_pushl);
+    PushLiteral(Variant::False);
+    FixPatch(off3);
+    return;
+  }
+
+  // Normal binary operators
+  GenerateCode(node->m_a2);
+  GenerateCode(node->m_a3);
+  PushByte((opcodes)node->m_a1);
 }
