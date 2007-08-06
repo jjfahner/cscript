@@ -4,18 +4,33 @@
 //
 
 //
+// Language
+//
+- Implement switch statement
+- Implement closures
+- Implement classes
+- Implement variadic argument lists
+
+//
 // Core logic
 //
 - Argument count checking for function calls
 - Integrate function resolving into annotation logic
 - Convert stack to pointers instead of Ref<Variant>
+- Replace any in Ast with more explicit type
+- Move generator, decompiler etc. to own classes
+- Error/warning interface for use during all stages
+  of the compilation process.
 
 //
 // Binary format
 //
 - Implement proper binary header with segment offsets
-  and length, and propably a checksum.
+  and length, and probably a checksum.
 
 //
 // Application
 //
+- Rethink immediate-mode/interactive interface
+- Debugger facilities
+- Expose debug/release build mode through command line

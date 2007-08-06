@@ -94,7 +94,6 @@ Variant::MakeBool()
   {
     MakeInt();
   }
-  Clear();
   m_bln = m_int ? true : false;
   m_type = stBool;
 }

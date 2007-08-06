@@ -111,8 +111,25 @@ function main()
   assert("strstr", strstr(a, "wo"),    6);
   assert("strstr", strstr(a, "wa"),   -1);
   assert("strstr", strstr(a, "wo", 2), 6);
-
-
+  
+  // Logical or
+  assert("Logical or", true  || false, true);
+  assert("Logical or", false || true,  true);
+  assert("Logical or", true  || true,  true);
+  assert("Logical or", false || false, false);
+  
+  // Logical and
+  assert("Logical and", true  && true,  true);
+  assert("Logical and", true  && false, false);
+  assert("Logical and", false && true,  false);
+  assert("Logical and", false && false, false);
+  
+  // Short-circuited logical or/and
+  a = 0; ++a || ++a;
+  assert("short-circuit or", a, 1);
+  a = 0; a++ && a++;
+  assert("short-circuit and", a, 1);
+  
   // Print result
   if(errors == 0)
   {

@@ -122,6 +122,7 @@ private:
   void GenerateCode(Ast*);
   Quad GenerateFunction(Ast*);
   void GenerateFunctionCall(Ast*);
+  void GenerateBinaryExpression(Ast*);
 
   //
   // Low-level code generation
