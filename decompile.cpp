@@ -96,7 +96,8 @@ CodeGenerator::Decompile(Byte* source, Quad offset, Quad len, std::ostream& ofs)
     ofs << Hex(Quad(code - source)) << "  ";
 
     // Write instruction
-    switch(ipb)
+    Byte ins = ipb;
+    switch(ins)
     {
     case op_halt:     ofs << "halt    "; break;
     case op_pushl:    ofs << "pushl   "; ofs << Var(source, ipq); break;
@@ -108,6 +109,8 @@ CodeGenerator::Decompile(Byte* source, Quad offset, Quad len, std::ostream& ofs)
     case op_jmp:      ofs << "jmp     "; ofs << Hex(ipq); break;
     case op_jz:       ofs << "jz      "; ofs << Hex(ipq); break;
     case op_jnz:      ofs << "jnz     "; ofs << Hex(ipq); break;
+    case op_je:       ofs << "je      "; ofs << Hex(ipq); break;
+    case op_jne:      ofs << "jne     "; ofs << Hex(ipq); break;
     case op_call:     ofs << "call    "; ofs << Hex(ipq); break;
     case op_calln:    ofs << "calln   "; ofs << Hex(ipq); break;
     case op_ret:      ofs << "ret     "; break;
@@ -141,7 +144,7 @@ CodeGenerator::Decompile(Byte* source, Quad offset, Quad len, std::ostream& ofs)
     case op_assmul:   ofs << "assmul  "; break;
     case op_assdiv:   ofs << "assdiv  "; break;
     case op_assmod:   ofs << "assmod  "; break;
-    default:          ofs << "unknown "; break;
+    default:          ofs << (int)ins << "    "; break;
     }
     ofs << "\n";
   }

@@ -131,18 +131,21 @@ function main()
   assert("short-circuit and", a, 1);
   
   // Switch statement
+  a = -1;
   switch(0) {
   case 0 : a = 0;
   case 1 : a = 1;
   default: a = 2;
   }
   assert("Switch", a, 0);
+  a = -1;
   switch(1) {
   case 0 : a = 0;
   case 1 : a = 1;
   default: a = 2;
   }
   assert("Switch", a, 1);
+  a = -1;
   switch(2) {
   case 0 : a = 0;
   case 1 : a = 1;

@@ -273,9 +273,12 @@ int execute(CmdArgs const& args)
     return EXIT_FAILURE;
   }
 
+  // Store filename
+  String filename = files.begin()->first;
+
   // Open the file
   File file;
-  file.Open(files.begin()->first);
+  file.Open(filename);
 
   // Fetch code pointer from file
   Byte* code = 0;
@@ -296,10 +299,26 @@ int execute(CmdArgs const& args)
     CodeGenerator cg;
     cg.Generate(astGen.GetRoot(), true);
 
+    // Write to file
+#ifdef _DEBUG
+    std::ofstream ofs((filename + ".csb").c_str(), std::ios::binary);
+    ofs.write((char*)cg.GetCode(), cg.GetSize());
+    ofs.close();
+#endif
+
     // Take code from parser
     BinHeader* header = (BinHeader*) cg.ReleaseCode();
     code = (Byte*)header;
     offset = header->m_codeseg;
+
+    // Decompile
+#ifdef _DEBUG
+    ofs.open((filename + ".txt").c_str());
+    cg.Decompile(code,
+                 header->m_codeseg, 
+                 header->m_codelen + header->m_proclen, 
+                 ofs);
+#endif
   }
 
   // Execute code
