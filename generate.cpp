@@ -2,6 +2,16 @@
 #include "native.h"
 #include "file.h"
 
+inline Variant LiteralAsVariant(Ast* node)
+{
+  return any_cast<Variant>(node->m_a1);
+}
+
+inline bool IsType(Ast* node, AstTypes type)
+{
+  return node->m_type == type;
+}
+
 void 
 CodeGenerator::Generate(Ast* node, bool release)
 {
@@ -421,6 +431,10 @@ CodeGenerator::GenerateCode(Ast* node)
   case empty_statement:
     break;
 
+  case switch_statement:
+    GenerateSwitchExpression(node);
+    break;
+
   default:
     std::cout << " " << node->m_type << " ";
     throw std::runtime_error("Unknown node type");
@@ -504,4 +518,93 @@ CodeGenerator::GenerateBinaryExpression(Ast* node)
   GenerateCode(node->m_a2);
   GenerateCode(node->m_a3);
   PushByte((opcodes)node->m_a1);
+}
+
+void 
+CodeGenerator::GenerateSwitchExpression(Ast* node)
+{
+  Ast* defaultcase = 0;
+
+  // Store for cases
+  typedef std::pair<Quad, Quad> QuadPair;
+  typedef std::map<Variant, QuadPair, Variant::LessExact> CaseMap;
+  CaseMap cases;
+
+  // Generate jump to conditional code
+  PushByte(op_jmp);
+  Quad offset = PushPatch();
+
+  // Generate code for all cases
+  AstList* list = any_cast<AstList*>(node->m_a2);
+  AstList::iterator it = list->begin();
+  AstList::iterator ie = list->end();
+  for(; it != ie; ++it)
+  {
+    Ast* casenode = *it;
+
+    // Handle default case
+    if(IsType(casenode, default_case))
+    {
+      // TODO this should be detected by the annotation code
+      if(defaultcase)
+      {
+        std::cout << "Error: switch statement may not contain multiple default cases";
+      }
+      defaultcase = casenode;
+    }
+    else
+    {
+      // Extract value
+      Variant value = LiteralAsVariant(casenode->m_a1);
+
+      // TODO Check for duplicates, should be detected by the annotation code
+      if(cases.count(value))
+      {
+        std::cout << "Error: duplicate value in switch";
+      }
+
+      // Store current offset with value in map
+      cases[value].first = m_used;
+
+      // Pop the switch value from the stack
+      PushByte(op_pop);
+
+      // Generate code for the case
+      GenerateCode(casenode->m_a2);
+
+      // Generate jump to end
+      PushByte(op_jmp);
+      cases[value].second = PushPatch();
+    }
+  }
+
+  // Fix jump to switch code
+  FixPatch(offset);
+
+  // Generate expression
+  GenerateCode(node->m_a1);
+
+  // Generate comparisons
+  CaseMap::iterator ci = cases.begin();
+  CaseMap::iterator ce = cases.end();
+  for(; ci != ce; ++ci)
+  {
+    PushByte(op_pushl);
+    PushLiteral(ci->first);
+    PushByte(op_je);
+    PushQuad(ci->second.first);
+  }
+
+  // Generate default case
+  if(defaultcase)
+  {
+    GenerateCode(defaultcase->m_a1);
+  }
+
+  // Generate jumps to end of switch
+  ci = cases.begin();
+  for(; ci != ce; ++ci)
+  {
+    FixPatch(ci->second.second);
+  }
 }

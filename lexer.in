@@ -47,16 +47,20 @@ int parseNextToken(Char*& start, Char*& end)
   "/*"                      { return TOK_COMMENT; }
 
   /* Keywords */
+  "break"                   { return TOK_BREAK; }
+  "case"                    { return TOK_CASE; }
+  "continue"                { return TOK_CONTINUE; }
+  "default"                 { return TOK_DEFAULT; }
   "else"                    { return TOK_ELSE; }
   "false"                   { return TOK_FALSE; }
   "for"                     { return TOK_FOR; }
-  /* "foreach"                 { return TOK_FOREACH; } */
   "function"				        { return TOK_FUNCTION; }
   "if"                      { return TOK_IF; }
   "in"                      { return TOK_IN; }
   "include"                 { return TOK_INCLUDE; }
   "null"                    { return TOK_NULL; }
   "return"                  { return TOK_RETURN; }
+  "switch"                  { return TOK_SWITCH; }
   "true"                    { return TOK_TRUE; }
   "var"                     { return TOK_VAR; }
   "while"                   { return TOK_WHILE; }

@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////
+
 //
 // This file is © 2007 JJ Fahner <jan-jaap@jan-jaap.net>
 // This file is part of the cscript interpreter.
@@ -129,6 +129,26 @@ function main()
   assert("short-circuit or", a, 1);
   a = 0; a++ && a++;
   assert("short-circuit and", a, 1);
+  
+  // Switch statement
+  switch(0) {
+  case 0 : a = 0;
+  case 1 : a = 1;
+  default: a = 2;
+  }
+  assert("Switch", a, 0);
+  switch(1) {
+  case 0 : a = 0;
+  case 1 : a = 1;
+  default: a = 2;
+  }
+  assert("Switch", a, 1);
+  switch(2) {
+  case 0 : a = 0;
+  case 1 : a = 1;
+  default: a = 2;
+  }
+  assert("Switch", a, 2);
   
   // Print result
   if(errors == 0)
