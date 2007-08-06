@@ -79,12 +79,10 @@ File::Open(String const& filename)
   m_data = buf;
   m_size = len;
 
-  // Determine type
-  if(strncmp((char*)m_data, "\xce\xec", 2) == 0)
+  // Overlay bin header
+  if(((BinHeader*)m_buff)->m_magic == FILE_MAGIC)
   {
-    // Set binary type
-    m_type  = binary;
-    m_data += 2;
+    m_type = binary;
   }
   else
   {
@@ -152,4 +150,10 @@ Byte*
 File::GetData() const
 {
   return m_data;
+}
+
+BinHeader* 
+File::GetHeader() const
+{
+  return (BinHeader*)m_data;
 }

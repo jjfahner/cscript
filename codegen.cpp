@@ -37,6 +37,14 @@ CodeGenerator::~CodeGenerator()
   }
 }
 
+Byte* 
+CodeGenerator::ReleaseCode()
+{
+  Byte* code = m_code;
+  m_code = 0;
+  return code;
+}
+
 void 
 CodeGenerator::Write()
 {
@@ -48,7 +56,7 @@ CodeGenerator::Write()
 void 
 CodeGenerator::Reserve(Quad size)
 {
-  if(m_size - m_used < size)
+  if(m_size < size)
   {
     m_code = (Byte*)realloc(m_code, size * 2);
     m_size = size * 2;

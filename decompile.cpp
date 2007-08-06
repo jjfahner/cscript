@@ -80,7 +80,7 @@ inline String Var(Byte* code, Quad offset)
 }
 
 void
-CodeGenerator::Decompile(Byte* source, Quad len, std::ostream& ofs)
+CodeGenerator::Decompile(Byte* source, Quad offset, Quad len, std::ostream& ofs)
 {
   // Instruction pointers
   #define ipb (NextByte(code))
@@ -88,7 +88,7 @@ CodeGenerator::Decompile(Byte* source, Quad len, std::ostream& ofs)
   #define ipq (NextQuad(code))
 
   // Decompile code
-  Byte* code = source;
+  Byte* code = source + offset;
   Byte* end = code + len;
   while(code < end)
   {

@@ -166,16 +166,9 @@ int compile(CmdArgs const& args)
   CodeGenerator cg;
   cg.Generate(astGen.GetRoot(), true);
 
-  // Create output file
+  // Write file
   std::ofstream ofs(outFile.c_str(), std::ios::binary);
-
-  // Write file header
-  ofs.write("\xce\xec", 2);
-
-  // Write code
   ofs.write((char*)cg.GetCode(), cg.GetSize());
-
-  // Close file
   ofs.close();
   
   // Done
@@ -240,7 +233,10 @@ int decompile(CmdArgs const& args)
 
   // Decompile source code
   CodeGenerator cg;
-  cg.Decompile(file.GetData(), file.GetSize(), ofs);
+  cg.Decompile(file.GetData(),
+               file.GetHeader()->m_codeseg, 
+               file.GetHeader()->m_codelen + file.GetHeader()->m_proclen, 
+               ofs);
 
   // Close file
   ofs.close();
@@ -260,32 +256,6 @@ int decompile(CmdArgs const& args)
 int interactive(CmdArgs const& args)
 {
   return EXIT_FAILURE;
-//   Parser parser;
-//   StackMachine machine;
-// 
-//   // Welcome message
-//   version();
-//   cout << "CScript is running in interactive mode.\n";
-// 
-//   // Run interactive loop
-//   for(;;)
-//   {
-//     Char buf[4000];
-//     std::streamsize len = 4000;
-// 
-//     cout << "\n> ";
-//     cin.getline(buf, len);
-// 
-//     try
-//     {
-//       Quad offset = parser.ParseText(buf);
-//       machine.Execute(parser.GetCode(), offset);
-//     }
-//     catch(std::exception const& e)
-//     {
-//       cout << e.what() << std::endl;
-//     }
-//   }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -308,26 +278,33 @@ int execute(CmdArgs const& args)
   file.Open(files.begin()->first);
 
   // Fetch code pointer from file
-  Byte* code = file.GetData();
-
-  // Compile code if required
-  CodeGenerator cg;
-  if(file.GetType() == File::source)
+  Byte* code = 0;
+  Quad  offset = 0;
+  if(file.GetType() == File::binary)
+  {
+    // Take pointer to code segment
+    code = file.GetData();
+    offset = file.GetHeader()->m_codeseg;
+  }
+  else
   {
     // Generate ast
     AstGen astGen;
     astGen.Parse(file);
 
     // Generate code
+    CodeGenerator cg;
     cg.Generate(astGen.GetRoot(), true);
-    
+
     // Take code from parser
-    code = cg.GetCode();
+    BinHeader* header = (BinHeader*) cg.ReleaseCode();
+    code = (Byte*)header;
+    offset = header->m_codeseg;
   }
 
   // Execute code
   Machine machine;
-  machine.Execute(code);
+  machine.Execute(code, offset);
 
   // Program succeeded
 	return EXIT_SUCCESS;
