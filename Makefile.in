@@ -49,9 +49,10 @@ binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_cscript_OBJECTS = main.$(OBJEXT) machine.$(OBJEXT) var.$(OBJEXT) \
 	native.$(OBJEXT) lexer.$(OBJEXT) file.$(OBJEXT) \
-	codegen.$(OBJEXT) optimize.$(OBJEXT) generate.$(OBJEXT) \
+	codegen.$(OBJEXT) optimize.$(OBJEXT) compile.$(OBJEXT) \
 	annotate.$(OBJEXT) decompile.$(OBJEXT) print.$(OBJEXT) \
-	cmdargs.$(OBJEXT) ast.$(OBJEXT) validate.$(OBJEXT)
+	cmdargs.$(OBJEXT) ast.$(OBJEXT) validate.$(OBJEXT) \
+	scope.$(OBJEXT)
 cscript_OBJECTS = $(am_cscript_OBJECTS)
 cscript_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -162,7 +163,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-cscript_SOURCES = main.cpp machine.cpp var.cpp native.cpp lexer.cpp file.cpp codegen.cpp optimize.cpp generate.cpp annotate.cpp decompile.cpp print.cpp cmdargs.cpp ast.cpp validate.cpp
+cscript_SOURCES = main.cpp machine.cpp var.cpp native.cpp lexer.cpp file.cpp codegen.cpp optimize.cpp compile.cpp annotate.cpp decompile.cpp print.cpp cmdargs.cpp ast.cpp validate.cpp scope.cpp
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -255,15 +256,16 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ast.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdargs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/codegen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/compile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decompile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/file.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/machine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/native.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/optimize.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scope.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/validate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/var.Po@am__quote@
 
