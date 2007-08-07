@@ -152,9 +152,8 @@ void PrintVariant(VariantRef const& ref)
   std::wcout << "]";
 }
 
-NATIVE_CALL(print, 1, 2)
+NATIVE_CALL(print, 1, 1)
 {
-  ASSERT_TYPE(0, stString);
   PrintVariant(args[0]);
   return args[0];
 }
