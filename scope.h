@@ -24,6 +24,8 @@
 #include "types.h"
 #include "ast.h"
 
+class CodeGenerator;
+
 class Scope 
 {
 public:
@@ -31,105 +33,38 @@ public:
   //
   // Construction
   //
-  Scope(Ast* node, Scope* parent) :
-  m_node    (node),
-  m_parent  (parent)
-  {
-  }
+  Scope(CodeGenerator& cg, Ast* node, Scope* parent);
 
   //
   // Register a name
   //
-  int DeclareParameter(String const& name)
-  {
-    int id = MakeParameterId();
-    m_names[name] = id;
-    return id;
-  }
+  int DeclareParameter(String const& name);
 
   //
   // Declare a name
   //
-  int DeclareVariable(String const& name)
-  {
-    int id = MakeVariableId();
-    m_names[name] = id;
-    return id;
-  }
+  int DeclareVariable(String const& name);
 
   //
   // Find a name
   //
-  int Lookup(String const& name, bool& global) const
-  {
-    // Find in local scope
-    Names::const_iterator it;
-    if((it = m_names.find(name)) != m_names.end())
-    {
-      if(m_parent == 0)
-      {
-        global = true;
-      }
-      return it->second;
-    }
-    
-    // Look in parent scope up to function boundary
-    if(m_node->m_type != function_declaration && m_parent)
-    {
-      return m_parent->Lookup(name, global);
-    }
-
-    // Find global scope
-    Scope* parent = m_parent;
-    while(parent)
-    {
-      if(parent->m_parent == 0)
-      {
-        return parent->Lookup(name, global);
-      }
-      parent = parent->m_parent;
-    }
-
-    std::cout << "Error: variable or parameter '" << name << "' not found\n";
-    return 0x7F000000; // TODO
-  }
+  int Lookup(String const& name, bool& global) const;
 
 private:
 
-  int MakeParameterId()
-  {
-    if(m_node->m_type == function_declaration)
-    {
-      // Return negative paramcount - 1 to accomodate
-      // the return value that is stored at [ST-1], so
-      // that argument n is found at [ST-1-n]
-      return -int(++m_node->m_parcount) - 1;
-    }
-    throw std::logic_error("Invalid node for parameter declaration");
-  }
+  int MakeParameterId();
 
-  int MakeVariableId()
-  {
-    if(m_node->m_type == function_declaration)
-    {
-      return m_node->m_framesize++;
-    }
-    if(m_parent == 0)
-    {
-      return m_node->m_framesize++;
-    }
-    return m_parent->MakeVariableId();
-  }
-
+  int MakeVariableId();
 
   typedef std::map<String, int> Names;
 
   //
   // Members
   //
-  Scope*  m_parent;
-  Ast*    m_node;
-  Names   m_names;
+  CodeGenerator&  m_cg;
+  Scope*          m_parent;
+  Ast*            m_node;
+  Names           m_names;
 
 };
 

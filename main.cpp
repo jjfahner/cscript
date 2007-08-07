@@ -299,6 +299,12 @@ int execute(CmdArgs const& args)
     CodeGenerator cg;
     cg.Generate(astGen.GetRoot(), true);
 
+    // Check whether compilation succeeded
+    if(cg.GetCode() == 0)
+    {
+      return EXIT_FAILURE;
+    }
+
     // Write to file
 #ifdef _DEBUG
     std::ofstream ofs((filename + ".csb").c_str(), std::ios::binary);
