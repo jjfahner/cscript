@@ -213,15 +213,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\compile.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\decompile.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\file.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\generate.cpp"
 				>
 			</File>
 			<File

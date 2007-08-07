@@ -85,6 +85,12 @@ public:
   //
   Quad GetSize() const;
   
+  //
+  // Errors/warnings
+  //
+  void ReportError(String const& error);
+  void ReportWarning(String const& warning);
+
 private:
 
   //
@@ -171,6 +177,8 @@ private:
   CallList  m_calls;
   Literals  m_literals;
   QuadList  m_returns;
+  Quad      m_errors;
+  Quad      m_warnings;
 
   //
   // Stack for scoping. Used during annotation phase.

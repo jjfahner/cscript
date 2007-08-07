@@ -19,3 +19,89 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "scope.h"
+#include "codegen.h"
+
+Scope::Scope(CodeGenerator& cg, Ast* node, Scope* parent) :
+m_cg      (cg),
+m_node    (node),
+m_parent  (parent)
+{
+}
+
+int 
+Scope::DeclareParameter(String const& name)
+{
+  int id = MakeParameterId();
+  m_names[name] = id;
+  return id;
+}
+
+int 
+Scope::DeclareVariable(String const& name)
+{
+  int id = MakeVariableId();
+  m_names[name] = id;
+  return id;
+}
+
+int 
+Scope::Lookup(String const& name, bool& global) const
+{
+  // Find in local scope
+  Names::const_iterator it;
+  if((it = m_names.find(name)) != m_names.end())
+  {
+    if(m_parent == 0)
+    {
+      global = true;
+    }
+    return it->second;
+  }
+
+  // Look in parent scope up to function boundary
+  if(m_node->m_type != function_declaration && m_parent)
+  {
+    return m_parent->Lookup(name, global);
+  }
+
+  // Find global scope
+  Scope* parent = m_parent;
+  while(parent)
+  {
+    if(parent->m_parent == 0)
+    {
+      return parent->Lookup(name, global);
+    }
+    parent = parent->m_parent;
+  }
+  
+  m_cg.ReportError("variable or parameter '" + name + "' undefined");
+  return 0;
+}
+
+int 
+Scope::MakeParameterId()
+{
+  if(m_node->m_type == function_declaration)
+  {
+    // Return negative paramcount - 1 to accomodate
+    // the return value that is stored at [ST-1], so
+    // that argument n is found at [ST-1-n]
+    return -int(++m_node->m_parcount) - 1;
+  }
+  throw std::logic_error("Invalid node for parameter declaration");
+}
+
+int 
+Scope::MakeVariableId()
+{
+  if(m_node->m_type == function_declaration)
+  {
+    return m_node->m_framesize++;
+  }
+  if(m_parent == 0)
+  {
+    return m_node->m_framesize++;
+  }
+  return m_parent->MakeVariableId();
+}

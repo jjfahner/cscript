@@ -15,6 +15,10 @@ inline bool IsType(Ast* node, AstTypes type)
 void 
 CodeGenerator::Generate(Ast* node, bool release)
 {
+  // Reset error info
+  m_errors   = 0;
+  m_warnings = 0;
+
   // Validate tree
   Validate(node);
 
@@ -90,7 +94,7 @@ CodeGenerator::Generate(Ast* node, bool release)
       }
       else
       {
-        std::cout << "Error: function " << ci->first << " doesn't exist\n";
+        ReportError("function " + ci->first + " doesn't exist");
         continue;
       }
     }
@@ -164,6 +168,20 @@ CodeGenerator::Generate(Ast* node, bool release)
   ((BinHeader*)m_code)->m_magic   = FILE_MAGIC;
   ((BinHeader*)m_code)->m_compver = COMPVER;
   ((BinHeader*)m_code)->m_machver = MACHVER;
+
+  // Check for errors
+  if(m_errors)
+  {
+    free(m_code);
+    m_code = 0;
+    m_used = 0;
+    std::cout << "\nCompilation failed with ";
+  }
+  else
+  {
+    std::cout << "\nCompilation succeeded with ";
+  }
+  std::cout << m_errors << " error(s), " << m_warnings << " warning(s)\n";
 }
 
 Quad 
@@ -415,8 +433,8 @@ CodeGenerator::GenerateCode(Ast* node)
   case function_declaration:
     if(m_funs.count(node->m_a1))
     {
-      std::cout << "Error: redeclaration of function " 
-                << any_cast<String>(node->m_a1) << "\n";
+      ReportError("redeclaration of function " +
+                 any_cast<String>(node->m_a1));
     }
     else
     {
@@ -436,8 +454,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   default:
-    std::cout << " " << node->m_type << " ";
-    throw std::runtime_error("Unknown node type");
+    ReportError("internal compiler error: attempt to generate an unknown node type");
   }
 }
 
@@ -548,7 +565,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
       // TODO this should be detected by the annotation code
       if(defaultcase)
       {
-        std::cout << "Error: switch statement may not contain multiple default cases";
+        ReportError("switch statement may not contain multiple default cases");
       }
       defaultcase = casenode;
     }
@@ -560,7 +577,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
       // TODO Check for duplicates, should be detected by the annotation code
       if(cases.count(value))
       {
-        std::cout << "Error: duplicate value in switch";
+        ReportError("duplicate case label in switch statement");
       }
 
       // Store current offset with value in map

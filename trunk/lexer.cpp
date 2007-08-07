@@ -75,8 +75,6 @@ Lexer::Lex(Token& token)
     token.m_text = start;
     token.m_size = end - start;
 
-    //std::cout << "'" << std::string(token.m_text, token.m_size) << "'  ";
-
     // Move pointer
     m_strptr = end;
     return true;

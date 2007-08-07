@@ -49,7 +49,7 @@ void
 CodeGenerator::Annotate(Ast* node)
 {
   // Push initial frame
-  m_scopeStack.push(Scope(node, 0));
+  m_scopeStack.push(Scope(*this, node, 0));
 
   // Annotate tree
   AnnotateImpl(node);
@@ -145,7 +145,7 @@ CodeGenerator::AnnotateImpl(Ast* node)
     break;
 
   case function_declaration:
-    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
     if(!node->m_a2.empty())
     {
       AnnotateImpl(node->m_a2);
@@ -195,11 +195,11 @@ CodeGenerator::AnnotateImpl(Ast* node)
     break;
 
   case for_statement:
-    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a1);
     AnnotateImpl(node->m_a2);
     AnnotateImpl(node->m_a3);
-    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a4);
     m_scopeStack.pop();
     m_scopeStack.pop();
@@ -213,7 +213,7 @@ CodeGenerator::AnnotateImpl(Ast* node)
 
   case if_statement:
     AnnotateImpl(node->m_a1);
-    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a2);
     if(!node->m_a3.empty())
     {
@@ -225,7 +225,7 @@ CodeGenerator::AnnotateImpl(Ast* node)
 
   case while_statement:
     AnnotateImpl(node->m_a1);
-    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a2);
     m_scopeStack.pop();
     node->m_varcount = VarCount(node->m_a2);
@@ -239,7 +239,7 @@ CodeGenerator::AnnotateImpl(Ast* node)
     break;
 
   case compound_statement:
-    m_scopeStack.push(Scope(node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a1);
     m_scopeStack.pop();
     node->m_varcount = VarCount(node->m_a1);
