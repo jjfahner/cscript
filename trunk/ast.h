@@ -24,6 +24,7 @@
 #include "types.h"
 #include "any.h"
 #include "var.h"
+#include "props.h"
 
 #include "opcodes.h"
 
@@ -40,6 +41,7 @@ typedef std::list<Ast*> AstList;
 enum AstTypes
 {
   invalid,
+  translation_unit,
   statement_sequence,
   expression_statement,
   assignment_expression,
@@ -128,6 +130,8 @@ class Ast
 {
 public:
 
+  typedef std::map<String, Quad> Annotations;
+
   //
   // Construction
   //
@@ -149,13 +153,15 @@ public:
   //
   // Annotations
   //
-  bool      m_idempotent;   // Content is idempotent
-  Quad      m_varcount;     // Number of declared variables
-  Quad      m_argcount;     // Number of argument in call
-  Quad      m_parcount;     // Number of declared parameters
-  Quad      m_framesize;    // Size of stack frame
-  int       m_stackpos;     // Offset against stack frame (may be negative for parameters)
-  bool      m_globalvar;    // Variable is global
+  Properties m_props;
+
+//   bool      m_idempotent;   // Content is idempotent
+//   Quad      m_varcount;     // Number of declared variables
+//   Quad      m_argcount;     // Number of argument in call
+//   Quad      m_parcount;     // Number of declared parameters
+//   Quad      m_framesize;    // Size of stack frame
+//   int       m_stackpos;     // Offset against stack frame (may be negative for parameters)
+//   bool      m_globalvar;    // Variable is global
 
 };
 
@@ -166,76 +172,41 @@ public:
 
 inline 
 Ast::Ast(AstTypes type) :
-m_type (type),
-m_idempotent(false),
-m_varcount(0),
-m_argcount(0),
-m_parcount(0),
-m_framesize(0),
-m_stackpos(0),
-m_globalvar(0)
+m_type (type)
 {
 }
 
 inline 
 Ast::Ast(AstTypes type, any const& a1) :
-m_type (type),
-m_idempotent (false),
-m_varcount(0),
-m_argcount(0),
-m_parcount(0),
-m_framesize(0),
-m_stackpos(0),
-m_globalvar(0),
-m_a1   (a1)
+m_type(type),
+m_a1(a1)
 {
 }
 
 inline 
 Ast::Ast(AstTypes type, any const& a1, any const& a2) :
-m_type (type),
-m_idempotent (false),
-m_varcount(0),
-m_argcount(0),
-m_parcount(0),
-m_framesize(0),
-m_stackpos(0),
-m_globalvar(0),
-m_a1   (a1),
-m_a2   (a2)
+m_type(type),
+m_a1(a1),
+m_a2(a2)
 {
 }
 
 inline 
 Ast::Ast(AstTypes type, any const& a1, any const& a2, any const& a3) :
-m_type (type),
-m_idempotent (false),
-m_varcount(0),
-m_argcount(0),
-m_parcount(0),
-m_framesize(0),
-m_stackpos(0),
-m_globalvar(0),
-m_a1   (a1),
-m_a2   (a2),
-m_a3   (a3)
+m_type(type),
+m_a1(a1),
+m_a2(a2),
+m_a3(a3)
 {
 }
 
 inline 
 Ast::Ast(AstTypes type, any const& a1, any const& a2, any const& a3, any const& a4) :
-m_type (type),
-m_idempotent (false),
-m_varcount(0),
-m_argcount(0),
-m_parcount(0),
-m_framesize(0),
-m_stackpos(0),
-m_globalvar(0),
-m_a1   (a1),
-m_a2   (a2),
-m_a3   (a3),
-m_a4   (a4)
+m_type(type),
+m_a1(a1),
+m_a2(a2),
+m_a3(a3),
+m_a4(a4)
 {
 }
 

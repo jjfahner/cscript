@@ -25,6 +25,7 @@
 #include "ast.h"
 
 class CodeGenerator;
+class Reporter;
 
 class Scope 
 {
@@ -33,7 +34,7 @@ public:
   //
   // Construction
   //
-  Scope(CodeGenerator& cg, Ast* node, Scope* parent);
+  Scope(Reporter& reporter, Ast* node, Scope* parent);
 
   //
   // Register a name
@@ -61,10 +62,10 @@ private:
   //
   // Members
   //
-  CodeGenerator&  m_cg;
-  Scope*          m_parent;
-  Ast*            m_node;
-  Names           m_names;
+  Reporter&   m_reporter;
+  Scope*      m_parent;
+  Ast*        m_node;
+  Names       m_names;
 
 };
 

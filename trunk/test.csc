@@ -1,5 +1,11 @@
 include "test.csi";
 
+function foo1(a)
+function foo2(a = null);
+function foo3(a, b);
+function foo4(a, b = null);
+function foo5(a = null, b = null);
+
 if(true)
 {
   1;

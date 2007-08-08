@@ -18,7 +18,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "codegen.h"
+#include "annotate.h"
+#include "report.h"
+#include "native.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -27,44 +29,54 @@
 
 inline Quad VarCount(Ast* ast)
 {
-  return ast->m_varcount;
+  return ast->m_props["varcount"];
 }
 
 inline Quad ParCount(Ast* ast)
 {
-  return ast->m_parcount;
+  return ast->m_props["parcount"];
 }
 
 inline Quad ArgCount(Ast* ast)
 {
-  return ast->m_argcount;
+  return ast->m_props["argcount"];
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Annotation
+// Implementation
 //
 
-void
-CodeGenerator::Annotate(Ast* node)
+Annotator::Annotator(Reporter& reporter) :
+m_reporter (reporter)
 {
-  // Push initial frame
-  m_scopeStack.push(Scope(*this, node, 0));
-
-  // Annotate tree
-  AnnotateImpl(node);
 }
 
 void
-CodeGenerator::AnnotateImpl(Ast* node)
+Annotator::Annotate(Ast* node)
+{
+  // Annotate tree
+  AnnotateImpl(node);
+
+  // Resolve and check function calls
+  ResolveCalls();  
+}
+
+void
+Annotator::AnnotateImpl(Ast* node)
 {
   switch(node->m_type)
   {
+  case translation_unit:
+    AnnotateTranslationUnit(node);
+    break;
+
   case statement_sequence:
     AnnotateStatementSequence(node);
     break;
 
   case expression_statement:
+    node->m_props["varcount"] = 0;
     AnnotateImpl(node->m_a1);
     break;
 
@@ -104,7 +116,7 @@ CodeGenerator::AnnotateImpl(Ast* node)
     break;
 
   case lvalue:
-    node->m_stackpos = m_scopeStack.top().Lookup(node->m_a1, node->m_globalvar);
+    AnnotateLValue(node);
     break;
 
   case list_literal:
@@ -120,47 +132,36 @@ CodeGenerator::AnnotateImpl(Ast* node)
     break;
     
   case list_entry:
-    node->m_a1 = Optimize(node->m_a1);
+    AnnotateImpl(node->m_a1);
     break;
 
   case function_call:
+    node->m_props["argcount"] = 0;
     if(!node->m_a2.empty())
     {
       AnnotateImpl(node->m_a2);
-      node->m_argcount = ArgCount(node->m_a2);
+      node->m_props["argcount"] = ArgCount(node->m_a2);
     }
+    m_funcalls.push_back(node);
     break;
 
   case argument_list:
     AnnotateImpl(node->m_a1);
     AnnotateImpl(node->m_a2);
-    node->m_argcount = 
-      ArgCount(node->m_a1) +
-      ArgCount(node->m_a2) ;
+    node->m_props["argcount"] = ArgCount(node->m_a1) + ArgCount(node->m_a2);
     break;
 
   case argument:
     AnnotateImpl(node->m_a1);
-    node->m_argcount = 1;
+    node->m_props["argcount"] = 1;
     break;
 
   case function_declaration:
-    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
-    if(!node->m_a2.empty())
-    {
-      AnnotateImpl(node->m_a2);
-    }
-    AnnotateImpl(node->m_a3);
-    node->m_varcount = VarCount(node->m_a3);
-    m_scopeStack.pop();
-    if(node->m_varcount != node->m_framesize)
-    {
-      throw std::logic_error("Invalid frame size");
-    }
+    AnnotateFunction(node);
     break;
 
   case parameter:
-    node->m_stackpos = m_scopeStack.top().DeclareParameter(node->m_a1);
+    node->m_props["stackpos"] = m_scopeStack.top().DeclareParameter(node->m_a1);
     break;
 
   case parameter_list:
@@ -176,36 +177,34 @@ CodeGenerator::AnnotateImpl(Ast* node)
     {
       AnnotateImpl(node->m_a2);
     }
-    node->m_varcount = 1;
-    node->m_stackpos = m_scopeStack.top().DeclareVariable(node->m_a1);
+    node->m_props["varcount"] = 1;
+    node->m_props["stackpos"] = m_scopeStack.top().DeclareVariable(node->m_a1);
     break;
 
   case declaration_sequence:
     AnnotateImpl(node->m_a1);
     AnnotateImpl(node->m_a2);
-    node->m_varcount = 
-      VarCount(node->m_a1) + 
-      VarCount(node->m_a2);
+    node->m_props["varcount"] = VarCount(node->m_a1) + VarCount(node->m_a2);
     break;
 
   case empty_statement:
+    node->m_props["varcount"] = 0;
     break;
 
   case include_statement:
+    node->m_props["varcount"] = 0;
     break;
 
   case for_statement:
-    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a1);
     AnnotateImpl(node->m_a2);
     AnnotateImpl(node->m_a3);
-    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a4);
     m_scopeStack.pop();
     m_scopeStack.pop();
-    node->m_varcount = 
-      VarCount(node->m_a1) + 
-      VarCount(node->m_a4);
+    node->m_props["varcount"] = VarCount(node->m_a1) + VarCount(node->m_a4);
     break;
 
   case foreach_statement:
@@ -213,25 +212,26 @@ CodeGenerator::AnnotateImpl(Ast* node)
 
   case if_statement:
     AnnotateImpl(node->m_a1);
-    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a2);
     if(!node->m_a3.empty())
     {
       AnnotateImpl(node->m_a3);
     }
     m_scopeStack.pop();
-    node->m_varcount = VarCount(node->m_a2);
+    node->m_props["varcount"] = VarCount(node->m_a2);
     break;
 
   case while_statement:
     AnnotateImpl(node->m_a1);
-    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a2);
     m_scopeStack.pop();
-    node->m_varcount = VarCount(node->m_a2);
+    node->m_props["varcount"] = VarCount(node->m_a2);
     break;
 
   case return_statement:
+    node->m_props["varcount"] = 0;
     if(!node->m_a1.empty())
     {
       AnnotateImpl(node->m_a1);
@@ -239,14 +239,15 @@ CodeGenerator::AnnotateImpl(Ast* node)
     break;
 
   case compound_statement:
-    m_scopeStack.push(Scope(*this, node, &m_scopeStack.top()));
+    m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a1);
     m_scopeStack.pop();
-    node->m_varcount = VarCount(node->m_a1);
+    node->m_props["varcount"] = VarCount(node->m_a1);
     break;
 
   case switch_statement:
     {
+      node->m_props["varcount"] = 0;
       AnnotateImpl(node->m_a1);
       AstList* list = node->m_a2;
       AstList::iterator it, ie;
@@ -269,11 +270,69 @@ CodeGenerator::AnnotateImpl(Ast* node)
   }
 }
 
+void 
+Annotator::AnnotateTranslationUnit(Ast* node)
+{
+  // Push initial frame
+  m_scopeStack.push(Scope(m_reporter, node, 0));
+
+  // Initialize properties
+  node->m_props["framesize"] = 0;
+  node->m_props["varcount"]  = 0;
+
+  // Annotate contents
+  AnnotateImpl(node->m_a1);
+}
+
+void 
+Annotator::AnnotateFunction(Ast* node)
+{
+  // Check whether the name is in use
+  String name = node->m_a1;
+  if(m_functions.count(name))
+  {
+    m_reporter.ReportError("Function '" + name + "' is already defined");
+  }
+
+  // Initialize annotations
+  node->m_props["framesize"] = 0;
+  node->m_props["varcount"]  = 0;
+  node->m_props["parcount"]  = 0;
+
+  // Create new scope for function
+  m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
+
+  // Annotate parameter list
+  if(!node->m_a2.empty())
+  {
+    AnnotateImpl(node->m_a2);
+  }
+
+  // Annotate function content
+  AnnotateImpl(node->m_a3);
+
+  // Clean up the stack
+  m_scopeStack.pop();
+
+  // Store and check number of variables
+  node->m_props["varcount"] = VarCount(node->m_a3);
+  if(node->m_props["varcount"] != node->m_props["framesize"])
+  {
+    throw std::logic_error("Invalid frame size");
+  }
+  
+  // Store the function call
+  m_functions[name] = node;
+}
+
 void
-CodeGenerator::AnnotateStatementSequence(Ast* node)
+Annotator::AnnotateStatementSequence(Ast* node)
 {
   // Determine list
   AstList* list = any_cast<AstList*>(node->m_a1);
+
+  // Initialize annotations
+  node->m_props["varcount"] = 0;
 
   // Enumerate statements
   AstList::iterator si, se;
@@ -285,6 +344,69 @@ CodeGenerator::AnnotateStatementSequence(Ast* node)
     AnnotateImpl(*si);
 
     // Add to count
-    node->m_varcount += (*si)->m_varcount;
+    node->m_props["varcount"] += VarCount(*si);
   }    
+}
+
+void 
+Annotator::AnnotateLValue(Ast* node)
+{
+  // Find lvalue on stack
+  bool global = false;
+  Quad offset = m_scopeStack.top().Lookup(node->m_a1, global);
+
+  // TODO Variable not found should be moved here
+
+  // Store offset
+  node->m_props["stackpos"] = offset;
+  node->m_props["isglobal"] = global;
+}
+
+void 
+Annotator::ResolveCalls()
+{
+  // Enumerate calls
+  AstList::iterator it = m_funcalls.begin();
+  AstList::iterator ie = m_funcalls.end();
+  for(; it != ie; ++it)
+  {
+    // Function name
+    String name = (*it)->m_a1;
+
+    // Locate user function
+    AstMap::iterator decl = m_functions.find(name);
+    if(decl != m_functions.end())
+    {
+      // Check parameter count
+      if((*it)->m_props["argcount"] != decl->second->m_props["parcount"])
+      {
+        m_reporter.ReportError("Invalid number of arguments in call to function '" + name + "'");
+      }
+
+      // Point call to function
+      (*it)->m_a3 = decl->second;
+
+      // Next
+      continue;
+    }
+
+    // Locate native call
+    NativeCallInfo* nci = FindNative(name);
+    if(nci != 0)
+    {
+      // Check parameter count
+      if(ArgCount(*it) < nci->m_minPar ||
+         ArgCount(*it) > nci->m_maxPar )
+      {
+        m_reporter.ReportError("Invalid number of arguments in call to function '" + name + "'");
+      }
+
+      // Next
+      continue;
+    }
+
+    // No such function
+    m_reporter.ReportError("Function '" + name + "' not found");
+    continue;
+  }
 }

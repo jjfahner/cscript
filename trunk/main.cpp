@@ -23,6 +23,7 @@
 #include "ast.h"
 #include "codegen.h"
 #include "machine.h"
+#include "annotate.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -107,7 +108,8 @@ int annotate(CmdArgs const& args)
   Ast* root = cg.Optimize(astGen.GetRoot());
 
   // Annotate code
-  cg.Annotate(root);
+  Annotator annotator(cg);
+  annotator.Annotate(root);
 
   // Print annotated code
   cg.Print(outFile, root);

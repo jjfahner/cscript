@@ -24,8 +24,9 @@
 #include "ast.h"
 #include "var.h"
 #include "scope.h"
+#include "report.h"
 
-class CodeGenerator
+class CodeGenerator : public Reporter
 {
 public:
 
@@ -48,11 +49,6 @@ public:
   // Release code pointe
   //
   Byte* ReleaseCode();
-
-  //
-  // Annotation
-  //
-  void Annotate(Ast*);
 
   //
   // Optimize node. Returned node may be
@@ -88,8 +84,8 @@ public:
   //
   // Errors/warnings
   //
-  void ReportError(String const& error);
-  void ReportWarning(String const& warning);
+  virtual void ReportError(String const& text);
+  virtual void ReportWarning(String const& text);
 
 private:
 
@@ -98,12 +94,6 @@ private:
   //
   void Validate(Ast*);
   
-  //
-  // Annotation
-  //
-  void AnnotateImpl(Ast*);
-  void AnnotateStatementSequence(Ast*);
-
   //
   // Optimization
   //
@@ -116,6 +106,7 @@ private:
   Ast* OptimizeCompoundStatement(Ast*);
   Ast* OptimizeAssignmentExpression(Ast*);
   Ast* OptimizePrefixExpression(Ast*);
+  Ast* OptimizeSwitchStatement(Ast*);
 
   //
   // Printing
@@ -179,12 +170,6 @@ private:
   QuadList  m_returns;
   Quad      m_errors;
   Quad      m_warnings;
-
-  //
-  // Stack for scoping. Used during annotation phase.
-  //
-  typedef std::stack<Scope> VarIdStack;
-  VarIdStack m_scopeStack;
 
 };
 

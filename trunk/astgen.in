@@ -68,7 +68,10 @@
 %right ASSIGN ASSADD ASSSUB ASSMUL ASSDIV ASSMOD .
 
 // Start symbol
-translation_unit ::= statement_sequence_opt(A) . { p->SetRoot(A); }
+main ::= translation_unit(A) . { p->SetRoot(A); }
+
+// Translation unit
+translation_unit(R) ::= statement_sequence_opt(A) . { R = new Ast(translation_unit, A); }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
@@ -229,7 +232,7 @@ continue_statement(R) ::= CONTINUE SEMICOLON . { R = new Ast(continue_statement)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Declarations
+// Variable declaration
 //
 
 // Declaration starting point
@@ -250,6 +253,11 @@ simple_declaration(R) ::= IDENTIFIER(A) . { R = new Ast(variable_declaration, St
 // Variable declaration with initialization
 init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = new Ast(variable_declaration, String(A), B); }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Function declaration
+//
+
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), B, C); }
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN                   RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), any(), C); }
@@ -257,9 +265,21 @@ function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN                   RPAR
 // Single parameter
 parameter(R) ::= IDENTIFIER(A) . { R = new Ast(parameter, String(A)); }
 
-// Parameters
-parameter_list(R) ::= parameter(A) . { R = A; }
-parameter_list(R) ::= parameter_list(A) COMMA parameter(B) . { R = new Ast(parameter_list, A, B); }
+// Optional parameter
+opt_parameter(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = new Ast(parameter, String(A), B); }
+
+// List of parameters
+parameters(R) ::= parameter(A) . { R = A; }
+parameters(R) ::= parameters(A) COMMA parameter(B) . { R = new Ast(parameter_list, A, B); }
+
+// List of optional parameters
+opt_parameters(R) ::= opt_parameter(A) . { R = A; }
+opt_parameters(R) ::= opt_parameters(A) COMMA opt_parameter(B) . { R = new Ast(parameter_list, A, B); }
+
+// Parameter list
+parameter_list(R) ::= parameters(A) .     { R = A; }
+parameter_list(R) ::= opt_parameters(A) . { R = A; }
+parameter_list(R) ::= parameters(A) COMMA opt_parameters(B) . { R = new Ast(parameter_list, A, B); }
 
 // Function body. Traditionally, this is a compound statement, but
 // there's no actual need for that.
