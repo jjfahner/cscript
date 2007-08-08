@@ -301,6 +301,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\annotate.h"
+				>
+			</File>
+			<File
 				RelativePath=".\any.h"
 				>
 			</File>
@@ -341,7 +345,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\props.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ref.h"
+				>
+			</File>
+			<File
+				RelativePath=".\report.h"
 				>
 			</File>
 			<File

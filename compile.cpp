@@ -1,6 +1,7 @@
 #include "codegen.h"
 #include "native.h"
 #include "file.h"
+#include "annotate.h"
 
 inline Variant LiteralAsVariant(Ast* node)
 {
@@ -33,7 +34,9 @@ CodeGenerator::Generate(Ast* node, bool release)
   }
 
   // Gather information
-  Annotate(node);
+  Annotator annotator(*this);
+  annotator.Annotate(node);
+//  Print("out.ann.txt", node);
 
   // Reserve header space
   Reserve(sizeof(BinHeader));
@@ -45,7 +48,7 @@ CodeGenerator::Generate(Ast* node, bool release)
 
   // Generate initial stack frame
   PushByte(op_stackg);
-  PushQuad(node->m_framesize);
+  PushQuad((Quad)node->m_props["framesize"]);
 
   // Generate top-level code
   GenerateCode(node);
@@ -169,6 +172,12 @@ CodeGenerator::Generate(Ast* node, bool release)
   ((BinHeader*)m_code)->m_compver = COMPVER;
   ((BinHeader*)m_code)->m_machver = MACHVER;
 
+//   std::ofstream ofs("out.dec.txt");
+//   Decompile(m_code, sizeof(BinHeader), 
+//     ((BinHeader*)m_code)->m_codelen +
+//     ((BinHeader*)m_code)->m_proclen,
+//     ofs);
+
   // Check for errors
   if(m_errors)
   {
@@ -192,7 +201,7 @@ CodeGenerator::GenerateFunction(Ast* node)
 
   // Push stack growth instruction
   PushByte(op_stackg);
-  PushQuad(node->m_framesize);
+  PushQuad(node->m_props["framesize"]);
 
   // Generate function content
   GenerateCode(node->m_a3);
@@ -212,7 +221,7 @@ CodeGenerator::GenerateFunction(Ast* node)
   PushByte(op_store);
   PushQuad((Quad)-1);
   PushByte(op_stacks);
-  PushQuad(node->m_framesize);
+  PushQuad(node->m_props["framesize"]);
 
   // Generate return
   PushByte(op_ret);
@@ -231,6 +240,9 @@ CodeGenerator::GenerateCode(Ast* node)
   // Generate type-specific code
   switch(node->m_type)
   {
+  case translation_unit:
+    GenerateCode(node->m_a1);
+    break;
 
     // TODO
   case foreach_statement:
@@ -405,8 +417,8 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case lvalue:
-    PushByte(node->m_globalvar ? op_pushg : op_pushv);
-    PushQuad(node->m_stackpos);
+    PushByte(node->m_props["isglobal"] ? op_pushg : op_pushv);
+    PushQuad(node->m_props["stackpos"]);
     break;
 
   case variable_declaration:
@@ -415,13 +427,13 @@ CodeGenerator::GenerateCode(Ast* node)
       PushByte(op_pushl);
       PushLiteral(Variant::Null);
       PushByte(op_store);
-      PushQuad(node->m_stackpos);
+      PushQuad(node->m_props["stackpos"]);
     }
     else
     {
       GenerateCode(node->m_a2);
       PushByte(op_store);
-      PushQuad(node->m_stackpos);
+      PushQuad(node->m_props["stackpos"]);
     }
     break;
 
@@ -472,15 +484,15 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
   PushLiteral(Variant::Null);
 
   // Push call to function
-  m_calls[node->m_a1].push_back(Call(m_used, node->m_argcount));
+  m_calls[node->m_a1].push_back(Call(m_used, node->m_props["argcount"]));
   PushByte(op_call);
   PushQuad(0);
 
   // Write cleanup code for argument list
-  if(node->m_argcount)
+  if(node->m_props["argcount"])
   {
     PushByte(op_stackt);
-    PushQuad(node->m_argcount);
+    PushQuad(node->m_props["argcount"]);
   }
 }
 

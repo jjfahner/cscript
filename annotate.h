@@ -1,0 +1,67 @@
+#ifndef CSCRIPT_ANNOTATE_H
+#define CSCRIPT_ANNOTATE_H
+
+#include "types.h"
+#include "scope.h"
+
+class Ast;
+
+class Annotator
+{
+public:
+
+  //
+  // Construction
+  //
+  Annotator(Reporter& reporter);
+
+  //
+  // Annotate tree
+  //
+  void Annotate(Ast* root);
+
+private:
+
+  //
+  // Annotation implementation
+  //
+  void AnnotateImpl(Ast* node);
+  void AnnotateFunction(Ast* node);
+  void AnnotateLValue(Ast* node);
+  void AnnotateTranslationUnit(Ast* node);
+  void AnnotateStatementSequence(Ast* node);
+
+  //
+  // Function call resolving
+  //
+  void ResolveCalls();
+
+  //
+  // Reporter
+  //
+  Reporter& m_reporter;
+
+  //
+  // Stack for scoping. Used during annotation phase.
+  //
+  typedef std::stack<Scope> VarIdStack;
+  VarIdStack m_scopeStack;
+
+  //
+  // Map of ast nodes
+  //
+  typedef std::map<String, Ast*> AstMap;
+
+  //
+  // List of function calls
+  //
+  AstList m_funcalls;
+  
+  //
+  // List of declared functions
+  //
+  AstMap m_functions;
+
+};
+
+#endif // CSCRIPT_ANNOTATE_H

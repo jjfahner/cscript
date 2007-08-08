@@ -20,9 +20,10 @@
 //////////////////////////////////////////////////////////////////////////
 #include "scope.h"
 #include "codegen.h"
+#include "report.h"
 
-Scope::Scope(CodeGenerator& cg, Ast* node, Scope* parent) :
-m_cg      (cg),
+Scope::Scope(Reporter& reporter, Ast* node, Scope* parent) :
+m_reporter(reporter),
 m_node    (node),
 m_parent  (parent)
 {
@@ -75,7 +76,7 @@ Scope::Lookup(String const& name, bool& global) const
     parent = parent->m_parent;
   }
   
-  m_cg.ReportError("variable or parameter '" + name + "' undefined");
+  m_reporter.ReportError("variable or parameter '" + name + "' undefined");
   return 0;
 }
 
@@ -87,7 +88,7 @@ Scope::MakeParameterId()
     // Return negative paramcount - 1 to accomodate
     // the return value that is stored at [ST-1], so
     // that argument n is found at [ST-1-n]
-    return -int(++m_node->m_parcount) - 1;
+    return -int(++m_node->m_props["parcount"]) - 1;
   }
   throw std::logic_error("Invalid node for parameter declaration");
 }
@@ -95,13 +96,12 @@ Scope::MakeParameterId()
 int 
 Scope::MakeVariableId()
 {
-  if(m_node->m_type == function_declaration)
+  switch(m_node->m_type)
   {
-    return m_node->m_framesize++;
+  case translation_unit:
+  case function_declaration:
+    return m_node->m_props["framesize"]++;
+  default:
+    return m_parent->MakeVariableId();
   }
-  if(m_parent == 0)
-  {
-    return m_node->m_framesize++;
-  }
-  return m_parent->MakeVariableId();
 }

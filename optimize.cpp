@@ -42,7 +42,8 @@ inline bool IsType(Ast* node, AstTypes type)
 
 inline bool IsIdempotent(Ast* node)
 {
-  return node->m_idempotent;
+  return false;
+  //return node->m_props["idempotent"];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -55,6 +56,10 @@ CodeGenerator::Optimize(Ast* node)
 {
   switch(node->m_type)
   {
+  case translation_unit:
+    node = Optimize(node->m_a1);
+    break;
+
   case statement_sequence:
     node = OptimizeStatementSequence(node);
     break;
@@ -133,7 +138,7 @@ CodeGenerator::Optimize(Ast* node)
 
   case literal:
   case lvalue:
-    node->m_idempotent = true;
+    node->m_props["idempotent"] = true;
     break;
 
   case variable_declaration:
@@ -179,6 +184,10 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case switch_statement:
+    node = OptimizeSwitchStatement(node);
+    break;
+
+  case empty_statement:
     break;
 
   default:
@@ -350,7 +359,7 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
   {
     delete node;
     node = new Ast(literal, Variant(true));
-    node->m_idempotent = true;
+    node->m_props["idempotent"] = true;
     return node;
   }
 
@@ -361,7 +370,7 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
   {
     delete node;
     node = new Ast(literal, Variant(false));
-    node->m_idempotent = true;
+    node->m_props["idempotent"] = true;
     return node;
   }
 
@@ -369,8 +378,9 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
   node->m_a3 = Optimize(node->m_a3);
 
   // Determine idempotence
-  node->m_idempotent = IsIdempotent(node->m_a2) && 
-                       IsIdempotent(node->m_a3) ;
+  node->m_props["idempotent"] = 
+    IsIdempotent(node->m_a2) && 
+    IsIdempotent(node->m_a3) ;
 
   // Check whether both sides are literals
   if(!IsType(node->m_a2, literal) || 
@@ -407,7 +417,7 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
   // Replace previous node
   if(rep)
   {
-    rep->m_idempotent = true;
+    rep->m_props["idempotent"] = true;
     delete node;
     node = rep;
   }
@@ -444,7 +454,7 @@ CodeGenerator::OptimizeTernaryExpression(Ast* node)
   else
   {
     // Determine idempotence
-    node->m_idempotent = 
+    node->m_props["idempotent"] = 
       IsIdempotent(node->m_a1) &&
       IsIdempotent(node->m_a2) &&
       IsIdempotent(node->m_a3) ;
@@ -463,7 +473,7 @@ CodeGenerator::OptimizeStatementSequence(Ast* node)
   AstList* rep = new AstList;
 
   // Check for idempotence
-  bool idempotent = true;
+  bool idempotent = false;
 
   // Enumerate statements
   AstList::iterator si, se;
@@ -478,7 +488,7 @@ CodeGenerator::OptimizeStatementSequence(Ast* node)
     if(!IsType(opt, empty_statement))
     {
       rep->push_back(opt);
-      idempotent &= opt->m_idempotent;
+      //idempotent &= (bool)opt->m_props["idempotent"];
     }
   }
 
@@ -489,7 +499,7 @@ CodeGenerator::OptimizeStatementSequence(Ast* node)
     delete old;
     delete rep;
     node = new Ast(empty_statement);
-    node->m_idempotent = true;
+    node->m_props["idempotent"] = true;
     return node;
   }
 
@@ -506,7 +516,7 @@ CodeGenerator::OptimizeStatementSequence(Ast* node)
   // Replace old list
   delete old;
   node->m_a1 = rep;
-  node->m_idempotent = idempotent;
+  node->m_props["idempotent"] = idempotent;
   return node;
 }
 
@@ -521,7 +531,7 @@ CodeGenerator::OptimizeExpressionStatement(Ast* node)
   {
     delete node;
     node = new Ast(empty_statement);
-    node->m_idempotent = true;
+    node->m_props["idempotent"] = true;
   }
 
   // Done
@@ -536,7 +546,7 @@ CodeGenerator::OptimizeCompoundStatement(Ast* node)
   {
     delete node;
     node = new Ast(empty_statement);
-    node->m_idempotent = true;
+    node->m_props["idempotent"] = true;
     return node;
   }
 
@@ -573,5 +583,12 @@ CodeGenerator::OptimizePrefixExpression(Ast* node)
   }
 
   // Done
+  return node;
+}
+
+Ast* 
+CodeGenerator::OptimizeSwitchStatement(Ast* node)
+{
+
   return node;
 }

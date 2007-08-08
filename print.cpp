@@ -79,6 +79,10 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
   AstList::iterator si, se;
   switch(node->m_type)
   {
+  case translation_unit:
+    PrintImpl(node->m_a1, level, s);
+    break;
+
   case statement_sequence:
     si = any_cast<AstList*>(node->m_a1)->begin();
     se = any_cast<AstList*>(node->m_a1)->end();
@@ -164,8 +168,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     break;
 
   case lvalue:
-    //s << any_cast<String>(node->m_a1) << "<" << node->m_stackpos << ">";
-    s << "@" << node->m_stackpos;
+    s << "@" << (int)node->m_props["stackpos"];
     break;
 
   case list_literal:
@@ -207,13 +210,12 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     {
       PrintImpl(node->m_a2, level, s);
     }
-    s << ") [" << node->m_varcount << "]\n";
+    s << ") [" << node->m_props["varcount"] << "]\n";
     PrintImpl(node->m_a3, level, s);
     break;
 
   case parameter:
-    //s << any_cast<String>(node->m_a1);
-    s << "@" << node->m_stackpos;
+    s << "@" << (int)(node->m_props["stackpos"]);
     break;
 
   case parameter_list:
@@ -224,8 +226,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
 
   case variable_declaration:
     s << indent << "var ";
-    s << "@" << node->m_stackpos;
-    //s << any_cast<String>(node->m_a1);
+    s << "@" << node->m_props["stackpos"];
     if(!node->m_a2.empty())
     {
       s << " = ";
