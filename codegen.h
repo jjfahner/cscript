@@ -117,7 +117,7 @@ private:
   // High-level code generation
   //
   void GenerateCode(Ast*);
-  Quad GenerateFunction(Ast*);
+  void GenerateFunction(Ast*);
   void GenerateFunctionCall(Ast*);
   void GenerateBinaryExpression(Ast*);
   void GenerateSwitchExpression(Ast*);
@@ -151,9 +151,6 @@ private:
   // Containers
   //
   typedef std::list<Quad> QuadList;
-  typedef std::pair<Quad, Quad> Call;
-  typedef std::list<Call> Calls;
-  typedef std::map<String, Calls> CallList;
   typedef std::pair<Ast*, Quad> Function;
   typedef std::map<String, Function> Functions;
   typedef std::map<Variant, QuadList, Variant::LessExact> Literals;
@@ -165,7 +162,7 @@ private:
   Quad      m_size;
   Quad      m_used;
   Functions m_funs;
-  CallList  m_calls;
+  AstList   m_calls;
   Literals  m_literals;
   QuadList  m_returns;
   Quad      m_errors;

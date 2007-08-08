@@ -69,65 +69,22 @@ CodeGenerator::Generate(Ast* node, bool release)
   for(; fi != fe; ++fi)
   {
     // Generate function
-    Quad offset = GenerateFunction(fi->second.first);
-
-    // Store offset
-    fi->second.second = offset;
+    GenerateFunction(fi->second.first);
   }
 
   // Resolve calls to functions
-  CallList::iterator ci, ce;
+  AstList::iterator ci, ce;
   ci = m_calls.begin();
   ce = m_calls.end();
   for(; ci != ce; ++ci)
   {
-    Byte opcode = 0;
-    Quad offset = 0;
+    Ast* call = *ci;
+    Ast* proc = call->m_a3;
 
-    // Find ast node for function
-    Functions::iterator fi = m_funs.find(ci->first);
-    if(fi == m_funs.end())
-    {
-      // Find native function
-      NativeCallInfo* f = FindNative(ci->first);
-      if(f)
-      {
-        opcode = op_calln;
-        offset = f->m_offset; 
-      }
-      else
-      {
-        ReportError("function " + ci->first + " doesn't exist");
-        continue;
-      }
-    }
-    else
-    {
-      // Generate function
-      opcode = op_call;
-      offset = fi->second.second;
-    }
+    Quad patch  = call->m_props["patch"];
+    Quad offset = proc->m_props["offset"];
 
-    // Fix calls
-    Calls::iterator oi, oe;
-    oi = ci->second.begin();
-    oe = ci->second.end();
-    for(; oi != oe; ++oi)
-    {
-      Quad pos = oi->first;
-      if(opcode == op_call)
-      {
-        *(Byte*)(m_code + pos)     = opcode;
-        *(Quad*)(m_code + pos + 1) = offset;
-      }
-      else
-      {
-        *(Byte*)(m_code + pos)     = opcode;
-        *(Word*)(m_code + pos + 1) = offset;
-        *(Word*)(m_code + pos + 3) = oi->second;
-      }
-      pos = 0;
-    }
+    *(Quad*)(m_code + patch) = offset;
   }
 
   // Store length of proc segment
@@ -193,11 +150,11 @@ CodeGenerator::Generate(Ast* node, bool release)
   std::cout << m_errors << " error(s), " << m_warnings << " warning(s)\n";
 }
 
-Quad 
+void
 CodeGenerator::GenerateFunction(Ast* node)
 {
   // Store function offset
-  Quad fnOffset = m_used;
+  node->m_props["offset"] = m_used;
 
   // Push stack growth instruction
   PushByte(op_stackg);
@@ -225,9 +182,6 @@ CodeGenerator::GenerateFunction(Ast* node)
 
   // Generate return
   PushByte(op_ret);
-
-  // Done
-  return fnOffset;
 }
 
 void 
@@ -483,10 +437,23 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
   PushByte(op_pushl);
   PushLiteral(Variant::Null);
 
-  // Push call to function
-  m_calls[node->m_a1].push_back(Call(m_used, node->m_props["argcount"]));
-  PushByte(op_call);
-  PushQuad(0);
+  // Generate call
+  if(node->m_a3.istype<NativeCallInfo*>())
+  {
+    // Native call
+    NativeCallInfo* nci = node->m_a3;
+    PushByte(op_calln);
+    PushWord(nci->m_offset);
+    PushWord((Quad)node->m_props["argcount"]);
+  }
+  else
+  {
+    // User code call
+    PushByte(op_call);
+    node->m_props["patch"] = m_used;
+    m_calls.push_back(node);
+    PushQuad(0);
+  }
 
   // Write cleanup code for argument list
   if(node->m_props["argcount"])

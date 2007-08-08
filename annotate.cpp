@@ -401,6 +401,9 @@ Annotator::ResolveCalls()
         m_reporter.ReportError("Invalid number of arguments in call to function '" + name + "'");
       }
 
+      // Point call to function
+      (*it)->m_a3 = nci;
+
       // Next
       continue;
     }
