@@ -180,6 +180,11 @@ CodeGenerator::Optimize(Ast* node)
   case empty_statement:
     break;
 
+  case struct_declaration:
+    node->m_props["varcount"] = 0;
+    node = OptimizeStructDeclaration(node);
+    break;
+
   default:
     throw std::runtime_error("Unknown node type");
   }
@@ -562,6 +567,12 @@ CodeGenerator::OptimizePrefixExpression(Ast* node)
 
 Ast* 
 CodeGenerator::OptimizeSwitchStatement(Ast* node)
+{
+  return node;
+}
+
+Ast* 
+CodeGenerator::OptimizeStructDeclaration(Ast* node)
 {
   return node;
 }

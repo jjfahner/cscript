@@ -267,6 +267,9 @@ Annotator::AnnotateImpl(Ast* node)
   case default_case:
     AnnotateImpl(node->m_a1);
     break;
+
+  case struct_declaration:
+    break;
   }
 }
 

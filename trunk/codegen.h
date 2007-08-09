@@ -101,6 +101,7 @@ private:
   Ast* OptimizeAssignmentExpression(Ast*);
   Ast* OptimizePrefixExpression(Ast*);
   Ast* OptimizeSwitchStatement(Ast*);
+  Ast* OptimizeStructDeclaration(Ast*);
 
   //
   // Printing
