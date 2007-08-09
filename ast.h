@@ -74,6 +74,9 @@ enum AstTypes
   switch_body,
   switch_case,
   default_case,
+  struct_declaration,
+  struct_members,
+  struct_member,
 };
 
 class Ast 

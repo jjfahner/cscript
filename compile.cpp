@@ -409,6 +409,9 @@ CodeGenerator::GenerateCode(Ast* node)
     GenerateSwitchExpression(node);
     break;
 
+  case struct_declaration:
+    break;
+
   default:
     m_reporter.ReportError(node->m_pos, "internal compiler error: attempt to generate an unknown node type");
   }

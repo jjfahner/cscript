@@ -241,6 +241,7 @@ continue_statement(R) ::= CONTINUE SEMICOLON . { R = p->AllocAst(continue_statem
 
 // Declaration starting point
 declaration_statement(R) ::= declaration_sequence(A) SEMICOLON . { R = A; }
+declaration_statement(R) ::= struct_declaration(A) .             { R = A; }
 declaration_statement(R) ::= function_declaration(A) .           { R = A; }
 
 // Declaration sequence
@@ -256,6 +257,28 @@ simple_declaration(R) ::= IDENTIFIER(A) . { R = p->AllocAst(variable_declaration
 
 // Variable declaration with initialization
 init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocAst(variable_declaration, String(A), B); }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// struct declaration
+//
+
+// Struct declaration. Unlike C, a struct declaration doesn't require (but does allow) a terminating semicolon to be valid.
+struct_declaration(R) ::= STRUCT IDENTIFIER(A) LBRACE struct_members(B) RBRACE . { R = p->AllocAst(struct_declaration, String(A), B); }
+
+// Struct members
+struct_declseq(R) ::= declaration_sequence(A) SEMICOLON . { R = A; }
+
+// Struct members
+struct_members(R) ::= . { R = 0; }
+struct_members(R) ::= struct_members(A) struct_declseq(B) . { 
+  if(A) {
+    R = p->AllocAst(struct_members, A, B); 
+  }
+  else {
+    R = B;
+  }
+}
 
 //////////////////////////////////////////////////////////////////////////
 //

@@ -49,6 +49,7 @@ int parseNextToken(Char*& start, Char*& end)
   /* Keywords */
   "break"                   { return TOK_BREAK; }
   "case"                    { return TOK_CASE; }
+  /*"class"                   { return TOK_CLASS; }*/
   "continue"                { return TOK_CONTINUE; }
   "default"                 { return TOK_DEFAULT; }
   "else"                    { return TOK_ELSE; }
@@ -60,6 +61,7 @@ int parseNextToken(Char*& start, Char*& end)
   "include"                 { return TOK_INCLUDE; }
   "null"                    { return TOK_NULL; }
   "return"                  { return TOK_RETURN; }
+  "struct"                  { return TOK_STRUCT; }
   "switch"                  { return TOK_SWITCH; }
   "true"                    { return TOK_TRUE; }
   "var"                     { return TOK_VAR; }
