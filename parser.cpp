@@ -9,6 +9,11 @@ m_root (0)
 
 }
 
+Parser::~Parser()
+{
+  delete m_root;
+}
+
 void
 Parser::Parse(String const& filename)
 {

@@ -15,6 +15,11 @@ public:
   Parser();
 
   //
+  // Destruction
+  //
+  ~Parser();
+
+  //
   // Parse a file
   //
   void Parse(File& file);
