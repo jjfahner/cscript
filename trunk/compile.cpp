@@ -3,11 +3,6 @@
 #include "file.h"
 #include "annotate.h"
 
-inline Variant LiteralAsVariant(Ast* node)
-{
-  return any_cast<Variant>(node->m_a1);
-}
-
 inline bool IsType(Ast* node, AstTypes type)
 {
   return node->m_type == type;
@@ -209,10 +204,9 @@ CodeGenerator::GenerateCode(Ast* node)
   case statement_sequence:
   case parameter_list:
     {
-      AstList* list = any_cast<AstList*>(node->m_a1);
       AstList::iterator si, se;
-      si = list->begin();
-      se = list->end();
+      si = node->m_a1.GetList()->begin();
+      se = node->m_a1.GetList()->end();
       for(; si != se; ++si)
       {
         GenerateCode(*si);
@@ -221,7 +215,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case return_statement:
-    if(!node->m_a1.empty())
+    if(node->m_a1)
     {
       GenerateCode(node->m_a1);
     }
@@ -235,7 +229,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case compound_statement:
-    if(any_cast<Ast*>(node->m_a1) != 0)
+    if(node->m_a1)
     {
       GenerateCode(node->m_a1);
     }
@@ -259,7 +253,7 @@ CodeGenerator::GenerateCode(Ast* node)
     PushByte(op_jz);
     offset0 = PushPatch();
     GenerateCode(node->m_a2);
-    if(node->m_a3.empty())
+    if(!node->m_a3)
     {
       FixPatch(offset0);
     }
@@ -292,7 +286,7 @@ CodeGenerator::GenerateCode(Ast* node)
   case assignment_expression:
     GenerateCode(node->m_a2);
     GenerateCode(node->m_a3);
-    PushByte((opcodes)node->m_a1);
+    PushByte(node->m_a1.GetNumber());
     break;
 
   case binary_expression:
@@ -324,7 +318,7 @@ CodeGenerator::GenerateCode(Ast* node)
 
   case list_content:
     GenerateCode(node->m_a1);
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       GenerateCode(node->m_a2);
     }
@@ -337,12 +331,12 @@ CodeGenerator::GenerateCode(Ast* node)
 
   case prefix_expression:
     GenerateCode(node->m_a2);
-    PushByte((opcodes)node->m_a1);
+    PushByte(node->m_a1.GetNumber());
     break;
 
   case postfix_expression:
     GenerateCode(node->m_a2);
-    PushByte((opcodes)node->m_a1);
+    PushByte(node->m_a1.GetNumber());
     break;
 
   case member_expression:
@@ -376,7 +370,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case variable_declaration:
-    if(node->m_a2.empty())
+    if(!node->m_a2)
     {
       PushByte(op_pushl);
       PushLiteral(Variant::Null);
@@ -399,8 +393,7 @@ CodeGenerator::GenerateCode(Ast* node)
   case function_declaration:
     if(m_funs.count(node->m_a1))
     {
-      ReportError("redeclaration of function " +
-                 any_cast<String>(node->m_a1));
+      ReportError("redeclaration of function " + node->m_a1.GetString());
     }
     else
     {
@@ -428,7 +421,7 @@ void
 CodeGenerator::GenerateFunctionCall(Ast* node)
 {
   // Generate argument list
-  if(!node->m_a2.empty())
+  if(node->m_a2)
   {
     GenerateCode(node->m_a2);
   }
@@ -438,21 +431,20 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
   PushLiteral(Variant::Null);
 
   // Generate call
-  if(node->m_a3.istype<NativeCallInfo*>())
-  {
-    // Native call
-    NativeCallInfo* nci = node->m_a3;
-    PushByte(op_calln);
-    PushWord(nci->m_offset);
-    PushWord((Quad)node->m_props["argcount"]);
-  }
-  else
+  if(node->m_a3)
   {
     // User code call
     PushByte(op_call);
     node->m_props["patch"] = m_used;
     m_calls.push_back(node);
     PushQuad(0);
+  }
+  else
+  {
+    // Native call
+    PushByte(op_calln);
+    PushWord((Quad)node->m_props["offset"]);
+    PushWord((Quad)node->m_props["argcount"]);
   }
 
   // Write cleanup code for argument list
@@ -466,7 +458,7 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
 void 
 CodeGenerator::GenerateBinaryExpression(Ast* node)
 {
-  opcodes op = any_cast<opcodes>(node->m_a1);
+  opcodes op = (opcodes)node->m_a1.GetNumber();
 
   // Short-circuited logical or
   if(op == op_logor)
@@ -513,7 +505,7 @@ CodeGenerator::GenerateBinaryExpression(Ast* node)
   // Normal binary operators
   GenerateCode(node->m_a2);
   GenerateCode(node->m_a3);
-  PushByte((opcodes)node->m_a1);
+  PushByte(node->m_a1.GetNumber());
 }
 
 void 
@@ -531,7 +523,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
   Quad offset = PushPatch();
 
   // Generate code for all cases
-  AstList* list = any_cast<AstList*>(node->m_a2);
+  AstList* list = node->m_a2;
   AstList::iterator it = list->begin();
   AstList::iterator ie = list->end();
   for(; it != ie; ++it)
@@ -551,7 +543,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
     else
     {
       // Extract value
-      Variant value = LiteralAsVariant(casenode->m_a1);
+      Variant value = casenode->m_a1.GetNode()->m_a1;
 
       // TODO Check for duplicates, should be detected by the annotation code
       if(cases.count(value))

@@ -21,6 +21,7 @@
 #include "file.h"
 #include "cmdargs.h"
 #include "ast.h"
+#include "parser.h"
 #include "codegen.h"
 #include "machine.h"
 #include "annotate.h"
@@ -98,14 +99,14 @@ int annotate(CmdArgs const& args)
     return EXIT_FAILURE;
   }
 
-  AstGen astGen;
+  Parser parser;
   CodeGenerator cg;
 
   // Generate ast
-  astGen.Parse(srcFile);
+  parser.Parse(srcFile);
   
   // Optimize code
-  Ast* root = cg.Optimize(astGen.GetRoot());
+  Ast* root = cg.Optimize(parser.GetRoot());
 
   // Annotate code
   Annotator annotator(cg);
@@ -161,12 +162,12 @@ int compile(CmdArgs const& args)
   }
 
   // Generate ast
-  AstGen astGen;
-  astGen.Parse(srcFile);
+  Parser parser;
+  parser.Parse(srcFile);
 
   // Generate code
   CodeGenerator cg;
-  cg.Generate(astGen.GetRoot(), true);
+  cg.Generate(parser.GetRoot(), true);
 
   // Write file
   std::ofstream ofs(outFile.c_str(), std::ios::binary);
@@ -294,12 +295,12 @@ int execute(CmdArgs const& args)
   else
   {
     // Generate ast
-    AstGen astGen;
-    astGen.Parse(file);
+    Parser parser;
+    parser.Parse(file);
 
     // Generate code
     CodeGenerator cg;
-    cg.Generate(astGen.GetRoot(), true);
+    cg.Generate(parser.GetRoot(), true);
 
     // Check whether compilation succeeded
     if(cg.GetCode() == 0)

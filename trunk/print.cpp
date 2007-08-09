@@ -25,7 +25,7 @@
 // Helpers
 //
 
-String OpString(opcodes op)
+String OpString(Quad op)
 {
   switch(op)
   {
@@ -84,8 +84,8 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     break;
 
   case statement_sequence:
-    si = any_cast<AstList*>(node->m_a1)->begin();
-    se = any_cast<AstList*>(node->m_a1)->end();
+    si = node->m_a1.GetList()->begin();
+    se = node->m_a1.GetList()->end();
     for(; si != se; ++si)
     {
       PrintImpl(*si, level, s);
@@ -141,9 +141,9 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     break;
 
   case function_call:
-    s << any_cast<String>(node->m_a1);
+    s << node->m_a1.GetString();
     s << "(";
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       PrintImpl(node->m_a2, level, s);
     }
@@ -151,9 +151,9 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     break;
 
   case literal:
-    if(any_cast<Variant>(node->m_a1).GetType() == Variant::stString)
+    if(node->m_a1.Type() == AstData::Text)
     {
-      String temp = any_cast<Variant>(node->m_a1).AsString();
+      String temp = node->m_a1.GetValue().GetString();
       size_t pos;
       while((pos = temp.find("\n")) != String::npos)
       {
@@ -163,7 +163,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     }
     else
     {
-      s << any_cast<Variant>(node->m_a1).AsString();
+      s << node->m_a1.GetValue().GetString();
     }
     break;
 
@@ -181,7 +181,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
 
   case list_content:
     PrintImpl(node->m_a1, level, s);
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       s << ",";
       PrintImpl(node->m_a2, level, s);
@@ -204,9 +204,9 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
 
   case function_declaration:
     s << "function ";
-    s << any_cast<String>(node->m_a1);
+    s << node->m_a1.GetString();
     s << "(";
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       PrintImpl(node->m_a2, level, s);
     }
@@ -227,7 +227,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
   case variable_declaration:
     s << indent << "var ";
     s << "@" << node->m_props["stackpos"];
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       s << " = ";
       PrintImpl(node->m_a2, level, s);
@@ -245,7 +245,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     break;
 
   case include_statement:
-    s << indent << "include \"" << any_cast<String>(node->m_a1) << "\";\n";
+    s << indent << "include \"" << node->m_a1.GetValue().GetString() << "\";\n";
     break;
 
   case for_statement:
@@ -267,7 +267,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     PrintImpl(node->m_a1, level, s);
     s << ")\n";
     PrintImpl(node->m_a2, level, s);
-    if(!node->m_a3.empty())
+    if(node->m_a3)
     {
       s << indent << "else\n";
       PrintImpl(node->m_a3, level, s);
@@ -283,7 +283,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
 
   case return_statement:
     s << indent << "return ";
-    if(!node->m_a1.empty())
+    if(node->m_a1)
     {
       PrintImpl(node->m_a1, level, s);
     }

@@ -30,6 +30,7 @@
 %include {
 
 #include "tokens.h"
+#include "parser.h"
 #include "ast.h"
 
 #pragma warning(disable:4065)
@@ -41,10 +42,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 // Set prefix for tokens
-%name             AstGenParse
+%name             CScriptParse
 %token_prefix     TOK_
 %token_type       { Token }
-%extra_argument   { AstGen* p }
+%extra_argument   { Parser* p }
 %default_type     { Ast* }
 
 // Error handlers
@@ -81,9 +82,9 @@ statement_sequence(R) ::= statement_sequence(A) statement(B) . {
   }
   else {
     R = new Ast(statement_sequence, new AstList);
-    any_cast<AstList*>(R->m_a1)->push_back(A);
+    R->m_a1.GetList()->push_back(A);
   }
-  any_cast<AstList*>(R->m_a1)->push_back(B);
+  R->m_a1.GetList()->push_back(B);
 }
 
 
@@ -260,7 +261,7 @@ init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = new Ast(varia
 
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), B, C); }
-function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN                   RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), any(), C); }
+function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN                   RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), AstData(), C); }
 
 // Single parameter
 parameter(R) ::= IDENTIFIER(A) . { R = new Ast(parameter, String(A)); }

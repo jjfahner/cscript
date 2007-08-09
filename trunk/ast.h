@@ -21,17 +21,13 @@
 #ifndef CSCRIPT_AST_H
 #define CSCRIPT_AST_H
 
-#include "types.h"
-#include "any.h"
-#include "var.h"
 #include "props.h"
+#include "astdata.h"
 
 #include "opcodes.h"
 
 class Ast;
 class File;
-typedef std::vector<any> AnyVec;
-typedef std::list<Ast*> AstList;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -80,51 +76,6 @@ enum AstTypes
   default_case,
 };
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Ast generator class
-//
-
-class AstGen
-{
-public:
-
-  //
-  // Construction
-  //
-  AstGen();
-
-  //
-  // Parse a file
-  //
-  void Parse(File& file);
-  void Parse(String const& filename);
-
-  //
-  // Root node
-  //
-  Ast* GetRoot() const;
-  void SetRoot(Ast* root);
-
-  //
-  // Error handlers
-  //
-  void OnParseFailure();
-  void OnSyntaxError();
-
-private:
-
-  //
-  // Members
-  //
-  Ast* m_root;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Ast node class
-//
 
 class Ast 
 {
@@ -136,79 +87,119 @@ public:
   // Construction
   //
   Ast(AstTypes type);
-  Ast(AstTypes type, any const& a1);
-  Ast(AstTypes type, any const& a1, any const& a2);
-  Ast(AstTypes type, any const& a1, any const& a2, any const& a3);
-  Ast(AstTypes type, any const& a1, any const& a2, any const& a3, any const& a4);
+  Ast(AstTypes type, AstData const& a1);
+  Ast(AstTypes type, AstData const& a1, AstData const& a2);
+  Ast(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3);
+  Ast(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4);
+
+  //
+  // Destructor
+  //
+  ~Ast()
+  {
+  }
 
   //
   // Ast structure
   //
   AstTypes  m_type;
-  any       m_a1;
-  any       m_a2;
-  any       m_a3;
-  any       m_a4;
+  AstData   m_a1;
+  AstData   m_a2;
+  AstData   m_a3;
+  AstData   m_a4;
 
   //
   // Annotations
   //
   Properties m_props;
 
-//   bool      m_idempotent;   // Content is idempotent
-//   Quad      m_varcount;     // Number of declared variables
-//   Quad      m_argcount;     // Number of argument in call
-//   Quad      m_parcount;     // Number of declared parameters
-//   Quad      m_framesize;    // Size of stack frame
-//   int       m_stackpos;     // Offset against stack frame (may be negative for parameters)
-//   bool      m_globalvar;    // Variable is global
+  //
+  // Refcount
+  //
+  friend class AstData;
+  int m_refs;
 
 };
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Constructor implementation
+// Managed ast list
 //
 
-inline 
-Ast::Ast(AstTypes type) :
-m_type (type)
+class AstList
 {
-}
+  typedef std::list<Ast*> ListImpl;
 
-inline 
-Ast::Ast(AstTypes type, any const& a1) :
-m_type(type),
-m_a1(a1)
-{
-}
+public:
 
-inline 
-Ast::Ast(AstTypes type, any const& a1, any const& a2) :
-m_type(type),
-m_a1(a1),
-m_a2(a2)
-{
-}
+  typedef ListImpl::iterator iterator;
+  typedef ListImpl::const_iterator const_iterator;
 
-inline 
-Ast::Ast(AstTypes type, any const& a1, any const& a2, any const& a3) :
-m_type(type),
-m_a1(a1),
-m_a2(a2),
-m_a3(a3)
-{
-}
+  AstList() :
+  m_refs (0)
+  {
+  }
 
-inline 
-Ast::Ast(AstTypes type, any const& a1, any const& a2, any const& a3, any const& a4) :
-m_type(type),
-m_a1(a1),
-m_a2(a2),
-m_a3(a3),
-m_a4(a4)
-{
-}
+  ~AstList()
+  {
+    clear();
+  }
+
+  void push_back(Ast* node)
+  {
+    ++node->m_refs;
+    m_list.push_back(node);
+  }
+
+  void clear()
+  {
+    while(m_list.size())
+    {
+      if(--m_list.front()->m_refs == 0)
+      {
+        delete m_list.front();
+      }
+      m_list.pop_front();
+    }
+    m_list.clear();
+  }
+
+  size_t size() const
+  {
+    return m_list.size();
+  }
+
+  iterator begin()
+  {
+    return m_list.begin();
+  }
+
+  iterator end()
+  {
+    return m_list.end();
+  }
+
+  const_iterator begin() const
+  {
+    return m_list.begin();
+  }
+
+  const_iterator end() const
+  {
+    return m_list.end();
+  }
+
+private:
+
+  AstList(AstList const&);
+  AstList const& operator = (AstList const&);
+
+  std::list<Ast*> m_list;
+  
+  friend class AstData;
+  int m_refs;
+
+};
 
 
 #endif // CSCRIPT_AST_H

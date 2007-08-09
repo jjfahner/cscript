@@ -25,16 +25,6 @@
 // Helpers
 //
 
-inline Variant LiteralAsVariant(Ast* node)
-{
-  return any_cast<Variant>(node->m_a1);
-}
-
-inline bool LiteralAsBool(Ast* node)
-{
-  return any_cast<Variant>(node->m_a1).AsBool();
-}
-
 inline bool IsType(Ast* node, AstTypes type)
 {
   return node->m_type == type;
@@ -97,7 +87,7 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case function_call:
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       node->m_a2 = Optimize(node->m_a2);
     }
@@ -122,7 +112,7 @@ CodeGenerator::Optimize(Ast* node)
     
   case list_content:
     node->m_a1 = Optimize(node->m_a1);
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       node->m_a2 = Optimize(node->m_a2);
     }
@@ -142,7 +132,7 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case variable_declaration:
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       node->m_a2 = Optimize(node->m_a2);
     }
@@ -173,7 +163,7 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case return_statement:
-    if(!node->m_a1.empty())
+    if(node->m_a1)
     {
       node->m_a1 = Optimize(node->m_a1);
     }
@@ -212,24 +202,21 @@ CodeGenerator::OptimizeIfStatement(Ast* node)
   if(IsType(node->m_a1, literal))
   {
     // Use true branch
-    if(LiteralAsBool(node->m_a1))
+    if(node->m_a1.GetNode()->m_a1.GetValue())
     {
       Ast* res = Optimize(node->m_a2);
-      delete node;
       return res;
     }
 
     // Use false branch
-    if(!node->m_a3.empty())
+    if(node->m_a3)
     {
       // Use 'false' branch
       Ast* res = Optimize(node->m_a3);
-      delete node;
       return res;
     }
 
     // Optimize to null statement
-    delete node;
     return new Ast(empty_statement);
   }
 
@@ -241,7 +228,7 @@ CodeGenerator::OptimizeIfStatement(Ast* node)
   bool re = true;
 
   // Optimize false branch
-  if(!node->m_a3.empty())
+  if(node->m_a3)
   {
     node->m_a3 = Optimize(node->m_a3);
     re = IsType(node->m_a3, empty_statement);
@@ -250,7 +237,6 @@ CodeGenerator::OptimizeIfStatement(Ast* node)
 //   // Empty substatements
 //   if(le && re)
 //   {
-//     delete node;
 //     return 
 //   }
 
@@ -269,7 +255,7 @@ CodeGenerator::OptimizeForStatement(Ast* node)
 
   // Determine condition
   Ast* cond;
-  if(node->m_a2.empty())
+  if(!node->m_a2)
   {
     cond = new Ast(literal, Variant::True);
   }
@@ -282,7 +268,7 @@ CodeGenerator::OptimizeForStatement(Ast* node)
   Ast* body = 0;
   if(IsType(node->m_a4, empty_statement))
   {
-    if(node->m_a3.empty())
+    if(!node->m_a3)
     {
       // Use empty statement for body
       body = node->m_a4;
@@ -353,22 +339,20 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
   node->m_a2 = Optimize(node->m_a2);
 
   // Or with literal true on left side
-  if(node->m_a1 == op_logor     && 
-     IsType(node->m_a2, literal)&& 
-     LiteralAsBool(node->m_a2)  )
+  if(node->m_a1.GetNumber() == op_logor && 
+     IsType(node->m_a2, literal) && 
+     node->m_a2.GetNode()->m_a1.GetValue().AsBool() )
   {
-    delete node;
     node = new Ast(literal, Variant(true));
     node->m_props["idempotent"] = true;
     return node;
   }
 
   // And with literal false on left side
-  if(node->m_a1 == op_logand    &&
-     IsType(node->m_a2, literal)&&
-     !LiteralAsBool(node->m_a2) )
+  if(node->m_a1.GetNumber() == op_logand &&
+     IsType(node->m_a2, literal) &&
+     !node->m_a2.GetNode()->m_a1.GetValue().AsBool() )
   {
-    delete node;
     node = new Ast(literal, Variant(false));
     node->m_props["idempotent"] = true;
     return node;
@@ -391,12 +375,12 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
   }
 
   // Extract values
-  Variant lhs = LiteralAsVariant(node->m_a2);
-  Variant rhs = LiteralAsVariant(node->m_a3);
+  Variant lhs = node->m_a2.GetNode()->m_a1;
+  Variant rhs = node->m_a3.GetNode()->m_a1;
 
   // Calculate new value
   Ast* rep = 0;
-  switch((opcodes)node->m_a1)
+  switch(node->m_a1.GetNumber())
   {
   case op_add:    rep = new Ast(literal, lhs +  rhs); break;
   case op_sub:    rep = new Ast(literal, lhs -  rhs); break;
@@ -418,7 +402,6 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
   if(rep)
   {
     rep->m_props["idempotent"] = true;
-    delete node;
     node = rep;
   }
   
@@ -438,16 +421,14 @@ CodeGenerator::OptimizeTernaryExpression(Ast* node)
   if(IsType(node->m_a1, literal))
   {
     // Decide which branch to pick
-    if(LiteralAsBool(node->m_a1))
+    if(node->m_a1.GetNode()->m_a1.GetValue())
     {
       Ast* res = node->m_a2;
-      delete node;
       node = res;
     }
     else
     {
       Ast* res = node->m_a3;
-      delete node;
       node = res;
     }
   }
@@ -468,8 +449,10 @@ CodeGenerator::OptimizeTernaryExpression(Ast* node)
 Ast* 
 CodeGenerator::OptimizeStatementSequence(Ast* node)
 {
-  // Determine old and new list
-  AstList* old = any_cast<AstList*>(node->m_a1);
+  // Take over old list
+  AstList* old = node->m_a1;
+
+  // Create new list
   AstList* rep = new AstList;
 
   // Check for idempotence
@@ -495,8 +478,6 @@ CodeGenerator::OptimizeStatementSequence(Ast* node)
   // The new list is empty
   if(rep->size() == 0)
   {
-    delete node;
-    delete old;
     delete rep;
     node = new Ast(empty_statement);
     node->m_props["idempotent"] = true;
@@ -506,15 +487,12 @@ CodeGenerator::OptimizeStatementSequence(Ast* node)
   // The new list contains one statement
   if(rep->size() == 1)
   {
-    delete node;
     node = *rep->begin();
-    delete old;
     delete rep;
     return node;
   }
 
   // Replace old list
-  delete old;
   node->m_a1 = rep;
   node->m_props["idempotent"] = idempotent;
   return node;
@@ -529,7 +507,6 @@ CodeGenerator::OptimizeExpressionStatement(Ast* node)
   // Replace idempotent expression with empty statement
   if(IsIdempotent(node->m_a1))
   {
-    delete node;
     node = new Ast(empty_statement);
     node->m_props["idempotent"] = true;
   }
@@ -542,16 +519,15 @@ Ast*
 CodeGenerator::OptimizeCompoundStatement(Ast* node)
 {
   // If empty, return empty statement
-  if(node->m_a1.empty())
+  if(!node->m_a1)
   {
-    delete node;
     node = new Ast(empty_statement);
     node->m_props["idempotent"] = true;
     return node;
   }
 
   // Optimize content
-  if(!node->m_a1.empty())
+  if(node->m_a1)
   {
     node->m_a1 = Optimize(node->m_a1);
   }
@@ -560,7 +536,6 @@ CodeGenerator::OptimizeCompoundStatement(Ast* node)
   if(IsType(node->m_a1, empty_statement))
   {
     Ast* res = node->m_a1;
-    delete node;
     node = res;
   }
 
@@ -577,8 +552,7 @@ CodeGenerator::OptimizePrefixExpression(Ast* node)
   // Reduce negation of literal
   if(IsType(node->m_a2, literal))
   {
-    Ast* res = new Ast(literal, -LiteralAsVariant(node->m_a2));
-    delete node;
+    Ast* res = new Ast(literal, -node->m_a2.GetNode()->m_a1.GetValue());
     node = res;
   }
 
@@ -589,6 +563,5 @@ CodeGenerator::OptimizePrefixExpression(Ast* node)
 Ast* 
 CodeGenerator::OptimizeSwitchStatement(Ast* node)
 {
-
   return node;
 }
