@@ -93,3 +93,5 @@ for(var q = 0; q < 10000; ++q)
     print(".");
   }
 }
+
+print("\nDone\n\n");
