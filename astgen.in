@@ -72,7 +72,7 @@
 main ::= translation_unit(A) . { p->SetRoot(A); }
 
 // Translation unit
-translation_unit(R) ::= statement_sequence_opt(A) . { R = new Ast(translation_unit, A); }
+translation_unit(R) ::= statement_sequence_opt(A) . { R = p->AllocAst(translation_unit, A); }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
@@ -81,7 +81,7 @@ statement_sequence(R) ::= statement_sequence(A) statement(B) . {
     R = A;
   }
   else {
-    R = new Ast(statement_sequence, new AstList);
+    R = p->AllocAst(statement_sequence, new AstList);
     R->m_a1.GetList()->push_back(A);
   }
   R->m_a1.GetList()->push_back(B);
@@ -106,6 +106,9 @@ statement(R) ::= switch_statement(A) .      { R = A; }
 statement(R) ::= break_statement(A) .       { R = A; }
 statement(R) ::= continue_statement(A) .    { R = A; }
 
+// Error recovery
+statement(R) ::= error .                    { R = p->AllocAst(empty_statement); }
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Expressions
@@ -120,7 +123,7 @@ expression_opt(R) ::= expression(A) . { R = A; }
 
 // Assignment
 assignment_expression(R) ::= conditional_expression(A) . { R = A; }
-assignment_expression(R) ::= binary_expression(A) assignment_operator(T) assignment_expression(B) . { R = new Ast(assignment_expression, T, A, B); }
+assignment_expression(R) ::= binary_expression(A) assignment_operator(T) assignment_expression(B) . { R = p->AllocAst(assignment_expression, T, A, B); }
 
 // Assignment operator
 %type assignment_operator { opcodes }
@@ -133,41 +136,41 @@ assignment_operator(R) ::= ASSMOD . { R = op_assmod; }
 
 // Conditional
 conditional_expression(R) ::= binary_expression(A) . { R = A; }
-conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON assignment_expression(C) . { R = new Ast(ternary_expression, A, B, C); }
+conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON assignment_expression(C) . { R = p->AllocAst(ternary_expression, A, B, C); }
 
 // Binary expressions
 binary_expression(R) ::= unary_expression(A) . { R = A; }
-binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = new Ast(binary_expression, op_logor,   A, B); }
-binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = new Ast(binary_expression, op_logand,  A, B); }
-binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = new Ast(binary_expression, op_bitor,   A, B); }
-binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R = new Ast(binary_expression, op_bitxor,  A, B); }
-binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = new Ast(binary_expression, op_bitand,  A, B); }
-binary_expression(R) ::= binary_expression(A) EQUALS  binary_expression(B). { R = new Ast(binary_expression, op_eq,   A, B); }
-binary_expression(R) ::= binary_expression(A) NEQUALS binary_expression(B). { R = new Ast(binary_expression, op_ne,   A, B); }
-binary_expression(R) ::= binary_expression(A) ST      binary_expression(B). { R = new Ast(binary_expression, op_lt,   A, B); }
-binary_expression(R) ::= binary_expression(A) SE      binary_expression(B). { R = new Ast(binary_expression, op_le,   A, B); }
-binary_expression(R) ::= binary_expression(A) GT      binary_expression(B). { R = new Ast(binary_expression, op_gt,   A, B); }
-binary_expression(R) ::= binary_expression(A) GE      binary_expression(B). { R = new Ast(binary_expression, op_ge,   A, B); }
-binary_expression(R) ::= binary_expression(A) ADDOP   binary_expression(B). { R = new Ast(binary_expression, op_add,  A, B); }
-binary_expression(R) ::= binary_expression(A) SUBOP   binary_expression(B). { R = new Ast(binary_expression, op_sub,  A, B); }
-binary_expression(R) ::= binary_expression(A) MULOP   binary_expression(B). { R = new Ast(binary_expression, op_mul,  A, B); }
-binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R = new Ast(binary_expression, op_div,  A, B); }
-binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = new Ast(binary_expression, op_mod,  A, B); }
+binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = p->AllocAst(binary_expression, op_logor,   A, B); }
+binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = p->AllocAst(binary_expression, op_logand,  A, B); }
+binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = p->AllocAst(binary_expression, op_bitor,   A, B); }
+binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R = p->AllocAst(binary_expression, op_bitxor,  A, B); }
+binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = p->AllocAst(binary_expression, op_bitand,  A, B); }
+binary_expression(R) ::= binary_expression(A) EQUALS  binary_expression(B). { R = p->AllocAst(binary_expression, op_eq,   A, B); }
+binary_expression(R) ::= binary_expression(A) NEQUALS binary_expression(B). { R = p->AllocAst(binary_expression, op_ne,   A, B); }
+binary_expression(R) ::= binary_expression(A) ST      binary_expression(B). { R = p->AllocAst(binary_expression, op_lt,   A, B); }
+binary_expression(R) ::= binary_expression(A) SE      binary_expression(B). { R = p->AllocAst(binary_expression, op_le,   A, B); }
+binary_expression(R) ::= binary_expression(A) GT      binary_expression(B). { R = p->AllocAst(binary_expression, op_gt,   A, B); }
+binary_expression(R) ::= binary_expression(A) GE      binary_expression(B). { R = p->AllocAst(binary_expression, op_ge,   A, B); }
+binary_expression(R) ::= binary_expression(A) ADDOP   binary_expression(B). { R = p->AllocAst(binary_expression, op_add,  A, B); }
+binary_expression(R) ::= binary_expression(A) SUBOP   binary_expression(B). { R = p->AllocAst(binary_expression, op_sub,  A, B); }
+binary_expression(R) ::= binary_expression(A) MULOP   binary_expression(B). { R = p->AllocAst(binary_expression, op_mul,  A, B); }
+binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R = p->AllocAst(binary_expression, op_div,  A, B); }
+binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = p->AllocAst(binary_expression, op_mod,  A, B); }
 
 // Unary expression
 unary_expression(R) ::= postfix_expression(A) .      { R = A; } 
-unary_expression(R) ::= SUBOP  unary_expression(A) . { R = new Ast(prefix_expression, op_negate, A); }
-unary_expression(R) ::= ADDADD unary_expression(A) . { R = new Ast(prefix_expression, op_preinc, A); }
-unary_expression(R) ::= SUBSUB unary_expression(A) . { R = new Ast(prefix_expression, op_predec, A); }
+unary_expression(R) ::= SUBOP  unary_expression(A) . { R = p->AllocAst(prefix_expression, op_negate, A); }
+unary_expression(R) ::= ADDADD unary_expression(A) . { R = p->AllocAst(prefix_expression, op_preinc, A); }
+unary_expression(R) ::= SUBSUB unary_expression(A) . { R = p->AllocAst(prefix_expression, op_predec, A); }
 
 // Postfix expression
 postfix_expression(R) ::= primary_expression(A) .                                 { R = A; }
-postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = new Ast(postfix_expression, op_postinc, A); }
-postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = new Ast(postfix_expression, op_postdec, A); }
-postfix_expression(R) ::= postfix_expression(A) DOT id_expression(B).             { R = new Ast(member_expression, A, B); }
-postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = new Ast(index_expression, A, B); }
-postfix_expression(R) ::= IDENTIFIER(A) LPAREN                  RPAREN .          { R = new Ast(function_call, String(A)); }
-postfix_expression(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN .          { R = new Ast(function_call, String(A), B); }
+postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = p->AllocAst(postfix_expression, op_postinc, A); }
+postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = p->AllocAst(postfix_expression, op_postdec, A); }
+postfix_expression(R) ::= postfix_expression(A) DOT id_expression(B).             { R = p->AllocAst(member_expression, A, B); }
+postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocAst(index_expression, A, B); }
+postfix_expression(R) ::= IDENTIFIER(A) LPAREN                  RPAREN .          { R = p->AllocAst(function_call, String(A)); }
+postfix_expression(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN .          { R = p->AllocAst(function_call, String(A), B); }
 
 // Primary expression
 primary_expression(R) ::= literal(A) .                  { R = A; }
@@ -176,23 +179,23 @@ primary_expression(R) ::= LPAREN expression(A) RPAREN . { R = A; }
 primary_expression(R) ::= list_literal(A) .             { R = A; }
 
 // Literals
-literal(R) ::= INTEGER(A) . { R = new Ast(literal, Variant(String(A), Variant::stInt)); }
-literal(R) ::= REAL(A) .    { R = new Ast(literal, Variant(String(A), Variant::stReal)); } 
-literal(R) ::= STRING(A) .  { R = new Ast(literal, Variant(String(A), Variant::stString)); }
-literal(R) ::= TRUE .       { R = new Ast(literal, Variant(true));    }
-literal(R) ::= FALSE .      { R = new Ast(literal, Variant(false));   }
-literal(R) ::= NULL .       { R = new Ast(literal, Variant());        }
+literal(R) ::= INTEGER(A) . { R = p->AllocAst(literal, Variant(String(A), Variant::stInt)); }
+literal(R) ::= REAL(A) .    { R = p->AllocAst(literal, Variant(String(A), Variant::stReal)); } 
+literal(R) ::= STRING(A) .  { R = p->AllocAst(literal, Variant(String(A), Variant::stString)); }
+literal(R) ::= TRUE .       { R = p->AllocAst(literal, Variant(true));    }
+literal(R) ::= FALSE .      { R = p->AllocAst(literal, Variant(false));   }
+literal(R) ::= NULL .       { R = p->AllocAst(literal, Variant());        }
 
 // Id expression
-id_expression(R) ::= IDENTIFIER(A) . { R = new Ast(lvalue, String(A)); }
+id_expression(R) ::= IDENTIFIER(A) . { R = p->AllocAst(lvalue, String(A)); }
 
 // List definition
-list_literal(R) ::= LBRACKET list_content(A) RBRACKET . { R = new Ast(list_literal, A); }
+list_literal(R) ::= LBRACKET list_content(A) RBRACKET . { R = p->AllocAst(list_literal, A); }
 
-list_content(R) ::= list_entry(A) . { R = new Ast(list_content, A); }
-list_content(R) ::= list_content(A) COMMA list_entry(B) . { R = new Ast(list_content, A, B); }
+list_content(R) ::= list_entry(A) . { R = p->AllocAst(list_content, A); }
+list_content(R) ::= list_content(A) COMMA list_entry(B) . { R = p->AllocAst(list_content, A, B); }
 
-list_entry(R)   ::= expression(A) . { R = new Ast(list_entry, A); }
+list_entry(R)   ::= expression(A) . { R = p->AllocAst(list_entry, A); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -201,11 +204,11 @@ list_entry(R)   ::= expression(A) . { R = new Ast(list_entry, A); }
 
 // An argument is any expression. If expression lists become part
 // of the language, this will have to be changed to something else.
-argument(R) ::= expression(A) . { R = new Ast(argument, A); }
+argument(R) ::= expression(A) . { R = p->AllocAst(argument, A); }
 
 // Argument list containing 1 or more arguments
 argument_list(R) ::= argument(A) . { R = A; }
-argument_list(R) ::= argument_list(A) COMMA argument(B) . { R = new Ast(argument_list, A, B); }
+argument_list(R) ::= argument_list(A) COMMA argument(B) . { R = p->AllocAst(argument_list, A, B); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -213,23 +216,23 @@ argument_list(R) ::= argument_list(A) COMMA argument(B) . { R = new Ast(argument
 //
 
 // Expression statement
-expression_statement(R) ::= SEMICOLON .               { R = new Ast(empty_statement); }
-expression_statement(R) ::= expression(A) SEMICOLON . { R = new Ast(expression_statement, A); }
+expression_statement(R) ::= SEMICOLON .               { R = p->AllocAst(empty_statement); }
+expression_statement(R) ::= expression(A) SEMICOLON . { R = p->AllocAst(expression_statement, A); }
 
 // Compound statement
-compound_statement(R) ::= LBRACE RBRACE .                       { R = new Ast(compound_statement); }
-compound_statement(R) ::= LBRACE statement_sequence(A) RBRACE . { R = new Ast(compound_statement, A); }
+compound_statement(R) ::= LBRACE RBRACE .                       { R = p->AllocAst(compound_statement); }
+compound_statement(R) ::= LBRACE statement_sequence(A) RBRACE . { R = p->AllocAst(compound_statement, A); }
 
 // Include statement
 include_statement(R) ::= INCLUDE STRING(A) SEMICOLON . { p->Parse(A); R = p->GetRoot(); }
 
 // Return statement - leaves return expression on the stack
-return_statement(R) ::= RETURN expression(A) SEMICOLON . { R = new Ast(return_statement, A); }
-return_statement(R) ::= RETURN SEMICOLON .               { R = new Ast(return_statement);    }
+return_statement(R) ::= RETURN expression(A) SEMICOLON . { R = p->AllocAst(return_statement, A); }
+return_statement(R) ::= RETURN SEMICOLON .               { R = p->AllocAst(return_statement);    }
 
 // Break/continue
-break_statement(R)    ::= BREAK SEMICOLON .    { R = new Ast(break_statement); }
-continue_statement(R) ::= CONTINUE SEMICOLON . { R = new Ast(continue_statement); }
+break_statement(R)    ::= BREAK SEMICOLON .    { R = p->AllocAst(break_statement); }
+continue_statement(R) ::= CONTINUE SEMICOLON . { R = p->AllocAst(continue_statement); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -242,17 +245,17 @@ declaration_statement(R) ::= function_declaration(A) .           { R = A; }
 
 // Declaration sequence
 declaration_sequence(R) ::= VAR variable_declaration(A) . { R = A; }
-declaration_sequence(R) ::= declaration_sequence(A) COMMA variable_declaration(B) . { R = new Ast(declaration_sequence, A, B); }
+declaration_sequence(R) ::= declaration_sequence(A) COMMA variable_declaration(B) . { R = p->AllocAst(declaration_sequence, A, B); }
 
 // Variable declaration
 variable_declaration(R) ::= simple_declaration(A) . { R = A; }
 variable_declaration(R) ::= init_declaration(A) .   { R = A; }
 
 // Variable declaration
-simple_declaration(R) ::= IDENTIFIER(A) . { R = new Ast(variable_declaration, String(A)); }
+simple_declaration(R) ::= IDENTIFIER(A) . { R = p->AllocAst(variable_declaration, String(A)); }
 
 // Variable declaration with initialization
-init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = new Ast(variable_declaration, String(A), B); }
+init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocAst(variable_declaration, String(A), B); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -260,27 +263,27 @@ init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = new Ast(varia
 //
 
 // Function declaration
-function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), B, C); }
-function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN                   RPAREN function_body(C) . { R = new Ast(function_declaration, String(A), AstData(), C); }
+function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(function_declaration, String(A), B, C); }
+function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN                   RPAREN function_body(C) . { R = p->AllocAst(function_declaration, String(A), AstData(), C); }
 
 // Single parameter
-parameter(R) ::= IDENTIFIER(A) . { R = new Ast(parameter, String(A)); }
+parameter(R) ::= IDENTIFIER(A) . { R = p->AllocAst(parameter, String(A)); }
 
 // Optional parameter
-opt_parameter(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = new Ast(parameter, String(A), B); }
+opt_parameter(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocAst(parameter, String(A), B); }
 
 // List of parameters
 parameters(R) ::= parameter(A) . { R = A; }
-parameters(R) ::= parameters(A) COMMA parameter(B) . { R = new Ast(parameter_list, A, B); }
+parameters(R) ::= parameters(A) COMMA parameter(B) . { R = p->AllocAst(parameter_list, A, B); }
 
 // List of optional parameters
 opt_parameters(R) ::= opt_parameter(A) . { R = A; }
-opt_parameters(R) ::= opt_parameters(A) COMMA opt_parameter(B) . { R = new Ast(parameter_list, A, B); }
+opt_parameters(R) ::= opt_parameters(A) COMMA opt_parameter(B) . { R = p->AllocAst(parameter_list, A, B); }
 
 // Parameter list
 parameter_list(R) ::= parameters(A) .     { R = A; }
 parameter_list(R) ::= opt_parameters(A) . { R = A; }
-parameter_list(R) ::= parameters(A) COMMA opt_parameters(B) . { R = new Ast(parameter_list, A, B); }
+parameter_list(R) ::= parameters(A) COMMA opt_parameters(B) . { R = p->AllocAst(parameter_list, A, B); }
 
 // Function body. Traditionally, this is a compound statement, but
 // there's no actual need for that.
@@ -292,7 +295,7 @@ function_body(R) ::= statement(A) . { R = A; }
 //
 
 // For statement - main structure
-for_statement(R) ::= FOR LPAREN for_init_statement(A) expression(B) SEMICOLON expression_opt(C) RPAREN statement(D) . { R = new Ast(for_statement, A, B, C, D); }
+for_statement(R) ::= FOR LPAREN for_init_statement(A) expression(B) SEMICOLON expression_opt(C) RPAREN statement(D) . { R = p->AllocAst(for_statement, A, B, C, D); }
 
 // For init statement
 for_init_statement(R) ::= expression_statement(A) .           { R = A; }
@@ -303,7 +306,7 @@ for_init_statement(R) ::= declaration_sequence(A) SEMICOLON . { R = A; }
 // Foreach statement
 //
 
-foreach_statement(R) ::= FOR LPAREN id_expression(A) IN expression(B) RPAREN statement(C) . { R = new Ast(foreach_statement, A, B, C); }
+foreach_statement(R) ::= FOR LPAREN id_expression(A) IN expression(B) RPAREN statement(C) . { R = p->AllocAst(foreach_statement, A, B, C); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -314,8 +317,8 @@ foreach_statement(R) ::= FOR LPAREN id_expression(A) IN expression(B) RPAREN sta
 %left ELSE.
 
 // Main if statement
-if_statement(R) ::= IF LPAREN expression(A) RPAREN statement(B) . [LOWER_THAN_ELSE] { R = new Ast(if_statement, A, B); } 
-if_statement(R) ::= IF LPAREN expression(A) RPAREN statement(B) ELSE statement(C) . { R = new Ast(if_statement, A, B, C); }
+if_statement(R) ::= IF LPAREN expression(A) RPAREN statement(B) . [LOWER_THAN_ELSE] { R = p->AllocAst(if_statement, A, B); } 
+if_statement(R) ::= IF LPAREN expression(A) RPAREN statement(B) ELSE statement(C) . { R = p->AllocAst(if_statement, A, B, C); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -323,7 +326,7 @@ if_statement(R) ::= IF LPAREN expression(A) RPAREN statement(B) ELSE statement(C
 //
 
 // Basic while
-while_statement(R) ::= WHILE LPAREN expression(A) RPAREN statement(B) . { R = new Ast(while_statement, A,  B); }
+while_statement(R) ::= WHILE LPAREN expression(A) RPAREN statement(B) . { R = p->AllocAst(while_statement, A,  B); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -331,7 +334,7 @@ while_statement(R) ::= WHILE LPAREN expression(A) RPAREN statement(B) . { R = ne
 //
 
 // Main switch statement
-switch_statement(R) ::= SWITCH LPAREN expression(A) RPAREN LBRACE switch_body(B) RBRACE . { R = new Ast(switch_statement, A, B); }
+switch_statement(R) ::= SWITCH LPAREN expression(A) RPAREN LBRACE switch_body(B) RBRACE . { R = p->AllocAst(switch_statement, A, B); }
 
 // Switch content
 %type switch_body { AstList* }
@@ -340,10 +343,10 @@ switch_body(R) ::= switch_body(A) switch_case(B)  . { R = A; R->push_back(B); }
 switch_body(R) ::= switch_body(A) default_case(B) . { R = A; R->push_back(B); }
 
 // Regular case
-switch_case(R) ::= CASE literal(A) COLON case_statements(B) . { R = new Ast(switch_case, A, B); }
+switch_case(R) ::= CASE literal(A) COLON case_statements(B) . { R = p->AllocAst(switch_case, A, B); }
 
 // Default case
-default_case(R) ::= DEFAULT COLON case_statements(A) . { R = new Ast(default_case, A); }
+default_case(R) ::= DEFAULT COLON case_statements(A) . { R = p->AllocAst(default_case, A); }
 
 // Case content
 case_statements(R) ::= statement_sequence(A) . { R = A; }

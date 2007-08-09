@@ -89,7 +89,7 @@ public:
   //
   // Open a file
   //
-  void Open(String const& filename);
+  void Open(String const& path);
 
   //
   // Close current file
@@ -107,6 +107,11 @@ public:
   BinHeader* GetHeader() const;
 
   //
+  // Get path
+  //
+  String GetPath() const;
+
+  //
   // Get length
   //
   Quad GetSize() const;
@@ -121,6 +126,7 @@ private:
   //
   // Members
   //
+  String      m_path;
   FileTypes   m_type;
   Byte*       m_buff;
   Byte*       m_data;

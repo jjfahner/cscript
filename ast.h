@@ -76,7 +76,6 @@ enum AstTypes
   default_case,
 };
 
-
 class Ast 
 {
 public:
@@ -102,6 +101,7 @@ public:
   //
   // Ast structure
   //
+  FilePos   m_pos;
   AstTypes  m_type;
   AstData   m_a1;
   AstData   m_a2;

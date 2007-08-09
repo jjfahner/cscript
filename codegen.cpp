@@ -22,12 +22,11 @@
 #include "opcodes.h"
 #include "native.h"
 
-CodeGenerator::CodeGenerator() :
+CodeGenerator::CodeGenerator(Reporter& reporter) :
+m_reporter(reporter),
 m_code    (0),
 m_size    (0),
-m_used    (0),
-m_errors  (0),
-m_warnings(0)
+m_used    (0)
 {
 }
 
@@ -122,18 +121,4 @@ CodeGenerator::PushLiteral(Variant const& value)
 {
   m_literals[value].push_back(m_used);
   PushQuad(0);
-}
-
-void
-CodeGenerator::ReportError(String const& error)
-{
-  ++m_errors;
-  std::cout << "Error: " << error << std::endl;
-}
-
-void
-CodeGenerator::ReportWarning(String const& warning)
-{
-  ++m_warnings;
-  std::cout << "Warning: " << warning << std::endl;
 }

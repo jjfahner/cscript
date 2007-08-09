@@ -16,5 +16,5 @@ cscript_SOURCES =	main.cpp \
 			validate.cpp \
 			scope.cpp \
 			parser.cpp \
-			astdata.cpp
-
+			astdata.cpp \
+			report.cpp
