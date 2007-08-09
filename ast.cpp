@@ -19,91 +19,50 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "ast.h"
-#include "astgen.c"
 #include "file.h"
 #include "lexer.h"
 #include "codegen.h"
 #include "machine.h"
 
-AstGen::AstGen() :
-m_root (0)
-{
 
+//////////////////////////////////////////////////////////////////////////
+
+Ast::Ast(AstTypes type) :
+m_type (type),
+m_refs (0)
+{
 }
 
-void
-AstGen::Parse(String const& filename)
+Ast::Ast(AstTypes type, AstData const& a1) :
+m_type(type),
+m_a1(a1),
+m_refs(0)
 {
-  // Create file
-  File file;
-  file.Open(filename);
-
-  // Parse file
-  Parse(file);
 }
 
-void
-AstGen::Parse(File& file)
+Ast::Ast(AstTypes type, AstData const& a1, AstData const& a2) :
+m_type(type),
+m_a1(a1),
+m_a2(a2),
+m_refs(0)
 {
-  // Check type
-  if(file.GetType() != File::source)
-  {
-    throw std::runtime_error("Invalid file");
-  }
-
-  // Create lexer for file
-  Lexer lexer;
-  lexer.SetText((Char*)file.GetData());
-
-  // Allocate parser
-  void *pParser = AstGenParseAlloc(malloc);
-
-  // Try block for parser memory management
-  try 
-  {
-    // Run parser loop
-    Token token;
-    while(lexer.Lex(token))
-    {
-      AstGenParse(pParser, token.m_type, token, this);
-    }
-    
-    // Empty token to finalize parse
-    AstGenParse(pParser, 0, token, this);
-
-    // Destroy parser
-    AstGenParseFree(pParser, free);
-  }
-  catch(...)
-  {
-    // Destroy parser
-    AstGenParseFree(pParser, free);
-  
-    // Rethrow exception
-    throw;
-  }
 }
 
-void 
-AstGen::OnParseFailure()
+Ast::Ast(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3) :
+m_type(type),
+m_a1(a1),
+m_a2(a2),
+m_a3(a3),
+m_refs(0)
 {
-  throw std::runtime_error("Parse failure");
 }
 
-void 
-AstGen::OnSyntaxError()
+Ast::Ast(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4) :
+m_type(type),
+m_a1(a1),
+m_a2(a2),
+m_a3(a3),
+m_a4(a4),
+m_refs(0)
 {
-  throw std::runtime_error("Syntax error");
-}
-
-Ast*
-AstGen::GetRoot() const
-{
-  return m_root;
-}
-
-void 
-AstGen::SetRoot(Ast* root)
-{
-  m_root = root;
 }

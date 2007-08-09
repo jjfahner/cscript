@@ -125,7 +125,7 @@ Annotator::AnnotateImpl(Ast* node)
     
   case list_content:
     AnnotateImpl(node->m_a1);
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       AnnotateImpl(node->m_a2);
     }
@@ -137,7 +137,7 @@ Annotator::AnnotateImpl(Ast* node)
 
   case function_call:
     node->m_props["argcount"] = 0;
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       AnnotateImpl(node->m_a2);
       node->m_props["argcount"] = ArgCount(node->m_a2);
@@ -173,7 +173,7 @@ Annotator::AnnotateImpl(Ast* node)
     // Annotate init expresion *before* declaring the variable,
     // to make sure that the init expresion uses the previously
     // declared variable when initializing a shadowing variable.
-    if(!node->m_a2.empty())
+    if(node->m_a2)
     {
       AnnotateImpl(node->m_a2);
     }
@@ -214,7 +214,7 @@ Annotator::AnnotateImpl(Ast* node)
     AnnotateImpl(node->m_a1);
     m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
     AnnotateImpl(node->m_a2);
-    if(!node->m_a3.empty())
+    if(node->m_a3)
     {
       AnnotateImpl(node->m_a3);
     }
@@ -232,7 +232,7 @@ Annotator::AnnotateImpl(Ast* node)
 
   case return_statement:
     node->m_props["varcount"] = 0;
-    if(!node->m_a1.empty())
+    if(node->m_a1)
     {
       AnnotateImpl(node->m_a1);
     }
@@ -303,7 +303,7 @@ Annotator::AnnotateFunction(Ast* node)
   m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
 
   // Annotate parameter list
-  if(!node->m_a2.empty())
+  if(node->m_a2)
   {
     AnnotateImpl(node->m_a2);
   }
@@ -329,7 +329,7 @@ void
 Annotator::AnnotateStatementSequence(Ast* node)
 {
   // Determine list
-  AstList* list = any_cast<AstList*>(node->m_a1);
+  AstList* list = node->m_a1;
 
   // Initialize annotations
   node->m_props["varcount"] = 0;
@@ -402,7 +402,7 @@ Annotator::ResolveCalls()
       }
 
       // Point call to function
-      (*it)->m_a3 = nci;
+      (*it)->m_props["offset"] = nci->m_offset;
 
       // Next
       continue;
