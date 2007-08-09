@@ -107,4 +107,15 @@ typedef std::map<String, String> StringMap;
 class Ast;
 class AstList;
 
+//
+// File position
+//
+struct FilePos
+{
+  String  m_file;
+  Quad    m_line;
+};
+
+
+
 #endif // #ifndef CSCRIPT_TYPES_H

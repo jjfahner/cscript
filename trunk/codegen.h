@@ -26,14 +26,14 @@
 #include "scope.h"
 #include "report.h"
 
-class CodeGenerator : public Reporter
+class CodeGenerator
 {
 public:
 
   //
   // Construction
   //
-  CodeGenerator();
+  CodeGenerator(Reporter& reporter);
 
   //
   // Destruction
@@ -81,12 +81,6 @@ public:
   //
   Quad GetSize() const;
   
-  //
-  // Errors/warnings
-  //
-  virtual void ReportError(String const& text);
-  virtual void ReportWarning(String const& text);
-
 private:
 
   //
@@ -158,6 +152,7 @@ private:
   //
   // Member data
   //
+  Reporter& m_reporter;
   Byte*     m_code;
   Quad      m_size;
   Quad      m_used;
@@ -165,8 +160,6 @@ private:
   AstList   m_calls;
   Literals  m_literals;
   QuadList  m_returns;
-  Quad      m_errors;
-  Quad      m_warnings;
 
 };
 

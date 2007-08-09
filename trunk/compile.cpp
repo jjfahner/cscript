@@ -11,10 +11,6 @@ inline bool IsType(Ast* node, AstTypes type)
 void 
 CodeGenerator::Generate(Ast* node, bool release)
 {
-  // Reset error info
-  m_errors   = 0;
-  m_warnings = 0;
-
   // Validate tree
   Validate(node);
 
@@ -29,7 +25,7 @@ CodeGenerator::Generate(Ast* node, bool release)
   }
 
   // Gather information
-  Annotator annotator(*this);
+  Annotator annotator(m_reporter);
   annotator.Annotate(node);
 //  Print("out.ann.txt", node);
 
@@ -131,7 +127,7 @@ CodeGenerator::Generate(Ast* node, bool release)
 //     ofs);
 
   // Check for errors
-  if(m_errors)
+  if(m_reporter.GetErrorCount())
   {
     free(m_code);
     m_code = 0;
@@ -142,7 +138,8 @@ CodeGenerator::Generate(Ast* node, bool release)
   {
     std::cout << "\nCompilation succeeded with ";
   }
-  std::cout << m_errors << " error(s), " << m_warnings << " warning(s)\n";
+  std::cout << m_reporter.GetErrorCount()   << " error(s), " 
+            << m_reporter.GetWarningCount() << " warning(s)\n";
 }
 
 void
@@ -393,7 +390,7 @@ CodeGenerator::GenerateCode(Ast* node)
   case function_declaration:
     if(m_funs.count(node->m_a1))
     {
-      ReportError("redeclaration of function " + node->m_a1.GetString());
+      m_reporter.ReportError(node->m_pos, "redeclaration of function " + node->m_a1.GetString());
     }
     else
     {
@@ -413,7 +410,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   default:
-    ReportError("internal compiler error: attempt to generate an unknown node type");
+    m_reporter.ReportError(node->m_pos, "internal compiler error: attempt to generate an unknown node type");
   }
 }
 
@@ -536,7 +533,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
       // TODO this should be detected by the annotation code
       if(defaultcase)
       {
-        ReportError("switch statement may not contain multiple default cases");
+        m_reporter.ReportError(casenode->m_pos, "switch statement may not contain multiple default cases");
       }
       defaultcase = casenode;
     }
@@ -548,7 +545,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
       // TODO Check for duplicates, should be detected by the annotation code
       if(cases.count(value))
       {
-        ReportError("duplicate case label in switch statement");
+        m_reporter.ReportError(casenode->m_pos, "duplicate case label in switch statement");
       }
 
       // Store current offset with value in map

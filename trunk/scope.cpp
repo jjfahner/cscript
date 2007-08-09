@@ -45,8 +45,8 @@ Scope::DeclareVariable(String const& name)
   return id;
 }
 
-int 
-Scope::Lookup(String const& name, bool& global) const
+bool
+Scope::Lookup(String const& name, int& offset, bool& global) const
 {
   // Find in local scope
   Names::const_iterator it;
@@ -56,13 +56,14 @@ Scope::Lookup(String const& name, bool& global) const
     {
       global = true;
     }
-    return it->second;
+    offset = it->second;
+    return true;
   }
 
   // Look in parent scope up to function boundary
   if(m_node->m_type != function_declaration && m_parent)
   {
-    return m_parent->Lookup(name, global);
+    return m_parent->Lookup(name, offset, global);
   }
 
   // Find global scope
@@ -71,13 +72,13 @@ Scope::Lookup(String const& name, bool& global) const
   {
     if(parent->m_parent == 0)
     {
-      return parent->Lookup(name, global);
+      return parent->Lookup(name, offset, global);
     }
     parent = parent->m_parent;
   }
   
-  m_reporter.ReportError("variable or parameter '" + name + "' undefined");
-  return 0;
+  // Failed
+  return false;
 }
 
 int 

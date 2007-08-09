@@ -49,7 +49,7 @@ public:
   //
   // Find a name
   //
-  int Lookup(String const& name, bool& global) const;
+  bool Lookup(String const& name, int& offset, bool& global) const;
 
 private:
 

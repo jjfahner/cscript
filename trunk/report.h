@@ -1,19 +1,44 @@
 #ifndef CSCRIPT_REPORT_H
 #define CSCRIPT_REPORT_H
 
+#include "types.h"
+
 class Reporter 
 {
 public:
 
   //
+  // Construction
+  //
+  Reporter();
+
+  //
   // Report an error
   //
-  virtual void ReportError(String const& text) = 0;
+  void ReportError(FilePos& pos, String const& text);
 
   //
   // Report a warning
   //
-  virtual void ReportWarning(String const& text) = 0;
+  void ReportWarning(FilePos& pos, String const& text);
+
+  //
+  // Retrieve error count
+  //
+  int GetErrorCount() const;
+
+  //
+  // Retrieve warning count
+  //
+  int GetWarningCount() const;
+
+private:
+
+  //
+  // Members
+  //
+  int m_errors;
+  int m_warnings;
 
 };
 

@@ -47,14 +47,17 @@ File::Close()
 }
 
 void 
-File::Open(String const& filename)
+File::Open(String const& path)
 {
   // Open the input file
-  ifstream ifs(filename.c_str(), std::ios::binary);
+  ifstream ifs(path.c_str(), std::ios::binary);
   if(!ifs.good())
   {
     throw std::runtime_error("Failed to open file");
   }
+
+  // Store path
+  m_path = path;
 
   // Determine file size
   ifs.seekg(0, std::ios_base::beg);
@@ -132,6 +135,12 @@ File::Open(String const& filename)
       throw std::runtime_error("Encoding not supported");
     }
   }
+}
+
+String 
+File::GetPath() const
+{
+  return m_path;
 }
 
 File::FileTypes 

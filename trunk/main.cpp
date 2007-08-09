@@ -67,6 +67,8 @@ int usage()
 
 int annotate(CmdArgs const& args)
 {
+  Reporter reporter;
+
   // Check input
   String srcFile;
   if(args.IsSet("-a"))
@@ -99,8 +101,8 @@ int annotate(CmdArgs const& args)
     return EXIT_FAILURE;
   }
 
-  Parser parser;
-  CodeGenerator cg;
+  Parser parser(reporter);
+  CodeGenerator cg(reporter);
 
   // Generate ast
   parser.Parse(srcFile);
@@ -109,7 +111,7 @@ int annotate(CmdArgs const& args)
   Ast* root = cg.Optimize(parser.GetRoot());
 
   // Annotate code
-  Annotator annotator(cg);
+  Annotator annotator(reporter);
   annotator.Annotate(root);
 
   // Print annotated code
@@ -129,6 +131,8 @@ int annotate(CmdArgs const& args)
 
 int compile(CmdArgs const& args)
 {
+  Reporter reporter;
+
   // Check input
   String srcFile;
   if(args.IsSet("-c"))
@@ -162,11 +166,11 @@ int compile(CmdArgs const& args)
   }
 
   // Generate ast
-  Parser parser;
+  Parser parser(reporter);
   parser.Parse(srcFile);
 
   // Generate code
-  CodeGenerator cg;
+  CodeGenerator cg(reporter);
   cg.Generate(parser.GetRoot(), true);
 
   // Write file
@@ -188,6 +192,8 @@ int compile(CmdArgs const& args)
 
 int decompile(CmdArgs const& args)
 {
+  Reporter reporter;
+
   // Check input
   String srcFile;
   if(args.IsSet("-d"))
@@ -235,7 +241,7 @@ int decompile(CmdArgs const& args)
   std::ofstream ofs(outFile.c_str());
 
   // Decompile source code
-  CodeGenerator cg;
+  CodeGenerator cg(reporter);
   cg.Decompile(file.GetData(),
                file.GetHeader()->m_codeseg, 
                file.GetHeader()->m_codelen + file.GetHeader()->m_proclen, 
@@ -268,6 +274,8 @@ int interactive(CmdArgs const& args)
 
 int execute(CmdArgs const& args)
 {
+  Reporter reporter;
+
   // Find files to execute
   StringMap files = args.GetValues();
   if(files.size() != 1)
@@ -295,11 +303,11 @@ int execute(CmdArgs const& args)
   else
   {
     // Generate ast
-    Parser parser;
+    Parser parser(reporter);
     parser.Parse(file);
 
     // Generate code
-    CodeGenerator cg;
+    CodeGenerator cg(reporter);
     cg.Generate(parser.GetRoot(), true);
 
     // Check whether compilation succeeded

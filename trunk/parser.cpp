@@ -2,9 +2,12 @@
 #include "file.h"
 #include "lexer.h"
 #include "astgen.c"
+#include "report.h"
 
-Parser::Parser() :
-m_root (0)
+Parser::Parser(Reporter& reporter) :
+m_reporter  (reporter),
+m_root      (0),
+m_lexer     (0)
 {
 
 }
@@ -34,9 +37,17 @@ Parser::Parse(File& file)
     throw std::runtime_error("Invalid file");
   }
 
+  // Push file on stack
+  File* prevfile = m_file;
+  m_file = &file;
+
   // Create lexer for file
   Lexer lexer;
   lexer.SetText((Char*)file.GetData());
+
+  // Push lexer on stack
+  Lexer* prevlexer = m_lexer;
+  m_lexer = &lexer;
 
   // Allocate parser
   void *pParser = CScriptParseAlloc(malloc);
@@ -56,11 +67,19 @@ Parser::Parse(File& file)
 
     // Destroy parser
     CScriptParseFree(pParser, free);
+
+    // Remove lexer and file
+    m_lexer = prevlexer;
+    m_file = prevfile;
   }
   catch(...)
   {
     // Destroy parser
     CScriptParseFree(pParser, free);
+
+    // Remove lexer
+    m_lexer = prevlexer;
+    m_file = prevfile;
 
     // Rethrow exception
     throw;
@@ -70,13 +89,19 @@ Parser::Parse(File& file)
 void 
 Parser::OnParseFailure()
 {
-  throw std::runtime_error("Parse failure");
+  FilePos pos;
+  pos.m_file = m_file->GetPath();
+  pos.m_line = m_lexer->GetLine();
+  m_reporter.ReportError(pos, "Unrecoverable syntax error");
 }
 
 void 
 Parser::OnSyntaxError()
 {
-  throw std::runtime_error("Syntax error");
+  FilePos pos;
+  pos.m_file = m_file->GetPath();
+  pos.m_line = m_lexer->GetLine();
+  m_reporter.ReportError(pos, "Syntax error");
 }
 
 Ast*
@@ -90,3 +115,64 @@ Parser::SetRoot(Ast* root)
 {
   m_root = root;
 }
+
+Ast* 
+Parser::AllocAst(AstTypes type)
+{
+  FilePos pos;
+  pos.m_file = m_file->GetPath();
+  pos.m_line = m_lexer->GetLine();
+
+  Ast* node = new Ast(type);
+  node->m_pos = pos;
+  return node;
+}
+
+Ast* 
+Parser::AllocAst(AstTypes type, AstData const& a1)
+{
+  FilePos pos;
+  pos.m_file = m_file->GetPath();
+  pos.m_line = m_lexer->GetLine();
+
+  Ast* node = new Ast(type, a1);
+  node->m_pos = pos;
+  return node;
+}
+
+Ast* 
+Parser::AllocAst(AstTypes type, AstData const& a1, AstData const& a2)
+{
+  FilePos pos;
+  pos.m_file = m_file->GetPath();
+  pos.m_line = m_lexer->GetLine();
+
+  Ast* node = new Ast(type, a1, a2);
+  node->m_pos = pos;
+  return node;
+}
+
+Ast* 
+Parser::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3)
+{
+  FilePos pos;
+  pos.m_file = m_file->GetPath();
+  pos.m_line = m_lexer->GetLine();
+
+  Ast* node = new Ast(type, a1, a2, a3);
+  node->m_pos = pos;
+  return node;
+}
+
+Ast* 
+Parser::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4)
+{
+  FilePos pos;
+  pos.m_file = m_file->GetPath();
+  pos.m_line = m_lexer->GetLine();
+
+  Ast* node = new Ast(type, a1, a2, a3, a4);
+  node->m_pos = pos;
+  return node;
+}
+

@@ -291,7 +291,7 @@ Annotator::AnnotateFunction(Ast* node)
   String name = node->m_a1;
   if(m_functions.count(name))
   {
-    m_reporter.ReportError("Function '" + name + "' is already defined");
+    m_reporter.ReportError(node->m_pos, "Function '" + name + "' is already defined");
   }
 
   // Initialize annotations
@@ -353,9 +353,11 @@ Annotator::AnnotateLValue(Ast* node)
 {
   // Find lvalue on stack
   bool global = false;
-  Quad offset = m_scopeStack.top().Lookup(node->m_a1, global);
-
-  // TODO Variable not found should be moved here
+  int  offset = 0;
+  if(!m_scopeStack.top().Lookup(node->m_a1, offset, global))
+  {
+    m_reporter.ReportError(node->m_pos, "undefined variable '" + node->m_a1.GetString() + "'");
+  }
 
   // Store offset
   node->m_props["stackpos"] = offset;
@@ -380,7 +382,7 @@ Annotator::ResolveCalls()
       // Check parameter count
       if((*it)->m_props["argcount"] != decl->second->m_props["parcount"])
       {
-        m_reporter.ReportError("Invalid number of arguments in call to function '" + name + "'");
+        m_reporter.ReportError((*it)->m_pos, "Invalid number of arguments in call to function '" + name + "'");
       }
 
       // Point call to function
@@ -398,7 +400,7 @@ Annotator::ResolveCalls()
       if(ArgCount(*it) < nci->m_minPar ||
          ArgCount(*it) > nci->m_maxPar )
       {
-        m_reporter.ReportError("Invalid number of arguments in call to function '" + name + "'");
+        m_reporter.ReportError((*it)->m_pos, "Invalid number of arguments in call to function '" + name + "'");
       }
 
       // Point call to function
@@ -409,7 +411,7 @@ Annotator::ResolveCalls()
     }
 
     // No such function
-    m_reporter.ReportError("Function '" + name + "' not found");
+    m_reporter.ReportError((*it)->m_pos, "Function '" + name + "' not found");
     continue;
   }
 }
