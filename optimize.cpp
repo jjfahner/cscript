@@ -132,7 +132,7 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case variable_declaration:
-    if(node->m_a2)
+    if(node->m_a2.Type() == AstData::Node)
     {
       node->m_a2 = Optimize(node->m_a2);
     }
@@ -207,7 +207,7 @@ CodeGenerator::OptimizeIfStatement(Ast* node)
   if(IsType(node->m_a1, literal))
   {
     // Use true branch
-    if(node->m_a1.GetNode()->m_a1.GetValue())
+    if(node->m_a1->m_a1.GetValue())
     {
       Ast* res = Optimize(node->m_a2);
       return res;
@@ -346,7 +346,7 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
   // Or with literal true on left side
   if(node->m_a1.GetNumber() == op_logor && 
      IsType(node->m_a2, literal) && 
-     node->m_a2.GetNode()->m_a1.GetValue().AsBool() )
+     node->m_a2->m_a1.GetValue().AsBool() )
   {
     node = new Ast(literal, Variant(true));
     node->m_props["idempotent"] = true;
@@ -356,7 +356,7 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
   // And with literal false on left side
   if(node->m_a1.GetNumber() == op_logand &&
      IsType(node->m_a2, literal) &&
-     !node->m_a2.GetNode()->m_a1.GetValue().AsBool() )
+     !node->m_a2->m_a1.GetValue().AsBool() )
   {
     node = new Ast(literal, Variant(false));
     node->m_props["idempotent"] = true;
@@ -380,8 +380,8 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
   }
 
   // Extract values
-  Variant lhs = node->m_a2.GetNode()->m_a1;
-  Variant rhs = node->m_a3.GetNode()->m_a1;
+  Variant lhs = node->m_a2->m_a1;
+  Variant rhs = node->m_a3->m_a1;
 
   // Calculate new value
   Ast* rep = 0;
@@ -426,7 +426,7 @@ CodeGenerator::OptimizeTernaryExpression(Ast* node)
   if(IsType(node->m_a1, literal))
   {
     // Decide which branch to pick
-    if(node->m_a1.GetNode()->m_a1.GetValue())
+    if(node->m_a1->m_a1.GetValue())
     {
       Ast* res = node->m_a2;
       node = res;
@@ -557,7 +557,7 @@ CodeGenerator::OptimizePrefixExpression(Ast* node)
   // Reduce negation of literal
   if(IsType(node->m_a2, literal))
   {
-    Ast* res = new Ast(literal, -node->m_a2.GetNode()->m_a1.GetValue());
+    Ast* res = new Ast(literal, -node->m_a2->m_a1.GetValue());
     node = res;
   }
 
