@@ -3,6 +3,13 @@
 
 #include "types.h"
 
+#define STRINGIFY(a) #a
+#define TOSTRING(a) STRINGIFY(a)
+#define INTERNAL_ERROR(reporter, pos) \
+  { \
+    reporter.ReportError(pos, "internal compiler error on line " TOSTRING(__LINE__) " in file " __FILE__); \
+  }
+
 class Reporter 
 {
 public:

@@ -240,23 +240,19 @@ continue_statement(R) ::= CONTINUE SEMICOLON . { R = p->AllocAst(continue_statem
 //
 
 // Declaration starting point
-declaration_statement(R) ::= declaration_sequence(A) SEMICOLON . { R = A; }
-declaration_statement(R) ::= struct_declaration(A) .             { R = A; }
-declaration_statement(R) ::= function_declaration(A) .           { R = A; }
+declaration_statement(R) ::= function_declaration(A) .            { R = A; }
+declaration_statement(R) ::= var_declaration(A) SEMICOLON .       { R = A; }
+declaration_statement(R) ::= struct_declaration(A) SEMICOLON .    { R = A; }
 
-// Declaration sequence
-declaration_sequence(R) ::= VAR variable_declaration(A) . { R = A; }
-declaration_sequence(R) ::= declaration_sequence(A) COMMA variable_declaration(B) . { R = p->AllocAst(declaration_sequence, A, B); }
+var_declaration(R)    ::= VAR           declarator_sequence(A) . { R = A; }
+struct_declaration(R) ::= IDENTIFIER(A) declarator_sequence(B) . { R = B; R->m_a3 = String(A); }
 
-// Variable declaration
-variable_declaration(R) ::= simple_declaration(A) . { R = A; }
-variable_declaration(R) ::= init_declaration(A) .   { R = A; }
+declarator(R) ::= IDENTIFIER(A) .                      { R = p->AllocAst(variable_declaration, String(A));    }
+declarator(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocAst(variable_declaration, String(A), B); }
 
-// Variable declaration
-simple_declaration(R) ::= IDENTIFIER(A) . { R = p->AllocAst(variable_declaration, String(A)); }
+declarator_sequence(R) ::= declarator(A) . { R = A; }
+declarator_sequence(R) ::= declarator_sequence(A) COMMA declarator(B) . { R = p->AllocAst(declaration_sequence, A, B); }
 
-// Variable declaration with initialization
-init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocAst(variable_declaration, String(A), B); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -267,7 +263,7 @@ init_declaration(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocAst(v
 struct_declaration(R) ::= STRUCT IDENTIFIER(A) LBRACE struct_members(B) RBRACE . { R = p->AllocAst(struct_declaration, String(A), B); }
 
 // Struct members
-struct_declseq(R) ::= declaration_sequence(A) SEMICOLON . { R = A; }
+struct_declseq(R) ::= var_declaration(A) SEMICOLON . { R = A; }
 
 // Struct members
 struct_members(R) ::= . { R = 0; }
@@ -321,8 +317,8 @@ function_body(R) ::= statement(A) . { R = A; }
 for_statement(R) ::= FOR LPAREN for_init_statement(A) expression(B) SEMICOLON expression_opt(C) RPAREN statement(D) . { R = p->AllocAst(for_statement, A, B, C, D); }
 
 // For init statement
-for_init_statement(R) ::= expression_statement(A) .           { R = A; }
-for_init_statement(R) ::= declaration_sequence(A) SEMICOLON . { R = A; }
+for_init_statement(R) ::= expression_statement(A) .      { R = A; }
+for_init_statement(R) ::= var_declaration(A) SEMICOLON . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //

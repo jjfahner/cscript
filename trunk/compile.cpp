@@ -367,18 +367,26 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case variable_declaration:
-    if(!node->m_a2)
+    if(node->m_a2.Type() == AstData::Null)
     {
       PushByte(op_pushl);
       PushLiteral(Variant::Null);
       PushByte(op_store);
       PushQuad(node->m_props["stackpos"]);
     }
-    else
+    else if(node->m_a2.Type() == AstData::Node)
     {
       GenerateCode(node->m_a2);
       PushByte(op_store);
       PushQuad(node->m_props["stackpos"]);
+    }
+    else if(node->m_a2.Type() == AstData::Text)
+    {
+      
+    }
+    else
+    {
+      INTERNAL_ERROR(m_reporter, node->m_pos);
     }
     break;
 
@@ -413,7 +421,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   default:
-    m_reporter.ReportError(node->m_pos, "internal compiler error: attempt to generate an unknown node type");
+    INTERNAL_ERROR(m_reporter, node->m_pos);
   }
 }
 
@@ -543,7 +551,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
     else
     {
       // Extract value
-      Variant value = casenode->m_a1.GetNode()->m_a1;
+      Variant value = casenode->m_a1->m_a1;
 
       // TODO Check for duplicates, should be detected by the annotation code
       if(cases.count(value))

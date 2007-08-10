@@ -30,6 +30,7 @@ private:
   void AnnotateLValue(Ast* node);
   void AnnotateTranslationUnit(Ast* node);
   void AnnotateStatementSequence(Ast* node);
+  void AnnotateVariableDeclaration(Ast* node);
 
   //
   // Function call resolving
@@ -61,6 +62,11 @@ private:
   // List of declared functions
   //
   AstMap m_functions;
+
+  //
+  // List of declared structures
+  //
+  AstMap m_structs;
 
 };
 

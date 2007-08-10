@@ -170,18 +170,12 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case variable_declaration:
-    // Annotate init expresion *before* declaring the variable,
-    // to make sure that the init expresion uses the previously
-    // declared variable when initializing a shadowing variable.
-    if(node->m_a2)
-    {
-      AnnotateImpl(node->m_a2);
-    }
-    node->m_props["varcount"] = 1;
-    node->m_props["stackpos"] = m_scopeStack.top().DeclareVariable(node->m_a1);
+    AnnotateVariableDeclaration(node);
     break;
 
   case declaration_sequence:
+    node->m_a1->m_a3 = node->m_a3;
+    node->m_a2->m_a3 = node->m_a3;
     AnnotateImpl(node->m_a1);
     AnnotateImpl(node->m_a2);
     node->m_props["varcount"] = VarCount(node->m_a1) + VarCount(node->m_a2);
@@ -269,6 +263,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case struct_declaration:
+    m_structs[node->m_a1] = node;
     break;
   }
 }
@@ -417,4 +412,45 @@ Annotator::ResolveCalls()
     m_reporter.ReportError((*it)->m_pos, "Function '" + name + "' not found");
     continue;
   }
+}
+
+void 
+Annotator::AnnotateVariableDeclaration(Ast* node)
+{
+  // Struct
+  Ast* type = 0;
+
+  // Find declared type
+  if(node->m_a3)
+  {
+    AstMap::iterator it = m_structs.find(node->m_a3);
+    if(it == m_structs.end())
+    {
+      m_reporter.ReportError(node->m_pos, "undeclared type '" + node->m_a2.GetString() + "'");
+    }
+    else
+    {
+      type = it->second;
+    }
+  }
+
+  // Init expression
+  if(node->m_a2)
+  {
+    // TODO Not valid for types unless array
+    if(type)
+    {
+      m_reporter.ReportError(node->m_pos, "invalid initializer for variable '" + 
+        node->m_a1.GetString() + "' of type '" + node->m_a3.GetString() + "'");
+    }
+
+    // Annotate init expresion *before* declaring the variable,
+    // to make sure that the init expresion uses the previously
+    // declared variable when initializing a shadowing variable.
+    AnnotateImpl(node->m_a2);
+  }
+
+  // Allocate slot
+  node->m_props["varcount"] = 1;
+  node->m_props["stackpos"] = m_scopeStack.top().DeclareVariable(node->m_a1);
 }

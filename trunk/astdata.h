@@ -147,6 +147,11 @@ public:
     return GetNumber();
   }
 
+  Ast* operator -> () const
+  {
+    return GetNode();
+  }
+
   AstData const& operator = (AstData const& rhs);
 
 private:
