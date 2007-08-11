@@ -476,33 +476,9 @@ Annotator::ResolveCalls()
 void 
 Annotator::AnnotateVariableDeclaration(Ast* node)
 {
-  // Struct
-  Ast* type = 0;
-
-  // Find declared type
-  if(node->m_a3)
-  {
-    AstMap::iterator it = m_structs.find(node->m_a3);
-    if(it == m_structs.end())
-    {
-      m_reporter.ReportError(E0006, &node->m_pos, node->m_a2.GetString().c_str());
-    }
-    else
-    {
-      type = it->second;
-    }
-  }
-
   // Init expression
   if(node->m_a2)
   {
-    // TODO Not valid for types unless array
-    if(type)
-    {
-      m_reporter.ReportError(E0007, &node->m_pos, 
-                 node->m_a1.GetString().c_str());
-    }
-
     // Annotate init expresion *before* declaring the variable,
     // to make sure that the init expresion uses the previously
     // declared variable when initializing a shadowing variable.
