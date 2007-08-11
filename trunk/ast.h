@@ -77,6 +77,7 @@ enum AstTypes
   struct_declaration,
   struct_members,
   struct_member,
+  new_expression,
 };
 
 class Ast 
@@ -104,7 +105,6 @@ public:
   //
   // Ast structure
   //
-  FilePos   m_pos;
   AstTypes  m_type;
   AstData   m_a1;
   AstData   m_a2;
@@ -122,6 +122,10 @@ public:
   friend class AstData;
   int m_refs;
 
+  //
+  // File position
+  //
+  FilePos   m_pos;
 };
 
 //////////////////////////////////////////////////////////////////////////

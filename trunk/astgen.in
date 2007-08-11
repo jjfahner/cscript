@@ -162,12 +162,13 @@ unary_expression(R) ::= postfix_expression(A) .      { R = A; }
 unary_expression(R) ::= SUBOP  unary_expression(A) . { R = p->AllocAst(prefix_expression, op_negate, A); }
 unary_expression(R) ::= ADDADD unary_expression(A) . { R = p->AllocAst(prefix_expression, op_preinc, A); }
 unary_expression(R) ::= SUBSUB unary_expression(A) . { R = p->AllocAst(prefix_expression, op_predec, A); }
+unary_expression(R) ::= new_expression(A) .          { R = A; }
 
 // Postfix expression
 postfix_expression(R) ::= primary_expression(A) .                                 { R = A; }
 postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = p->AllocAst(postfix_expression, op_postinc, A); }
 postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = p->AllocAst(postfix_expression, op_postdec, A); }
-postfix_expression(R) ::= postfix_expression(A) DOT id_expression(B).             { R = p->AllocAst(member_expression, A, B); }
+postfix_expression(R) ::= postfix_expression(A) DOT IDENTIFIER(B).                { R = p->AllocAst(member_expression, A, String(B)); }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocAst(index_expression, A, B); }
 postfix_expression(R) ::= IDENTIFIER(A) LPAREN                  RPAREN .          { R = p->AllocAst(function_call, String(A)); }
 postfix_expression(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN .          { R = p->AllocAst(function_call, String(A), B); }
@@ -191,11 +192,12 @@ id_expression(R) ::= IDENTIFIER(A) . { R = p->AllocAst(lvalue, String(A)); }
 
 // List definition
 list_literal(R) ::= LBRACKET list_content(A) RBRACKET . { R = p->AllocAst(list_literal, A); }
-
 list_content(R) ::= list_entry(A) . { R = p->AllocAst(list_content, A); }
 list_content(R) ::= list_content(A) COMMA list_entry(B) . { R = p->AllocAst(list_content, A, B); }
-
 list_entry(R)   ::= expression(A) . { R = p->AllocAst(list_entry, A); }
+
+// New expression
+new_expression(R) ::= NEW IDENTIFIER(A) . { R = p->AllocAst(new_expression, String(A)); }
 
 //////////////////////////////////////////////////////////////////////////
 //
