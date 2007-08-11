@@ -2,6 +2,7 @@
 #include "native.h"
 #include "file.h"
 #include "annotate.h"
+#include "optimize.h"
 
 inline bool IsType(Ast* node, AstTypes type)
 {
@@ -18,7 +19,8 @@ CodeGenerator::Generate(Ast* node, bool release)
   if(release)
   {
     // Optimize tree
-    Optimize(node);
+    Optimizer optimizer;
+    optimizer.Optimize(node);
 
     // Re-validate optimized tree
     Validate(node);

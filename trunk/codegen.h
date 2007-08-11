@@ -51,12 +51,6 @@ public:
   Byte* ReleaseCode();
 
   //
-  // Optimize node. Returned node may be
-  // different from the input node.
-  //
-  Ast* Optimize(Ast*);
-
-  //
   // Write to output
   //
   void Write();
@@ -87,21 +81,6 @@ private:
   // Validation
   //
   void Validate(Ast*);
-  
-  //
-  // Optimization
-  //
-  Ast* OptimizeIfStatement(Ast*);
-  Ast* OptimizeForStatement(Ast*);
-  Ast* OptimizeBinaryExpression(Ast*);
-  Ast* OptimizeTernaryExpression(Ast*);
-  Ast* OptimizeStatementSequence(Ast*);
-  Ast* OptimizeExpressionStatement(Ast*);
-  Ast* OptimizeCompoundStatement(Ast*);
-  Ast* OptimizeAssignmentExpression(Ast*);
-  Ast* OptimizePrefixExpression(Ast*);
-  Ast* OptimizeSwitchStatement(Ast*);
-  Ast* OptimizeStructDeclaration(Ast*);
 
   //
   // Printing

@@ -18,7 +18,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "codegen.h"
+#include "optimize.h"
+#include "ast.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -42,7 +43,7 @@ inline bool IsIdempotent(Ast* node)
 //
 
 Ast*
-CodeGenerator::Optimize(Ast* node)
+Optimizer::Optimize(Ast* node)
 {
   switch(node->m_type)
   {
@@ -132,10 +133,7 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case variable_declaration:
-    if(node->m_a2.Type() == AstData::Node)
-    {
-      node->m_a2 = Optimize(node->m_a2);
-    }
+    node = OptimizeVariableDeclaration(node);
     break;
 
   case declaration_sequence:
@@ -181,7 +179,6 @@ CodeGenerator::Optimize(Ast* node)
     break;
 
   case struct_declaration:
-    node->m_props["varcount"] = 0;
     node = OptimizeStructDeclaration(node);
     break;
 
@@ -198,7 +195,7 @@ CodeGenerator::Optimize(Ast* node)
 //
 
 Ast* 
-CodeGenerator::OptimizeIfStatement(Ast* node)
+Optimizer::OptimizeIfStatement(Ast* node)
 {
   // Optimize condition expression
   node->m_a1 = Optimize(node->m_a1);
@@ -250,7 +247,7 @@ CodeGenerator::OptimizeIfStatement(Ast* node)
 }
 
 Ast* 
-CodeGenerator::OptimizeForStatement(Ast* node)
+Optimizer::OptimizeForStatement(Ast* node)
 {
   // Optimize subexpressions
   node->m_a1 = Optimize(node->m_a1);
@@ -325,7 +322,7 @@ CodeGenerator::OptimizeForStatement(Ast* node)
 }
 
 Ast* 
-CodeGenerator::OptimizeAssignmentExpression(Ast* node)
+Optimizer::OptimizeAssignmentExpression(Ast* node)
 {
   // Optimize left side
   node->m_a2 = Optimize(node->m_a2);
@@ -338,7 +335,7 @@ CodeGenerator::OptimizeAssignmentExpression(Ast* node)
 }
 
 Ast* 
-CodeGenerator::OptimizeBinaryExpression(Ast* node)
+Optimizer::OptimizeBinaryExpression(Ast* node)
 {
   // Optimize left-hand side
   node->m_a2 = Optimize(node->m_a2);
@@ -415,7 +412,7 @@ CodeGenerator::OptimizeBinaryExpression(Ast* node)
 }
 
 Ast* 
-CodeGenerator::OptimizeTernaryExpression(Ast* node)
+Optimizer::OptimizeTernaryExpression(Ast* node)
 {
   // Optimize nodes
   node->m_a1 = Optimize(node->m_a1);
@@ -452,7 +449,7 @@ CodeGenerator::OptimizeTernaryExpression(Ast* node)
 
 
 Ast* 
-CodeGenerator::OptimizeStatementSequence(Ast* node)
+Optimizer::OptimizeStatementSequence(Ast* node)
 {
   // Take over old list
   AstList* old = node->m_a1;
@@ -504,7 +501,7 @@ CodeGenerator::OptimizeStatementSequence(Ast* node)
 }
 
 Ast*
-CodeGenerator::OptimizeExpressionStatement(Ast* node)
+Optimizer::OptimizeExpressionStatement(Ast* node)
 {
   // Optimize expression
   node->m_a1 = Optimize(node->m_a1);
@@ -521,7 +518,7 @@ CodeGenerator::OptimizeExpressionStatement(Ast* node)
 }
 
 Ast* 
-CodeGenerator::OptimizeCompoundStatement(Ast* node)
+Optimizer::OptimizeCompoundStatement(Ast* node)
 {
   // If empty, return empty statement
   if(!node->m_a1)
@@ -549,7 +546,7 @@ CodeGenerator::OptimizeCompoundStatement(Ast* node)
 }
 
 Ast* 
-CodeGenerator::OptimizePrefixExpression(Ast* node)
+Optimizer::OptimizePrefixExpression(Ast* node)
 {
   // Optimize subexpression
   node->m_a2 = Optimize(node->m_a2);
@@ -566,13 +563,24 @@ CodeGenerator::OptimizePrefixExpression(Ast* node)
 }
 
 Ast* 
-CodeGenerator::OptimizeSwitchStatement(Ast* node)
+Optimizer::OptimizeSwitchStatement(Ast* node)
 {
   return node;
 }
 
 Ast* 
-CodeGenerator::OptimizeStructDeclaration(Ast* node)
+Optimizer::OptimizeStructDeclaration(Ast* node)
 {
+  node->m_props["varcount"] = 0;
+  return node;
+}
+
+Ast* 
+Optimizer::OptimizeVariableDeclaration(Ast* node)
+{
+  if(node->m_a2.Type() == AstData::Node)
+  {
+    node->m_a2 = Optimize(node->m_a2);
+  }
   return node;
 }
