@@ -331,6 +331,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\error.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\error.h"
+				>
+			</File>
+			<File
 				RelativePath=".\file.cpp"
 				>
 			</File>

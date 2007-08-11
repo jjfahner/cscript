@@ -92,7 +92,7 @@ Parser::OnParseFailure()
   FilePos pos;
   pos.m_file = m_file->GetPath();
   pos.m_line = m_lexer->GetLine();
-  m_reporter.ReportError(pos, "Unrecoverable syntax error");
+  m_reporter.ReportError(E0012, &pos);
 }
 
 void 
@@ -101,7 +101,7 @@ Parser::OnSyntaxError()
   FilePos pos;
   pos.m_file = m_file->GetPath();
   pos.m_line = m_lexer->GetLine();
-  m_reporter.ReportError(pos, "Syntax error");
+  m_reporter.ReportError(E0013, &pos);
 }
 
 Ast*

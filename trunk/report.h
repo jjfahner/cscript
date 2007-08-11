@@ -2,12 +2,11 @@
 #define CSCRIPT_REPORT_H
 
 #include "types.h"
+#include "error.h"
 
-#define STRINGIFY(a) #a
-#define TOSTRING(a) STRINGIFY(a)
 #define INTERNAL_ERROR(reporter, pos) \
   { \
-    reporter.ReportError(pos, "internal compiler error on line " TOSTRING(__LINE__) " in file " __FILE__); \
+    reporter.ReportError(E0001, &(pos), __FILE__, __LINE__); \
   }
 
 class Reporter 
@@ -22,7 +21,7 @@ public:
   //
   // Report an error
   //
-  void ReportError(FilePos& pos, String const& text);
+  void ReportError(Notice const& notice, FilePos* pos, ...);
 
   //
   // Report a warning
