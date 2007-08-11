@@ -39,6 +39,12 @@ private:
   void ResolveCalls();
 
   //
+  // Scope handling
+  //
+  void    PushScope(Ast* node);
+  Scope*  PopScope(bool deleteScope = true);
+
+  //
   // Reporter
   //
   Reporter& m_reporter;
@@ -46,8 +52,9 @@ private:
   //
   // Stack for scoping. Used during annotation phase.
   //
-  typedef std::stack<Scope> VarIdStack;
+  typedef std::stack<Scope*> VarIdStack;
   VarIdStack m_scopeStack;
+  Scope* m_scope;
 
   //
   // Map of ast nodes

@@ -34,7 +34,7 @@ public:
   //
   // Construction
   //
-  Scope(Reporter& reporter, Ast* node, Scope* parent);
+  Scope(Ast* node, Scope* parent);
 
   //
   // Register a name
@@ -62,7 +62,6 @@ private:
   //
   // Members
   //
-  Reporter&   m_reporter;
   Scope*      m_parent;
   Ast*        m_node;
   Names       m_names;
