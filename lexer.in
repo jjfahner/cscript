@@ -59,6 +59,7 @@ int parseNextToken(Char*& start, Char*& end)
   "if"                      { return TOK_IF; }
   "in"                      { return TOK_IN; }
   "include"                 { return TOK_INCLUDE; }
+  "new"                     { return TOK_NEW; }
   "null"                    { return TOK_NULL; }
   "return"                  { return TOK_RETURN; }
   "struct"                  { return TOK_STRUCT; }

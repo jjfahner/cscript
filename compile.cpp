@@ -415,6 +415,9 @@ CodeGenerator::GenerateCode(Ast* node)
   case struct_declaration:
     break;
 
+  case new_expression:
+    break;
+
   default:
     INTERNAL_ERROR(m_reporter, node->m_pos);
   }

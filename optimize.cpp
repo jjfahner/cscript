@@ -181,6 +181,9 @@ Optimizer::Optimize(Ast* node)
   case struct_declaration:
     node = OptimizeStructDeclaration(node);
     break;
+  
+  case new_expression:
+    break;
 
   default:
     throw std::runtime_error("Unknown node type");

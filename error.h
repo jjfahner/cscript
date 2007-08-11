@@ -24,8 +24,8 @@ ERROR_EXPANSION(E0007,     7, "invalid initializer for variable '%s'."); \
 ERROR_EXPANSION(E0008,     8, "struct '%s' already declared."); \
 ERROR_EXPANSION(E0010,    10, "switch statement contains more than one default case."); \
 ERROR_EXPANSION(E0011,    11, "switch statement contains duplicate case value."); \
-ERROR_EXPANSION(E0012,    12, "Unrecoverable syntax error."); \
-ERROR_EXPANSION(E0013,    13, "Syntax error.");
+ERROR_EXPANSION(E0012,    12, "unrecoverable syntax error."); \
+ERROR_EXPANSION(E0013,    13, "syntax error.");
 
 //
 // Expand errors to extern declarations

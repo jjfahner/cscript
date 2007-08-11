@@ -166,6 +166,11 @@ function main()
   }
   assert("Switch", a, 2);
   
+  // Member syntax
+  a.foo = 2;
+  a.bar = 4;
+  assert("Member", a.foo * a.bar, 8);
+  
   // Print result
   if(errors == 0)
   {

@@ -151,6 +151,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case member_expression:
+    AnnotateMemberExpression(node);
     break;
 
   case index_expression:
@@ -317,6 +318,9 @@ Annotator::AnnotateImpl(Ast* node)
     AnnotateImpl(node->m_a2);
     break;
 
+  case new_expression:
+    AnnotateNewExpression(node);
+    break;
   }
 }
 
@@ -535,4 +539,32 @@ Annotator::AnnotateStructDeclaration(Ast* node)
   // TODO Store scope with node
   Scope* structScope = PopScope(false);
   delete structScope;
+}
+
+void 
+Annotator::AnnotateNewExpression(Ast* node)
+{
+  // Check whether the type exists
+  if(m_structs.count(node->m_a1) == 0)
+  {
+    m_reporter.ReportError(E0006, &node->m_pos, 
+              node->m_a1.GetString().c_str());    
+  }
+}
+
+void 
+Annotator::AnnotateMemberExpression(Ast* node)
+{
+  // Create literal for right-hand side
+  Ast* lit = new Ast(literal, Variant(
+    node->m_a2.GetString(), Variant::stString));
+
+  // Replace right-hand side with literal
+  node->m_a2 = lit;
+
+  // Change type to index expression
+  node->m_type = index_expression;
+
+  // Annotate as index expression
+  AnnotateImpl(node);
 }
