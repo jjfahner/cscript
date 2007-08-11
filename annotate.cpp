@@ -263,7 +263,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case struct_declaration:
-    m_structs[node->m_a1] = node;
+    AnnotateStructDeclaration(node);
     break;
   }
 }
@@ -289,7 +289,7 @@ Annotator::AnnotateFunction(Ast* node)
   String name = node->m_a1;
   if(m_functions.count(name))
   {
-    m_reporter.ReportError(node->m_pos, "Function '" + name + "' is already defined");
+    m_reporter.ReportError(node->m_pos, "function '" + name + "' is already defined");
   }
 
   // Initialize annotations
@@ -453,4 +453,21 @@ Annotator::AnnotateVariableDeclaration(Ast* node)
   // Allocate slot
   node->m_props["varcount"] = 1;
   node->m_props["stackpos"] = m_scopeStack.top().DeclareVariable(node->m_a1);
+}
+
+void 
+Annotator::AnnotateStructDeclaration(Ast* node)
+{
+  // Check whether name is in use
+  if(m_structs.count(node->m_a1))
+  {
+    m_reporter.ReportError(node->m_pos, "struct '" + 
+      node->m_a1.GetString() + "' is already declared");
+  }
+
+  // Store struct node
+  m_structs[node->m_a1] = node;
+
+  // Handle members
+    
 }

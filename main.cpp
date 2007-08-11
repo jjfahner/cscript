@@ -25,6 +25,7 @@
 #include "codegen.h"
 #include "machine.h"
 #include "annotate.h"
+#include "optimize.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -108,7 +109,8 @@ int annotate(CmdArgs const& args)
   parser.Parse(srcFile);
   
   // Optimize code
-  Ast* root = cg.Optimize(parser.GetRoot());
+  Optimizer optimizer;
+  Ast* root = optimizer.Optimize(parser.GetRoot());
 
   // Annotate code
   Annotator annotator(reporter);

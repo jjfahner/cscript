@@ -25,6 +25,10 @@ struct Info
   var d = 1;
 };
 
+struct Info2
+{
+};
+
 //
 // Error count
 //

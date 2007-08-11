@@ -31,6 +31,7 @@ private:
   void AnnotateTranslationUnit(Ast* node);
   void AnnotateStatementSequence(Ast* node);
   void AnnotateVariableDeclaration(Ast* node);
+  void AnnotateStructDeclaration(Ast* node);
 
   //
   // Function call resolving

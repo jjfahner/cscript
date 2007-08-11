@@ -231,6 +231,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\optimize.h"
+				>
+			</File>
+			<File
 				RelativePath=".\parser.h"
 				>
 			</File>
