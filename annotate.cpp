@@ -21,6 +21,7 @@
 #include "annotate.h"
 #include "report.h"
 #include "native.h"
+#include "error.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -310,6 +311,12 @@ Annotator::AnnotateImpl(Ast* node)
   case struct_declaration:
     AnnotateStructDeclaration(node);
     break;
+
+  case struct_members:
+    AnnotateImpl(node->m_a1);
+    AnnotateImpl(node->m_a2);
+    break;
+
   }
 }
 
@@ -337,7 +344,7 @@ Annotator::AnnotateFunction(Ast* node)
   String name = node->m_a1;
   if(m_functions.count(name))
   {
-    m_reporter.ReportError(node->m_pos, "function '" + name + "' is already defined");
+    m_reporter.ReportError(E0002, &node->m_pos, name.c_str());
   }
 
   // Initialize annotations
@@ -402,7 +409,7 @@ Annotator::AnnotateLValue(Ast* node)
   int  offset = 0;
   if(!m_scope->Lookup(node->m_a1, offset, global))
   {
-    m_reporter.ReportError(node->m_pos, "undefined variable '" + node->m_a1.GetString() + "'");
+    m_reporter.ReportError(E0003, &node->m_pos, node->m_a1.GetString().c_str());
   }
 
   // Store offset
@@ -428,7 +435,7 @@ Annotator::ResolveCalls()
       // Check parameter count
       if((*it)->m_props["argcount"] != decl->second->m_props["parcount"])
       {
-        m_reporter.ReportError((*it)->m_pos, "Invalid number of arguments in call to function '" + name + "'");
+        m_reporter.ReportError(E0004, &(*it)->m_pos, name.c_str());
       }
 
       // Point call to function
@@ -446,7 +453,7 @@ Annotator::ResolveCalls()
       if(ArgCount(*it) < nci->m_minPar ||
          ArgCount(*it) > nci->m_maxPar )
       {
-        m_reporter.ReportError((*it)->m_pos, "Invalid number of arguments in call to function '" + name + "'");
+        m_reporter.ReportError(E0004, &(*it)->m_pos, name.c_str());
       }
 
       // Point call to function
@@ -457,7 +464,7 @@ Annotator::ResolveCalls()
     }
 
     // No such function
-    m_reporter.ReportError((*it)->m_pos, "Function '" + name + "' not found");
+    m_reporter.ReportError(E0005, &(*it)->m_pos, name.c_str());
     continue;
   }
 }
@@ -474,7 +481,7 @@ Annotator::AnnotateVariableDeclaration(Ast* node)
     AstMap::iterator it = m_structs.find(node->m_a3);
     if(it == m_structs.end())
     {
-      m_reporter.ReportError(node->m_pos, "undeclared type '" + node->m_a2.GetString() + "'");
+      m_reporter.ReportError(E0006, &node->m_pos, node->m_a2.GetString().c_str());
     }
     else
     {
@@ -488,8 +495,8 @@ Annotator::AnnotateVariableDeclaration(Ast* node)
     // TODO Not valid for types unless array
     if(type)
     {
-      m_reporter.ReportError(node->m_pos, "invalid initializer for variable '" + 
-        node->m_a1.GetString() + "' of type '" + node->m_a3.GetString() + "'");
+      m_reporter.ReportError(E0007, &node->m_pos, 
+                 node->m_a1.GetString().c_str());
     }
 
     // Annotate init expresion *before* declaring the variable,
@@ -509,8 +516,8 @@ Annotator::AnnotateStructDeclaration(Ast* node)
   // Check whether name is in use
   if(m_structs.count(node->m_a1))
   {
-    m_reporter.ReportError(node->m_pos, "struct '" + 
-      node->m_a1.GetString() + "' is already declared");
+    m_reporter.ReportError(E0008, &node->m_pos, 
+              node->m_a1.GetString().c_str());
   }
 
   // Store struct node

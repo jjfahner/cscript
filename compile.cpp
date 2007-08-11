@@ -398,14 +398,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case function_declaration:
-    if(m_funs.count(node->m_a1))
-    {
-      m_reporter.ReportError(node->m_pos, "redeclaration of function " + node->m_a1.GetString());
-    }
-    else
-    {
-      m_funs[node->m_a1] = Function(node, 0);
-    }
+    m_funs[node->m_a1] = Function(node, 0);
     break;
 
   case parameter:
@@ -546,8 +539,10 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
       // TODO this should be detected by the annotation code
       if(defaultcase)
       {
-        m_reporter.ReportError(casenode->m_pos, "switch statement may not contain multiple default cases");
+        m_reporter.ReportError(E0010, &casenode->m_pos);
       }
+
+      // Remember as default case
       defaultcase = casenode;
     }
     else
@@ -558,7 +553,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
       // TODO Check for duplicates, should be detected by the annotation code
       if(cases.count(value))
       {
-        m_reporter.ReportError(casenode->m_pos, "duplicate case label in switch statement");
+        m_reporter.ReportError(E0011, &casenode->m_pos);
       }
 
       // Store current offset with value in map

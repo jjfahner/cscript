@@ -60,6 +60,13 @@ typedef int64_t           int64;
 
 #endif
 
+//
+// Convert a number to a string
+//
+#define TOSTRING2(a) #a
+#define TOSTRING(a) TOSTRING2(a)
+
+
 #define MAKEVER(major,minor,revision,patch) ((major<<24)|(minor<<16)|(revision<<8)|patch)
 
 //
