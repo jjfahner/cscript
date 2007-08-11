@@ -17,4 +17,5 @@ cscript_SOURCES =	main.cpp \
 			scope.cpp \
 			parser.cpp \
 			astdata.cpp \
-			report.cpp
+			report.cpp \
+			error.cpp
