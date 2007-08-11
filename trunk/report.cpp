@@ -17,14 +17,9 @@ Reporter::ReportError(Notice const& notice, FilePos* pos, ...)
   // Update error count
   ++m_errors;
 
-  // Calculate buffer size
-  int len = _scprintf(szTemplate, 
-    pos->m_file.c_str(), pos->m_line, 
-    notice.m_number, notice.m_notice);
-
-  // Allocate and fill template string
-  char* pszTemplate = new char[len + 1];
-  sprintf(pszTemplate, szTemplate, 
+  // Build first generation from template
+  char buf1[4096];
+  sprintf(buf1, szTemplate, 
     pos->m_file.c_str(), pos->m_line, 
     notice.m_number, notice.m_notice);
 
@@ -32,19 +27,12 @@ Reporter::ReportError(Notice const& notice, FilePos* pos, ...)
   va_list args;
   va_start(args, pos);
 
-  // Calculate buffer size
-  len = _vscprintf(pszTemplate, args);
-
-  // Allocate and fill final string
-  char* pszFinal = new char[len + 1];
-  vsprintf(pszFinal, pszTemplate, args);
+  // Build second generation from first and variadic args
+  char buf2[8192];
+  vsprintf(buf2, buf1, args);
 
   // Write string
-  std::cout << pszFinal;
-
-  // Free strings
-  delete [] pszTemplate;
-  delete [] pszFinal;
+  std::cout << buf2;
 }
 
 void 
