@@ -48,7 +48,8 @@ inline Quad ArgCount(Ast* ast)
 //
 
 Annotator::Annotator(Reporter& reporter) :
-m_reporter (reporter)
+m_reporter  (reporter),
+m_scope     (0)
 {
 }
 
@@ -60,6 +61,50 @@ Annotator::Annotate(Ast* node)
 
   // Resolve and check function calls
   ResolveCalls();  
+}
+
+void
+Annotator::PushScope(Ast* node)
+{
+  // Check current scope
+  if(m_scopeStack.top() != m_scope)
+  {
+    throw std::runtime_error("Invalid scope on stack");
+  }
+
+  // Create new scope
+  Scope* scope = new Scope(node, m_scope);
+
+  // Push it on the stack
+  m_scopeStack.push(scope);
+
+  // Set as current scope
+  m_scope = scope;
+}
+
+Scope*
+Annotator::PopScope(bool deleteScope)
+{
+  // Retrieve scope from stack
+  Scope* scope = m_scopeStack.top();
+  if(scope != m_scope)
+  {
+    throw std::runtime_error("Invalid scope on stack");
+  }
+
+  // Remove from stack
+  m_scopeStack.pop();
+  m_scope = m_scopeStack.top();
+
+  // Delete if specified
+  if(deleteScope)
+  {
+    delete scope;
+    scope = 0;
+  }
+
+  // Return scope (or null)
+  return scope;
 }
 
 void
@@ -161,7 +206,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case parameter:
-    node->m_props["stackpos"] = m_scopeStack.top().DeclareParameter(node->m_a1);
+    node->m_props["stackpos"] = m_scope->DeclareParameter(node->m_a1);
     break;
 
   case parameter_list:
@@ -190,14 +235,14 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case for_statement:
-    m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
+    PushScope(node);
     AnnotateImpl(node->m_a1);
     AnnotateImpl(node->m_a2);
     AnnotateImpl(node->m_a3);
-    m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
+    PushScope(node);
     AnnotateImpl(node->m_a4);
-    m_scopeStack.pop();
-    m_scopeStack.pop();
+    PopScope();
+    PopScope();
     node->m_props["varcount"] = VarCount(node->m_a1) + VarCount(node->m_a4);
     break;
 
@@ -206,21 +251,21 @@ Annotator::AnnotateImpl(Ast* node)
 
   case if_statement:
     AnnotateImpl(node->m_a1);
-    m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
+    PushScope(node);
     AnnotateImpl(node->m_a2);
     if(node->m_a3)
     {
       AnnotateImpl(node->m_a3);
     }
-    m_scopeStack.pop();
+    PopScope();
     node->m_props["varcount"] = VarCount(node->m_a2);
     break;
 
   case while_statement:
     AnnotateImpl(node->m_a1);
-    m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
+    PushScope(node);
     AnnotateImpl(node->m_a2);
-    m_scopeStack.pop();
+    PopScope();
     node->m_props["varcount"] = VarCount(node->m_a2);
     break;
 
@@ -233,9 +278,9 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case compound_statement:
-    m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
+    PushScope(node);
     AnnotateImpl(node->m_a1);
-    m_scopeStack.pop();
+    PopScope();
     node->m_props["varcount"] = VarCount(node->m_a1);
     break;
 
@@ -271,8 +316,11 @@ Annotator::AnnotateImpl(Ast* node)
 void 
 Annotator::AnnotateTranslationUnit(Ast* node)
 {
+  // Initialize scope stack
+  m_scopeStack.push(0);
+
   // Push initial frame
-  m_scopeStack.push(Scope(m_reporter, node, 0));
+  PushScope(node);
 
   // Initialize properties
   node->m_props["framesize"] = 0;
@@ -298,7 +346,7 @@ Annotator::AnnotateFunction(Ast* node)
   node->m_props["parcount"]  = 0;
 
   // Create new scope for function
-  m_scopeStack.push(Scope(m_reporter, node, &m_scopeStack.top()));
+  PushScope(node);
 
   // Annotate parameter list
   if(node->m_a2)
@@ -310,7 +358,7 @@ Annotator::AnnotateFunction(Ast* node)
   AnnotateImpl(node->m_a3);
 
   // Clean up the stack
-  m_scopeStack.pop();
+  PopScope();
 
   // Store and check number of variables
   node->m_props["varcount"] = VarCount(node->m_a3);
@@ -352,7 +400,7 @@ Annotator::AnnotateLValue(Ast* node)
   // Find lvalue on stack
   bool global = false;
   int  offset = 0;
-  if(!m_scopeStack.top().Lookup(node->m_a1, offset, global))
+  if(!m_scope->Lookup(node->m_a1, offset, global))
   {
     m_reporter.ReportError(node->m_pos, "undefined variable '" + node->m_a1.GetString() + "'");
   }
@@ -452,7 +500,7 @@ Annotator::AnnotateVariableDeclaration(Ast* node)
 
   // Allocate slot
   node->m_props["varcount"] = 1;
-  node->m_props["stackpos"] = m_scopeStack.top().DeclareVariable(node->m_a1);
+  node->m_props["stackpos"] = m_scope->DeclareVariable(node->m_a1);
 }
 
 void 
@@ -468,6 +516,16 @@ Annotator::AnnotateStructDeclaration(Ast* node)
   // Store struct node
   m_structs[node->m_a1] = node;
 
-  // Handle members
-    
+  // Create new scope
+  PushScope(node);
+
+  // Handle member declarations
+  if(node->m_a2)
+  {
+    AnnotateImpl(node->m_a2);
+  }
+
+  // TODO Store scope with node
+  Scope* structScope = PopScope(false);
+  delete structScope;
 }

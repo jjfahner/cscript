@@ -22,8 +22,7 @@
 #include "codegen.h"
 #include "report.h"
 
-Scope::Scope(Reporter& reporter, Ast* node, Scope* parent) :
-m_reporter(reporter),
+Scope::Scope(Ast* node, Scope* parent) :
 m_node    (node),
 m_parent  (parent)
 {
