@@ -61,8 +61,6 @@ function main()
 {
   print("cscript test suite\n\n");
 
-  Info i1, i2;
-
   // To fool the optimizer, use variables
   // instead of literals in expressions.
   var a0 = 0;
