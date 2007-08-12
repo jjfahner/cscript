@@ -418,6 +418,10 @@ CodeGenerator::GenerateCode(Ast* node)
   case new_expression:
     break;
 
+  case break_statement:
+    GenerateBreakStatement(node);
+    break;
+
   default:
     INTERNAL_ERROR(m_reporter, node->m_pos);
   }
@@ -604,3 +608,13 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
     FixPatch(ci->second.second);
   }
 }
+
+void
+CodeGenerator::GenerateBreakStatement(Ast* node)
+{
+  // Retrieve container
+  Ast* container = (Ast*)(Quad)node->m_props["scope"];  
+
+  // 
+}
+

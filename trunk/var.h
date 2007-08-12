@@ -197,6 +197,14 @@ public:
   void Clear();
 
   //
+  // Empty variant
+  //
+  bool Empty() const
+  {
+    return m_type == stNull;
+  }
+
+  //
   // Subtype
   //
   SubTypes GetType() const
