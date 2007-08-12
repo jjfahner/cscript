@@ -2,9 +2,10 @@
 #define CSCRIPT_ANNOTATE_H
 
 #include "types.h"
-#include "scope.h"
+#include "ast.h"
 
-class Ast;
+class Scope;
+class Reporter;
 
 class Annotator
 {
@@ -34,6 +35,8 @@ private:
   void AnnotateStructDeclaration(Ast* node);
   void AnnotateNewExpression(Ast* node);
   void AnnotateMemberExpression(Ast* node);
+  void AnnotateBreakStatement(Ast* node);
+  void AnnotateContinueStatement(Ast* node);
 
   //
   // Function call resolving

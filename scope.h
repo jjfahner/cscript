@@ -37,6 +37,16 @@ public:
   Scope(Ast* node, Scope* parent);
 
   //
+  // Scope parent
+  //
+  Scope* GetParent() const;
+
+  //
+  // Scope node
+  //
+  Ast* GetNode() const;
+
+  //
   // Register a name
   //
   int DeclareParameter(String const& name);
@@ -67,5 +77,17 @@ private:
   Names       m_names;
 
 };
+
+inline Scope* 
+Scope::GetParent() const
+{
+  return m_parent;
+}
+
+inline Ast* 
+Scope::GetNode() const
+{
+  return m_node;
+}
 
 #endif // CSCRIPT_SCOPE_H

@@ -144,23 +144,23 @@ function main()
   // Switch statement
   a = -1;
   switch(0) {
-  case 0 : a = 0;
-  case 1 : a = 1;
-  default: a = 2;
+  case 0 : a = 0; break;
+  case 1 : a = 1; break;
+  default: a = 2; break;
   }
   assert("Switch", a, 0);
   a = -1;
   switch(1) {
-  case 0 : a = 0;
-  case 1 : a = 1;
-  default: a = 2;
+  case 0 : a = 0; break;
+  case 1 : a = 1; break;
+  default: a = 2; break;
   }
   assert("Switch", a, 1);
   a = -1;
   switch(2) {
-  case 0 : a = 0;
-  case 1 : a = 1;
-  default: a = 2;
+  case 0 : a = 0; break;
+  case 1 : a = 1; break;
+  default: a = 2; break;
   }
   assert("Switch", a, 2);
   

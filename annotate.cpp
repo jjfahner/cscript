@@ -22,6 +22,7 @@
 #include "report.h"
 #include "native.h"
 #include "error.h"
+#include "scope.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -294,6 +295,7 @@ Annotator::AnnotateImpl(Ast* node)
       AstList::iterator it, ie;
       it = list->begin();
       ie = list->end();
+      PushScope(node);
       for(; it != ie; ++it)
       {
         AnnotateImpl(*it);
@@ -307,6 +309,14 @@ Annotator::AnnotateImpl(Ast* node)
 
   case default_case:
     AnnotateImpl(node->m_a1);
+    break;
+
+  case break_statement:
+    AnnotateBreakStatement(node);
+    break;
+
+  case continue_statement:
+    AnnotateContinueStatement(node);
     break;
 
   case struct_declaration:
@@ -543,4 +553,49 @@ Annotator::AnnotateMemberExpression(Ast* node)
 
   // Annotate as index expression
   AnnotateImpl(node);
+}
+
+void 
+Annotator::AnnotateBreakStatement(Ast* node)
+{
+  Scope* scope = 0;
+  Scope* find  = m_scope;
+
+  // Find valid target scope for break
+  while(find && !scope)
+  {
+    switch(find->GetNode()->m_type)
+    {
+    case for_statement:
+    case while_statement:
+    case switch_statement:
+      scope = find;
+      break;
+    case function_declaration:
+      find = 0;
+      break;
+    default:
+      find = find->GetParent();
+      break;
+    }
+  }
+
+  // No valid scope found
+  if(scope == 0)
+  {
+    m_reporter.ReportError(E0014, &node->m_pos);
+  }
+
+  // HACK Link break statement to node
+  // This falls over with 64-bit pointers
+  node->m_props["scope"] = (Quad) scope->GetNode();
+
+  // Store varcount
+  node->m_props["varcount"] = 0;
+}
+
+void 
+Annotator::AnnotateContinueStatement(Ast* node)
+{
+
 }

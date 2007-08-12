@@ -95,6 +95,7 @@ private:
   void GenerateFunctionCall(Ast*);
   void GenerateBinaryExpression(Ast*);
   void GenerateSwitchExpression(Ast*);
+  void GenerateBreakStatement(Ast*);
 
   //
   // Low-level code generation

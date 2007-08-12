@@ -23,8 +23,8 @@
 
 #include "props.h"
 #include "astdata.h"
-
 #include "opcodes.h"
+#include "any.h"
 
 class Ast;
 class File;
@@ -98,9 +98,7 @@ public:
   //
   // Destructor
   //
-  ~Ast()
-  {
-  }
+  ~Ast();
 
   //
   // Ast structure

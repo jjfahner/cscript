@@ -2,8 +2,11 @@
 #define CSCRIPT_PROPS_H
 
 #include "types.h"
+#include "var.h"
 
-typedef std::map<String, Quad> PropertyMap;
+typedef Quad PropertyType;
+
+typedef std::map<String, PropertyType> PropertyMap;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -27,7 +30,7 @@ public:
   //
   // Explicit retrieval
   //
-  Quad Get() const
+  PropertyType Get() const
   {
     PropertyMap::const_iterator it;
     it = m_map.find(m_idx);
@@ -41,7 +44,7 @@ public:
   //
   // Implicit conversions
   //
-  operator Quad () const
+  operator PropertyType () const
   {
     return Get();
   }
@@ -57,7 +60,7 @@ public:
   //
   // Dereference
   //
-  Quad operator * () const
+  PropertyType operator * () const
   {
     return Get();
   }
@@ -65,12 +68,12 @@ public:
   //
   // Assignment
   //
-  Quad operator = (Quad value)
+  PropertyType operator = (PropertyType value)
   {
     m_map[m_idx] = value;
     return value;
   }
-  Quad operator += (Quad value)
+  PropertyType operator += (PropertyType value)
   {
     value = Get() + value;
     m_map[m_idx] = value;
@@ -80,16 +83,16 @@ public:
   //
   // Increment
   //
-  Quad operator ++ ()
+  PropertyType operator ++ ()
   {
-    Quad value = Get();
+    PropertyType value = Get();
     m_map[m_idx] = ++value;
     return value;
   }
-  Quad operator ++ (int)
+  PropertyType operator ++ (int)
   {
-    Quad value = Get();
-    m_map[m_idx] = value + 1;
+    PropertyType value = Get();
+    m_map[m_idx]++;
     return value;
   }
 
