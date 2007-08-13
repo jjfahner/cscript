@@ -10,10 +10,11 @@
 #include "tokens.h"
 #include "parser.h"
 #include "ast.h"
+#include "astlist.h"
 
 #pragma warning(disable:4065)
 
-#line 18 "astgen.c"
+#line 19 "astgen.c"
 /* Next is all token values, in a form suitable for use by makeheaders.
 ** This section will be null unless lemon is run with the -m switch.
 */
@@ -1142,14 +1143,14 @@ static void yy_reduce(
   **     break;
   */
       case 0:
-#line 72 "astgen.in"
+#line 73 "astgen.in"
 { p->SetRoot(yymsp[0].minor.yy81); }
-#line 1149 "astgen.c"
+#line 1150 "astgen.c"
         break;
       case 1:
-#line 75 "astgen.in"
+#line 76 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(translation_unit, yymsp[0].minor.yy81); }
-#line 1154 "astgen.c"
+#line 1155 "astgen.c"
         break;
       case 2:
       case 5:
@@ -1188,12 +1189,12 @@ static void yy_reduce(
       case 113:
       case 115:
       case 127:
-#line 78 "astgen.in"
+#line 79 "astgen.in"
 { yygotominor.yy81 = yymsp[0].minor.yy81; }
-#line 1195 "astgen.c"
+#line 1196 "astgen.c"
         break;
       case 3:
-#line 79 "astgen.in"
+#line 80 "astgen.in"
 { 
   if(yymsp[-1].minor.yy81->m_type == statement_sequence) {
     yygotominor.yy81 = yymsp[-1].minor.yy81;
@@ -1204,411 +1205,411 @@ static void yy_reduce(
   }
   yygotominor.yy81->m_a1.GetList()->push_back(yymsp[0].minor.yy81);
 }
-#line 1209 "astgen.c"
+#line 1210 "astgen.c"
         break;
       case 4:
       case 20:
-#line 92 "astgen.in"
+#line 93 "astgen.in"
 { yygotominor.yy81 = 0; }
-#line 1215 "astgen.c"
+#line 1216 "astgen.c"
         break;
       case 18:
       case 80:
-#line 110 "astgen.in"
+#line 111 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(empty_statement); }
-#line 1221 "astgen.c"
+#line 1222 "astgen.c"
         break;
       case 23:
-#line 126 "astgen.in"
+#line 127 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(assignment_expression, yymsp[-1].minor.yy38, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1226 "astgen.c"
+#line 1227 "astgen.c"
         break;
       case 24:
-#line 130 "astgen.in"
+#line 131 "astgen.in"
 { yygotominor.yy38 = op_assign; }
-#line 1231 "astgen.c"
+#line 1232 "astgen.c"
         break;
       case 25:
-#line 131 "astgen.in"
+#line 132 "astgen.in"
 { yygotominor.yy38 = op_assadd; }
-#line 1236 "astgen.c"
+#line 1237 "astgen.c"
         break;
       case 26:
-#line 132 "astgen.in"
+#line 133 "astgen.in"
 { yygotominor.yy38 = op_asssub; }
-#line 1241 "astgen.c"
+#line 1242 "astgen.c"
         break;
       case 27:
-#line 133 "astgen.in"
+#line 134 "astgen.in"
 { yygotominor.yy38 = op_assmul; }
-#line 1246 "astgen.c"
+#line 1247 "astgen.c"
         break;
       case 28:
-#line 134 "astgen.in"
+#line 135 "astgen.in"
 { yygotominor.yy38 = op_assdiv; }
-#line 1251 "astgen.c"
+#line 1252 "astgen.c"
         break;
       case 29:
-#line 135 "astgen.in"
+#line 136 "astgen.in"
 { yygotominor.yy38 = op_assmod; }
-#line 1256 "astgen.c"
+#line 1257 "astgen.c"
         break;
       case 31:
-#line 139 "astgen.in"
+#line 140 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(ternary_expression, yymsp[-4].minor.yy81, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1261 "astgen.c"
+#line 1262 "astgen.c"
         break;
       case 33:
-#line 143 "astgen.in"
+#line 144 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_logor,   yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1266 "astgen.c"
+#line 1267 "astgen.c"
         break;
       case 34:
-#line 144 "astgen.in"
+#line 145 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_logand,  yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1271 "astgen.c"
+#line 1272 "astgen.c"
         break;
       case 35:
-#line 145 "astgen.in"
+#line 146 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_bitor,   yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1276 "astgen.c"
+#line 1277 "astgen.c"
         break;
       case 36:
-#line 146 "astgen.in"
+#line 147 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_bitxor,  yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1281 "astgen.c"
+#line 1282 "astgen.c"
         break;
       case 37:
-#line 147 "astgen.in"
+#line 148 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_bitand,  yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1286 "astgen.c"
+#line 1287 "astgen.c"
         break;
       case 38:
-#line 148 "astgen.in"
+#line 149 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_eq,   yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1291 "astgen.c"
+#line 1292 "astgen.c"
         break;
       case 39:
-#line 149 "astgen.in"
+#line 150 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_ne,   yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1296 "astgen.c"
+#line 1297 "astgen.c"
         break;
       case 40:
-#line 150 "astgen.in"
+#line 151 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_lt,   yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1301 "astgen.c"
+#line 1302 "astgen.c"
         break;
       case 41:
-#line 151 "astgen.in"
+#line 152 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_le,   yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1306 "astgen.c"
+#line 1307 "astgen.c"
         break;
       case 42:
-#line 152 "astgen.in"
+#line 153 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_gt,   yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1311 "astgen.c"
+#line 1312 "astgen.c"
         break;
       case 43:
-#line 153 "astgen.in"
+#line 154 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_ge,   yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1316 "astgen.c"
+#line 1317 "astgen.c"
         break;
       case 44:
-#line 154 "astgen.in"
+#line 155 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_add,  yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1321 "astgen.c"
+#line 1322 "astgen.c"
         break;
       case 45:
-#line 155 "astgen.in"
+#line 156 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_sub,  yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1326 "astgen.c"
+#line 1327 "astgen.c"
         break;
       case 46:
-#line 156 "astgen.in"
+#line 157 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_mul,  yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1331 "astgen.c"
+#line 1332 "astgen.c"
         break;
       case 47:
-#line 157 "astgen.in"
+#line 158 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_div,  yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1336 "astgen.c"
+#line 1337 "astgen.c"
         break;
       case 48:
-#line 158 "astgen.in"
+#line 159 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(binary_expression, op_mod,  yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1341 "astgen.c"
+#line 1342 "astgen.c"
         break;
       case 50:
-#line 162 "astgen.in"
+#line 163 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(prefix_expression, op_negate, yymsp[0].minor.yy81); }
-#line 1346 "astgen.c"
+#line 1347 "astgen.c"
         break;
       case 51:
-#line 163 "astgen.in"
+#line 164 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(prefix_expression, op_preinc, yymsp[0].minor.yy81); }
-#line 1351 "astgen.c"
+#line 1352 "astgen.c"
         break;
       case 52:
-#line 164 "astgen.in"
+#line 165 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(prefix_expression, op_predec, yymsp[0].minor.yy81); }
-#line 1356 "astgen.c"
+#line 1357 "astgen.c"
         break;
       case 55:
-#line 169 "astgen.in"
+#line 170 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(postfix_expression, op_postinc, yymsp[-1].minor.yy81); }
-#line 1361 "astgen.c"
+#line 1362 "astgen.c"
         break;
       case 56:
-#line 170 "astgen.in"
+#line 171 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(postfix_expression, op_postdec, yymsp[-1].minor.yy81); }
-#line 1366 "astgen.c"
+#line 1367 "astgen.c"
         break;
       case 57:
-#line 171 "astgen.in"
+#line 172 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(member_expression, yymsp[-2].minor.yy81, String(yymsp[0].minor.yy0)); }
-#line 1371 "astgen.c"
+#line 1372 "astgen.c"
         break;
       case 58:
-#line 172 "astgen.in"
+#line 173 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(index_expression, yymsp[-3].minor.yy81, yymsp[-1].minor.yy81); }
-#line 1376 "astgen.c"
+#line 1377 "astgen.c"
         break;
       case 59:
-#line 173 "astgen.in"
+#line 174 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(function_call, String(yymsp[-2].minor.yy0)); }
-#line 1381 "astgen.c"
+#line 1382 "astgen.c"
         break;
       case 60:
-#line 174 "astgen.in"
+#line 175 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(function_call, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy81); }
-#line 1386 "astgen.c"
+#line 1387 "astgen.c"
         break;
       case 63:
       case 90:
       case 91:
       case 99:
       case 116:
-#line 179 "astgen.in"
+#line 180 "astgen.in"
 { yygotominor.yy81 = yymsp[-1].minor.yy81; }
-#line 1395 "astgen.c"
+#line 1396 "astgen.c"
         break;
       case 65:
-#line 183 "astgen.in"
+#line 184 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(literal, Variant(String(yymsp[0].minor.yy0), Variant::stInt)); }
-#line 1400 "astgen.c"
+#line 1401 "astgen.c"
         break;
       case 66:
-#line 184 "astgen.in"
+#line 185 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(literal, Variant(String(yymsp[0].minor.yy0), Variant::stReal)); }
-#line 1405 "astgen.c"
+#line 1406 "astgen.c"
         break;
       case 67:
-#line 185 "astgen.in"
+#line 186 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(literal, Variant(String(yymsp[0].minor.yy0), Variant::stString)); }
-#line 1410 "astgen.c"
+#line 1411 "astgen.c"
         break;
       case 68:
-#line 186 "astgen.in"
+#line 187 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(literal, Variant(true));    }
-#line 1415 "astgen.c"
+#line 1416 "astgen.c"
         break;
       case 69:
-#line 187 "astgen.in"
+#line 188 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(literal, Variant(false));   }
-#line 1420 "astgen.c"
+#line 1421 "astgen.c"
         break;
       case 70:
-#line 188 "astgen.in"
+#line 189 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(literal, Variant());        }
-#line 1425 "astgen.c"
+#line 1426 "astgen.c"
         break;
       case 71:
-#line 191 "astgen.in"
+#line 192 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(lvalue, String(yymsp[0].minor.yy0)); }
-#line 1430 "astgen.c"
+#line 1431 "astgen.c"
         break;
       case 72:
-#line 194 "astgen.in"
+#line 195 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(list_literal, yymsp[-1].minor.yy81); }
-#line 1435 "astgen.c"
+#line 1436 "astgen.c"
         break;
       case 73:
-#line 195 "astgen.in"
+#line 196 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(list_content, yymsp[0].minor.yy81); }
-#line 1440 "astgen.c"
+#line 1441 "astgen.c"
         break;
       case 74:
-#line 196 "astgen.in"
+#line 197 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(list_content, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1445 "astgen.c"
+#line 1446 "astgen.c"
         break;
       case 75:
-#line 197 "astgen.in"
+#line 198 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(list_entry, yymsp[0].minor.yy81); }
-#line 1450 "astgen.c"
+#line 1451 "astgen.c"
         break;
       case 76:
-#line 200 "astgen.in"
+#line 201 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(new_expression, String(yymsp[0].minor.yy0)); }
-#line 1455 "astgen.c"
+#line 1456 "astgen.c"
         break;
       case 77:
-#line 209 "astgen.in"
+#line 210 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(argument, yymsp[0].minor.yy81); }
-#line 1460 "astgen.c"
+#line 1461 "astgen.c"
         break;
       case 79:
-#line 213 "astgen.in"
+#line 214 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(argument_list, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1465 "astgen.c"
+#line 1466 "astgen.c"
         break;
       case 81:
-#line 222 "astgen.in"
+#line 223 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(expression_statement, yymsp[-1].minor.yy81); }
-#line 1470 "astgen.c"
+#line 1471 "astgen.c"
         break;
       case 82:
-#line 225 "astgen.in"
+#line 226 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(compound_statement); }
-#line 1475 "astgen.c"
+#line 1476 "astgen.c"
         break;
       case 83:
-#line 226 "astgen.in"
+#line 227 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(compound_statement, yymsp[-1].minor.yy81); }
-#line 1480 "astgen.c"
+#line 1481 "astgen.c"
         break;
       case 84:
-#line 229 "astgen.in"
+#line 230 "astgen.in"
 { p->Parse(yymsp[-1].minor.yy0); yygotominor.yy81 = p->GetRoot(); }
-#line 1485 "astgen.c"
+#line 1486 "astgen.c"
         break;
       case 85:
-#line 232 "astgen.in"
+#line 233 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(return_statement, yymsp[-1].minor.yy81); }
-#line 1490 "astgen.c"
+#line 1491 "astgen.c"
         break;
       case 86:
-#line 233 "astgen.in"
+#line 234 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(return_statement);    }
-#line 1495 "astgen.c"
+#line 1496 "astgen.c"
         break;
       case 87:
-#line 236 "astgen.in"
+#line 237 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(break_statement); }
-#line 1500 "astgen.c"
+#line 1501 "astgen.c"
         break;
       case 88:
-#line 237 "astgen.in"
+#line 238 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(continue_statement); }
-#line 1505 "astgen.c"
+#line 1506 "astgen.c"
         break;
       case 93:
-#line 251 "astgen.in"
+#line 252 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(variable_declaration, String(yymsp[0].minor.yy0));    }
-#line 1510 "astgen.c"
+#line 1511 "astgen.c"
         break;
       case 94:
-#line 252 "astgen.in"
+#line 253 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(variable_declaration, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy81); }
-#line 1515 "astgen.c"
+#line 1516 "astgen.c"
         break;
       case 96:
-#line 255 "astgen.in"
+#line 256 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(declaration_sequence, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1520 "astgen.c"
+#line 1521 "astgen.c"
         break;
       case 97:
-#line 264 "astgen.in"
+#line 265 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(struct_declaration, String(yymsp[-2].minor.yy0)); }
-#line 1525 "astgen.c"
+#line 1526 "astgen.c"
         break;
       case 98:
-#line 265 "astgen.in"
+#line 266 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(struct_declaration, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy81); }
-#line 1530 "astgen.c"
+#line 1531 "astgen.c"
         break;
       case 101:
-#line 272 "astgen.in"
+#line 273 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(struct_members, yymsp[-1].minor.yy81, yymsp[0].minor.yy81); }
-#line 1535 "astgen.c"
+#line 1536 "astgen.c"
         break;
       case 102:
-#line 280 "astgen.in"
+#line 281 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(function_declaration, String(yymsp[-4].minor.yy0), yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1540 "astgen.c"
+#line 1541 "astgen.c"
         break;
       case 103:
-#line 281 "astgen.in"
+#line 282 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(function_declaration, String(yymsp[-3].minor.yy0), AstData(), yymsp[0].minor.yy81); }
-#line 1545 "astgen.c"
+#line 1546 "astgen.c"
         break;
       case 104:
-#line 284 "astgen.in"
+#line 285 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(parameter, String(yymsp[0].minor.yy0)); }
-#line 1550 "astgen.c"
+#line 1551 "astgen.c"
         break;
       case 105:
-#line 287 "astgen.in"
+#line 288 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(parameter, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy81); }
-#line 1555 "astgen.c"
+#line 1556 "astgen.c"
         break;
       case 107:
       case 109:
       case 112:
-#line 291 "astgen.in"
+#line 292 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(parameter_list, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1562 "astgen.c"
+#line 1563 "astgen.c"
         break;
       case 114:
-#line 312 "astgen.in"
+#line 313 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(for_statement, yymsp[-5].minor.yy81, yymsp[-4].minor.yy81, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1567 "astgen.c"
+#line 1568 "astgen.c"
         break;
       case 117:
-#line 323 "astgen.in"
+#line 324 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(foreach_statement, yymsp[-4].minor.yy81, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1572 "astgen.c"
+#line 1573 "astgen.c"
         break;
       case 118:
-#line 334 "astgen.in"
+#line 335 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(if_statement, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1577 "astgen.c"
+#line 1578 "astgen.c"
         break;
       case 119:
-#line 335 "astgen.in"
+#line 336 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(if_statement, yymsp[-4].minor.yy81, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1582 "astgen.c"
+#line 1583 "astgen.c"
         break;
       case 120:
-#line 343 "astgen.in"
+#line 344 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(while_statement, yymsp[-2].minor.yy81,  yymsp[0].minor.yy81); }
-#line 1587 "astgen.c"
+#line 1588 "astgen.c"
         break;
       case 121:
-#line 351 "astgen.in"
+#line 352 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(switch_statement, yymsp[-4].minor.yy81, yymsp[-1].minor.yy223); }
-#line 1592 "astgen.c"
+#line 1593 "astgen.c"
         break;
       case 122:
-#line 355 "astgen.in"
+#line 356 "astgen.in"
 { yygotominor.yy223 = new AstList; }
-#line 1597 "astgen.c"
+#line 1598 "astgen.c"
         break;
       case 123:
       case 124:
-#line 356 "astgen.in"
+#line 357 "astgen.in"
 { yygotominor.yy223 = yymsp[-1].minor.yy223; yygotominor.yy223->push_back(yymsp[0].minor.yy81); }
-#line 1603 "astgen.c"
+#line 1604 "astgen.c"
         break;
       case 125:
-#line 360 "astgen.in"
+#line 361 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(switch_case, yymsp[-2].minor.yy81, yymsp[0].minor.yy81); }
-#line 1608 "astgen.c"
+#line 1609 "astgen.c"
         break;
       case 126:
-#line 363 "astgen.in"
+#line 364 "astgen.in"
 { yygotominor.yy81 = p->AllocAst(default_case, yymsp[0].minor.yy81); }
-#line 1613 "astgen.c"
+#line 1614 "astgen.c"
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
@@ -1652,10 +1653,10 @@ static void yy_parse_failed(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser fails */
-#line 52 "astgen.in"
+#line 53 "astgen.in"
 
   p->OnParseFailure();
-#line 1661 "astgen.c"
+#line 1662 "astgen.c"
   CScriptParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -1669,10 +1670,10 @@ static void yy_syntax_error(
 ){
   CScriptParseARG_FETCH;
 #define TOKEN (yyminor.yy0)
-#line 55 "astgen.in"
+#line 56 "astgen.in"
 
   p->OnSyntaxError();
-#line 1679 "astgen.c"
+#line 1680 "astgen.c"
   CScriptParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

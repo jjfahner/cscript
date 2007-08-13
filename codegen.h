@@ -22,6 +22,7 @@
 #define CSCRIPT_CODEGEN_H
 
 #include "ast.h"
+#include "astlist.h"
 #include "var.h"
 #include "scope.h"
 #include "report.h"
