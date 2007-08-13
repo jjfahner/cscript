@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "ast.h"
+#include "astlist.h"
 
 class Scope;
 class Reporter;

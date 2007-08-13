@@ -32,6 +32,7 @@
 #include "tokens.h"
 #include "parser.h"
 #include "ast.h"
+#include "astlist.h"
 
 #pragma warning(disable:4065)
 

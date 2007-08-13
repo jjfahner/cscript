@@ -1,5 +1,6 @@
 #include "astdata.h"
 #include "ast.h"
+#include "astlist.h"
 
 AstData::AstData(Ast* node) : 
 m_type    (Node),

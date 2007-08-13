@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\astlist.h"
+				>
+			</File>
+			<File
 				RelativePath=".\cmdargs.h"
 				>
 			</File>
