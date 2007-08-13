@@ -112,6 +112,7 @@ public:
   //
   // Annotations
   //
+  typedef PropertiesT<Quad> Properties;
   Properties m_props;
 
   //

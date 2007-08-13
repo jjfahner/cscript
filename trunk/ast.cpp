@@ -32,7 +32,7 @@ struct NodeCountChecker
   {
     if(g_nodeCount != 0)
     {
-      __asm nop;
+      std::cerr << "Node destruction incomplete (" << g_nodeCount << " nodes left)\n";
     }
   }
 } Checker;

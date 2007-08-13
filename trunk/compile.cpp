@@ -613,8 +613,6 @@ void
 CodeGenerator::GenerateBreakStatement(Ast* node)
 {
   // Retrieve container
-  Ast* container = (Ast*)(Quad)node->m_props["scope"];  
-
-  // 
+  //Ast* container = node->m_props["scope"];  
 }
 

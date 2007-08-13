@@ -586,9 +586,8 @@ Annotator::AnnotateBreakStatement(Ast* node)
     m_reporter.ReportError(E0014, &node->m_pos);
   }
 
-  // HACK Link break statement to node
-  // This falls over with 64-bit pointers
-  node->m_props["scope"] = (Quad) scope->GetNode();
+  // TODO Link break statement to node
+  //node->m_props["scope"] = scope->GetNode();
 
   // Store varcount
   node->m_props["varcount"] = 0;

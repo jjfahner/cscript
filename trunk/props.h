@@ -4,24 +4,27 @@
 #include "types.h"
 #include "var.h"
 
-typedef Quad PropertyType;
-
-typedef std::map<String, PropertyType> PropertyMap;
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Property abstraction. Validates whether property exists when reading,
 // but allows writing to existing and non-existing properties.
 //
 
-class Property 
+template <typename T>
+class PropertyT 
 {
 public:
 
   //
+  // Types
+  //
+  typedef T ValueType;
+  typedef std::map<String, ValueType> MapType;
+
+  //
   // Construction
   //
-  Property(PropertyMap& map, String const& idx) :
+  PropertyT(MapType& map, String const& idx) :
   m_map  (map),
   m_idx (idx)
   {
@@ -30,9 +33,9 @@ public:
   //
   // Explicit retrieval
   //
-  PropertyType Get() const
+  ValueType Get() const
   {
-    PropertyMap::const_iterator it;
+    MapType::const_iterator it;
     it = m_map.find(m_idx);
     if(it == m_map.end())
     {
@@ -44,7 +47,7 @@ public:
   //
   // Implicit conversions
   //
-  operator PropertyType () const
+  operator ValueType () const
   {
     return Get();
   }
@@ -60,7 +63,7 @@ public:
   //
   // Dereference
   //
-  PropertyType operator * () const
+  ValueType operator * () const
   {
     return Get();
   }
@@ -68,12 +71,12 @@ public:
   //
   // Assignment
   //
-  PropertyType operator = (PropertyType value)
+  ValueType operator = (ValueType value)
   {
     m_map[m_idx] = value;
     return value;
   }
-  PropertyType operator += (PropertyType value)
+  ValueType operator += (ValueType value)
   {
     value = Get() + value;
     m_map[m_idx] = value;
@@ -83,15 +86,15 @@ public:
   //
   // Increment
   //
-  PropertyType operator ++ ()
+  ValueType operator ++ ()
   {
-    PropertyType value = Get();
+    ValueType value = Get();
     m_map[m_idx] = ++value;
     return value;
   }
-  PropertyType operator ++ (int)
+  ValueType operator ++ (int)
   {
-    PropertyType value = Get();
+    ValueType value = Get();
     m_map[m_idx]++;
     return value;
   }
@@ -102,39 +105,50 @@ private:
   //
   // Members
   //
-  PropertyMap& m_map;
-  String       m_idx;
+  MapType& m_map;
+  String   m_idx;
 
 };
 
-inline bool operator == (Property const& lhs, Property const& rhs)
+template <typename T>
+inline bool operator == (PropertyT<T> const& lhs, PropertyT<T> const& rhs)
 {
   return *lhs == *rhs;
 }
 
-inline bool operator != (Property const& lhs, Property const& rhs)
+template <typename T>
+inline bool operator != (PropertyT<T> const& lhs, PropertyT<T> const& rhs)
 {
   return *lhs != *rhs;
 }
 
-inline std::ostream& operator << (std::ostream& os, Property const& prop)
+template <typename T>
+inline std::ostream& operator << (std::ostream& os, PropertyT<T> const& prop)
 {
   return os << prop.Get();
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Property container
+// PropertyT container
 //
 
-class Properties
+template <typename T>
+class PropertiesT
 {
 public:
 
   //
+  // Types
+  //
+  typedef T ValueType;
+  typedef PropertyT<T> PropertyType;
+  typedef std::map<String, T> MapType;
+
+  //
   // Construction
   //
-  Properties() : 
+  PropertiesT() : 
   m_properties (0)
   {
   }
@@ -142,21 +156,21 @@ public:
   //
   // Destruction
   //
-  ~Properties()
+  ~PropertiesT()
   {
     delete m_properties;
   }
 
   //
-  // Indexing - uses delayed creation through Property
+  // Indexing - uses delayed creation through PropertyT
   //
-  Property operator [] (String const& name)
+  PropertyType operator [] (String const& name)
   {
     if(m_properties == 0)
     {
-      m_properties = new PropertyMap;
+      m_properties = new MapType;
     }
-    return Property(*m_properties, name);
+    return PropertyType(*m_properties, name);
   }
 
 private:
@@ -164,7 +178,7 @@ private:
   //
   // Members
   //
-  PropertyMap* m_properties;
+  MapType* m_properties;
 
 };
 
