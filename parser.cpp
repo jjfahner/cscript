@@ -117,61 +117,23 @@ Parser::SetRoot(Ast* root)
 }
 
 Ast* 
-Parser::AllocAst(AstTypes type)
-{
-  FilePos pos;
-  pos.m_file = m_file->GetPath();
-  pos.m_line = m_lexer->GetLine();
-
-  Ast* node = new Ast(type);
-  node->m_pos = pos;
-  return node;
-}
-
-Ast* 
-Parser::AllocAst(AstTypes type, AstData const& a1)
-{
-  FilePos pos;
-  pos.m_file = m_file->GetPath();
-  pos.m_line = m_lexer->GetLine();
-
-  Ast* node = new Ast(type, a1);
-  node->m_pos = pos;
-  return node;
-}
-
-Ast* 
-Parser::AllocAst(AstTypes type, AstData const& a1, AstData const& a2)
-{
-  FilePos pos;
-  pos.m_file = m_file->GetPath();
-  pos.m_line = m_lexer->GetLine();
-
-  Ast* node = new Ast(type, a1, a2);
-  node->m_pos = pos;
-  return node;
-}
-
-Ast* 
-Parser::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3)
-{
-  FilePos pos;
-  pos.m_file = m_file->GetPath();
-  pos.m_line = m_lexer->GetLine();
-
-  Ast* node = new Ast(type, a1, a2, a3);
-  node->m_pos = pos;
-  return node;
-}
-
-Ast* 
 Parser::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4)
 {
   FilePos pos;
   pos.m_file = m_file->GetPath();
   pos.m_line = m_lexer->GetLine();
 
-  Ast* node = new Ast(type, a1, a2, a3, a4);
+  Ast* node;
+  switch(type)
+  {
+  case switch_statement: 
+    node = new SwitchStatement(a1, a2);
+    break;
+  default: 
+    node = new Ast(type, a1, a2, a3, a4);
+    break;
+  }
+  
   node->m_pos = pos;
   return node;
 }

@@ -41,7 +41,7 @@ var errors = 0;
 function assert(description, result, expected)
 {
   var test = null;
-  print(description + "...");
+  print("{description}...");
   if(result == expected)
   {
     print("Ok\n");
@@ -176,7 +176,7 @@ function main()
   }
   else
   {
-    print("\n" + errors + " tests failed.\n");
+    print("\n{errors} tests failed.\n");
   }
 }
 

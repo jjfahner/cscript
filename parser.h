@@ -37,11 +37,11 @@ public:
   //
   // Allocate node
   //
-  Ast* AllocAst(AstTypes type);
-  Ast* AllocAst(AstTypes type, AstData const& a1);
-  Ast* AllocAst(AstTypes type, AstData const& a1, AstData const& a2);
-  Ast* AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3);
-  Ast* AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4);
+  Ast* AllocAst(AstTypes type, 
+    AstData const& a1 = AstData(), 
+    AstData const& a2 = AstData(), 
+    AstData const& a3 = AstData(), 
+    AstData const& a4 = AstData());
 
   //
   // Error handlers

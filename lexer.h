@@ -66,6 +66,7 @@ private:
   size_t  m_length;
   Char*   m_strptr;
   Quad    m_line;
+  int     m_string;
 
 };
 
