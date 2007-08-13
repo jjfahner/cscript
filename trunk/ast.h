@@ -80,6 +80,11 @@ enum AstTypes
   new_expression,
 };
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Ast base type
+//
+
 class Ast 
 {
 public:
@@ -98,7 +103,7 @@ public:
   //
   // Destructor
   //
-  ~Ast();
+  virtual ~Ast();
 
   //
   // Ast structure
@@ -127,5 +132,30 @@ public:
   FilePos   m_pos;
 
 };
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ast-derived types
+//
+
+class SwitchStatement : public Ast
+{
+public:
+
+  //
+  // Construction
+  //
+  SwitchStatement(AstData const& a1, AstData const& a2) :
+  Ast(switch_statement, a1, a2)
+  {
+  }
+
+  //
+  // Members
+  //
+  AstList* m_breaks;
+
+};
+
 
 #endif // CSCRIPT_AST_H

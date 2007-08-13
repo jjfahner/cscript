@@ -31,7 +31,8 @@
 
 Lexer::Lexer() :
 m_strptr  (0),
-m_line    (0)
+m_line    (0),
+m_string  (0)
 {
 }
 
@@ -47,6 +48,22 @@ Lexer::SetText(Char* text)
 bool
 Lexer::Lex(Token& token)
 {
+  // String continuation
+  if(m_string == 1 || m_string == 3)
+  {
+    token.m_type = TOK_ADDOP;
+    token.m_text = "+";
+    token.m_size = 1;
+    m_string = m_string == 1 ? 2 : 4;
+    return true;
+  }
+  if(m_string == 4)
+  {
+    m_string = 0;
+    return LexString(token);
+  }
+
+  // Parse next token
   for(;;)
   {
     // End of input
@@ -59,6 +76,10 @@ Lexer::Lex(Token& token)
     Char* start = m_strptr;
     Char* end   = start;
     int type = parseNextToken(start, end);
+    if(end == 0)
+    {
+      __asm nop;
+    }
     
     // Depending on token, do specialized parsing
     switch(type)
@@ -77,6 +98,20 @@ Lexer::Lex(Token& token)
 
     // Move pointer
     m_strptr = end;
+
+    // End of embedded variable
+    if(m_string == 2)
+    {
+      if(*m_strptr++ != '}')
+      {
+        // TODO
+        return false;
+      }
+      m_string = 3;
+      token.m_type = TOK_IDENTIFIER;
+    }
+
+    // Done
     return true;
   }
 }
@@ -116,12 +151,11 @@ Lexer::LexString(Token& token)
       *dst = wch;
       break;
 
-      // TODO
-//     case '{':
-//       while(++m_strptr)
-//       {
-// 
-//       }
+    case '{':
+      m_string = 1;
+      token.m_size = dst - token.m_text;
+      ++m_strptr;
+      return true;
 
     default:
       *dst = *m_strptr;

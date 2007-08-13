@@ -35,7 +35,7 @@ public:
   //
   ValueType Get() const
   {
-    MapType::const_iterator it;
+    typename MapType::const_iterator it;
     it = m_map.find(m_idx);
     if(it == m_map.end())
     {
