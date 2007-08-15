@@ -76,10 +76,6 @@ Lexer::Lex(Token& token)
     Char* start = m_strptr;
     Char* end   = start;
     int type = parseNextToken(start, end);
-    if(end == 0)
-    {
-      __asm nop;
-    }
     
     // Depending on token, do specialized parsing
     switch(type)
