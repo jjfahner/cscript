@@ -18,4 +18,5 @@ cscript_SOURCES =	main.cpp \
 			parser.cpp \
 			astdata.cpp \
 			report.cpp \
-			error.cpp
+			error.cpp \
+			convert.cpp
