@@ -61,6 +61,23 @@ function main()
 {
   print("cscript test suite\n\n");
 
+  // Number formats
+  assert("Binary literal", 0b0000000, 0);
+  assert("Binary literal", 0b0000001, 1);
+  assert("Binary literal", 0b0000010, 2);
+  assert("Binary literal", 0b0000011, 3);
+  assert("Binary literal", 0b0000111, 7);  
+  assert("Hex literal",    0x0000000, 0);
+  assert("Hex literal",    0x0000001, 1);
+  assert("Hex literal",    0x0000010, 16);
+  assert("Hex literal",    0x0000011, 17);
+  assert("Hex literal",    0x000000a, 10);
+  assert("Roman literal",  0rIIII, 4);
+  assert("Roman literal",  0rIV, 4);
+  assert("Roman literal",  0rMCMXCIX, 1999);
+  assert("Roman literal",  0rMCMLXXXIV, 1984);
+  assert("Roman literal",  0rMDCCCLXXXVIII, 1888);
+
   // To fool the optimizer, use variables
   // instead of literals in expressions.
   var a0 = 0;

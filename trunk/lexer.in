@@ -74,6 +74,9 @@ int parseNextToken(Char*& start, Char*& end)
   /* Number formats */  
   [0-9]+                    { return TOK_INTEGER; }
   [0-9]+"."[0-9]+           { return TOK_REAL; }
+  "0x"[0-9a-fA-F]+          { return TOK_HEX; }
+  "0b"[01]+                 { return TOK_BIN; }
+  "0r"[MDCLXVIO]+           { return TOK_ROM; }
   
   /* Strings */
   ["]                       { return TOK_STRING; }
