@@ -458,7 +458,7 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
   }
 
   // Write cleanup code for argument list
-  if(node->m_props["argcount"])
+  if((Quad)node->m_props["argcount"] != Quad(0))
   {
     PushByte(op_stackt);
     PushQuad(node->m_props["argcount"]);

@@ -51,13 +51,25 @@ public:
   {
     return Get();
   }
-  operator bool () const
+
+  //
+  // Some typed conversions
+  //
+  operator Quad() const
   {
-    return Get() != 0;
+    return any_cast<Quad>(Get());
   }
-  bool operator ! () const
+  operator int() const
   {
-    return Get() == 0;
+    return any_cast<int>(Get());
+  }
+  operator bool() const
+  {
+    return any_cast<bool>(Get());
+  }
+  operator String() const
+  {
+    return any_cast<String>(Get());
   }
 
   //
@@ -76,29 +88,6 @@ public:
     m_map[m_idx] = value;
     return value;
   }
-  ValueType operator += (ValueType value)
-  {
-    value = Get() + value;
-    m_map[m_idx] = value;
-    return value;
-  }
-
-  //
-  // Increment
-  //
-  ValueType operator ++ ()
-  {
-    ValueType value = Get();
-    m_map[m_idx] = ++value;
-    return value;
-  }
-  ValueType operator ++ (int)
-  {
-    ValueType value = Get();
-    m_map[m_idx]++;
-    return value;
-  }
-
 
 private:
 
@@ -120,12 +109,6 @@ template <typename T>
 inline bool operator != (PropertyT<T> const& lhs, PropertyT<T> const& rhs)
 {
   return *lhs != *rhs;
-}
-
-template <typename T>
-inline std::ostream& operator << (std::ostream& os, PropertyT<T> const& prop)
-{
-  return os << prop.Get();
 }
 
 //////////////////////////////////////////////////////////////////////////

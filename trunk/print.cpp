@@ -210,7 +210,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     {
       PrintImpl(node->m_a2, level, s);
     }
-    s << ") [" << node->m_props["varcount"] << "]\n";
+    s << ") [" << (String)node->m_props["varcount"] << "]\n";
     PrintImpl(node->m_a3, level, s);
     break;
 
@@ -226,7 +226,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
 
   case variable_declaration:
     s << indent << "var ";
-    s << "@" << node->m_props["stackpos"];
+    s << "@" << (Quad)node->m_props["stackpos"];
     if(node->m_a2)
     {
       s << " = ";
