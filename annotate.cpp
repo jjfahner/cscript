@@ -123,7 +123,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case expression_statement:
-    node->m_props["varcount"] = 0;
+    node->m_props["varcount"] = Quad(0);
     AnnotateImpl(node->m_a1);
     break;
 
@@ -184,7 +184,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case function_call:
-    node->m_props["argcount"] = 0;
+    node->m_props["argcount"] = Quad(0);
     if(node->m_a2)
     {
       AnnotateImpl(node->m_a2);
@@ -201,7 +201,7 @@ Annotator::AnnotateImpl(Ast* node)
 
   case argument:
     AnnotateImpl(node->m_a1);
-    node->m_props["argcount"] = 1;
+    node->m_props["argcount"] = Quad(1);
     break;
 
   case function_declaration:
@@ -209,7 +209,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case parameter:
-    node->m_props["stackpos"] = m_scope->DeclareParameter(node->m_a1);
+    node->m_props["stackpos"] = Quad(m_scope->DeclareParameter(node->m_a1));
     break;
 
   case parameter_list:
@@ -230,11 +230,11 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case empty_statement:
-    node->m_props["varcount"] = 0;
+    node->m_props["varcount"] = Quad(0);
     break;
 
   case include_statement:
-    node->m_props["varcount"] = 0;
+    node->m_props["varcount"] = Quad(0);
     break;
 
   case for_statement:
@@ -273,7 +273,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case return_statement:
-    node->m_props["varcount"] = 0;
+    node->m_props["varcount"] = Quad(0);
     if(node->m_a1)
     {
       AnnotateImpl(node->m_a1);
@@ -289,7 +289,7 @@ Annotator::AnnotateImpl(Ast* node)
 
   case switch_statement:
     {
-      node->m_props["varcount"] = 0;
+      node->m_props["varcount"] = Quad(0);
       AnnotateImpl(node->m_a1);
       AstList* list = node->m_a2;
       AstList::iterator it, ie;
@@ -344,8 +344,8 @@ Annotator::AnnotateTranslationUnit(Ast* node)
   PushScope(node);
 
   // Initialize properties
-  node->m_props["framesize"] = 0;
-  node->m_props["varcount"]  = 0;
+  node->m_props["framesize"] = Quad(0);
+  node->m_props["varcount"]  = Quad(0);
 
   // Annotate contents
   AnnotateImpl(node->m_a1);
@@ -362,9 +362,9 @@ Annotator::AnnotateFunction(Ast* node)
   }
 
   // Initialize annotations
-  node->m_props["framesize"] = 0;
-  node->m_props["varcount"]  = 0;
-  node->m_props["parcount"]  = 0;
+  node->m_props["framesize"] = Quad(0);
+  node->m_props["varcount"]  = Quad(0);
+  node->m_props["parcount"]  = Quad(0);
 
   // Create new scope for function
   PushScope(node);
@@ -398,8 +398,8 @@ Annotator::AnnotateStatementSequence(Ast* node)
   // Determine list
   AstList* list = node->m_a1;
 
-  // Initialize annotations
-  node->m_props["varcount"] = 0;
+  // Initialize varcount
+  Quad varcount = 0;
 
   // Enumerate statements
   AstList::iterator si, se;
@@ -411,8 +411,11 @@ Annotator::AnnotateStatementSequence(Ast* node)
     AnnotateImpl(*si);
 
     // Add to count
-    node->m_props["varcount"] += VarCount(*si);
+    varcount += VarCount(*si);
   }    
+
+  // Store varcount
+  node->m_props["varcount"] = varcount;
 }
 
 void 
@@ -427,7 +430,7 @@ Annotator::AnnotateLValue(Ast* node)
   }
 
   // Store offset
-  node->m_props["stackpos"] = offset;
+  node->m_props["stackpos"] = (Quad)offset;
   node->m_props["isglobal"] = global;
 }
 
@@ -496,8 +499,8 @@ Annotator::AnnotateVariableDeclaration(Ast* node)
   }
 
   // Allocate slot
-  node->m_props["varcount"] = 1;
-  node->m_props["stackpos"] = m_scope->DeclareVariable(node->m_a1);
+  node->m_props["varcount"] = Quad(1);
+  node->m_props["stackpos"] = Quad(m_scope->DeclareVariable(node->m_a1));
 }
 
 void 
@@ -590,7 +593,7 @@ Annotator::AnnotateBreakStatement(Ast* node)
   //node->m_props["scope"] = scope->GetNode();
 
   // Store varcount
-  node->m_props["varcount"] = 0;
+  node->m_props["varcount"] = Quad(0);
 }
 
 void 

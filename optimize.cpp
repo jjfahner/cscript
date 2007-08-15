@@ -575,7 +575,7 @@ Optimizer::OptimizeSwitchStatement(Ast* node)
 Ast* 
 Optimizer::OptimizeStructDeclaration(Ast* node)
 {
-  node->m_props["varcount"] = 0;
+  node->m_props["varcount"] = Quad(0);
   return node;
 }
 

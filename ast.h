@@ -103,7 +103,7 @@ public:
   //
   // Destructor
   //
-  virtual ~Ast();
+  ~Ast();
 
   //
   // Ast structure
@@ -117,7 +117,7 @@ public:
   //
   // Annotations
   //
-  typedef PropertiesT<Quad> Properties;
+  typedef PropertiesT<any> Properties;
   Properties m_props;
 
   //
@@ -132,30 +132,5 @@ public:
   FilePos   m_pos;
 
 };
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Ast-derived types
-//
-
-class SwitchStatement : public Ast
-{
-public:
-
-  //
-  // Construction
-  //
-  SwitchStatement(AstData const& a1, AstData const& a2) :
-  Ast(switch_statement, a1, a2)
-  {
-  }
-
-  //
-  // Members
-  //
-  AstList* m_breaks;
-
-};
-
 
 #endif // CSCRIPT_AST_H

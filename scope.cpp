@@ -88,7 +88,9 @@ Scope::MakeParameterId()
     // Return negative paramcount - 1 to accomodate
     // the return value that is stored at [ST-1], so
     // that argument n is found at [ST-1-n]
-    return -int(++m_node->m_props["parcount"]) - 1;
+    Quad parcount = (Quad)m_node->m_props["parcount"] + 1;
+    m_node->m_props["parcount"] = parcount;
+    return -int(parcount) - 1;
   }
   throw std::logic_error("Invalid node for parameter declaration");
 }
@@ -100,8 +102,12 @@ Scope::MakeVariableId()
   {
   case translation_unit:
   case function_declaration:
-    return m_node->m_props["framesize"]++;
+    break;
   default:
     return m_parent->MakeVariableId();
   }
+
+  Quad framesize = m_node->m_props["framesize"];
+  m_node->m_props["framesize"] = framesize + 1;
+  return framesize;
 }

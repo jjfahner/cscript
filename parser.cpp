@@ -123,17 +123,7 @@ Parser::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData co
   pos.m_file = m_file->GetPath();
   pos.m_line = m_lexer->GetLine();
 
-  Ast* node;
-  switch(type)
-  {
-  case switch_statement: 
-    node = new SwitchStatement(a1, a2);
-    break;
-  default: 
-    node = new Ast(type, a1, a2, a3, a4);
-    break;
-  }
-  
+  Ast* node = new Ast(type, a1, a2, a3, a4);  
   node->m_pos = pos;
   return node;
 }
