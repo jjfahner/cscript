@@ -33,6 +33,7 @@
 #include "parser.h"
 #include "ast.h"
 #include "astlist.h"
+#include "convert.h"
 
 #pragma warning(disable:4065)
 
@@ -182,6 +183,9 @@ primary_expression(R) ::= list_literal(A) .             { R = A; }
 
 // Literals
 literal(R) ::= INTEGER(A) . { R = p->AllocAst(literal, Variant(String(A), Variant::stInt)); }
+literal(R) ::= HEX(A) .     { R = p->AllocAst(literal, Variant(hex2dec(String(A).c_str()))); }
+literal(R) ::= BIN(A) .     { R = p->AllocAst(literal, Variant(bin2dec(String(A).c_str()))); }
+literal(R) ::= ROM(A) .     { R = p->AllocAst(literal, Variant(rom2dec(String(A).c_str()))); }
 literal(R) ::= REAL(A) .    { R = p->AllocAst(literal, Variant(String(A), Variant::stReal)); } 
 literal(R) ::= STRING(A) .  { R = p->AllocAst(literal, Variant(String(A), Variant::stString)); }
 literal(R) ::= TRUE .       { R = p->AllocAst(literal, Variant(true));    }

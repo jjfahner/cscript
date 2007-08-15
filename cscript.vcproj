@@ -211,6 +211,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\convert.h"
+				>
+			</File>
+			<File
 				RelativePath=".\cscript.h"
 				>
 			</File>
@@ -332,6 +336,10 @@
 			</File>
 			<File
 				RelativePath=".\compile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\convert.cpp"
 				>
 			</File>
 			<File
