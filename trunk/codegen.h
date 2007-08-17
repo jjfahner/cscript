@@ -97,6 +97,9 @@ private:
   void GenerateBinaryExpression(Ast*);
   void GenerateSwitchExpression(Ast*);
   void GenerateBreakStatement(Ast*);
+  void GenerateContinueStatement(Ast*);
+  void GenerateWhileStatement(Ast*);
+  void GenerateForStatement(Ast*);
 
   //
   // Low-level code generation
@@ -116,7 +119,8 @@ private:
   // Push empty quad, return offset
   //
   Quad PushPatch();
-  void FixPatch(Quad);
+  void FixPatch(Quad offset);
+  void FixPatch(Quad offset, Quad patch);
 
   //
   // Reserve space for code

@@ -29,7 +29,9 @@ CodeGenerator::Generate(Ast* node, bool release)
   // Gather information
   Annotator annotator(m_reporter);
   annotator.Annotate(node);
-//  Print("out.ann.txt", node);
+#ifdef _DEBUG
+  Print("out.ann.txt", node);
+#endif
 
   // Reserve header space
   Reserve(sizeof(BinHeader));
@@ -122,11 +124,13 @@ CodeGenerator::Generate(Ast* node, bool release)
   ((BinHeader*)m_code)->m_compver = COMPVER;
   ((BinHeader*)m_code)->m_machver = MACHVER;
 
-//   std::ofstream ofs("out.dec.txt");
-//   Decompile(m_code, sizeof(BinHeader), 
-//     ((BinHeader*)m_code)->m_codelen +
-//     ((BinHeader*)m_code)->m_proclen,
-//     ofs);
+#ifdef _DEBUG
+  std::ofstream ofs("out.dec.txt");
+  Decompile(m_code, sizeof(BinHeader), 
+    ((BinHeader*)m_code)->m_codelen +
+    ((BinHeader*)m_code)->m_proclen,
+    ofs);
+#endif
 
   // Check for errors
   if(m_reporter.GetErrorCount())
@@ -235,16 +239,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case for_statement:
-    GenerateCode(node->m_a1);
-    offset0 = m_used;
-    GenerateCode(node->m_a2);
-    PushByte(op_jz);
-    offset1 = PushPatch();
-    GenerateCode(node->m_a4);
-    GenerateCode(node->m_a3);
-    PushByte(op_jmp);
-    PushQuad(offset0);
-    FixPatch(offset1);
+    GenerateForStatement(node);
     break;
 
   case if_statement:
@@ -267,14 +262,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case while_statement:
-    offset0 = m_used;
-    GenerateCode(node->m_a1);
-    PushByte(op_jz);
-    offset1 = PushPatch();
-    GenerateCode(node->m_a2);
-    PushByte(op_jmp);
-    PushQuad(offset0);
-    FixPatch(offset1);
+    GenerateWhileStatement(node);
     break;
 
   case expression_statement:
@@ -422,6 +410,10 @@ CodeGenerator::GenerateCode(Ast* node)
     GenerateBreakStatement(node);
     break;
 
+  case continue_statement:
+    GenerateContinueStatement(node);
+    break;
+
   default:
     INTERNAL_ERROR(m_reporter, node->m_pos);
   }
@@ -524,8 +516,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
   Ast* defaultcase = 0;
 
   // Store for cases
-  typedef std::pair<Quad, Quad> QuadPair;
-  typedef std::map<Variant, QuadPair, Variant::LessExact> CaseMap;
+  typedef std::map<Variant, Quad, Variant::LessExact> CaseMap;
   CaseMap cases;
 
   // Generate jump to conditional code
@@ -563,18 +554,14 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
         m_reporter.ReportError(E0011, &casenode->m_pos);
       }
 
-      // Store current offset with value in map
-      cases[value].first = m_used;
+      // Store offset with value in map
+      cases[value] = m_used;
 
       // Pop the switch value from the stack
       PushByte(op_pop);
 
       // Generate code for the case
       GenerateCode(casenode->m_a2);
-
-      // Generate jump to end
-      PushByte(op_jmp);
-      cases[value].second = PushPatch();
     }
   }
 
@@ -592,7 +579,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
     PushByte(op_pushl);
     PushLiteral(ci->first);
     PushByte(op_je);
-    PushQuad(ci->second.first);
+    PushQuad(ci->second);
   }
 
   // Generate default case
@@ -601,18 +588,119 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
     GenerateCode(defaultcase->m_a1);
   }
 
-  // Generate jumps to end of switch
-  ci = cases.begin();
-  for(; ci != ce; ++ci)
+  // Fix break statements
+  AstList& breaks = any_cast<AstList>(node->m_props["break"]);
+  AstList::const_iterator bi = breaks.begin();
+  AstList::const_iterator be = breaks.end();
+  for(; bi != be; ++bi)
   {
-    FixPatch(ci->second.second);
+    FixPatch((*bi)->m_props["offset"]);
   }
 }
 
 void
 CodeGenerator::GenerateBreakStatement(Ast* node)
 {
-  // Retrieve container
-  //Ast* container = node->m_props["scope"];  
+  // Push jump instruction
+  PushByte(op_jmp);
+  Quad offset = PushPatch();
+
+  // Store offset in node
+  node->m_props["offset"] = offset;
 }
 
+void 
+CodeGenerator::GenerateContinueStatement(Ast* node)
+{
+  // Push jump instruction
+  PushByte(op_jmp);
+  Quad offset = PushPatch();
+
+  // Store offset in node
+  node->m_props["offset"] = offset;
+}
+
+void 
+CodeGenerator::GenerateWhileStatement(Ast* node)
+{
+  // Store start of while
+  Quad offset0 = m_used;
+
+  // Generate expression and comparison
+  GenerateCode(node->m_a1);
+  PushByte(op_jz);
+  Quad offset1 = PushPatch();
+
+  // Generate while contents
+  GenerateCode(node->m_a2);
+
+  // Generate jump to start
+  PushByte(op_jmp);
+  PushQuad(offset0);
+
+  // Fix jump to end
+  FixPatch(offset1);
+
+  // Fix break statements
+  AstList& breaks = any_cast<AstList>(node->m_props["break"]);
+  AstList::const_iterator bi = breaks.begin();
+  AstList::const_iterator be = breaks.end();
+  for(; bi != be; ++bi)
+  {
+    FixPatch((*bi)->m_props["offset"]);
+  }
+
+  // Fix continue statements
+  AstList& continues = any_cast<AstList>(node->m_props["continue"]);
+  AstList::const_iterator ci = continues.begin();
+  AstList::const_iterator ce = continues.end();
+  for(; ci != ce; ++ci)
+  {
+    FixPatch((*ci)->m_props["offset"], offset0);
+  }
+}
+
+void 
+CodeGenerator::GenerateForStatement(Ast* node)
+{
+  // Generate init-decl
+  GenerateCode(node->m_a1);
+
+  // Generate condition
+  Quad offset0 = m_used;
+  GenerateCode(node->m_a2);
+  PushByte(op_jz);
+  Quad offset1 = PushPatch();
+
+  // Generate contents
+  GenerateCode(node->m_a4);
+
+  // Generate post code
+  Quad offset2 = m_used;
+  GenerateCode(node->m_a3);
+
+  // Jump to condition
+  PushByte(op_jmp);
+  PushQuad(offset0);
+
+  // Fix jump out
+  FixPatch(offset1);
+
+  // Fix break statements
+  AstList& breaks = any_cast<AstList>(node->m_props["break"]);
+  AstList::const_iterator bi = breaks.begin();
+  AstList::const_iterator be = breaks.end();
+  for(; bi != be; ++bi)
+  {
+    FixPatch((*bi)->m_props["offset"]);
+  }
+
+  // Fix continue statements
+  AstList& continues = any_cast<AstList>(node->m_props["continue"]);
+  AstList::const_iterator ci = continues.begin();
+  AstList::const_iterator ce = continues.end();
+  for(; ci != ce; ++ci)
+  {
+    FixPatch((*ci)->m_props["offset"], offset2);
+  }
+}

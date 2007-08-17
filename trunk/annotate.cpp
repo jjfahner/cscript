@@ -238,6 +238,9 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case for_statement:
+    node->m_props["varcount"] = 0;
+    node->m_props["break"]    = AstList();
+    node->m_props["continue"] = AstList();
     PushScope(node);
     AnnotateImpl(node->m_a1);
     AnnotateImpl(node->m_a2);
@@ -253,6 +256,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case if_statement:
+    node->m_props["varcount"] = 0;
     AnnotateImpl(node->m_a1);
     PushScope(node);
     AnnotateImpl(node->m_a2);
@@ -265,6 +269,9 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case while_statement:
+    node->m_props["varcount"] = 0;
+    node->m_props["break"]    = AstList();
+    node->m_props["continue"] = AstList();
     AnnotateImpl(node->m_a1);
     PushScope(node);
     AnnotateImpl(node->m_a2);
@@ -290,6 +297,7 @@ Annotator::AnnotateImpl(Ast* node)
   case switch_statement:
     {
       node->m_props["varcount"] = Quad(0);
+      node->m_props["break"]    = AstList();
       AnnotateImpl(node->m_a1);
       AstList* list = node->m_a2;
       AstList::iterator it, ie;
@@ -304,7 +312,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case switch_case:
-    AnnotateImpl(node->m_a2);
+    AnnotateSwitchCase(node);
     break;
 
   case default_case:
@@ -561,26 +569,26 @@ Annotator::AnnotateMemberExpression(Ast* node)
 void 
 Annotator::AnnotateBreakStatement(Ast* node)
 {
-  Scope* scope = 0;
-  Scope* find  = m_scope;
+  Scope* scope = m_scope;
 
   // Find valid target scope for break
-  while(find && !scope)
+  while(scope)
   {
-    switch(find->GetNode()->m_type)
+    // Function declaration is scope boundary
+    if(scope->GetNode()->m_type == function_declaration)
     {
-    case for_statement:
-    case while_statement:
-    case switch_statement:
-      scope = find;
-      break;
-    case function_declaration:
-      find = 0;
-      break;
-    default:
-      find = find->GetParent();
+      scope = 0;
       break;
     }
+
+    // Breakable statement
+    if(scope->GetNode()->m_props.contains("break"))
+    {
+      break;
+    }
+
+    // Next scope
+    scope = scope->GetParent();
   }
 
   // No valid scope found
@@ -589,8 +597,11 @@ Annotator::AnnotateBreakStatement(Ast* node)
     m_reporter.ReportError(E0014, &node->m_pos);
   }
 
-  // TODO Link break statement to node
-  //node->m_props["scope"] = scope->GetNode();
+  // Link break statement to node
+  node->m_props["scope"] = scope->GetNode();
+
+  // Add break statement to scope
+  any_cast<AstList>(scope->GetNode()->m_props["break"]).push_back(node);
 
   // Store varcount
   node->m_props["varcount"] = Quad(0);
@@ -599,5 +610,55 @@ Annotator::AnnotateBreakStatement(Ast* node)
 void 
 Annotator::AnnotateContinueStatement(Ast* node)
 {
+  Scope* scope = m_scope;
 
+  // Find valid target scope for continue
+  while(scope)
+  {
+    // Function declaration is scope boundary
+    if(scope->GetNode()->m_type == function_declaration)
+    {
+      scope = 0;
+      break;
+    }
+
+    // Continuable statement
+    if(scope->GetNode()->m_props.contains("continue"))
+    {
+      break;
+    }
+
+    // Next scope
+    scope = scope->GetParent();
+  }
+
+  // No valid scope found
+  if(scope == 0)
+  {
+    m_reporter.ReportError(E0015, &node->m_pos);
+  }
+
+  // Link break statement to node
+  node->m_props["scope"] = scope->GetNode();
+
+  // Add break statement to scope
+  any_cast<AstList>(scope->GetNode()->m_props["continue"]).push_back(node);
+
+  // Store varcount
+  node->m_props["varcount"] = Quad(0);
 }
+
+void 
+Annotator::AnnotateSwitchCase(Ast* node)
+{
+  // Append a break statement
+  AstList* list = new AstList;
+  list->push_back(node->m_a2);
+  list->push_back(new Ast(break_statement));
+  node->m_a2 = new Ast(statement_sequence, list);
+
+  // Annotate contents
+  Annotate(node->m_a2);
+}
+
+

@@ -17,6 +17,11 @@ public:
   {
   }
 
+  AstList(AstList const& rhs)
+  {
+    *this = rhs;
+  }
+
   ~AstList()
   {
     clear();
@@ -66,10 +71,23 @@ public:
     return m_list.end();
   }
 
+  AstList const& operator = (AstList const& rhs)
+  {
+    if(this != &rhs)
+    {
+      clear();
+      const_iterator it = rhs.begin();
+      const_iterator ie = rhs.end();
+      for(; it != ie; ++it)
+      {
+        push_back(*it);
+      }
+    }
+    return *this;
+  }
+
 private:
 
-  AstList(AstList const&);
-  AstList const& operator = (AstList const&);
 
   std::list<Ast*> m_list;
   

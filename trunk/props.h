@@ -33,7 +33,17 @@ public:
   //
   // Explicit retrieval
   //
-  ValueType Get() const
+  ValueType& Get()
+  {
+    typename MapType::iterator it;
+    it = m_map.find(m_idx);
+    if(it == m_map.end())
+    {
+      throw std::logic_error("Attempt to read undefined property '" + m_idx + "'");
+    }
+    return it->second;
+  }
+  ValueType const& Get() const
   {
     typename MapType::const_iterator it;
     it = m_map.find(m_idx);
@@ -47,7 +57,11 @@ public:
   //
   // Implicit conversions
   //
-  operator ValueType () const
+  operator ValueType& ()
+  {
+    return Get();
+  }
+  operator ValueType const& () const
   {
     return Get();
   }
@@ -142,6 +156,14 @@ public:
   ~PropertiesT()
   {
     delete m_properties;
+  }
+
+  //
+  // Property exists
+  //
+  bool contains(String const& key) const
+  {
+    return m_properties && m_properties->count(key) == 1;
   }
 
   //

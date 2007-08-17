@@ -111,9 +111,15 @@ CodeGenerator::PushPatch()
 }
 
 void
-CodeGenerator::FixPatch(Quad pos)
+CodeGenerator::FixPatch(Quad offset)
 {
-  *(Quad*)(m_code + pos) = m_used;
+  *(Quad*)(m_code + offset) = m_used;
+}
+
+void 
+CodeGenerator::FixPatch(Quad offset, Quad patch)
+{
+  *(Quad*)(m_code + offset) = patch;
 }
 
 void 

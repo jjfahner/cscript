@@ -21,10 +21,10 @@
 #ifndef CSCRIPT_AST_H
 #define CSCRIPT_AST_H
 
+#include "any.h"
 #include "props.h"
 #include "astdata.h"
 #include "opcodes.h"
-#include "any.h"
 
 class Ast;
 class File;

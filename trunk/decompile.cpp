@@ -18,6 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
+#define _CRT_SECURE_NO_WARNINGS
 #include "codegen.h"
 
 inline Byte NextByte(Byte*& code)
