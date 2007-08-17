@@ -1,4 +1,3 @@
-
 //
 // This file is © 2007 JJ Fahner <jan-jaap@jan-jaap.net>
 // This file is part of the cscript interpreter.
@@ -119,7 +118,23 @@ function main()
   // For loops
   for(a = 0; a < 10; ++a) {}
   assert("For", a, 10);
+
+  // Break in for loop
+  for(a = 0; a < 10; ++a)
+  {
+    if(a == 5) break;
+  }
+  assert("For break", a, 5);
   
+  // Continue in for loop
+  var b = 0;
+  for(a = 0; a < 10; ++a)
+  {
+    if(a >= 5) continue;
+    ++b;
+  }
+  assert("For continue", b, 5);
+
   // Conditions
   if(true) a = 1; else a = 2;
   assert("If", a, 1);
@@ -180,6 +195,14 @@ function main()
   default: a = 2; break;
   }
   assert("Switch", a, 2);
+  a = -1;
+  switch(1)
+  {
+  case 0 : a = 0; break;
+  case 1 : a = 1; break; a = 3; break;
+  default: a = 2; break;
+  }
+  assert("Break", a, 1);
   
   // Member syntax
   a.foo = 2;

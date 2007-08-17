@@ -38,6 +38,7 @@ private:
   void AnnotateMemberExpression(Ast* node);
   void AnnotateBreakStatement(Ast* node);
   void AnnotateContinueStatement(Ast* node);
+  void AnnotateSwitchCase(Ast* node);
 
   //
   // Function call resolving

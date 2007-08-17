@@ -163,12 +163,12 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     }
     else
     {
-      s << node->m_a1.GetValue().GetString();
+      s << node->m_a1.GetValue().AsString();
     }
     break;
 
   case lvalue:
-    s << "@" << (int)node->m_props["stackpos"];
+    s << "@" << (int)(Quad)node->m_props["stackpos"];
     break;
 
   case list_literal:
@@ -210,12 +210,12 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
     {
       PrintImpl(node->m_a2, level, s);
     }
-    s << ") [" << (String)node->m_props["varcount"] << "]\n";
+    s << ") [" << (Quad)node->m_props["varcount"] << "]\n";
     PrintImpl(node->m_a3, level, s);
     break;
 
   case parameter:
-    s << "@" << (int)(node->m_props["stackpos"]);
+    s << "@" << (int)(Quad)(node->m_props["stackpos"]);
     break;
 
   case parameter_list:
@@ -226,7 +226,7 @@ CodeGenerator::PrintImpl(Ast* node, int level, std::ostream& s)
 
   case variable_declaration:
     s << indent << "var ";
-    s << "@" << (Quad)node->m_props["stackpos"];
+    s << "@" << (int)(Quad)node->m_props["stackpos"];
     if(node->m_a2)
     {
       s << " = ";

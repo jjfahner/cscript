@@ -186,6 +186,12 @@ Optimizer::Optimize(Ast* node)
   case new_expression:
     break;
 
+  case break_statement:
+    break;
+
+  case continue_statement:
+    break;
+
   default:
     throw std::runtime_error("Unknown node type");
   }
@@ -258,71 +264,7 @@ Optimizer::OptimizeForStatement(Ast* node)
   node->m_a2 = Optimize(node->m_a2);
   node->m_a3 = Optimize(node->m_a3);
   node->m_a4 = Optimize(node->m_a4);
-
-  // Determine condition
-  Ast* cond;
-  if(!node->m_a2)
-  {
-    cond = new Ast(literal, Variant::True);
-  }
-  else
-  {
-    cond = node->m_a2;
-  }
-
-  // Create body statement
-  Ast* body = 0;
-  if(IsType(node->m_a4, empty_statement))
-  {
-    if(!node->m_a3)
-    {
-      // Use empty statement for body
-      body = node->m_a4;
-    }
-    else
-    {
-      // Use post-expression for body
-      body = new Ast(expression_statement, node->m_a3);
-    }
-  }
-  else
-  {
-    // Put body and post-expression in list
-    AstList* list = new AstList;
-    list->push_back(node->m_a4);
-    list->push_back(new Ast(expression_statement, node->m_a3));
-
-    // Make statement sequence
-    body = new Ast(statement_sequence, list);
-
-    // Wrap in compound statement
-    body = new Ast(compound_statement, body);
-  }
-
-  // Create while statement
-  Ast* root = new Ast(while_statement, cond, body);
-
-  // Empty init statement means we're done
-  if(!IsType(node->m_a1, empty_statement))
-  {
-    // Create sequence for init-expression and while
-    AstList* list = new AstList;
-    list->push_back(node->m_a1);
-    list->push_back(root);
-
-    // Replace root
-    root = new Ast(statement_sequence, list);
-
-    // Generate compound for declarations
-    if(IsType(node->m_a1, variable_declaration) || 
-       IsType(node->m_a1, declaration_sequence) )
-    {
-      root = new Ast(compound_statement, root);
-    }
-  }
-
-  // Done
-  return Optimize(root);
+  return node;
 }
 
 Ast* 
