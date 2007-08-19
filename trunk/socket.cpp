@@ -1,9 +1,18 @@
 #include "socket.h"
 #include "native.h"
-#include <winsock2.h>
-#include <ws2tcpip.h>
 
-#pragma comment(lib, "ws2_32.lib")
+// Include windows socket headers
+#ifdef _MSC_VER
+#	include <winsock2.h>
+#	include <ws2tcpip.h>
+#	pragma comment(lib, "ws2_32.lib")
+#else
+#	include <netdb.h>
+#	define INVALID_SOCKET (-1)
+#	define SD_BOTH SHUT_RDWR
+#	define SOCKET_ERROR (-1)
+#	define closesocket close
+#endif
 
 static int g_numSockets = 0;
 
@@ -11,8 +20,10 @@ void SocketCreate()
 {
   if(++g_numSockets == 1)
   {
+#ifdef MSC_VER
     WSADATA wd;
     WSAStartup(MAKEWORD(2, 0), &wd);
+#endif
   }
 }
 
@@ -20,10 +31,11 @@ void SocketDelete()
 {
   if(--g_numSockets == 0)
   {
+#ifdef MSC_VER
     WSACleanup();
+#endif
   }
 }
-
 
 Socket::Socket() :
 m_socket (INVALID_SOCKET)
@@ -60,7 +72,7 @@ Socket::Connect(Variant const& host, Variant const& port)
   }
 
   // Create a socket
-  SOCKET s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+  unsigned int s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
   if(s == INVALID_SOCKET)
   {
     return Variant::False;
