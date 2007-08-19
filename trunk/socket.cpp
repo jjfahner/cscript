@@ -20,7 +20,7 @@ void SocketCreate()
 {
   if(++g_numSockets == 1)
   {
-#ifdef MSC_VER
+#ifdef _MSC_VER
     WSADATA wd;
     WSAStartup(MAKEWORD(2, 0), &wd);
 #endif
@@ -31,7 +31,7 @@ void SocketDelete()
 {
   if(--g_numSockets == 0)
   {
-#ifdef MSC_VER
+#ifdef _MSC_VER
     WSACleanup();
 #endif
   }
