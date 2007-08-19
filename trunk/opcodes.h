@@ -51,6 +51,7 @@ enum opcodes
   op_predec,      // Subtract 1 to value on top of stack
   op_postinc,     // Add 1 to value on top of stack
   op_postdec,     // Subtract 1 to value on top of stack
+  op_not,         // Invert boolean lvalue
 
   op_add,
   op_sub,
@@ -64,6 +65,9 @@ enum opcodes
   op_bitxor,
   op_bitand,
   
+  op_seq,
+  op_sne,
+
   op_eq,
   op_ne,
   op_lt,

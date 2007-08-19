@@ -64,10 +64,15 @@ public:
   //
   // Base class for resources
   //
-  struct Resource
+  class Resource
   {
+  public:
     virtual ~Resource() {}
-    virtual Resource* Clone() const = 0;
+  protected:
+    Resource() : m_refs (0) {}
+  private:
+    friend class Variant;
+    int m_refs;
   };
 
   //
@@ -184,6 +189,7 @@ public:
   m_res   (value),
   m_type  (stResource)
   {
+    ++m_res->m_refs;
   }
 
   //
@@ -314,10 +320,6 @@ public:
   {
     return AsBool();
   }
-  bool operator ! () const
-  {
-    return !AsBool();
-  }
   
   //
   // Append item to map
@@ -337,6 +339,7 @@ public:
   Variant operator -- (int);
   Variant const& operator ++ ();
   Variant const& operator -- ();
+  Variant const& operator ! () const;
 
   //
   // Binary operators
@@ -438,6 +441,12 @@ Variant::operator -- ()
 {
   *this -= 1;
   return *this;
+}
+
+inline Variant const& 
+Variant::operator ! () const
+{
+  return AsBool() ? Variant::False : Variant::True;
 }
 
 inline Variant 

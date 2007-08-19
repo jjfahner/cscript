@@ -215,6 +215,11 @@ begin:
     --R0;
     break;
 
+  case op_not:
+    POP(P0);
+    PUSH(!R0);
+    break;
+
   case op_add:
     POP(P1);
     POP(P0);
@@ -261,6 +266,20 @@ begin:
     POP(P1);
     POP(P0);
     PUSH(R0 == R1);
+    break;
+
+  case op_seq:
+    POP(P1);
+    POP(P0);
+    PUSH(R0.Compare(R1, true) == 0 ? 
+      Variant::True : Variant::False);
+    break;
+
+  case op_sne:
+    POP(P1);
+    POP(P0);
+    PUSH(R0.Compare(R1, true) != 0 ? 
+      Variant::True : Variant::False);
     break;
 
   case op_ne:

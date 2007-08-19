@@ -54,6 +54,49 @@ function assert(description, result, expected)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Test sockets functionality
+//
+function sockets()
+{
+  // Create socket
+  print("Creating socket\n");
+  var s = socket("jan-jaap.net", 80);
+  if(s === false)
+  {
+    return 0;
+  }
+
+  // Build request
+  var req = "GET / HTTP/1.0\r\n";
+  req += "Host: jan-jaap.net\r\n";
+  req += "User-Agent: cscript\r\n";
+  req += "Connection: close\r\n\r\n";
+
+  // Send request
+  print("Sending request\n");
+  if(send(s, req) === false)
+  {
+    return 0;
+  }
+
+  // Receive response
+  print("Receiving response\n");
+  var r = recv(s, 100000);
+  if(strlen(r) == 0)
+  {
+    return 0;
+  }
+
+  // Disconnect socket
+  print("Closing socket\n");
+  closesocket(s);
+
+  // Done
+  return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Test cases
 //
 function main()
@@ -166,6 +209,12 @@ function main()
   assert("Logical and", true  && false, false);
   assert("Logical and", false && true,  false);
   assert("Logical and", false && false, false);
+
+  // Boolean inversion
+  var t = true;
+  var f = false;
+  assert("Not", !t, false);
+  assert("Not", !f, true);
   
   // Short-circuited logical or/and
   a = 0; ++a || ++a;
@@ -203,11 +252,14 @@ function main()
   default: a = 2; break;
   }
   assert("Break", a, 1);
-  
+
   // Member syntax
   a.foo = 2;
   a.bar = 4;
   assert("Member", a.foo * a.bar, 8);
+  
+  // Test sockets
+  assert("Socket", sockets(), 1);
   
   // Print result
   if(errors == 0)

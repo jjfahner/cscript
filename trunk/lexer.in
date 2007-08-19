@@ -82,34 +82,36 @@ int parseNextToken(Char*& start, Char*& end)
   ["]                       { return TOK_STRING; }
   
   /* operators */
-  ";"     { return TOK_SEMICOLON; }
-  ","     { return TOK_COMMA; }
-  "="     { return TOK_ASSIGN; }
+  "==="   { return TOK_SEQ; }
+  "!=="   { return TOK_SNE; }
+  "=="    { return TOK_EQUALS; }
+  "!="    { return TOK_NEQUALS; }
+  "<="    { return TOK_SE; }
+  ">="    { return TOK_GE; }
+  "++"    { return TOK_ADDADD; }
+  "--"    { return TOK_SUBSUB; }
   "+="    { return TOK_ASSADD; }
   "-="    { return TOK_ASSSUB; }
   "*="    { return TOK_ASSMUL; }
   "/="    { return TOK_ASSDIV; }
   "%="    { return TOK_ASSMOD; }
-  "?"     { return TOK_QUESTION; }
-  ":"     { return TOK_COLON; }
   "||"    { return TOK_LOGOR; }
   "&&"    { return TOK_LOGAND; }
+  ";"     { return TOK_SEMICOLON; }
+  ","     { return TOK_COMMA; }
+  "="     { return TOK_ASSIGN; }
+  "?"     { return TOK_QUESTION; }
+  ":"     { return TOK_COLON; }
   "|"     { return TOK_BITOR; }
   "^"     { return TOK_BITXOR; }
   "&"     { return TOK_BITAND; }
-  "=="    { return TOK_EQUALS; }
-  "!="    { return TOK_NEQUALS; }
   "<"     { return TOK_ST; }
-  "<="    { return TOK_SE; }
   ">"     { return TOK_GT; }
-  ">="    { return TOK_GE; }
   "+"     { return TOK_ADDOP; }
   "-"     { return TOK_SUBOP; }
   "*"     { return TOK_MULOP; }
   "/"     { return TOK_DIVOP; }
   "%"     { return TOK_MODOP; }
-  "++"    { return TOK_ADDADD; }
-  "--"    { return TOK_SUBSUB; }
   "."     { return TOK_DOT; }
   "["     { return TOK_LBRACKET; }
   "]"     { return TOK_RBRACKET; }
@@ -117,6 +119,7 @@ int parseNextToken(Char*& start, Char*& end)
   ")"     { return TOK_RPAREN; }
   "{"     { return TOK_LBRACE; }
   "}"     { return TOK_RBRACE; }
+  "!"     { return TOK_NOT; }
   
   */
 }

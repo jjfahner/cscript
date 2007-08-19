@@ -267,6 +267,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\socket.h"
+				>
+			</File>
+			<File
 				RelativePath=".\tokens.h"
 				>
 			</File>
@@ -423,6 +427,18 @@
 			<File
 				RelativePath=".\scope.cpp"
 				>
+			</File>
+			<File
+				RelativePath=".\socket.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\validate.cpp"
