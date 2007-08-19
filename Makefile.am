@@ -19,4 +19,5 @@ cscript_SOURCES =	main.cpp \
 			astdata.cpp \
 			report.cpp \
 			error.cpp \
-			convert.cpp
+			convert.cpp \
+			socket.cpp
