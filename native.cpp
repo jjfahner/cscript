@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include "native.h"
 #include "machine.h"
+#include "socket.h"
 
 #ifdef _MSC_VER
 #include <process.h>
@@ -41,27 +42,18 @@ NativeCalls& getNativeCalls()
 //
 // Register a native call
 //
-struct NativeCallRegistrar
+NativeCallRegistrar::NativeCallRegistrar(String const& name, NativeCall call, Quad minPar, Quad maxPar)
 {
-  NativeCallRegistrar(String const& name, NativeCall call, Quad minPar, Quad maxPar)
-  {
-    static NativeCalls& ncv = getNativeCalls();
-    NativeCallInfo* fun = new NativeCallInfo;
-    fun->m_name   = name;
-    fun->m_native = true;
-    fun->m_offset = (Quad)ncv.size();
-    fun->m_minPar = minPar;
-    fun->m_maxPar = maxPar;
-    fun->m_funPtr = call;
-    ncv.push_back(fun);
-  }
-};
-
-#define NATIVE_CALL(name,minPar,maxPar)                     \
-  VariantRef Native_##name(RefStack&, Quad);                \
-  NativeCallRegistrar register_##name(#name,                \
-    Native_##name, minPar, maxPar);                         \
-  VariantRef Native_##name(RefStack& args, Quad numArgs)
+  static NativeCalls& ncv = getNativeCalls();
+  NativeCallInfo* fun = new NativeCallInfo;
+  fun->m_name   = name;
+  fun->m_native = true;
+  fun->m_offset = (Quad)ncv.size();
+  fun->m_minPar = minPar;
+  fun->m_maxPar = maxPar;
+  fun->m_funPtr = call;
+  ncv.push_back(fun);
+}
 
 //
 // Find a native call index
@@ -117,9 +109,6 @@ AssertType(RefStack& args, Quad index, Variant::SubTypes type, char const* funct
     throw std::runtime_error("Invalid argument passed to " + String(function));
   }
 }
-
-#define ASSERT_TYPE(idx,type) \
-  AssertType(args, idx, Variant::type, __FUNCTION__)
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -283,4 +272,3 @@ NATIVE_CALL(strchr, 2, 3)
   }
   return Variant(res);
 }
-

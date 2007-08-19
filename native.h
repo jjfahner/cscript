@@ -46,6 +46,36 @@ struct NativeCallInfo
 };
 
 //
+// Registrar for native calls
+//
+struct NativeCallRegistrar
+{
+  NativeCallRegistrar(
+    String const& name, 
+    NativeCall call, 
+    Quad minPar, 
+    Quad maxPar);
+};
+
+//
+// Native call handler
+//
+#define NATIVE_CALL(name,minPar,maxPar)                     \
+  VariantRef Native_##name(RefStack&, Quad);                \
+  NativeCallRegistrar register_##name(#name,                \
+    Native_##name, minPar, maxPar);                         \
+  VariantRef Native_##name(RefStack& args, Quad numArgs)
+
+//
+// Check the argument type for a native call argument
+//
+inline void 
+AssertType(RefStack& args, Quad index, Variant::SubTypes type, char const* function);
+#define ASSERT_TYPE(idx,type) \
+  AssertType(args, idx, Variant::type, __FUNCTION__)
+
+
+//
 // Resolve a native call by name
 //
 NativeCallInfo* FindNative(String const& name);
