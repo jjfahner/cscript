@@ -445,8 +445,13 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
   {
     // Native call
     PushByte(op_calln);
-    PushWord((Quad)node->m_props["offset"]);
-    PushWord((Quad)node->m_props["argcount"]);
+
+    // Broken call - no need to generate correct code
+    if(node->m_props.contains("offset"))
+    {
+      PushWord((Quad)node->m_props["offset"]);
+      PushWord((Quad)node->m_props["argcount"]);
+    }
   }
 
   // Write cleanup code for argument list
