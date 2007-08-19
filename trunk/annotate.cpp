@@ -658,7 +658,7 @@ Annotator::AnnotateSwitchCase(Ast* node)
   node->m_a2 = new Ast(statement_sequence, list);
 
   // Annotate contents
-  Annotate(node->m_a2);
+  AnnotateImpl(node->m_a2);
 }
 
 
