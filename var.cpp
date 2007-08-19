@@ -46,7 +46,7 @@ Variant::operator = (Variant const& rhs)
   {
   case stString:   m_str = new StringType(*m_str); break;
   case stAssoc:    m_map = new AssocType(*m_map);  break;
-  case stResource: m_res = m_res->Clone();         break;
+  case stResource: m_res->m_refs++;                break;
   }
 
   // Done
@@ -59,9 +59,15 @@ Variant::Clear()
   // Destroy complex types
   switch(m_type)
   {
-  case stString:   delete m_str; break;
-  case stAssoc:    delete m_map; break;
-  case stResource: delete m_res; break;
+  case stString:   
+    delete m_str; 
+    break;
+  case stAssoc:    
+    delete m_map; 
+    break;
+  case stResource: 
+    if(--m_res->m_refs == 0) delete m_res; 
+    break;
   }
 
   // Clear data and type
@@ -191,7 +197,8 @@ Variant::Compare(Variant const& rhs, bool exact) const
   }
 
   // Cannot compare
-  throw std::runtime_error("Cannot compare types");
+  return -1;
+  //throw std::runtime_error("Cannot compare types");
 }
 
 Variant const& 

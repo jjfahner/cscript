@@ -64,6 +64,7 @@
 %left BITOR .
 %left BITXOR .
 %left BITAND .
+%left SEQ SNE .
 %left EQUALS NEQUALS .
 %left ST SE GT GE .
 %left ADDOP SUBOP .
@@ -158,12 +159,15 @@ binary_expression(R) ::= binary_expression(A) SUBOP   binary_expression(B). { R 
 binary_expression(R) ::= binary_expression(A) MULOP   binary_expression(B). { R = p->AllocAst(binary_expression, op_mul,  A, B); }
 binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R = p->AllocAst(binary_expression, op_div,  A, B); }
 binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = p->AllocAst(binary_expression, op_mod,  A, B); }
+binary_expression(R) ::= binary_expression(A) SEQ     binary_expression(B). { R = p->AllocAst(binary_expression, op_seq,  A, B); }
+binary_expression(R) ::= binary_expression(A) SNE     binary_expression(B). { R = p->AllocAst(binary_expression, op_sne,  A, B); }
 
 // Unary expression
 unary_expression(R) ::= postfix_expression(A) .      { R = A; } 
 unary_expression(R) ::= SUBOP  unary_expression(A) . { R = p->AllocAst(prefix_expression, op_negate, A); }
 unary_expression(R) ::= ADDADD unary_expression(A) . { R = p->AllocAst(prefix_expression, op_preinc, A); }
 unary_expression(R) ::= SUBSUB unary_expression(A) . { R = p->AllocAst(prefix_expression, op_predec, A); }
+unary_expression(R) ::= NOT unary_expression(A) .    { R = p->AllocAst(prefix_expression, op_not,    A); }
 unary_expression(R) ::= new_expression(A) .          { R = A; }
 
 // Postfix expression

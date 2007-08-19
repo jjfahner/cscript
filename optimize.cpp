@@ -497,11 +497,18 @@ Optimizer::OptimizePrefixExpression(Ast* node)
   // Optimize subexpression
   node->m_a2 = Optimize(node->m_a2);
 
-  // Reduce negation of literal
+  // Reduce prefix expression on literal
   if(IsType(node->m_a2, literal))
   {
-    Ast* res = new Ast(literal, -node->m_a2->m_a1.GetValue());
-    node = res;
+    switch(node->m_a1.GetNumber())
+    {
+    case op_negate:
+      node = new Ast(literal, -node->m_a2->m_a1.GetValue());
+      break;
+    case op_not:
+      node = new Ast(literal, !node->m_a2->m_a1.GetValue());
+      break;
+    }
   }
 
   // Done
