@@ -83,7 +83,7 @@ Parser::Parse(File& file)
     }
 
     // Empty token to finalize parse
-    CScriptParse(pParser, 0, token, this);
+    CScriptParse(pParser, 0, Token(), this);
 
     // Destroy parser
     CScriptParseFree(pParser, free);

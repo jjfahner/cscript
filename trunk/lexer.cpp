@@ -48,7 +48,7 @@ Lexer::SetText(Char* text)
 bool
 Lexer::Lex(Token& token)
 {
-  // String continuation
+  // String interpolation
   if(m_string == 1 || m_string == 3)
   {
     token.m_type = TOK_ADDOP;
@@ -85,6 +85,12 @@ Lexer::Lex(Token& token)
     case TOK_STRING:      m_strptr = end; return LexString(token);
     case TOK_NEWLINE:     m_strptr = end; ++m_line; continue;
     case TOK_COMMENT:     LexComment(); continue;
+    }
+    
+    // No token check
+    if(end == 0)
+    {
+      return false;
     }
 
     // Copy into token
