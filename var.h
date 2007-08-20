@@ -234,7 +234,23 @@ public:
     }
     return m_bln;
   }
+  BoolType const& GetBool() const
+  {
+    if(m_type != stBool)
+    {
+      throw std::runtime_error("Invalid subtype");
+    }
+    return m_bln;
+  }
   IntType& GetInt()
+  {
+    if(m_type != stInt)
+    {
+      throw std::runtime_error("Invalid subtype");
+    }
+    return m_int;
+  }
+  IntType const& GetInt() const
   {
     if(m_type != stInt)
     {
@@ -250,7 +266,23 @@ public:
     }
     return *m_str;
   }
+  StringType const& GetString() const
+  {
+    if(m_type != stString)
+    {
+      throw std::runtime_error("Invalid subtype");
+    }
+    return *m_str;
+  }
   AssocType& GetMap()
+  {
+    if(m_type != stAssoc)
+    {
+      throw std::runtime_error("Invalid subtype");
+    }
+    return *m_map;
+  }
+  AssocType const& GetMap() const
   {
     if(m_type != stAssoc)
     {
