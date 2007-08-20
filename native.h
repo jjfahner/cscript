@@ -69,8 +69,7 @@ struct NativeCallRegistrar
 //
 // Check the argument type for a native call argument
 //
-inline void 
-AssertType(RefStack& args, Quad index, Variant::SubTypes type, char const* function);
+void AssertType(RefStack& args, Quad index, Variant::SubTypes type, char const* function);
 #define ASSERT_TYPE(idx,type) \
   AssertType(args, idx, Variant::type, __FUNCTION__)
 
