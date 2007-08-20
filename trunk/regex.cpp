@@ -19,6 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "regex.h"
+#include <stdexcept>
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -968,5 +969,5 @@ NATIVE_CALL(match, 2, 3)
   Regex::MatchResults mr = r.Match(src + offset);
 
   // Return matched result
-  return mr.m_complete;
+  return Variant(mr.m_complete);
 }
