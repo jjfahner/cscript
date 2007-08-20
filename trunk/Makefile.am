@@ -21,4 +21,5 @@ cscript_SOURCES =	main.cpp \
 			error.cpp \
 			convert.cpp \
 			socket.cpp \
-			regex.cpp
+			regex.cpp \
+			diskio.cpp
