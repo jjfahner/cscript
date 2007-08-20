@@ -20,4 +20,5 @@ cscript_SOURCES =	main.cpp \
 			report.cpp \
 			error.cpp \
 			convert.cpp \
-			socket.cpp
+			socket.cpp \
+			regex.cpp

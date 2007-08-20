@@ -178,56 +178,10 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			Name="runtime"
 			>
 			<File
-				RelativePath=".\annotate.h"
-				>
-			</File>
-			<File
-				RelativePath=".\any.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ast.h"
-				>
-			</File>
-			<File
-				RelativePath=".\astdata.h"
-				>
-			</File>
-			<File
-				RelativePath=".\astlist.h"
-				>
-			</File>
-			<File
-				RelativePath=".\cmdargs.h"
-				>
-			</File>
-			<File
-				RelativePath=".\codegen.h"
-				>
-			</File>
-			<File
-				RelativePath=".\convert.h"
-				>
-			</File>
-			<File
-				RelativePath=".\cscript.h"
-				>
-			</File>
-			<File
-				RelativePath=".\error.h"
-				>
-			</File>
-			<File
-				RelativePath=".\file.h"
-				>
-			</File>
-			<File
-				RelativePath=".\lexer.h"
+				RelativePath=".\machine.cpp"
 				>
 			</File>
 			<File
@@ -235,51 +189,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\native.h"
-				>
-			</File>
-			<File
-				RelativePath=".\opcodes.h"
-				>
-			</File>
-			<File
-				RelativePath=".\optimize.h"
-				>
-			</File>
-			<File
-				RelativePath=".\parser.h"
-				>
-			</File>
-			<File
-				RelativePath=".\props.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ref.h"
-				>
-			</File>
-			<File
-				RelativePath=".\regex.h"
-				>
-			</File>
-			<File
-				RelativePath=".\report.h"
-				>
-			</File>
-			<File
-				RelativePath=".\scope.h"
-				>
-			</File>
-			<File
-				RelativePath=".\socket.h"
-				>
-			</File>
-			<File
-				RelativePath=".\tokens.h"
-				>
-			</File>
-			<File
-				RelativePath=".\types.h"
+				RelativePath=".\var.cpp"
 				>
 			</File>
 			<File
@@ -288,7 +198,7 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Test Files"
+			Name="test"
 			>
 			<File
 				RelativePath=".\test.csc"
@@ -304,20 +214,194 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			Name="support"
+			>
+			<File
+				RelativePath=".\any.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cmdargs.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\cmdargs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\convert.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\convert.h"
+				>
+			</File>
+			<File
+				RelativePath=".\props.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ref.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="compiler"
 			>
 			<File
 				RelativePath=".\annotate.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\ast.cpp"
+				RelativePath=".\annotate.h"
 				>
 			</File>
 			<File
 				RelativePath=".\astdata.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\astdata.h"
+				>
+			</File>
+			<File
+				RelativePath=".\astlist.h"
+				>
+			</File>
+			<File
+				RelativePath=".\codegen.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\codegen.h"
+				>
+			</File>
+			<File
+				RelativePath=".\compile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\decompile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\file.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\file.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lexer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lexer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\main.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\optimize.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\optimize.h"
+				>
+			</File>
+			<File
+				RelativePath=".\parser.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\parser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\print.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\report.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\report.h"
+				>
+			</File>
+			<File
+				RelativePath=".\scope.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\scope.h"
+				>
+			</File>
+			<File
+				RelativePath=".\tokens.h"
+				>
+			</File>
+			<File
+				RelativePath=".\validate.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="native"
+			>
+			<File
+				RelativePath=".\native.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\native.h"
+				>
+			</File>
+			<File
+				RelativePath=".\regex.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\regex.h"
+				>
+			</File>
+			<File
+				RelativePath=".\socket.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\socket.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="language"
+			>
+			<File
+				RelativePath=".\ast.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ast.h"
 				>
 			</File>
 			<File
@@ -335,35 +419,11 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\cmdargs.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\codegen.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\compile.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\convert.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\decompile.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\error.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\file.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lexer.cpp"
+				RelativePath=".\error.h"
 				>
 			</File>
 			<File
@@ -393,67 +453,23 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\machine.cpp"
+				RelativePath=".\opcodes.h"
 				>
 			</File>
 			<File
-				RelativePath=".\main.cpp"
+				RelativePath=".\types.h"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="false"
-					/>
-				</FileConfiguration>
 			</File>
+		</Filter>
+		<Filter
+			Name="build"
+			>
 			<File
-				RelativePath=".\native.cpp"
+				RelativePath=".\configure.ac"
 				>
 			</File>
 			<File
-				RelativePath=".\optimize.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\parser.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\print.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\regex.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\report.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\scope.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\socket.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="false"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\validate.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\var.cpp"
+				RelativePath=".\Makefile.am"
 				>
 			</File>
 		</Filter>

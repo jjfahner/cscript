@@ -37,10 +37,12 @@ inline bool isany(int c)
   return true;
 }
 
+#ifdef _MSC_VER
 inline bool isblank(int c)
 {
   return c == ' ' || c == '\t';
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 //
