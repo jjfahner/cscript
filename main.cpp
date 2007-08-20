@@ -310,6 +310,10 @@ int execute(CmdArgs const& args)
 
     // Generate code
     CodeGenerator cg(reporter);
+    if(!parser.GetRoot())
+    {
+      return EXIT_FAILURE;
+    }
     cg.Generate(parser.GetRoot(), true);
 
     // Check whether compilation succeeded
