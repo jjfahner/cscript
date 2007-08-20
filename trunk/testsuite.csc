@@ -93,6 +93,54 @@ function sockets()
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Test file functionality
+//
+function files()
+{
+  // Define some values
+  var fn = "testfile.txt";
+  var to = "Hello world";
+
+  // Open the file
+  var f = fopen(fn, "w");
+  if(f === false)
+  {
+    return false;
+  }
+
+  // Write and close
+  var res = fwrite(f, to);
+  fclose(f);
+
+  // Check write result
+  if(res === false)
+  {
+    return false;
+  }
+
+  // Reopen the file
+  f = fopen(fn, "r");
+  if(f === false)
+  {
+    return false;
+  }
+
+  // Read and close
+  var tr = fread(f, strlen(to));
+  fclose(f);
+
+  // Check read result
+  if(tr === false)
+  {
+    return false;
+  }
+
+  // Compare written and read values
+  return to == tr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Test cases
 //
 function main()
@@ -253,6 +301,9 @@ function main()
   a.foo = 2;
   a.bar = 4;
   assert("Member", a.foo * a.bar, 8);
+
+  // Files
+  assert("Files", files(), true);
   
   // Test sockets
   assert("Socket", sockets(), 1);
