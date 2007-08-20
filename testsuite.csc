@@ -47,7 +47,7 @@ function assert(description, result, expected)
   }
   else
   {
-    print("Failed\n");
+    print("Failed - expected '{expected}', got '{result}'\n");
     ++errors;
   }
 }
@@ -59,7 +59,6 @@ function assert(description, result, expected)
 function sockets()
 {
   // Create socket
-  print("Creating socket\n");
   var s = socket("jan-jaap.net", 80);
   if(s === false)
   {
@@ -73,22 +72,19 @@ function sockets()
   req += "Connection: close\r\n\r\n";
 
   // Send request
-  print("Sending request\n");
   if(send(s, req) === false)
   {
     return 0;
   }
 
   // Receive response
-  print("Receiving response\n");
   var r = recv(s, 100000);
-  if(strlen(r) == 0)
+  if(r === false)
   {
     return 0;
   }
 
   // Disconnect socket
-  print("Closing socket\n");
   closesocket(s);
 
   // Done
@@ -260,6 +256,14 @@ function main()
   
   // Test sockets
   assert("Socket", sockets(), 1);
+
+  // Test regular expressions
+  assert("Regex", match("aa", "aaa"), "aa");
+  assert("Regex", match("^aa$", "aaa"), "");
+  assert("Regex", match("aa.*zz", "aabbcczzaa"), "aabbcczz");
+  assert("Regex", match("[a-zA-Z-]+", "jan-jaap"), "jan-jaap");
+  assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net@"), "");
+  assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net"), "jan-jaap@jan-jaap.net");
   
   // Print result
   if(errors == 0)

@@ -259,6 +259,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\regex.h"
+				>
+			</File>
+			<File
 				RelativePath=".\report.h"
 				>
 			</File>
@@ -418,6 +422,10 @@
 			</File>
 			<File
 				RelativePath=".\print.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\regex.cpp"
 				>
 			</File>
 			<File
