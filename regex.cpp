@@ -956,10 +956,12 @@ NATIVE_CALL(match, 2, 3)
 
   // Retrieve offset
   int offset = 0;
+  int length = (int)args[1]->GetString().length();
   if(args.size() == 3)
   {
     ASSERT_TYPE(2, stInt);
     offset = (int) args[2]->GetInt();
+    offset = std::min(offset, length);
   }
 
   // Compile pattern

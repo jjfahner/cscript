@@ -474,6 +474,10 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\diskio.cpp"
+			>
+		</File>
+		<File
 			RelativePath=".\TODO"
 			>
 		</File>
