@@ -152,10 +152,30 @@ Socket::Send(Variant const& data, Variant const& len)
 }
 
 Variant 
-Socket::Receive(Variant const& length, Variant const& block)
+Socket::Receive(Variant const& length, Variant const& timeout)
 {
   // Check connection
   if(m_socket == INVALID_SOCKET)
+  {
+    return Variant::False;
+  }
+
+  // Determine timeout
+  TIMEVAL  tv  = { 0, 0 };
+  TIMEVAL* ptv = 0;
+  if(!timeout.Empty())
+  {
+    ptv = &tv;
+    ptv->tv_sec = (long) timeout.GetInt();
+  }
+
+  // Make set of 1 sockets ;)
+  fd_set fd;
+  FD_ZERO(&fd);
+  FD_SET(m_socket, &fd);
+
+  // Check for readability
+  if(select(0, &fd, 0, 0, ptv) != 1)
   {
     return Variant::False;
   }
@@ -223,9 +243,16 @@ NATIVE_CALL(send, 2, 3)
   }
 }
 
-NATIVE_CALL(recv, 2, 2)
+NATIVE_CALL(recv, 2, 3)
 {
   Socket* s = args[0]->GetTypedRes<Socket>();
-  return s->Receive(*args[1]);  
+  if(args.size() == 2)
+  {
+    return s->Receive(*args[1]);  
+  }
+  else
+  {
+    return s->Receive(*args[1], *args[2]);  
+  }
 }
 

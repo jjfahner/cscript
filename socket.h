@@ -55,7 +55,7 @@ public:
   //
   // Receive data
   //
-  Variant Receive(Variant const& len, Variant const& block = true);
+  Variant Receive(Variant const& len, Variant const& timeout = Variant::Null);
 
 
 private:
