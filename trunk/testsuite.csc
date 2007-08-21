@@ -79,7 +79,7 @@ function sockets()
   }
 
   // Receive response
-  var r = recv(s, 100000);
+  var r = recv(s, 100000, 5);
   if(r === false)
   {
     return 0;
