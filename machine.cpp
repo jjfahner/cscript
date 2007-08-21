@@ -85,6 +85,7 @@ Machine::Execute(Byte* source, Quad offset)
   #define R1 (*P1)
   Quad Q0;
   Word W0, W1;
+  IteratorRes* it;
 
   // Start of instruction
 begin:
@@ -145,6 +146,29 @@ begin:
 
   case op_pop:
     --SP;
+    break;
+
+  case op_iters:
+    POP(P0);
+    PUSH(Variant(new IteratorRes(R0.GetMap())));
+    break;
+
+  case op_iterv:
+    Q0 = ipq;
+    POP(P0);
+    it = R0.GetTypedRes<IteratorRes>();
+    if(it->AtEnd())
+      code = base + Q0;
+    else
+      PUSH(P0);
+    break;
+
+  case op_itern:
+    POP(P0);
+    it = R0.GetTypedRes<IteratorRes>();
+    stack[ST + (int)ipq] = it->m_cur->second;
+    it->Next();
+    PUSH(P0);
     break;
 
   case op_jmp:

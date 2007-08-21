@@ -226,7 +226,9 @@ Annotator::AnnotateImpl(Ast* node)
     node->m_a2->m_a3 = node->m_a3;
     AnnotateImpl(node->m_a1);
     AnnotateImpl(node->m_a2);
-    node->m_props["varcount"] = VarCount(node->m_a1) + VarCount(node->m_a2);
+    node->m_props["varcount"] = 
+         VarCount(node->m_a1) + 
+         VarCount(node->m_a2) ;
     break;
 
   case empty_statement:
@@ -249,10 +251,25 @@ Annotator::AnnotateImpl(Ast* node)
     AnnotateImpl(node->m_a4);
     PopScope();
     PopScope();
-    node->m_props["varcount"] = VarCount(node->m_a1) + VarCount(node->m_a4);
+    node->m_props["varcount"] = 
+         VarCount(node->m_a1) + 
+         VarCount(node->m_a4) ;
     break;
 
   case foreach_statement:
+    node->m_props["varcount"] = 0;
+    node->m_props["break"]    = AstList();
+    node->m_props["continue"] = AstList();
+    PushScope(node);
+    AnnotateImpl(node->m_a1);
+    AnnotateImpl(node->m_a2);
+    PushScope(node);
+    AnnotateImpl(node->m_a3);
+    PopScope();
+    PopScope();
+    node->m_props["varcount"] = 
+         VarCount(node->m_a1) + 
+         VarCount(node->m_a3) ;
     break;
 
   case if_statement:
@@ -438,6 +455,7 @@ Annotator::AnnotateLValue(Ast* node)
   }
 
   // Store offset
+  node->m_props["varcount"] = (Quad)0;
   node->m_props["stackpos"] = (Quad)offset;
   node->m_props["isglobal"] = global;
 }
