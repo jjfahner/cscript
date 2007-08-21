@@ -82,11 +82,18 @@ Socket::Connect(Variant const& host, Variant const& port)
     Disconnect();
   }
 
+  // Create hint
+  addrinfo hint;
+  memset(&hint, 0, sizeof(hint));
+  hint.ai_family   = AF_INET;
+  hint.ai_socktype = SOCK_STREAM;
+  hint.ai_protocol = IPPROTO_TCP;
+
   // Retrieve info
   addrinfo* ai;
-  if(getaddrinfo(Variant(host).AsString().c_str(), 
-                 Variant(port).AsString().c_str(), 
-                 0, &ai))
+  if(getaddrinfo(host.AsString().c_str(), 
+                 port.AsString().c_str(), 
+                 &hint, &ai))
   {
     return Variant::False;
   }
