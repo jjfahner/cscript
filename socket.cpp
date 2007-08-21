@@ -161,8 +161,8 @@ Socket::Receive(Variant const& length, Variant const& timeout)
   }
 
   // Determine timeout
-  TIMEVAL  tv  = { 0, 0 };
-  TIMEVAL* ptv = 0;
+  timeval  tv  = { 0, 0 };
+  timeval* ptv = 0;
   if(!timeout.Empty())
   {
     ptv = &tv;
@@ -175,7 +175,7 @@ Socket::Receive(Variant const& length, Variant const& timeout)
   FD_SET(m_socket, &fd);
 
   // Check for readability
-  if(select(0, &fd, 0, 0, ptv) != 1)
+  if(select(FD_SETSIZE, &fd, 0, 0, ptv) != 1)
   {
     return Variant::False;
   }
