@@ -100,6 +100,7 @@ private:
   void GenerateContinueStatement(Ast*);
   void GenerateWhileStatement(Ast*);
   void GenerateForStatement(Ast*);
+  void GenerateForeachStatement(Ast* node);
 
   //
   // Low-level code generation

@@ -31,6 +31,8 @@ enum opcodes
   op_pushi,       // Push stack0[stack1]
   op_pusha,       // Push stack top into array
   op_pop,         // Pop topmost from stack
+  op_dup,         // Push copy of stack top onto stack
+  op_swap,        // Swap top 2 stack entries
 
   op_jmp,         // Unconditional jump
   op_jz,          // Jump if stack top == 0
@@ -43,6 +45,10 @@ enum opcodes
   op_stackg,      // Grow stack frame
   op_stacks,      // Shrink stack frame
   op_stackt,      // Move stack top
+
+  op_iters,       // Convert list to iterator
+  op_iterv,       // Assign iterator value to variable
+  op_itern,       // Move iterator forward
 
   op_store,       // Store top of stack in location
 

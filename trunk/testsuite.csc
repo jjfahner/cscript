@@ -1,3 +1,4 @@
+//////////////////////////////////////////////////////////////////////////
 //
 // This file is © 2007 JJ Fahner <jan-jaap@jan-jaap.net>
 // This file is part of the cscript interpreter.
@@ -202,7 +203,7 @@ function main()
   assert("Nested array", [1,[2,3]][1][0], 2);
   assert("Nested array", [1,[2,3]][1][1], 3);
   
-  // For loops
+  // For loop
   for(a = 0; a < 10; ++a) {}
   assert("For", a, 10);
 
@@ -221,6 +222,32 @@ function main()
     ++b;
   }
   assert("For continue", b, 5);
+
+  // Foreach loop
+  a = 0;
+  for(var it in [0, 1, 2, 3, 4, 5])
+  {
+    a += it;
+  }
+  assert("For each", a, 15);
+
+  // Foreach break
+  a = 0;
+  for(var it in [0, 1, 2, 3, 4, 5])
+  {
+    if(it == 2) break;
+    a += it;
+  }
+  assert("For each break", a, 1);
+
+  // Foreach continue
+  a = 0;
+  for(var it in [0, 1, 2, 3, 4, 5])
+  {
+    if(it == 2) continue;
+    a += it;
+  }
+  assert("For each continue", a, 13);
 
   // Conditions
   if(true) a = 1; else a = 2;
@@ -315,7 +342,7 @@ function main()
   assert("Regex", match("[a-zA-Z-]+", "jan-jaap"), "jan-jaap");
   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net@"), "");
   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net"), "jan-jaap@jan-jaap.net");
-  
+
   // Print result
   if(errors == 0)
   {

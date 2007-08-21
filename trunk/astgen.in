@@ -330,6 +330,8 @@ for_init_statement(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
 //
 
 foreach_statement(R) ::= FOR LPAREN id_expression(A) IN expression(B) RPAREN statement(C) . { R = p->AllocAst(foreach_statement, A, B, C); }
+foreach_statement(R) ::= FOR LPAREN foreach_decl(A)  IN expression(B) RPAREN statement(C) . { R = p->AllocAst(foreach_statement, A, B, C); }
+foreach_decl(R)      ::= VAR IDENTIFIER(A) . { R = p->AllocAst(variable_declaration, String(A)); }
 
 //////////////////////////////////////////////////////////////////////////
 //

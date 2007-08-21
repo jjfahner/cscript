@@ -150,6 +150,7 @@ Optimizer::Optimize(Ast* node)
     break;
 
   case foreach_statement:
+    node = OptimizeForeachStatement(node);
     break;
 
   case if_statement:
@@ -264,6 +265,15 @@ Optimizer::OptimizeForStatement(Ast* node)
   node->m_a2 = Optimize(node->m_a2);
   node->m_a3 = Optimize(node->m_a3);
   node->m_a4 = Optimize(node->m_a4);
+  return node;
+}
+
+Ast* 
+Optimizer::OptimizeForeachStatement(Ast* node)
+{
+  // Optimize subexpressions
+  node->m_a2 = Optimize(node->m_a2);
+  node->m_a3 = Optimize(node->m_a3);
   return node;
 }
 

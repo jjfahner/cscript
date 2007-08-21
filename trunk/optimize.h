@@ -41,6 +41,7 @@ private:
   //
   Ast* OptimizeIfStatement(Ast*);
   Ast* OptimizeForStatement(Ast*);
+  Ast* OptimizeForeachStatement(Ast*);
   Ast* OptimizeBinaryExpression(Ast*);
   Ast* OptimizeTernaryExpression(Ast*);
   Ast* OptimizeStatementSequence(Ast*);

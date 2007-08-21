@@ -216,8 +216,8 @@ CodeGenerator::GenerateCode(Ast* node)
     GenerateCode(node->m_a1);
     break;
 
-    // TODO
   case foreach_statement:
+    GenerateForeachStatement(node);
     break;
 
   case include_statement:
@@ -727,5 +727,52 @@ CodeGenerator::GenerateForStatement(Ast* node)
   for(; ci != ce; ++ci)
   {
     FixPatch((*ci)->m_props["offset"], offset2);
+  }
+}
+
+void
+CodeGenerator::GenerateForeachStatement(Ast* node)
+{
+  // Generate expression
+  GenerateCode(node->m_a2);
+
+  // Convert expression to iterator
+  PushByte(op_iters);
+  
+  // Test for end of iterator
+  Quad offset0 = m_used;
+  PushByte(op_iterv);
+  Quad offset1 = PushPatch();
+  
+  // Assign iterator to target
+  PushByte(op_itern);
+  PushQuad(node->m_a1->m_props["stackpos"]);
+
+  // Generate loop body
+  GenerateCode(node->m_a3);
+
+  // Generate jump to top
+  PushByte(op_jmp);
+  PushQuad(offset0);
+
+  // Fix jump to end
+  FixPatch(offset1);
+
+  // Fix break statements
+  AstList& breaks = any_cast<AstList>(node->m_props["break"]);
+  AstList::const_iterator bi = breaks.begin();
+  AstList::const_iterator be = breaks.end();
+  for(; bi != be; ++bi)
+  {
+    FixPatch((*bi)->m_props["offset"]);
+  }
+
+  // Fix continue statements
+  AstList& continues = any_cast<AstList>(node->m_props["continue"]);
+  AstList::const_iterator ci = continues.begin();
+  AstList::const_iterator ce = continues.end();
+  for(; ci != ce; ++ci)
+  {
+    FixPatch((*ci)->m_props["offset"], offset0);
   }
 }

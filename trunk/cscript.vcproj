@@ -361,6 +361,10 @@
 			Name="native"
 			>
 			<File
+				RelativePath=".\diskio.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\native.cpp"
 				>
 			</File>
@@ -473,10 +477,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\diskio.cpp"
-			>
-		</File>
 		<File
 			RelativePath=".\TODO"
 			>
