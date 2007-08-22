@@ -92,6 +92,7 @@ private:
   // High-level code generation
   //
   void GenerateCode(Ast*);
+  void GenerateLValue(Ast* node);
   void GenerateFunction(Ast*);
   void GenerateFunctionCall(Ast*);
   void GenerateBinaryExpression(Ast*);
@@ -101,6 +102,7 @@ private:
   void GenerateWhileStatement(Ast*);
   void GenerateForStatement(Ast*);
   void GenerateForeachStatement(Ast* node);
+  void GenerateVariableDeclaration(Ast* node);
 
   //
   // Low-level code generation

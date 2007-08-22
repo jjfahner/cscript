@@ -78,6 +78,8 @@ enum AstTypes
   struct_members,
   struct_member,
   new_expression,
+  class_declaration,
+  class_members,
 };
 
 //////////////////////////////////////////////////////////////////////////

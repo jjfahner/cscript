@@ -27,6 +27,20 @@
 class CodeGenerator;
 class Reporter;
 
+enum VarTypes
+{
+  varLocal,
+  varParam,
+  varMember,
+  varGlobal,
+};
+
+struct VarInfo
+{
+  VarTypes  m_type;
+  int       m_offset;
+};
+
 class Scope 
 {
 public:
@@ -49,17 +63,17 @@ public:
   //
   // Register a name
   //
-  int DeclareParameter(String const& name);
+  VarInfo DeclareParameter(String const& name);
 
   //
   // Declare a name
   //
-  int DeclareVariable(String const& name);
+  VarInfo DeclareVariable(String const& name);
 
   //
   // Find a name
   //
-  bool Lookup(String const& name, int& offset, bool& global) const;
+  bool Lookup(String const& name, VarInfo& info) const;
 
 private:
 
@@ -67,7 +81,7 @@ private:
 
   int MakeVariableId();
 
-  typedef std::map<String, int> Names;
+  typedef std::map<String, VarInfo> Names;
 
   //
   // Members

@@ -193,6 +193,9 @@ Optimizer::Optimize(Ast* node)
   case continue_statement:
     break;
 
+  case class_declaration:
+    break;
+
   default:
     throw std::runtime_error("Unknown node type");
   }

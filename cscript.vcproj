@@ -201,6 +201,10 @@
 			Name="test"
 			>
 			<File
+				RelativePath=".\socket.csi"
+				>
+			</File>
+			<File
 				RelativePath=".\test.csc"
 				>
 			</File>
