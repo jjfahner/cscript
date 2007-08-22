@@ -79,8 +79,9 @@ Machine::Execute(Byte* source, Quad offset)
   #define POP(arg)  { arg = stack[--SP]; stack[SP].Clear(); }
   #define TOP (*(stack[SP-1]))
 
-  // Temporaries
+  // Registers (sort of)
   VariantRef P0, P1;
+  VariantRef RT;
   #define R0 (*P0)
   #define R1 (*P1)
   Quad Q0;
@@ -109,9 +110,7 @@ begin:
     break;
 
   case op_stackt:
-    Q0 = ipq;
-    stack[SP - Q0 - 1] = stack[SP - 1];
-    SP -= Q0;
+    SP -= ipq;
     break;
 
   case op_pushl:
@@ -145,30 +144,15 @@ begin:
     break;
 
   case op_pop:
-    --SP;
+    POP(P0);
     break;
 
-  case op_iters:
-    POP(P0);
-    PUSH(Variant(new IteratorRes(R0.GetMap())));
+  case op_popr:
+    POP(RT);
     break;
 
-  case op_iterv:
-    Q0 = ipq;
-    POP(P0);
-    it = R0.GetTypedRes<IteratorRes>();
-    if(it->AtEnd())
-      code = base + Q0;
-    else
-      PUSH(P0);
-    break;
-
-  case op_itern:
-    POP(P0);
-    it = R0.GetTypedRes<IteratorRes>();
-    stack[ST + (int)ipq] = it->m_cur->second;
-    it->Next();
-    PUSH(P0);
+  case op_pushr:
+    PUSH(RT);
     break;
 
   case op_jmp:
@@ -209,11 +193,35 @@ begin:
     W0 = ipw;
     W1 = ipw;
     ExecNative(W0, W1, stack, SP);
+    RT = stack[SP];
     break;
 
   case op_ret:
     code = base + rstack.top();
     rstack.pop();
+    break;
+
+  case op_iters:
+    POP(P0);
+    PUSH(Variant(new IteratorRes(R0.GetMap())));
+    break;
+
+  case op_iterv:
+    Q0 = ipq;
+    POP(P0);
+    it = R0.GetTypedRes<IteratorRes>();
+    if(it->AtEnd())
+      code = base + Q0;
+    else
+      PUSH(P0);
+    break;
+
+  case op_itern:
+    POP(P0);
+    it = R0.GetTypedRes<IteratorRes>();
+    stack[ST + (int)ipq] = it->m_cur->second;
+    it->Next();
+    PUSH(P0);
     break;
 
   case op_negate:

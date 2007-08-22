@@ -77,6 +77,15 @@ CodeGenerator::Generate(Ast* node, bool release)
   // Store start of function segment
   ((BinHeader*)m_code)->m_procseg = m_used;
 
+  // Generate classes
+  Classes::iterator ai, ae;
+  ai = m_classes.begin();
+  ae = m_classes.end();
+  for(; ai != ae; ++ai)
+  {
+    GenerateClassDeclaration(ai->second);
+  }
+
   // Generate functions
   Functions::iterator fi, fe;
   fi = m_funs.begin();
@@ -193,8 +202,7 @@ CodeGenerator::GenerateFunction(Ast* node)
   }
 
   // Write function epilog
-  PushByte(op_store);
-  PushQuad((Quad)-1);
+  PushByte(op_popr);
   PushByte(op_stacks);
   PushQuad(node->m_props["framesize"]);
 
@@ -414,6 +422,7 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case class_declaration:
+    m_classes[node->m_a1] = node;
     break;
 
   default:
@@ -432,6 +441,7 @@ CodeGenerator::GenerateLValue(Ast* node)
   case varGlobal: PushByte(op_pushg); break;
   case varParam:  PushByte(op_pushv); break;
   case varLocal:  PushByte(op_pushv); break;
+  case varMember: PushByte(op_pushm); break;
   default:        INTERNAL_ERROR(m_reporter, node->m_pos);
   }
 
@@ -476,10 +486,6 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
     GenerateCode(node->m_a2);
   }
 
-  // Push space for return value
-  PushByte(op_pushl);
-  PushLiteral(Variant::Null);
-
   // Generate call
   if(node->m_a3)
   {
@@ -494,7 +500,8 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
     // Native call
     PushByte(op_calln);
 
-    // Broken call - no need to generate correct code
+    // In case of broken call, there's no need to 
+    // generate correct code, so ignore lack of offset
     if(node->m_props.contains("offset"))
     {
       PushWord((Quad)node->m_props["offset"]);
@@ -502,12 +509,15 @@ CodeGenerator::GenerateFunctionCall(Ast* node)
     }
   }
 
-  // Write cleanup code for argument list
+  // Cleanup code
   if((Quad)node->m_props["argcount"] != Quad(0))
   {
     PushByte(op_stackt);
     PushQuad(node->m_props["argcount"]);
   }
+
+  // Push return value onto stack
+  PushByte(op_pushr);
 }
 
 void 
@@ -804,4 +814,34 @@ CodeGenerator::GenerateForeachStatement(Ast* node)
   {
     FixPatch((*ci)->m_props["offset"], offset0);
   }
+}
+
+void 
+CodeGenerator::GenerateClassDeclaration(Ast* node)
+{
+  // Retrieve member list
+  AstList* list = node->m_a2;
+  AstList::iterator it, ie;
+
+  // Function table
+  std::map<String, Quad> vtable;
+
+  // Enumerate functions
+  it = list->begin();
+  ie = list->end();
+  for(; it != ie; ++it)
+  {
+    Ast* node = *it;
+    if(node->m_type == function_declaration)
+    {
+      // Generate function
+      GenerateFunction(node);
+      
+      // Store in vtable
+      vtable[node->m_a1] = node->m_props["offset"];
+    }
+  }
+
+  // Generate constructor
+  
 }

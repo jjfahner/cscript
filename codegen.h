@@ -103,6 +103,7 @@ private:
   void GenerateForStatement(Ast*);
   void GenerateForeachStatement(Ast* node);
   void GenerateVariableDeclaration(Ast* node);
+  void GenerateClassDeclaration(Ast* node);
 
   //
   // Low-level code generation
@@ -137,6 +138,7 @@ private:
   typedef std::pair<Ast*, Quad> Function;
   typedef std::map<String, Function> Functions;
   typedef std::map<Variant, QuadList, Variant::LessExact> Literals;
+  typedef std::map<String, Ast*> Classes;
 
   //
   // Member data
@@ -149,6 +151,7 @@ private:
   AstList   m_calls;
   Literals  m_literals;
   QuadList  m_returns;
+  Classes   m_classes;
 
 };
 

@@ -27,10 +27,13 @@ enum opcodes
 
   op_pushl,       // Push literal on stack
   op_pushv,       // Push variable on stack  
-  op_pushg,       // Push global on the stack
+  op_pushg,       // Push global on stack
+  op_pushm,       // Push member on stack
+  op_pushr,       // Push RT on stack
   op_pushi,       // Push stack0[stack1]
   op_pusha,       // Push stack top into array
   op_pop,         // Pop topmost from stack
+  op_popr,        // Pop topmost into RT
   op_dup,         // Push copy of stack top onto stack
   op_swap,        // Swap top 2 stack entries
 
