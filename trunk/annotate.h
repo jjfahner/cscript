@@ -48,17 +48,18 @@ private:
   // Annotation implementation
   //
   void AnnotateImpl(Ast* node);
-  void AnnotateFunction(Ast* node);
   void AnnotateLValue(Ast* node);
   void AnnotateTranslationUnit(Ast* node);
   void AnnotateStatementSequence(Ast* node);
-  void AnnotateVariableDeclaration(Ast* node);
-  void AnnotateStructDeclaration(Ast* node);
   void AnnotateNewExpression(Ast* node);
   void AnnotateMemberExpression(Ast* node);
   void AnnotateBreakStatement(Ast* node);
   void AnnotateContinueStatement(Ast* node);
   void AnnotateSwitchCase(Ast* node);
+  void AnnotateClassDeclaration(Ast* node);
+  void AnnotateFunctionDeclaration(Ast* node);
+  void AnnotateVariableDeclaration(Ast* node);
+  void AnnotateStructDeclaration(Ast* node);
 
   //
   // Function call resolving

@@ -19,15 +19,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-struct Info
-{
-  var a, b;
-  var d = 1;
-};
-
-struct Info2
-{
-};
+//
+// Includes
+//
+include "socket.csi";
 
 //
 // Error count

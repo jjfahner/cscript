@@ -253,6 +253,7 @@ continue_statement(R) ::= CONTINUE SEMICOLON . { R = p->AllocAst(continue_statem
 // Declaration starting point
 declaration_statement(R) ::= function_declaration(A) .            { R = A; }
 declaration_statement(R) ::= struct_declaration(A) SEMICOLON .    { R = A; }
+declaration_statement(R) ::= class_declaration(A)  SEMICOLON .    { R = A; }
 declaration_statement(R) ::= variable_declaration(A) SEMICOLON .  { R = A; }
 
 variable_declaration(R) ::= VAR declarator_sequence(A) . { R = A; }
@@ -279,6 +280,27 @@ struct_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
 // Struct members
 struct_members(R) ::= struct_member(A) . { R = A; }
 struct_members(R) ::= struct_members(A) struct_member(B) . { R = p->AllocAst(struct_members, A, B); }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Class declaration
+//
+
+class_declaration(R) ::= CLASS IDENTIFIER(A) LBRACE                  RBRACE . { R = p->AllocAst(class_declaration, String(A)); }
+class_declaration(R) ::= CLASS IDENTIFIER(A) LBRACE class_members(B) RBRACE . { R = p->AllocAst(class_declaration, String(A), B); }
+
+class_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
+class_member(R) ::= function_declaration(A) . { R = A; }
+
+%type class_members { AstList* }
+class_members(R) ::= class_member(A) . { 
+  R = new AstList;
+  R->push_back(A);
+}
+class_members(R) ::= class_members(A) class_member(B) . { 
+  R = A;
+  R->push_back(B);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //

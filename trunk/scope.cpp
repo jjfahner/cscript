@@ -28,52 +28,79 @@ m_parent  (parent)
 {
 }
 
-int 
+VarInfo 
 Scope::DeclareParameter(String const& name)
 {
-  int id = MakeParameterId();
-  m_names[name] = id;
-  return id;
+  VarInfo vi;
+  vi.m_type   = varParam;
+  vi.m_offset = MakeParameterId();
+
+  m_names[name] = vi;
+
+  return vi;
 }
 
-int 
+VarInfo 
 Scope::DeclareVariable(String const& name)
 {
-  int id = MakeVariableId();
-  m_names[name] = id;
-  return id;
+  VarInfo vi;
+  vi.m_offset = MakeVariableId();
+  vi.m_type   = varLocal;
+  if(m_node->m_type == class_declaration)
+  {
+    vi.m_type = varMember;
+  }
+  else if(m_parent == 0)
+  {
+    vi.m_type = varGlobal;
+  }
+
+  m_names[name] = vi;
+
+  return vi;
 }
 
 bool
-Scope::Lookup(String const& name, int& offset, bool& global) const
+Scope::Lookup(String const& name, VarInfo& vi) const
 {
   // Find in local scope
   Names::const_iterator it;
   if((it = m_names.find(name)) != m_names.end())
   {
-    if(m_parent == 0)
-    {
-      global = true;
-    }
-    offset = it->second;
+    vi = it->second;
     return true;
   }
 
-  // Look in parent scope up to function boundary
-  if(m_node->m_type != function_declaration && m_parent)
+  // Find in parent/find in global
+  Scope* next = m_parent;
+  bool findGlobal = false;
+
+  // Special node types
+  if(m_node->m_type == function_declaration)
   {
-    return m_parent->Lookup(name, offset, global);
+    if(next->m_node->m_type != class_declaration)
+    {
+      findGlobal = true;
+    }
+  }
+  else if(m_node->m_type == class_declaration)
+  {
+    findGlobal = true;
   }
 
-  // Find global scope
-  Scope* parent = m_parent;
-  while(parent)
+  // Determine next node in hierarchy
+  if(findGlobal)
   {
-    if(parent->m_parent == 0)
+    while(next->m_parent)
     {
-      return parent->Lookup(name, offset, global);
+      next = next->m_parent;
     }
-    parent = parent->m_parent;
+  }
+
+  // Proceed with lookup
+  if(next)
+  {
+    return next->Lookup(name, vi);
   }
   
   // Failed

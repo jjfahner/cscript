@@ -205,11 +205,11 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case function_declaration:
-    AnnotateFunction(node);
+    AnnotateFunctionDeclaration(node);
     break;
 
   case parameter:
-    node->m_props["stackpos"] = Quad(m_scope->DeclareParameter(node->m_a1));
+    node->m_props["varinfo"] = m_scope->DeclareParameter(node->m_a1);
     break;
 
   case parameter_list:
@@ -356,6 +356,11 @@ Annotator::AnnotateImpl(Ast* node)
   case new_expression:
     AnnotateNewExpression(node);
     break;
+
+  case class_declaration:
+    AnnotateClassDeclaration(node);
+    break;
+
   }
 }
 
@@ -377,7 +382,7 @@ Annotator::AnnotateTranslationUnit(Ast* node)
 }
 
 void 
-Annotator::AnnotateFunction(Ast* node)
+Annotator::AnnotateFunctionDeclaration(Ast* node)
 {
   // Check whether the name is in use
   String name = node->m_a1;
@@ -447,17 +452,15 @@ void
 Annotator::AnnotateLValue(Ast* node)
 {
   // Find lvalue on stack
-  bool global = false;
-  int  offset = 0;
-  if(!m_scope->Lookup(node->m_a1, offset, global))
+  VarInfo vi;
+  if(!m_scope->Lookup(node->m_a1, vi))
   {
     m_reporter.ReportError(E0003, &node->m_pos, node->m_a1.GetString().c_str());
   }
 
   // Store offset
   node->m_props["varcount"] = (Quad)0;
-  node->m_props["stackpos"] = (Quad)offset;
-  node->m_props["isglobal"] = global;
+  node->m_props["varinfo"]  = vi;
 }
 
 void 
@@ -524,9 +527,11 @@ Annotator::AnnotateVariableDeclaration(Ast* node)
     AnnotateImpl(node->m_a2);
   }
 
+  // TODO Check for locally declared variable with same name
+
   // Allocate slot
   node->m_props["varcount"] = Quad(1);
-  node->m_props["stackpos"] = Quad(m_scope->DeclareVariable(node->m_a1));
+  node->m_props["varinfo"] = m_scope->DeclareVariable(node->m_a1);
 }
 
 void 
@@ -679,4 +684,46 @@ Annotator::AnnotateSwitchCase(Ast* node)
   AnnotateImpl(node->m_a2);
 }
 
+void
+Annotator::AnnotateClassDeclaration(Ast* node)
+{
+  AstList::iterator it, ie;
 
+  // Init var count
+  node->m_props["varcount"] = (Quad)0;
+  
+  // TODO Check class name
+
+  // Retrieve member list
+  AstList* list = node->m_a2;
+
+  // Create class scope
+  PushScope(node);
+
+  // Enumerate members to handle variables
+  it = list->begin();
+  ie = list->end();
+  for(; it != ie; ++it)
+  {
+    Ast* node = *it;
+    if(node->m_type == variable_declaration)
+    {
+      AnnotateVariableDeclaration(node);
+    }
+  }
+
+  // Enumerate functions
+  it = list->begin();
+  ie = list->end();
+  for(; it != ie; ++it)
+  {
+    Ast* node = *it;
+    if(node->m_type == function_declaration)
+    {
+      AnnotateFunctionDeclaration(node);
+    }
+  }
+
+  // Pop class scope
+  PopScope();
+}

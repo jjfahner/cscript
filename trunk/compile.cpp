@@ -372,32 +372,11 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case lvalue:
-    PushByte(node->m_props["isglobal"] ? op_pushg : op_pushv);
-    PushQuad(node->m_props["stackpos"]);
+    GenerateLValue(node);
     break;
 
   case variable_declaration:
-    if(node->m_a2.Type() == AstData::Null)
-    {
-      PushByte(op_pushl);
-      PushLiteral(Variant::Null);
-      PushByte(op_store);
-      PushQuad(node->m_props["stackpos"]);
-    }
-    else if(node->m_a2.Type() == AstData::Node)
-    {
-      GenerateCode(node->m_a2);
-      PushByte(op_store);
-      PushQuad(node->m_props["stackpos"]);
-    }
-    else if(node->m_a2.Type() == AstData::Text)
-    {
-      
-    }
-    else
-    {
-      INTERNAL_ERROR(m_reporter, node->m_pos);
-    }
+    GenerateVariableDeclaration(node);
     break;
 
   case declaration_sequence:
@@ -434,7 +413,56 @@ CodeGenerator::GenerateCode(Ast* node)
     GenerateContinueStatement(node);
     break;
 
+  case class_declaration:
+    break;
+
   default:
+    INTERNAL_ERROR(m_reporter, node->m_pos);
+  }
+}
+
+void
+CodeGenerator::GenerateLValue(Ast* node)
+{
+  VarInfo const& vi = any_cast<VarInfo>(node->m_props["varinfo"]);
+
+  // Generate type-specific instruction
+  switch(vi.m_type)
+  {
+  case varGlobal: PushByte(op_pushg); break;
+  case varParam:  PushByte(op_pushv); break;
+  case varLocal:  PushByte(op_pushv); break;
+  default:        INTERNAL_ERROR(m_reporter, node->m_pos);
+  }
+
+  // Generate offset
+  PushQuad(vi.m_offset);
+}
+
+void
+CodeGenerator::GenerateVariableDeclaration(Ast* node)
+{
+  VarInfo const& vi = any_cast<VarInfo>(node->m_props["varinfo"]);
+
+  if(node->m_a2.Type() == AstData::Null)
+  {
+    PushByte(op_pushl);
+    PushLiteral(Variant::Null);
+    PushByte(op_store);
+    PushQuad(vi.m_offset);
+  }
+  else if(node->m_a2.Type() == AstData::Node)
+  {
+    GenerateCode(node->m_a2);
+    PushByte(op_store);
+    PushQuad(vi.m_offset);
+  }
+  else if(node->m_a2.Type() == AstData::Text)
+  {
+    
+  }
+  else
+  {
     INTERNAL_ERROR(m_reporter, node->m_pos);
   }
 }
@@ -745,8 +773,9 @@ CodeGenerator::GenerateForeachStatement(Ast* node)
   Quad offset1 = PushPatch();
   
   // Assign iterator to target
+  VarInfo const& vi = any_cast<VarInfo>(node->m_a1->m_props["varinfo"]);
   PushByte(op_itern);
-  PushQuad(node->m_a1->m_props["stackpos"]);
+  PushQuad(vi.m_offset);
 
   // Generate loop body
   GenerateCode(node->m_a3);

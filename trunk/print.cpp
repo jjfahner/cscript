@@ -63,8 +63,8 @@ String OpString(Quad op)
 void
 CodeGenerator::Print(String filename, Ast* node)
 {
-  std::ofstream s(filename.c_str());
-  PrintImpl(node, 0, s);
+//   std::ofstream s(filename.c_str());
+//   PrintImpl(node, 0, s);
 }
 
 void 

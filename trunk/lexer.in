@@ -49,7 +49,7 @@ int parseNextToken(Char*& start, Char*& end)
   /* Keywords */
   "break"                   { return TOK_BREAK; }
   "case"                    { return TOK_CASE; }
-  /*"class"                   { return TOK_CLASS; }*/
+  "class"                   { return TOK_CLASS; }
   "continue"                { return TOK_CONTINUE; }
   "default"                 { return TOK_DEFAULT; }
   "else"                    { return TOK_ELSE; }
