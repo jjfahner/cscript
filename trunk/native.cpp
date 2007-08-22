@@ -90,11 +90,11 @@ ExecNative(Quad index, Quad numArgs, RefStack& stack, Quad SP)
   // Copy arguments
   for(Quad i = 0; i < numArgs; ++i)
   {
-    args[i] = stack[SP-2-i];
+    args[i] = stack[SP-1-i];
   }
 
   // Call function
-  stack[SP-1] = ncv[index]->m_funPtr(args, numArgs);
+  stack[SP] = ncv[index]->m_funPtr(args, numArgs);
 }
 
 inline void 

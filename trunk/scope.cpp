@@ -112,12 +112,9 @@ Scope::MakeParameterId()
 {
   if(m_node->m_type == function_declaration)
   {
-    // Return negative paramcount - 1 to accomodate
-    // the return value that is stored at [ST-1], so
-    // that argument n is found at [ST-1-n]
     Quad parcount = (Quad)m_node->m_props["parcount"] + 1;
     m_node->m_props["parcount"] = parcount;
-    return -int(parcount) - 1;
+    return -int(parcount);
   }
   throw std::logic_error("Invalid node for parameter declaration");
 }

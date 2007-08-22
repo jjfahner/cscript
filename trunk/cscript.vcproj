@@ -181,6 +181,10 @@
 			Name="runtime"
 			>
 			<File
+				RelativePath=".\class.h"
+				>
+			</File>
+			<File
 				RelativePath=".\machine.cpp"
 				>
 			</File>
