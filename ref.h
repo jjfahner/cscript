@@ -31,8 +31,11 @@ public:
   //
   struct Counted
   {
+    virtual ~Counted() {}
   protected:
     Counted() : m_refs (0) {}
+    Counted(Counted const&) : m_refs (0) {}
+    Counted& operator = (Counted const&) { return *this; }
   private:
     friend class Ref<T>;
     size_t m_refs;
@@ -109,7 +112,7 @@ public:
   //
   Ref const& operator = (Ref const& rhs)
   {
-    if(this != &rhs && m_counted != rhs.m_counted)
+    if(m_counted != rhs.m_counted)
     {
       Clear();
       if(m_counted = rhs.m_counted)
