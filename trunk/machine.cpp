@@ -91,6 +91,10 @@ Machine::Execute(Byte* source, Quad offset)
   // Start of instruction
 begin:
 
+  // Clear registers
+  P0.Clear();
+  P1.Clear();
+
   // Execute single instruction
   switch(ipb)
   {

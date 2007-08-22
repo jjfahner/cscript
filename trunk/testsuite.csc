@@ -81,7 +81,7 @@ function sockets()
   }
 
   // Disconnect socket
-  closesocket(s);
+  //closesocket(s);
 
   // Done
   return 1;
@@ -217,7 +217,7 @@ function main()
     ++b;
   }
   assert("For continue", b, 5);
-
+/*
   // Foreach loop
   a = 0;
   for(var it in [0, 1, 2, 3, 4, 5])
@@ -243,7 +243,7 @@ function main()
     a += it;
   }
   assert("For each continue", a, 13);
-
+*/
   // Conditions
   if(true) a = 1; else a = 2;
   assert("If", a, 1);

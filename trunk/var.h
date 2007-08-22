@@ -70,6 +70,8 @@ public:
     virtual ~Resource() {}
   protected:
     Resource() : m_refs (0) {}
+    Resource(Resource const&) : m_refs (0) {}
+    Resource& operator = (Resource const&) { return *this; }
   private:
     friend class Variant;
     int m_refs;
@@ -190,6 +192,14 @@ public:
   m_type  (stResource)
   {
     ++m_res->m_refs;
+  }
+
+  //
+  // Destruction
+  //
+  virtual ~Variant()
+  {
+    Clear();
   }
 
   //
@@ -608,13 +618,6 @@ struct IteratorRes : public Variant::Resource
   m_cur (map.begin()),
   m_end (map.end())
   {
-  }
-
-  //
-  // Cloning
-  //
-  virtual IteratorRes* Clone() const {
-    return new IteratorRes(m_cur, m_end);
   }
 
   //
