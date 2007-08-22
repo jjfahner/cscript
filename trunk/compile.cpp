@@ -738,9 +738,10 @@ CodeGenerator::GenerateForStatement(Ast* node)
   // Generate contents
   GenerateCode(node->m_a4);
 
-  // Generate post code
+  // Generate post expression
   Quad offset2 = m_used;
   GenerateCode(node->m_a3);
+  PushByte(op_pop);
 
   // Jump to condition
   PushByte(op_jmp);

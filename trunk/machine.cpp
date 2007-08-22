@@ -105,12 +105,12 @@ begin:
 
   case op_stacks:
     ST = tstack.top();
-    SP = SP - ipq;
     tstack.pop();
+    for(Quad n = ipq; n--;) POP(P0);
     break;
 
   case op_stackt:
-    SP -= ipq;
+    for(Quad n = ipq; n--;) POP(P0);
     break;
 
   case op_pushl:
@@ -194,6 +194,7 @@ begin:
     W1 = ipw;
     ExecNative(W0, W1, stack, SP);
     RT = stack[SP];
+    stack[SP].Clear();
     break;
 
   case op_ret:
