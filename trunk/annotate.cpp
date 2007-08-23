@@ -582,50 +582,6 @@ Annotator::ResolveCalls()
     {
       call->m_a3 = fi.m_node;
     }
-
-    continue;
-
-    // Function name
-    String name = (*it)->m_a1;
-
-    // Locate user function
-    AstMap::iterator decl = m_functions.find(name);
-    if(decl != m_functions.end())
-    {
-      // Check parameter count
-      if((*it)->m_props["argcount"] != decl->second->m_props["parcount"])
-      {
-        m_reporter.ReportError(E0004, &(*it)->m_pos, name.c_str());
-      }
-
-      // Point call to function
-      (*it)->m_a3 = decl->second;
-
-      // Next
-      continue;
-    }
-
-    // Locate native call
-    NativeCallInfo* nci = FindNative(name);
-    if(nci != 0)
-    {
-      // Check parameter count
-      if(ArgCount(*it) < nci->m_minPar ||
-         ArgCount(*it) > nci->m_maxPar )
-      {
-        m_reporter.ReportError(E0004, &(*it)->m_pos, name.c_str());
-      }
-
-      // Point call to function
-      (*it)->m_props["offset"] = nci->m_offset;
-
-      // Next
-      continue;
-    }
-
-    // No such function
-    m_reporter.ReportError(E0005, &(*it)->m_pos, name.c_str());
-    continue;
   }
 }
 
