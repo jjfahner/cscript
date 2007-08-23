@@ -207,8 +207,7 @@ begin:
     break;
 
   case op_iters:
-    POP(P0);
-    PUSH(Variant(new IteratorRes(R0.GetMap())));
+    PUSH(Variant(new IteratorRes(TOP.GetMap())));
     break;
 
   case op_iterv:

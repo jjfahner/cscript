@@ -815,6 +815,9 @@ CodeGenerator::GenerateForeachStatement(Ast* node)
   {
     FixPatch((*ci)->m_props["offset"], offset0);
   }
+
+  // Pop array off stack
+  PushByte(op_pop);
 }
 
 void 
