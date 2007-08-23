@@ -22,4 +22,5 @@ cscript_SOURCES =	main.cpp \
 			convert.cpp \
 			socket.cpp \
 			regex.cpp \
-			diskio.cpp
+			diskio.cpp \
+			class.cpp \
