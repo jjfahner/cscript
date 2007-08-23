@@ -59,7 +59,7 @@ private:
   void AnnotateClassDeclaration(Ast* node);
   void AnnotateVariableDeclaration(Ast* node);
   void AnnotateStructDeclaration(Ast* node);
-  void AnnotateFunctionCall(Ast* node, bool isMember);
+  void AnnotateFunctionCall(Ast* node);
   void AnnotateMemberCall(Ast* node);
 
   //
