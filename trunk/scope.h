@@ -29,16 +29,29 @@ class Reporter;
 
 enum VarTypes
 {
-  varLocal,
-  varParam,
-  varMember,
   varGlobal,
+  varMember,
+  varParam,
+  varLocal,
 };
 
 struct VarInfo
 {
   VarTypes  m_type;
   int       m_offset;
+};
+
+enum FunTypes
+{
+  funNative,
+  funGlobal,
+  funMember
+};
+
+struct FunInfo
+{
+  FunTypes  m_type;
+  Ast*      m_node;
 };
 
 class Scope 
@@ -78,7 +91,12 @@ public:
   //
   // Find a name
   //
-  bool Lookup(String const& name, VarInfo& info) const;
+  bool LookupVar(String const& name, VarInfo& info) const;
+
+  //
+  // Find a function
+  //
+  bool LookupFun(String const& name, FunInfo& info) const;
 
 private:
 
@@ -89,7 +107,7 @@ private:
   int MakeVariableId();
 
   typedef std::map<String, VarInfo> Variables;
-  typedef std::map<String, Ast*>    Functions;
+  typedef std::map<String, FunInfo> Functions;
 
   //
   // Members
