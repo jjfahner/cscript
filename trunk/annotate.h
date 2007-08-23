@@ -57,9 +57,11 @@ private:
   void AnnotateContinueStatement(Ast* node);
   void AnnotateSwitchCase(Ast* node);
   void AnnotateClassDeclaration(Ast* node);
-  void AnnotateFunctionDeclaration(Ast* node);
+  void AnnotateFunctionDeclaration(Ast* node, bool isMember);
   void AnnotateVariableDeclaration(Ast* node);
   void AnnotateStructDeclaration(Ast* node);
+  void AnnotateFunctionCall(Ast* node, bool isMember);
+  void AnnotateMemberCall(Ast* node);
 
   //
   // Function call resolving

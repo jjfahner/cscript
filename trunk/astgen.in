@@ -108,6 +108,7 @@ statement(R) ::= return_statement(A) .      { R = A; }
 statement(R) ::= switch_statement(A) .      { R = A; }
 statement(R) ::= break_statement(A) .       { R = A; }
 statement(R) ::= continue_statement(A) .    { R = A; }
+statement(R) ::= pause_statement(A) .       { R = A; }
 
 // Error recovery
 statement(R) ::= error .                    { R = p->AllocAst(empty_statement); }
@@ -174,10 +175,15 @@ unary_expression(R) ::= new_expression(A) .          { R = A; }
 postfix_expression(R) ::= primary_expression(A) .                                 { R = A; }
 postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = p->AllocAst(postfix_expression, op_postinc, A); }
 postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = p->AllocAst(postfix_expression, op_postdec, A); }
+postfix_expression(R) ::= function_call(A) .                                      { R = A; }
 postfix_expression(R) ::= postfix_expression(A) DOT IDENTIFIER(B).                { R = p->AllocAst(member_expression, A, String(B)); }
+postfix_expression(R) ::= postfix_expression(A) DOT function_call(B) .            { R = p->AllocAst(member_call, A, B); }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocAst(index_expression, A, B); }
-postfix_expression(R) ::= IDENTIFIER(A) LPAREN                  RPAREN .          { R = p->AllocAst(function_call, String(A)); }
-postfix_expression(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN .          { R = p->AllocAst(function_call, String(A), B); }
+
+// Function call
+function_call(R) ::= IDENTIFIER(A) LPAREN                  RPAREN . { R = p->AllocAst(function_call, String(A)); }
+function_call(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(function_call, String(A), B); }
+
 
 // Primary expression
 primary_expression(R) ::= literal(A) .                  { R = A; }
@@ -244,6 +250,9 @@ return_statement(R) ::= RETURN SEMICOLON .               { R = p->AllocAst(retur
 // Break/continue
 break_statement(R)    ::= BREAK SEMICOLON .    { R = p->AllocAst(break_statement); }
 continue_statement(R) ::= CONTINUE SEMICOLON . { R = p->AllocAst(continue_statement); }
+
+// Pause
+pause_statement(R) ::= PAUSE SEMICOLON . { R = p->AllocAst(pause_statement); }
 
 //////////////////////////////////////////////////////////////////////////
 //

@@ -23,6 +23,7 @@
 // Includes
 //
 include "socket.csi";
+include "file.csi";
 
 //
 // Error count
@@ -54,11 +55,11 @@ function assert(description, result, expected)
 //
 function sockets()
 {
-  // Create socket
-  var s = socket("jan-jaap.net", 80);
-  if(s === false)
+  // Connect
+  var sock = new Socket;
+  if(sock.Connect("jan-jaap.net", 80) === false)
   {
-    return 0;
+    return "Failed to connect socket";
   }
 
   // Build request
@@ -67,21 +68,21 @@ function sockets()
   req += "User-Agent: cscript\r\n";
   req += "Connection: close\r\n\r\n";
 
-  // Send request
-  if(send(s, req) === false)
+  // Send data
+  if(sock.Send(req, strlen(req)) === false)
   {
-    return 0;
+    return "Failed to send data";
   }
 
   // Receive response
-  var r = recv(s, 100000, 5);
+  var r = sock.Recv(100000, 5);
   if(r === false)
   {
-    return 0;
+    return "Failed to receive data";
   }
 
   // Disconnect socket
-  //closesocket(s);
+  sock.Close();
 
   // Done
   return 1;
@@ -97,42 +98,42 @@ function files()
   var fn = "testfile.txt";
   var to = "Hello world";
 
-  // Open the file
-  var f = fopen(fn, "w");
-  if(f === false)
+  // Create file
+  var file = new File;
+
+  // Open for write
+  if(file.Open(fn, "w") === false)
   {
-    return false;
+    return "Failed to open file for writing";
   }
 
-  // Write and close
-  var res = fwrite(f, to);
-  fclose(f);
+  // Write string
+  if(file.Write(to, strlen(to)) === false)
+  {
+    return "Failed to write to file";
+  }
 
-  // Check write result
+  // Close
+  file.Close();
+
+  // Open for read
+  if(file.Open("filetest.txt", "r") === false)
+  {
+    return "Failed to open file for reading";
+  }
+
+  // Read string
+  var res = file.Read(strlen(to));
   if(res === false)
   {
-    return false;
+    return "Failed to read from file";
   }
 
-  // Reopen the file
-  f = fopen(fn, "r");
-  if(f === false)
-  {
-    return false;
-  }
-
-  // Read and close
-  var tr = fread(f, strlen(to));
-  fclose(f);
+  // Close the file
+  file.Close();
 
   // Check read result
-  if(tr === false)
-  {
-    return false;
-  }
-
-  // Compare written and read values
-  return to == tr;
+  return to == res;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -337,9 +338,6 @@ function main()
   assert("Regex", match("[a-zA-Z-]+", "jan-jaap"), "jan-jaap");
   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net@"), "");
   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net"), "jan-jaap@jan-jaap.net");
-  
-  // Test classes
-  var sock = new Socket;
 
   // Print result
   if(errors == 0)

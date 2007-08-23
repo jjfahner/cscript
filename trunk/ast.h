@@ -80,6 +80,8 @@ enum AstTypes
   new_expression,
   class_declaration,
   class_members,
+  member_call,
+  pause_statement,
 };
 
 //////////////////////////////////////////////////////////////////////////

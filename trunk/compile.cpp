@@ -156,8 +156,11 @@ CodeGenerator::Generate(Ast* node, bool release)
   ae = m_classes.end();
   for(; ai != ae; ++ai)
   {
-    any_cast<Class*>(ai->second->m_props["classdef"])->Write(*this);
+    Class* classDef = any_cast<Class*>(ai->second->m_props["classdef"]);
+    classDef->Write(*this);
   }
+
+  // Write vtable terminator
   PushByte(0);
 
   // Store length of vtable segment
@@ -172,7 +175,7 @@ CodeGenerator::Generate(Ast* node, bool release)
   ((BinHeader*)m_code)->m_compver = COMPVER;
   ((BinHeader*)m_code)->m_machver = MACHVER;
 
-#ifdef _DEBUG
+#if 0
   std::ofstream ofs("out.dec.txt");
   Decompile(m_code, sizeof(BinHeader), 
     ((BinHeader*)m_code)->m_codelen +
@@ -239,6 +242,10 @@ CodeGenerator::GenerateCode(Ast* node)
   // Generate type-specific code
   switch(node->m_type)
   {
+  case pause_statement:
+    PushByte(op_nop);
+    break;
+
   case translation_unit:
     GenerateCode(node->m_a1);
     break;
@@ -447,6 +454,10 @@ CodeGenerator::GenerateCode(Ast* node)
     m_classes[node->m_a1] = node;
     break;
 
+  case member_call:
+    GenerateMemberCall(node);
+    break;
+
   default:
     INTERNAL_ERROR(m_reporter, node->m_pos);
   }
@@ -460,11 +471,22 @@ CodeGenerator::GenerateLValue(Ast* node)
   // Generate type-specific instruction
   switch(vi.m_type)
   {
-  case varGlobal: PushByte(op_pushg); break;
-  case varParam:  PushByte(op_pushv); break;
-  case varLocal:  PushByte(op_pushv); break;
-  case varMember: PushByte(op_pushm); break;
-  default:        INTERNAL_ERROR(m_reporter, node->m_pos);
+  case varGlobal: 
+    PushByte(op_pushg); 
+    break;
+  case varParam:  
+    PushByte(op_pushv); 
+    break;
+  case varLocal:  
+    PushByte(op_pushv); 
+    break;
+  case varMember: 
+    PushByte(op_pushv);
+    PushQuad(-1);
+    PushByte(op_pushm); 
+    break;
+  default:        
+    INTERNAL_ERROR(m_reporter, node->m_pos);
   }
 
   // Generate offset
@@ -497,49 +519,6 @@ CodeGenerator::GenerateVariableDeclaration(Ast* node)
   {
     INTERNAL_ERROR(m_reporter, node->m_pos);
   }
-}
-
-void 
-CodeGenerator::GenerateFunctionCall(Ast* node)
-{
-  // Generate argument list
-  if(node->m_a2)
-  {
-    GenerateCode(node->m_a2);
-  }
-
-  // Generate call
-  if(node->m_a3)
-  {
-    // User code call
-    PushByte(op_call);
-    node->m_props["patch"] = m_used;
-    m_calls.push_back(node);
-    PushQuad(0);
-  }
-  else
-  {
-    // Native call
-    PushByte(op_calln);
-
-    // In case of broken call, there's no need to 
-    // generate correct code, so ignore lack of offset
-    if(node->m_props.contains("offset"))
-    {
-      PushWord((Quad)node->m_props["offset"]);
-      PushWord((Quad)node->m_props["argcount"]);
-    }
-  }
-
-  // Cleanup code
-  if((Quad)node->m_props["argcount"] != Quad(0))
-  {
-    PushByte(op_stackt);
-    PushQuad(node->m_props["argcount"]);
-  }
-
-  // Push return value onto stack
-  PushByte(op_pushr);
 }
 
 void 
@@ -874,4 +853,77 @@ CodeGenerator::GenerateClassDeclaration(Ast* node)
       classDef->AddVar();
     }
   }
+}
+
+void 
+CodeGenerator::GenerateFunctionCall(Ast* node)
+{
+  // Generate argument list
+  if(node->m_a2)
+  {
+    GenerateCode(node->m_a2);
+  }
+
+  // Generate call
+  if(node->m_a3)
+  {
+    // User code call
+    PushByte(op_call);
+    node->m_props["patch"] = m_used;
+    m_calls.push_back(node);
+    PushQuad(0);
+  }
+  else
+  {
+    // Native call
+    PushByte(op_calln);
+
+    // In case of broken call, there's no need to 
+    // generate correct code, so ignore lack of offset
+    if(node->m_props.contains("offset"))
+    {
+      PushWord((Quad)node->m_props["offset"]);
+      PushWord((Quad)node->m_props["argcount"]);
+    }
+  }
+
+  // Cleanup code
+  if((Quad)node->m_props["argcount"] != Quad(0))
+  {
+    PushByte(op_stackt);
+    PushQuad(node->m_props["argcount"]);
+  }
+
+  // Push return value onto stack
+  PushByte(op_pushr);
+}
+
+void
+CodeGenerator::GenerateMemberCall(Ast* node)
+{
+  // Generate function call arguments
+  if(!node->m_a2->m_a2.Empty())
+  {
+    GenerateCode(node->m_a2->m_a2);
+  }
+
+  // Generate object
+  GenerateCode(node->m_a1);
+
+  // Generate name of function
+  PushByte(op_pushl);
+  PushLiteral(node->m_a2->m_a1.GetString());
+
+  // Generata call instruction
+  PushByte(op_callm);
+
+  // Generate number of arguments
+  PushQuad(node->m_a2->m_props["argcount"]);
+
+  // Cleanup code
+  PushByte(op_stackt);
+  PushQuad((Quad)node->m_a2->m_props["argcount"]);
+
+  // Push return value onto stack
+  PushByte(op_pushr);
 }

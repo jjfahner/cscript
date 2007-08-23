@@ -119,11 +119,12 @@ void PrintVariant(VariantRef const& ref)
 {
   switch(ref->GetType())
   {
-  case Variant::stNull:   cout << "null"; return;
-  case Variant::stBool:   cout << (ref->GetBool() ? "true" : "false"); return;
-  case Variant::stInt:    cout << ref->GetInt(); return;
-  case Variant::stString: cout << ref->GetString(); return;
-  case Variant::stAssoc:  break;
+  case Variant::stNull:       cout << "null"; return;
+  case Variant::stBool:       cout << (ref->GetBool() ? "true" : "false"); return;
+  case Variant::stInt:        cout << ref->GetInt(); return;
+  case Variant::stString:     cout << ref->GetString(); return;
+  case Variant::stAssoc:      break;
+  case Variant::stResource:   cout << "resource"; return;
   default: throw std::runtime_error("Invalid subtype");
   }
 

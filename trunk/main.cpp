@@ -336,7 +336,7 @@ int execute(CmdArgs const& args)
     offset = header->m_codeseg;
 
     // Decompile
-#ifdef _DEBUG
+#if 0
     ofs.open((filename + ".txt").c_str());
     cg.Decompile(code,
                  header->m_codeseg, 

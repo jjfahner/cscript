@@ -119,6 +119,9 @@ begin:
   // Execute single instruction
   switch(ipb)
   {
+  case op_nop:
+    break;
+
   case op_halt:
     return;
 
@@ -222,13 +225,28 @@ begin:
     stack[SP].Clear();
     break;
 
+  case op_callm:
+    Q0 = ipq;
+    POP(P0);
+    rstack.push((Quad)(code - base));
+    code = base + TOP.GetTypedRes<Instance>()->Lookup(R0.GetString());
+    break;
+
+  case op_pushm:
+    Q0 = ipq;
+    POP(P0);
+    P0 = R0.GetTypedRes<Instance>()->GetVar(Q0);
+    PUSH(P0);
+    break;
+
   case op_ret:
     code = base + rstack.top();
     rstack.pop();
     break;
 
   case op_iters:
-    PUSH(Variant(new IteratorRes(TOP.GetMap())));
+    P0 = Variant(new IteratorRes(TOP.GetMap()));
+    PUSH(P0);
     break;
 
   case op_iterv:
