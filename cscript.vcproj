@@ -221,6 +221,10 @@
 			Name="test"
 			>
 			<File
+				RelativePath=".\file.csi"
+				>
+			</File>
+			<File
 				RelativePath=".\socket.csi"
 				>
 			</File>

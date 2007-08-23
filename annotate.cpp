@@ -114,6 +114,10 @@ Annotator::AnnotateImpl(Ast* node)
 {
   switch(node->m_type)
   {
+  case pause_statement:
+    node->m_props["varcount"] = Quad(0);
+    break;
+
   case translation_unit:
     AnnotateTranslationUnit(node);
     break;
@@ -184,13 +188,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case function_call:
-    node->m_props["argcount"] = Quad(0);
-    if(node->m_a2)
-    {
-      AnnotateImpl(node->m_a2);
-      node->m_props["argcount"] = ArgCount(node->m_a2);
-    }
-    m_funcalls.push_back(node);
+    AnnotateFunctionCall(node, false);
     break;
 
   case argument_list:
@@ -205,7 +203,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case function_declaration:
-    AnnotateFunctionDeclaration(node);
+    AnnotateFunctionDeclaration(node, false);
     break;
 
   case parameter:
@@ -361,6 +359,10 @@ Annotator::AnnotateImpl(Ast* node)
     AnnotateClassDeclaration(node);
     break;
 
+  case member_call:
+    AnnotateMemberCall(node);
+    break;
+
   }
 }
 
@@ -382,13 +384,16 @@ Annotator::AnnotateTranslationUnit(Ast* node)
 }
 
 void 
-Annotator::AnnotateFunctionDeclaration(Ast* node)
+Annotator::AnnotateFunctionDeclaration(Ast* node, bool isMember)
 {
   // Check whether the name is in use
   String name = node->m_a1;
-  if(m_functions.count(name))
+  if(!isMember)
   {
-    m_reporter.ReportError(E0002, &node->m_pos, name.c_str());
+    if(m_functions.count(name))
+    {
+      m_reporter.ReportError(E0002, &node->m_pos, name.c_str());
+    }
   }
 
   // Initialize annotations
@@ -419,7 +424,10 @@ Annotator::AnnotateFunctionDeclaration(Ast* node)
   }
   
   // Store the function call
-  m_functions[name] = node;
+  if(!isMember)
+  {
+    m_functions[name] = node;
+  }
 }
 
 void
@@ -689,8 +697,9 @@ Annotator::AnnotateClassDeclaration(Ast* node)
 {
   AstList::iterator it, ie;
 
-  // Init var count
-  node->m_props["varcount"] = (Quad)0;
+  // Init properties
+  node->m_props["framesize"] = (Quad)0;
+  node->m_props["varcount"]  = (Quad)0;
   
   // TODO Check class name
   m_classes[node->m_a1] = node;
@@ -721,10 +730,33 @@ Annotator::AnnotateClassDeclaration(Ast* node)
     Ast* node = *it;
     if(node->m_type == function_declaration)
     {
-      AnnotateFunctionDeclaration(node);
+      AnnotateFunctionDeclaration(node, true);
     }
   }
 
   // Pop class scope
   PopScope();
+}
+
+void 
+Annotator::AnnotateFunctionCall(Ast* node, bool isMember)
+{
+  node->m_props["argcount"] = Quad(0);
+  if(node->m_a2)
+  {
+    AnnotateImpl(node->m_a2);
+    node->m_props["argcount"] = ArgCount(node->m_a2);
+  }
+  if(!isMember)
+  {
+    m_funcalls.push_back(node);
+  }
+}
+
+void 
+Annotator::AnnotateMemberCall(Ast* node)
+{
+  AnnotateImpl(node->m_a1);
+  AnnotateFunctionCall(node->m_a2, true);
+  node->m_a2->m_props["argcount"] = ArgCount(node->m_a2) + 1;
 }

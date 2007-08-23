@@ -61,6 +61,7 @@ int parseNextToken(Char*& start, Char*& end)
   "include"                 { return TOK_INCLUDE; }
   "new"                     { return TOK_NEW; }
   "null"                    { return TOK_NULL; }
+  "pause"                   { return TOK_PAUSE; }
   "return"                  { return TOK_RETURN; }
   "struct"                  { return TOK_STRUCT; }
   "switch"                  { return TOK_SWITCH; }

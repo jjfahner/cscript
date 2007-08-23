@@ -114,7 +114,7 @@ private:
   void GenerateForeachStatement(Ast* node);
   void GenerateVariableDeclaration(Ast* node);
   void GenerateClassDeclaration(Ast* node);
-
+  void GenerateMemberCall(Ast* node);
   //
   // Push reference to literal
   //

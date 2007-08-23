@@ -23,6 +23,8 @@
 
 enum opcodes
 {
+  op_nop,         // Do nothing
+
   op_halt,        // Halt execution
 
   op_pushl,       // Push literal on stack
@@ -44,6 +46,7 @@ enum opcodes
   op_jne,         // Pop top, compare with top, jump if different
   op_call,        // Call function
   op_calln,       // Call native function
+  op_callm,       // Call member function
   op_ret,         // Return from function
   op_stackg,      // Grow stack frame
   op_stacks,      // Shrink stack frame

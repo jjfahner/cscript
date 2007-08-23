@@ -26,6 +26,10 @@ Scope::Scope(Ast* node, Scope* parent) :
 m_node    (node),
 m_parent  (parent)
 {
+  if(m_parent && m_parent->m_node->m_type == class_declaration)
+  {
+    m_node->m_props["parcount"] = Quad(1);
+  }
 }
 
 VarInfo 
@@ -54,9 +58,7 @@ Scope::DeclareVariable(String const& name)
   {
     vi.m_type = varGlobal;
   }
-
   m_names[name] = vi;
-
   return vi;
 }
 
@@ -126,6 +128,7 @@ Scope::MakeVariableId()
   {
   case translation_unit:
   case function_declaration:
+  case class_declaration:
     break;
   default:
     return m_parent->MakeVariableId();

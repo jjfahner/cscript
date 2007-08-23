@@ -32,11 +32,14 @@ class Socket
   //
   function Connect(address, port)
   {
+    //print("In Socket::Connect({address}, {port})\n");
+
     var s = socket(address, port);
     if(s === false)
     {
       return false;
     }
+
     m_socket = s;
     return true;
   }
@@ -46,6 +49,8 @@ class Socket
   //
   function Close()
   {
+    //print("In Socket::Close()\n");
+
     if(m_socket != null)
     {
       var s = m_socket;
@@ -57,8 +62,10 @@ class Socket
   //
   // Send data
   //
-  function Send(data, length = null)
+  function Send(data, length)
   {
+    //print("In Socket::Send({data}, {length})\n");
+
     if(m_socket == null)
     {
       return false;
@@ -69,13 +76,15 @@ class Socket
   //
   // Receive data
   //
-  function Recv(length = null)
+  function Recv(length, timeout)
   {
+    //print("In Socket::Recv({length})\n");
+
     if(m_socket == null)
     {
       return false;
     }
-    return recv(m_socket, length);
+    return recv(m_socket, length, timeout);
   }
 
 };
