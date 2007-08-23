@@ -29,6 +29,7 @@ class File
 
   function Open(filename, mode)
   {
+    //Close();
     var f = fopen(filename, mode);
     if(f === false)
     {

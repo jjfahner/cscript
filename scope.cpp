@@ -21,6 +21,7 @@
 #include "scope.h"
 #include "codegen.h"
 #include "report.h"
+#include "native.h"
 
 Scope::Scope(Ast* node, Scope* parent) :
 m_node    (node),
@@ -65,8 +66,17 @@ Scope::DeclareVariable(String const& name)
 String
 Scope::DeclareFunction(String const& name, Ast* node)
 {
-  // Add to functions
-  m_functions[name] = node;
+  // Determine function info
+  FunInfo fi;
+  fi.m_node = node;
+  fi.m_type = funGlobal;
+  if(m_node->m_type == class_declaration)
+  {
+    fi.m_type = funMember;
+  }
+
+  // Register function
+  m_functions[name] = fi;
 
   // Connect to scope
   node->m_props["inscope"] = m_node;
@@ -89,7 +99,38 @@ Scope::DeclareFunction(String const& name, Ast* node)
 }
 
 bool
-Scope::Lookup(String const& name, VarInfo& vi) const
+Scope::LookupFun(String const& name, FunInfo& info) const
+{
+  // Find in local scope
+  Functions::const_iterator it = m_functions.find(name);
+  if(it != m_functions.end())
+  {
+    info = it->second;
+    return true;
+  }
+
+  // Find in parent scope
+  if(m_parent)
+  {
+    return m_parent->LookupFun(name, info);
+  }
+
+  // Find native call
+  NativeCallInfo* nc = FindNative(name);
+  if(nc != 0)
+  {
+    FunInfo fi;
+    fi.m_node = 0;
+    fi.m_type = funNative;
+    return true;
+  }
+
+  // Unknown function
+  return false;
+}
+
+bool
+Scope::LookupVar(String const& name, VarInfo& vi) const
 {
   // Find in local scope
   Variables::const_iterator it;
@@ -128,7 +169,7 @@ Scope::Lookup(String const& name, VarInfo& vi) const
   // Proceed with lookup
   if(next)
   {
-    return next->Lookup(name, vi);
+    return next->LookupVar(name, vi);
   }
   
   // Failed

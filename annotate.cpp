@@ -554,7 +554,7 @@ Annotator::AnnotateLValue(Ast* node)
 {
   // Find lvalue on stack
   VarInfo vi;
-  if(!m_scope->Lookup(node->m_a1, vi))
+  if(!m_scope->LookupVar(node->m_a1, vi))
   {
     m_reporter.ReportError(E0003, &node->m_pos, node->m_a1.GetString().c_str());
   }
@@ -827,12 +827,31 @@ Annotator::AnnotateClassDeclaration(Ast* node)
 void 
 Annotator::AnnotateFunctionCall(Ast* node, bool isMember)
 {
+  // Function name
+  String name = node->m_a1;
+
+  // Init number of arguments
   node->m_props["argcount"] = Quad(0);
+
+  // Count arguments
   if(node->m_a2)
   {
     AnnotateImpl(node->m_a2);
     node->m_props["argcount"] = ArgCount(node->m_a2);
   }
+
+  // Locate function
+  FunInfo fi;
+  if(!isMember && !m_scope->LookupFun(name, fi))
+  {
+    m_reporter.ReportError(E0005, &node->m_pos, name.c_str());
+    return;
+  }
+
+  // Connect function to call
+  node->m_props["function"] = fi;
+
+  // Register call
   if(!isMember)
   {
     m_calls.push_back(node);
