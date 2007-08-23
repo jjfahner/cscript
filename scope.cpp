@@ -119,9 +119,9 @@ Scope::LookupFun(String const& name, FunInfo& info) const
   NativeCallInfo* nc = FindNative(name);
   if(nc != 0)
   {
-    FunInfo fi;
-    fi.m_node = 0;
-    fi.m_type = funNative;
+    info.m_node = 0;
+    info.m_type = funNative;
+    info.m_offs = nc->m_offset;
     return true;
   }
 

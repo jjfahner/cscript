@@ -283,7 +283,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case function_call:
-    AnnotateFunctionCall(node, false);
+    AnnotateFunctionCall(node);
     break;
 
   case argument_list:
@@ -572,6 +572,19 @@ Annotator::ResolveCalls()
   AstList::iterator ie = m_calls.end();
   for(; it != ie; ++it)
   {
+    Ast* call = *it;
+    FunInfo const& fi = call->m_props["function"];
+    if(fi.m_type == funNative)
+    {
+      call->m_props["offset"] = fi.m_offs;
+    }
+    else
+    {
+      call->m_a3 = fi.m_node;
+    }
+
+    continue;
+
     // Function name
     String name = (*it)->m_a1;
 
@@ -825,7 +838,7 @@ Annotator::AnnotateClassDeclaration(Ast* node)
 }
 
 void 
-Annotator::AnnotateFunctionCall(Ast* node, bool isMember)
+Annotator::AnnotateFunctionCall(Ast* node)
 {
   // Function name
   String name = node->m_a1;
@@ -840,9 +853,9 @@ Annotator::AnnotateFunctionCall(Ast* node, bool isMember)
     node->m_props["argcount"] = ArgCount(node->m_a2);
   }
 
-  // Locate function
+  // Find function
   FunInfo fi;
-  if(!isMember && !m_scope->LookupFun(name, fi))
+  if(!m_scope->LookupFun(name, fi))
   {
     m_reporter.ReportError(E0005, &node->m_pos, name.c_str());
     return;
@@ -852,17 +865,27 @@ Annotator::AnnotateFunctionCall(Ast* node, bool isMember)
   node->m_props["function"] = fi;
 
   // Register call
-  if(!isMember)
-  {
-    m_calls.push_back(node);
-  }
+  m_calls.push_back(node);
 }
 
 void 
 Annotator::AnnotateMemberCall(Ast* node)
 {
+  // Function name
+  String name = node->m_a2->m_a1;
+
+  // Annotate object expression
   AnnotateImpl(node->m_a1);
-  AnnotateFunctionCall(node->m_a2, true);
-  node->m_a2->m_props["argcount"] = ArgCount(node->m_a2) + 1;
+
+  // Init number of arguments
+  node->m_props["argcount"] = Quad(1);
+
+  // Count arguments
+  if(node->m_a2->m_a2)
+  {
+    // Add argcount, add 1 for 'this'
+    AnnotateImpl(node->m_a2->m_a2);
+    node->m_props["argcount"] = ArgCount(node->m_a2->m_a2) + 1;
+  }
 }
 

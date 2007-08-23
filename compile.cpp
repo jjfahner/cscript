@@ -918,11 +918,11 @@ CodeGenerator::GenerateMemberCall(Ast* node)
   PushByte(op_callm);
 
   // Generate number of arguments
-  PushQuad(node->m_a2->m_props["argcount"]);
+  PushQuad(node->m_props["argcount"]);
 
   // Cleanup code
   PushByte(op_stackt);
-  PushQuad((Quad)node->m_a2->m_props["argcount"]);
+  PushQuad((Quad)node->m_props["argcount"]);
 
   // Push return value onto stack
   PushByte(op_pushr);

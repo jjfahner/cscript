@@ -52,6 +52,7 @@ struct FunInfo
 {
   FunTypes  m_type;
   Ast*      m_node;
+  Quad      m_offs;
 };
 
 class Scope 
