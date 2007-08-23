@@ -156,7 +156,7 @@ CodeGenerator::Generate(Ast* node, bool release)
   ae = m_classes.end();
   for(; ai != ae; ++ai)
   {
-    Class* classDef = any_cast<Class*>(ai->second->m_props["classdef"]);
+    Class* classDef = ai->second->m_props["classdef"];
     classDef->Write(*this);
   }
 
@@ -466,7 +466,7 @@ CodeGenerator::GenerateCode(Ast* node)
 void
 CodeGenerator::GenerateLValue(Ast* node)
 {
-  VarInfo const& vi = any_cast<VarInfo>(node->m_props["varinfo"]);
+  VarInfo const& vi = node->m_props["varinfo"];
 
   // Generate type-specific instruction
   switch(vi.m_type)
@@ -496,7 +496,7 @@ CodeGenerator::GenerateLValue(Ast* node)
 void
 CodeGenerator::GenerateVariableDeclaration(Ast* node)
 {
-  VarInfo const& vi = any_cast<VarInfo>(node->m_props["varinfo"]);
+  VarInfo const& vi = node->m_props["varinfo"];
 
   if(node->m_a2.Type() == AstData::Null)
   {
@@ -653,7 +653,7 @@ CodeGenerator::GenerateSwitchExpression(Ast* node)
   }
 
   // Fix break statements
-  AstList& breaks = any_cast<AstList>(node->m_props["break"]);
+  AstList const& breaks = node->m_props["break"];
   AstList::const_iterator bi = breaks.begin();
   AstList::const_iterator be = breaks.end();
   for(; bi != be; ++bi)
@@ -706,7 +706,7 @@ CodeGenerator::GenerateWhileStatement(Ast* node)
   FixPatch(offset1);
 
   // Fix break statements
-  AstList& breaks = any_cast<AstList>(node->m_props["break"]);
+  AstList const& breaks = node->m_props["break"];
   AstList::const_iterator bi = breaks.begin();
   AstList::const_iterator be = breaks.end();
   for(; bi != be; ++bi)
@@ -715,7 +715,7 @@ CodeGenerator::GenerateWhileStatement(Ast* node)
   }
 
   // Fix continue statements
-  AstList& continues = any_cast<AstList>(node->m_props["continue"]);
+  AstList const& continues = node->m_props["continue"];
   AstList::const_iterator ci = continues.begin();
   AstList::const_iterator ce = continues.end();
   for(; ci != ce; ++ci)
@@ -752,7 +752,7 @@ CodeGenerator::GenerateForStatement(Ast* node)
   FixPatch(offset1);
 
   // Fix break statements
-  AstList& breaks = any_cast<AstList>(node->m_props["break"]);
+  AstList const& breaks = node->m_props["break"];
   AstList::const_iterator bi = breaks.begin();
   AstList::const_iterator be = breaks.end();
   for(; bi != be; ++bi)
@@ -761,7 +761,7 @@ CodeGenerator::GenerateForStatement(Ast* node)
   }
 
   // Fix continue statements
-  AstList& continues = any_cast<AstList>(node->m_props["continue"]);
+  AstList const& continues = node->m_props["continue"];
   AstList::const_iterator ci = continues.begin();
   AstList::const_iterator ce = continues.end();
   for(; ci != ce; ++ci)
@@ -785,7 +785,7 @@ CodeGenerator::GenerateForeachStatement(Ast* node)
   Quad offset1 = PushPatch();
   
   // Assign iterator to target
-  VarInfo const& vi = any_cast<VarInfo>(node->m_a1->m_props["varinfo"]);
+  VarInfo const& vi = node->m_a1->m_props["varinfo"];
   PushByte(op_itern);
   PushQuad(vi.m_offset);
 
@@ -800,7 +800,7 @@ CodeGenerator::GenerateForeachStatement(Ast* node)
   FixPatch(offset1);
 
   // Fix break statements
-  AstList& breaks = any_cast<AstList>(node->m_props["break"]);
+  AstList const& breaks = node->m_props["break"];
   AstList::const_iterator bi = breaks.begin();
   AstList::const_iterator be = breaks.end();
   for(; bi != be; ++bi)
@@ -809,7 +809,7 @@ CodeGenerator::GenerateForeachStatement(Ast* node)
   }
 
   // Fix continue statements
-  AstList& continues = any_cast<AstList>(node->m_props["continue"]);
+  AstList const& continues = node->m_props["continue"];
   AstList::const_iterator ci = continues.begin();
   AstList::const_iterator ce = continues.end();
   for(; ci != ce; ++ci)

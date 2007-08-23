@@ -71,24 +71,33 @@ public:
   VarInfo DeclareVariable(String const& name);
 
   //
+  // Declare a function
+  //
+  String DeclareFunction(String const& name, Ast* node);
+
+  //
   // Find a name
   //
   bool Lookup(String const& name, VarInfo& info) const;
 
 private:
 
+  //
+  // Register variable/parameter id
+  //
   int MakeParameterId();
-
   int MakeVariableId();
 
-  typedef std::map<String, VarInfo> Names;
+  typedef std::map<String, VarInfo> Variables;
+  typedef std::map<String, Ast*>    Functions;
 
   //
   // Members
   //
   Scope*      m_parent;
   Ast*        m_node;
-  Names       m_names;
+  Variables   m_variables;
+  Functions   m_functions;
 
 };
 

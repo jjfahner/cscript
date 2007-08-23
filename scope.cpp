@@ -39,7 +39,7 @@ Scope::DeclareParameter(String const& name)
   vi.m_type   = varParam;
   vi.m_offset = MakeParameterId();
 
-  m_names[name] = vi;
+  m_variables[name] = vi;
 
   return vi;
 }
@@ -58,16 +58,42 @@ Scope::DeclareVariable(String const& name)
   {
     vi.m_type = varGlobal;
   }
-  m_names[name] = vi;
+  m_variables[name] = vi;
   return vi;
+}
+
+String
+Scope::DeclareFunction(String const& name, Ast* node)
+{
+  // Add to functions
+  m_functions[name] = node;
+
+  // Connect to scope
+  node->m_props["inscope"] = m_node;
+
+  // Connect to class
+  if(m_node->m_type == class_declaration)
+  {
+    node->m_props["class"] = m_node;
+  }
+
+  // Determine mangled name
+  String mangled = name;
+  if(m_node->m_type == class_declaration)
+  {
+    mangled += "@" + String(m_node->m_a1);
+  }
+
+  // Return mangled name
+  return mangled;
 }
 
 bool
 Scope::Lookup(String const& name, VarInfo& vi) const
 {
   // Find in local scope
-  Names::const_iterator it;
-  if((it = m_names.find(name)) != m_names.end())
+  Variables::const_iterator it;
+  if((it = m_variables.find(name)) != m_variables.end())
   {
     vi = it->second;
     return true;

@@ -55,37 +55,43 @@ m_scope     (0)
 {
 }
 
-void
-Annotator::Annotate(Ast* node)
-{
-  // Annotate tree
-  AnnotateImpl(node);
-
-  // Resolve and check function calls
-  ResolveCalls();  
-}
+//////////////////////////////////////////////////////////////////////////
+//
+// Scope handling
+//
 
 void
 Annotator::PushScope(Ast* node)
 {
   // Check current scope
-  if(m_scopeStack.top() != m_scope)
+  if(m_scopeStack.size() && m_scopeStack.top() != m_scope)
   {
     throw std::runtime_error("Invalid scope on stack");
   }
 
-  // Create new scope
-  Scope* scope = new Scope(node, m_scope);
+  // Fetch or create scope
+  Scope* scope = 0;
+  if(node->m_props.contains("scope"))
+  {
+    scope = node->m_props["scope"];
+  }
+  else
+  {
+    scope = new Scope(node, m_scope);
+  }
 
   // Push it on the stack
   m_scopeStack.push(scope);
+
+  // Associate it with the current node
+  node->m_props["scope"] = scope;
 
   // Set as current scope
   m_scope = scope;
 }
 
-Scope*
-Annotator::PopScope(bool deleteScope)
+void
+Annotator::PopScope()
 {
   // Retrieve scope from stack
   Scope* scope = m_scopeStack.top();
@@ -96,18 +102,107 @@ Annotator::PopScope(bool deleteScope)
 
   // Remove from stack
   m_scopeStack.pop();
-  m_scope = m_scopeStack.top();
+  m_scope = m_scopeStack.size() ? m_scopeStack.top() : 0;
+}
 
-  // Delete if specified
-  if(deleteScope)
+//////////////////////////////////////////////////////////////////////////
+//
+// Top-level annotation
+//
+
+void
+Annotator::Annotate(Ast* node)
+{
+  // Annotate structure
+  AnnotateStructure(node);
+
+  // Annotate code
+  AnnotateImpl(node);
+
+  // Annotate functions
+  AstMap::iterator it = m_functions.begin();
+  AstMap::iterator ie = m_functions.end();
+  for(; it != ie; ++it)
   {
-    delete scope;
-    scope = 0;
+    PushScope(it->second->m_props["inscope"]);
+    AnnotateFunction(it->first, it->second);
+    PopScope();
   }
 
-  // Return scope (or null)
-  return scope;
+  // Resolve and check function calls
+  ResolveCalls();  
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Annotate global structure; registers global functions and classes.
+//
+
+void 
+Annotator::AnnotateStructure(Ast* node)
+{  
+  switch(node->m_type)
+  {
+    // Handle translation unit
+  case translation_unit:
+    node->m_props["framesize"] = Quad(0);
+    PushScope(node);
+    AnnotateStructure(node->m_a1);
+    PopScope();
+    break;
+
+    // Recurse into statement sequence
+  case statement_sequence:
+    {
+      AstList* list = node->m_a1;
+      AstList::iterator si = list->begin();
+      AstList::iterator se = list->end();
+      for(; si != se; ++si)
+      {
+        AnnotateStructure(*si);
+      }
+    }
+    break;
+
+    // Register function declaration
+  case function_declaration:
+    {
+      // Declare in local scope
+      String mangled = m_scope->DeclareFunction(node->m_a1, node);
+
+      // Register global name
+      m_functions[mangled] = node;
+    }
+    break;
+
+    // Register variable
+  case variable_declaration:
+    AnnotateVariableDeclaration(node);
+    break;
+
+    // Parse class member functions
+  case class_declaration:
+    node->m_props["framesize"] = Quad(0);
+    PushScope(node);
+    {
+      AstList* list = node->m_a2;
+      AstList::iterator si = list->begin();
+      AstList::iterator se = list->end();
+      for(; si != se; ++si)
+      {
+        AnnotateStructure(*si);
+      }
+    }
+    PopScope();
+    m_classes[node->m_a1] = node;
+    break;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Annotate code. Annotates global code and (member-)function contents.
+//
 
 void
 Annotator::AnnotateImpl(Ast* node)
@@ -203,7 +298,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case function_declaration:
-    AnnotateFunctionDeclaration(node, false);
+    //AnnotateFunctionDeclaration(node, false);
     break;
 
   case parameter:
@@ -356,7 +451,7 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case class_declaration:
-    AnnotateClassDeclaration(node);
+    //AnnotateClassDeclaration(node);
     break;
 
   case member_call:
@@ -369,9 +464,6 @@ Annotator::AnnotateImpl(Ast* node)
 void 
 Annotator::AnnotateTranslationUnit(Ast* node)
 {
-  // Initialize scope stack
-  m_scopeStack.push(0);
-
   // Push initial frame
   PushScope(node);
 
@@ -384,17 +476,13 @@ Annotator::AnnotateTranslationUnit(Ast* node)
 }
 
 void 
-Annotator::AnnotateFunctionDeclaration(Ast* node, bool isMember)
+Annotator::AnnotateFunction(String fullName, Ast* node)
 {
-  // Check whether the name is in use
+  // Function name
   String name = node->m_a1;
-  if(!isMember)
-  {
-    if(m_functions.count(name))
-    {
-      m_reporter.ReportError(E0002, &node->m_pos, name.c_str());
-    }
-  }
+
+  // Member function
+  bool isMember = fullName.find('@') != String::npos;
 
   // Initialize annotations
   node->m_props["framesize"] = Quad(0);
@@ -445,11 +533,16 @@ Annotator::AnnotateStatementSequence(Ast* node)
   se = list->end();
   for(; si != se; ++si)
   {
+    Ast* s = *si;
+
     // AnnotateImpl statement
-    AnnotateImpl(*si);
+    AnnotateImpl(s);
 
     // Add to count
-    varcount += VarCount(*si);
+    if(s->m_props.contains("varcount"))
+    {
+      varcount += VarCount(s);
+    }
   }    
 
   // Store varcount
@@ -475,8 +568,8 @@ void
 Annotator::ResolveCalls()
 {
   // Enumerate calls
-  AstList::iterator it = m_funcalls.begin();
-  AstList::iterator ie = m_funcalls.end();
+  AstList::iterator it = m_calls.begin();
+  AstList::iterator ie = m_calls.end();
   for(; it != ie; ++it)
   {
     // Function name
@@ -564,9 +657,8 @@ Annotator::AnnotateStructDeclaration(Ast* node)
     AnnotateImpl(node->m_a2);
   }
 
-  // TODO Store scope with node
-  Scope* structScope = PopScope(false);
-  delete structScope;
+  // Pop scope
+  PopScope();
 }
 
 void 
@@ -710,7 +802,7 @@ Annotator::AnnotateClassDeclaration(Ast* node)
   // Create class scope
   PushScope(node);
 
-  // Enumerate members to handle variables
+  // Enumerate members first time
   it = list->begin();
   ie = list->end();
   for(; it != ie; ++it)
@@ -718,19 +810,13 @@ Annotator::AnnotateClassDeclaration(Ast* node)
     Ast* node = *it;
     if(node->m_type == variable_declaration)
     {
+      // Add variable to class
       AnnotateVariableDeclaration(node);
     }
-  }
-
-  // Enumerate functions
-  it = list->begin();
-  ie = list->end();
-  for(; it != ie; ++it)
-  {
-    Ast* node = *it;
-    if(node->m_type == function_declaration)
+    else
     {
-      AnnotateFunctionDeclaration(node, true);
+      // Register member function name
+      m_scope->DeclareFunction(node->m_a1, node);
     }
   }
 
@@ -749,7 +835,7 @@ Annotator::AnnotateFunctionCall(Ast* node, bool isMember)
   }
   if(!isMember)
   {
-    m_funcalls.push_back(node);
+    m_calls.push_back(node);
   }
 }
 
@@ -760,3 +846,4 @@ Annotator::AnnotateMemberCall(Ast* node)
   AnnotateFunctionCall(node->m_a2, true);
   node->m_a2->m_props["argcount"] = ArgCount(node->m_a2) + 1;
 }
+

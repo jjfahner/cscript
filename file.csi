@@ -29,8 +29,6 @@ class File
 
   function Open(filename, mode)
   {
-    //print("In File::Open({filename}, {mode})\n");
-
     var f = fopen(filename, mode);
     if(f === false)
     {
@@ -41,8 +39,6 @@ class File
 
   function Close()
   {
-    //print("In File::Close()\n");
-
     if(m_file != null)
     {
       fclose(m_file);
@@ -52,8 +48,6 @@ class File
 
   function Read(length)
   {
-    //print("In File::Read({length})\n");
-
     if(m_file == null)
     {
       return false;
@@ -63,8 +57,6 @@ class File
 
   function Write(data, length)
   {
-    //print("In File::Write({data}, {length})\n");
-
     if(m_file == null)
     {
       return false;
