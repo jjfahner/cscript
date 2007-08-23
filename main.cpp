@@ -21,6 +21,7 @@
 #include "file.h"
 #include "cmdargs.h"
 #include "ast.h"
+#include "report.h"
 #include "parser.h"
 #include "codegen.h"
 #include "machine.h"

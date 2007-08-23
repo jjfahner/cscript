@@ -45,6 +45,10 @@ struct BinHeader
   // Data segment
   Quad    m_dataseg;
   Quad    m_datalen;
+
+  // Class segment
+  Quad    m_vtabseg;
+  Quad    m_vtablen;
 };
 
 //

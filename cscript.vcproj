@@ -486,6 +486,10 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\class.cpp"
+			>
+		</File>
+		<File
 			RelativePath=".\TODO"
 			>
 		</File>

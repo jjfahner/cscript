@@ -23,6 +23,9 @@
 #include "file.h"
 #include "annotate.h"
 #include "optimize.h"
+#include "class.h"
+#include "report.h"
+#include "scope.h"
 
 inline bool IsType(Ast* node, AstTypes type)
 {
@@ -144,6 +147,21 @@ CodeGenerator::Generate(Ast* node, bool release)
 
   // Store length of data segment
   ((BinHeader*)m_code)->m_datalen = m_used - ((BinHeader*)m_code)->m_dataseg;
+
+  // Store offset of vtables
+  ((BinHeader*)m_code)->m_vtabseg = m_used;
+
+  // Generate vtables
+  ai = m_classes.begin();
+  ae = m_classes.end();
+  for(; ai != ae; ++ai)
+  {
+    any_cast<Class*>(ai->second->m_props["classdef"])->Write(*this);
+  }
+
+  // Store length of vtable segment
+  ((BinHeader*)m_code)->m_vtablen = m_used - ((BinHeader*)m_code)->m_vtabseg;
+
 
   // Store total length
   ((BinHeader*)m_code)->m_filelen = m_used;
@@ -827,25 +845,25 @@ CodeGenerator::GenerateClassDeclaration(Ast* node)
   AstList* list = node->m_a2;
   AstList::iterator it, ie;
 
-  // Function table
-  std::map<String, Quad> vtable;
+  // Store class definition with declaration
+  Class* classDef = new Class(node->m_a1);
+  node->m_props["classdef"] = classDef;
 
   // Enumerate functions
   it = list->begin();
   ie = list->end();
   for(; it != ie; ++it)
   {
-    Ast* node = *it;
-    if(node->m_type == function_declaration)
+    Ast* mem = *it;
+    if(mem->m_type == function_declaration)
     {
       // Generate function
-      GenerateFunction(node);
+      GenerateFunction(mem);
       
       // Store in vtable
-      vtable[node->m_a1] = node->m_props["offset"];
+      classDef->AddFun(mem->m_a1, 
+        mem->m_props["parcount"], 
+        mem->m_props["offset"]);
     }
   }
-
-  // Generate constructor
-  
 }

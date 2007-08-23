@@ -24,8 +24,9 @@
 #include "ast.h"
 #include "astlist.h"
 #include "var.h"
-#include "scope.h"
-#include "report.h"
+
+class Class;
+class Reporter;
 
 class CodeGenerator
 {
@@ -76,6 +77,15 @@ public:
   //
   Quad GetSize() const;
   
+  //
+  // Low-level code generation
+  //
+  void PushData(Byte* data, Quad size);
+  void PushByte(Byte);
+  void PushWord(Word);
+  void PushQuad(Quad);
+  void FillQuad(Quad offset, Quad data);
+
 private:
 
   //
@@ -104,15 +114,6 @@ private:
   void GenerateForeachStatement(Ast* node);
   void GenerateVariableDeclaration(Ast* node);
   void GenerateClassDeclaration(Ast* node);
-
-  //
-  // Low-level code generation
-  //
-  void PushData(Byte* data, Quad size);
-  void PushByte(Byte);
-  void PushWord(Word);
-  void PushQuad(Quad);
-  void FillQuad(Quad offset, Quad data);
 
   //
   // Push reference to literal
