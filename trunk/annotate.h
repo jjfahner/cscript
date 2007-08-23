@@ -57,11 +57,16 @@ private:
   void AnnotateContinueStatement(Ast* node);
   void AnnotateSwitchCase(Ast* node);
   void AnnotateClassDeclaration(Ast* node);
-  void AnnotateFunctionDeclaration(Ast* node, bool isMember);
   void AnnotateVariableDeclaration(Ast* node);
   void AnnotateStructDeclaration(Ast* node);
   void AnnotateFunctionCall(Ast* node, bool isMember);
   void AnnotateMemberCall(Ast* node);
+
+  //
+  // Annotate global structure
+  //
+  void AnnotateStructure(Ast* node);
+  void AnnotateFunction(String fullName, Ast* node);
 
   //
   // Function call resolving
@@ -71,8 +76,8 @@ private:
   //
   // Scope handling
   //
-  void    PushScope(Ast* node);
-  Scope*  PopScope(bool deleteScope = true);
+  void PushScope(Ast* node);
+  void PopScope();
 
   //
   // Reporter
@@ -80,36 +85,20 @@ private:
   Reporter& m_reporter;
 
   //
-  // Stack for scoping. Used during annotation phase.
-  //
-  typedef std::stack<Scope*> VarIdStack;
-  VarIdStack m_scopeStack;
-  Scope* m_scope;
-
-  //
-  // Map of ast nodes
+  // Types
   //
   typedef std::map<String, Ast*> AstMap;
+  typedef std::stack<Scope*> VarIdStack;
 
   //
-  // List of function calls
+  // Members
   //
-  AstList m_funcalls;
-  
-  //
-  // List of declared functions
-  //
-  AstMap m_functions;
-
-  //
-  // List of declared structures
-  //
-  AstMap m_structs;
-
-  //
-  // List of declared classes
-  //
-  AstMap m_classes;
+  VarIdStack  m_scopeStack;
+  Scope*      m_scope;
+  AstList     m_calls;
+  AstMap      m_functions;
+  AstMap      m_structs;
+  AstMap      m_classes;
 
 };
 

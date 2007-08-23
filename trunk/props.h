@@ -87,6 +87,15 @@ public:
   }
 
   //
+  // Templatized conversion
+  //
+  template <typename U>
+  operator U () const
+  {
+    return any_cast<U>(Get());
+  }
+
+  //
   // Some typed conversions
   //
   operator Quad() const
