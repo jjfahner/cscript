@@ -565,7 +565,7 @@ void
 Annotator::AnnotateNewExpression(Ast* node)
 {
   // Check whether the type exists
-  if(m_structs.count(node->m_a1) == 0)
+  if(m_classes.count(node->m_a1) == 0)
   {
     m_reporter.ReportError(E0006, &node->m_pos, 
               node->m_a1.GetString().c_str());    
@@ -693,6 +693,7 @@ Annotator::AnnotateClassDeclaration(Ast* node)
   node->m_props["varcount"] = (Quad)0;
   
   // TODO Check class name
+  m_classes[node->m_a1] = node;
 
   // Retrieve member list
   AstList* list = node->m_a2;

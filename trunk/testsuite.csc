@@ -337,6 +337,9 @@ function main()
   assert("Regex", match("[a-zA-Z-]+", "jan-jaap"), "jan-jaap");
   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net@"), "");
   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net"), "jan-jaap@jan-jaap.net");
+  
+  // Test classes
+  var sock = new Socket;
 
   // Print result
   if(errors == 0)

@@ -345,8 +345,15 @@ int execute(CmdArgs const& args)
 #endif
   }
 
-  // Execute code
+  // Header pointer
+  BinHeader* header = (BinHeader*) code;
+
   Machine machine;
+
+  // Read classes
+  machine.ReadClasses(code + header->m_vtabseg);
+
+  // Execute code
   machine.Execute(code, offset);
 
   // Program succeeded

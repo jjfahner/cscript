@@ -24,6 +24,8 @@
 #include "types.h"
 #include "var.h"
 
+class Class;
+
 class Machine
 {
 public:
@@ -32,6 +34,23 @@ public:
   // Execute code
   //
   void Execute(Byte* code, Quad offset = 0);
+
+  //
+  // Read classes
+  //
+  void ReadClasses(Byte* code);
+
+private:
+
+  //
+  // Types
+  //
+  typedef std::map<String, Class*> ClassMap;
+
+  //
+  // Members
+  //
+  ClassMap m_classes;
 
 };
 

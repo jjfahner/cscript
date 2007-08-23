@@ -104,6 +104,11 @@ private:
   //
   AstMap m_structs;
 
+  //
+  // List of declared classes
+  //
+  AstMap m_classes;
+
 };
 
 #endif // CSCRIPT_ANNOTATE_H

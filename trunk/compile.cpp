@@ -158,6 +158,7 @@ CodeGenerator::Generate(Ast* node, bool release)
   {
     any_cast<Class*>(ai->second->m_props["classdef"])->Write(*this);
   }
+  PushByte(0);
 
   // Store length of vtable segment
   ((BinHeader*)m_code)->m_vtablen = m_used - ((BinHeader*)m_code)->m_vtabseg;
@@ -429,6 +430,9 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case new_expression:
+    PushByte(op_pushl);
+    PushLiteral(node->m_a1.GetString());
+    PushByte(op_new);
     break;
 
   case break_statement:
@@ -864,6 +868,10 @@ CodeGenerator::GenerateClassDeclaration(Ast* node)
       classDef->AddFun(mem->m_a1, 
         mem->m_props["parcount"], 
         mem->m_props["offset"]);
+    }
+    else
+    {
+      classDef->AddVar();
     }
   }
 }
