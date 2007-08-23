@@ -62,6 +62,8 @@ enum opcodes
   op_postdec,     // Subtract 1 to value on top of stack
   op_not,         // Invert boolean lvalue
 
+  op_new,         // Instantiate new object
+
   op_add,
   op_sub,
   op_mul,

@@ -181,6 +181,10 @@
 			Name="runtime"
 			>
 			<File
+				RelativePath=".\class.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\class.h"
 				>
 			</File>
@@ -191,6 +195,18 @@
 			<File
 				RelativePath=".\machine.h"
 				>
+			</File>
+			<File
+				RelativePath=".\main.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\var.cpp"
@@ -307,18 +323,6 @@
 			<File
 				RelativePath=".\lexer.h"
 				>
-			</File>
-			<File
-				RelativePath=".\main.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="false"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\optimize.cpp"
@@ -485,10 +489,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\class.cpp"
-			>
-		</File>
 		<File
 			RelativePath=".\TODO"
 			>

@@ -21,6 +21,7 @@
 #include "opcodes.h"
 #include "machine.h"
 #include "native.h"
+#include "class.h"
 
 inline Byte NextByte(Byte*& code)
 {
@@ -48,6 +49,26 @@ inline Variant ReadLiteral(Byte* code)
   Variant v;
   v.Read(code);
   return v;
+}
+
+void 
+Machine::ReadClasses(Byte* code)
+{
+  for(;;)
+  {
+    // End of table
+    if(*code == 0)
+    {
+      break;
+    }
+
+    // Instantiate class definition
+    Class* classDef = new Class;
+    code += classDef->Read(code);
+    
+    // Add to list
+    m_classes[classDef->GetName()] = classDef;
+  }
 }
 
 void 
@@ -226,6 +247,11 @@ begin:
     stack[ST + (int)ipq] = it->m_cur->second;
     it->Next();
     PUSH(P0);
+    break;
+
+  case op_new:
+    POP(P0);
+    PUSH(Variant(m_classes[R0.GetString()]->CreateInstance()));
     break;
 
   case op_negate:
