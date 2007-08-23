@@ -117,7 +117,7 @@ function files()
   file.Close();
 
   // Open for read
-  if(file.Open("filetest.txt", "r") === false)
+  if(file.Open(fn, "r") === false)
   {
     return "Failed to open file for reading";
   }
