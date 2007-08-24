@@ -52,6 +52,7 @@ private:
   Ast* OptimizeSwitchStatement(Ast*);
   Ast* OptimizeStructDeclaration(Ast*);
   Ast* OptimizeVariableDeclaration(Ast*);
+  Ast* OptimizeClassDeclaration(Ast*);
 
 };
 

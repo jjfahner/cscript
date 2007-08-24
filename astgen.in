@@ -190,6 +190,7 @@ primary_expression(R) ::= literal(A) .                  { R = A; }
 primary_expression(R) ::= id_expression(A) .            { R = A; }
 primary_expression(R) ::= LPAREN expression(A) RPAREN . { R = A; }
 primary_expression(R) ::= list_literal(A) .             { R = A; }
+primary_expression(R) ::= THIS .                        { R = p->AllocAst(this_expression); }
 
 // Literals
 literal(R) ::= INTEGER(A) . { R = p->AllocAst(literal, Variant(String(A), Variant::stInt)); }

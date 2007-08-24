@@ -458,6 +458,11 @@ CodeGenerator::GenerateCode(Ast* node)
     GenerateMemberCall(node);
     break;
 
+  case this_expression:
+    PushByte(op_pushv);
+    PushQuad(-1);
+    break;
+
   default:
     INTERNAL_ERROR(m_reporter, node->m_pos);
   }
