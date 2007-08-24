@@ -82,6 +82,7 @@ enum AstTypes
   class_members,
   member_call,
   pause_statement,
+  this_expression,
 };
 
 //////////////////////////////////////////////////////////////////////////

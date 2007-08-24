@@ -297,10 +297,6 @@ Annotator::AnnotateImpl(Ast* node)
     node->m_props["argcount"] = Quad(1);
     break;
 
-  case function_declaration:
-    //AnnotateFunctionDeclaration(node, false);
-    break;
-
   case parameter:
     node->m_props["varinfo"] = m_scope->DeclareParameter(node->m_a1);
     break;
@@ -451,11 +447,18 @@ Annotator::AnnotateImpl(Ast* node)
     break;
 
   case class_declaration:
-    //AnnotateClassDeclaration(node);
+    //m_reporter.ReportError(E0016, &node->m_pos);
+    break;
+
+  case function_declaration:
+    //m_reporter.ReportError(E0017, &node->m_pos);
     break;
 
   case member_call:
     AnnotateMemberCall(node);
+    break;
+
+  case this_expression:
     break;
 
   }
@@ -796,25 +799,35 @@ Annotator::AnnotateClassDeclaration(Ast* node)
 void 
 Annotator::AnnotateFunctionCall(Ast* node)
 {
-  // Function name
-  String name = node->m_a1;
-
   // Init number of arguments
   node->m_props["argcount"] = Quad(0);
+
+  // Find function
+  FunInfo fi;
+  String name = node->m_a1;
+  if(!m_scope->LookupFun(name, fi))
+  {
+    m_reporter.ReportError(E0005, &node->m_pos, name.c_str());
+    return;
+  }
+
+  // Rebuild member call
+  if(fi.m_type == funMember)
+  {
+    Ast* obj = new Ast(this_expression);
+    Ast* rep = new Ast(function_declaration, node->m_a1, node->m_a2);
+    node->m_type = member_call;
+    node->m_a1 = obj;
+    node->m_a2 = rep;
+    AnnotateMemberCall(node);
+    return;
+  }
 
   // Count arguments
   if(node->m_a2)
   {
     AnnotateImpl(node->m_a2);
     node->m_props["argcount"] = ArgCount(node->m_a2);
-  }
-
-  // Find function
-  FunInfo fi;
-  if(!m_scope->LookupFun(name, fi))
-  {
-    m_reporter.ReportError(E0005, &node->m_pos, name.c_str());
-    return;
   }
 
   // Connect function to call
@@ -844,4 +857,3 @@ Annotator::AnnotateMemberCall(Ast* node)
     node->m_props["argcount"] = ArgCount(node->m_a2->m_a2) + 1;
   }
 }
-

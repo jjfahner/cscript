@@ -37,17 +37,19 @@ struct Notice
 ERROR_EXPANSION(E0001,     1, "internal compiler error in file %s on line %d."); \
 ERROR_EXPANSION(E0002,     2, "function '%s' already defined."); \
 ERROR_EXPANSION(E0003,     3, "undefined variable '%s'."); \
-ERROR_EXPANSION(E0004,     4, "invalid number of arguments in call to function '%s'."); \
+ERROR_EXPANSION(E0004,     4, "not valid number of arguments in call to function '%s'."); \
 ERROR_EXPANSION(E0005,     5, "function '%s' not found."); \
 ERROR_EXPANSION(E0006,     6, "undeclared type '%s'."); \
-ERROR_EXPANSION(E0007,     7, "invalid initializer for variable '%s'."); \
+ERROR_EXPANSION(E0007,     7, "not valid initializer for variable '%s'."); \
 ERROR_EXPANSION(E0008,     8, "struct '%s' already declared."); \
 ERROR_EXPANSION(E0010,    10, "switch statement contains more than one default case."); \
 ERROR_EXPANSION(E0011,    11, "switch statement contains duplicate case value."); \
 ERROR_EXPANSION(E0012,    12, "unrecoverable syntax error."); \
 ERROR_EXPANSION(E0013,    13, "syntax error."); \
-ERROR_EXPANSION(E0014,    14, "break statement invalid here."); \
-ERROR_EXPANSION(E0015,    15, "continue statement invalid here.");
+ERROR_EXPANSION(E0014,    14, "break statement not valid here."); \
+ERROR_EXPANSION(E0015,    15, "continue statement not valid here."); \
+ERROR_EXPANSION(E0016,    16, "class declaration not valid here"); \
+ERROR_EXPANSION(E0017,    17, "function declaration not valid here");
 
 //
 // Expand errors to extern declarations

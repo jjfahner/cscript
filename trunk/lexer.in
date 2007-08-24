@@ -65,6 +65,7 @@ int parseNextToken(Char*& start, Char*& end)
   "return"                  { return TOK_RETURN; }
   "struct"                  { return TOK_STRUCT; }
   "switch"                  { return TOK_SWITCH; }
+  "this"                    { return TOK_THIS; }
   "true"                    { return TOK_TRUE; }
   "var"                     { return TOK_VAR; }
   "while"                   { return TOK_WHILE; }

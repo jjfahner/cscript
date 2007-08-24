@@ -194,12 +194,16 @@ Optimizer::Optimize(Ast* node)
     break;
 
   case class_declaration:
+    node = OptimizeClassDeclaration(node);
     break;
 
   case member_call:
     break;
 
   case pause_statement:
+    break;
+
+  case this_expression:
     break;
 
   default:
@@ -553,6 +557,23 @@ Optimizer::OptimizeVariableDeclaration(Ast* node)
   if(node->m_a2.Type() == AstData::Node)
   {
     node->m_a2 = Optimize(node->m_a2);
+  }
+  return node;
+}
+
+Ast* 
+Optimizer::OptimizeClassDeclaration(Ast* node)
+{
+  AstList* list = node->m_a2;
+  AstList::iterator it = list->begin();
+  AstList::iterator ie = list->end();
+  for(; it != ie; ++it)
+  {
+    Ast* node = *it;
+    if(node->m_type == function_declaration)
+    {
+      Optimize(node);
+    }
   }
   return node;
 }
