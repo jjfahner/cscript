@@ -22,8 +22,7 @@
 #include "codegen.h"
 
 Class::Class(String const& name) :
-m_name (name),
-m_vars (0)
+m_name (name)
 {
 }
 
@@ -41,9 +40,23 @@ Class::Read(Byte const* code)
   m_name = (char const*)code;
   code += m_name.length() + 1;
 
-  // Read variable count
-  m_vars = *(Quad*)code;
-  code += 4;
+  // Read variables
+  for(;;)
+  {
+    // End of table
+    if(*code == 0)
+    {
+      ++code;
+      break;
+    }
+
+    // Variable name
+    String name((char const*)code);
+    code += name.length() + 1;
+
+    // Index  is implicit
+    m_vars[name] = m_vars.size();
+  }
 
   // Read functions
   for(;;)
@@ -79,9 +92,21 @@ Class::Write(CodeGenerator& cg)
   // Write name
   cg.PushData((Byte*)m_name.c_str(), 
               m_name.length() + 1);
-  cg.PushQuad(m_vars);
 
-  // Write members
+  // Write variables
+  MemberVars::iterator vi, ve;
+  vi = m_vars.begin();
+  ve = m_vars.end();
+  for(; vi != ve; ++vi)
+  {
+    cg.PushData((Byte*)vi->first.c_str(), 
+      vi->first.length() + 1);
+  }
+
+  // End of table
+  cg.PushByte(0);
+
+  // Write functions
   MemberFuns::iterator it, ie;
   it = m_funs.begin();
   ie = m_funs.end();
@@ -107,9 +132,9 @@ Class::AddFun(String const& name, Quad params, Quad offset)
 }
 
 void 
-Class::AddVar()
+Class::AddVar(String const& name)
 {
-  ++m_vars;
+  m_vars[name] = m_vars.size();
 }
 
 Instance* 
@@ -119,7 +144,7 @@ Class::CreateInstance()
 }
 
 Quad 
-Class::Lookup(String const& name)
+Class::LookupFun(String const& name)
 {
   MemberFuns::iterator it = m_funs.find(name);
   if(it == m_funs.end())
@@ -127,6 +152,17 @@ Class::Lookup(String const& name)
     throw std::runtime_error("Class '" + m_name + "' does not support a method '" + name + "'");
   }
   return it->second.m_offset;
+}
+
+Quad 
+Class::LookupVar(String const& name)
+{
+  MemberVars::iterator it = m_vars.find(name);
+  if(it == m_vars.end())
+  {
+    throw std::runtime_error("Class '" + m_name + "' does not support a variable '" + name + "'");
+  }
+  return it->second;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -137,7 +173,7 @@ Class::Lookup(String const& name)
 Instance::Instance(Class* c) : 
 m_class (c)
 {
-  m_vars.resize(c->GetVars());
+  m_indexVars.resize(c->GetVars());
 }
 
 Instance::~Instance()
@@ -145,18 +181,30 @@ Instance::~Instance()
 }
 
 Quad 
-Instance::Lookup(String const& name)
+Instance::LookupFun(String const& name)
 {
-  return m_class->Lookup(name);
+  return m_class->LookupFun(name);
+}
+
+Quad 
+Instance::LookupVar(String const& name)
+{
+  return m_class->LookupVar(name);
 }
 
 VariantRef const& 
 Instance::GetVar(Quad index)
 {
-  VariantRef& ref = m_vars[index];
+  VariantRef& ref = m_indexVars[index];
   if(ref.Empty())
   {
     ref = VariantRef(new Variant);
   }
   return ref;
+}
+
+VariantRef const& 
+Instance::GetVar(String const& name)
+{
+   return GetVar(LookupVar(name));
 }

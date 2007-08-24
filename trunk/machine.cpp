@@ -229,13 +229,20 @@ begin:
     Q0 = ipq;
     POP(P0);
     rstack.push((Quad)(code - base));
-    code = base + TOP.GetTypedRes<Instance>()->Lookup(R0.GetString());
+    code = base + TOP.GetTypedRes<Instance>()->LookupFun(R0.GetString());
     break;
 
-  case op_pushm:
+  case op_pushmi:
     Q0 = ipq;
     POP(P0);
     P0 = R0.GetTypedRes<Instance>()->GetVar(Q0);
+    PUSH(P0);
+    break;
+
+  case op_pushmn:
+    POP(P1);
+    POP(P0);
+    P0 = R0.GetTypedRes<Instance>()->GetVar(R1.GetString());
     PUSH(P0);
     break;
 

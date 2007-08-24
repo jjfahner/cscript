@@ -381,6 +381,9 @@ CodeGenerator::GenerateCode(Ast* node)
     break;
 
   case member_expression:
+    GenerateCode(node->m_a1);
+    GenerateCode(node->m_a2);
+    PushByte(op_pushmn);
     break;
 
   case index_expression:
@@ -488,7 +491,7 @@ CodeGenerator::GenerateLValue(Ast* node)
   case varMember: 
     PushByte(op_pushv);
     PushQuad(-1);
-    PushByte(op_pushm); 
+    PushByte(op_pushmi); 
     break;
   default:        
     INTERNAL_ERROR(m_reporter, node->m_pos);
@@ -855,7 +858,7 @@ CodeGenerator::GenerateClassDeclaration(Ast* node)
     }
     else
     {
-      classDef->AddVar();
+      classDef->AddVar(mem->m_a1);
     }
   }
 }

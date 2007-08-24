@@ -321,9 +321,9 @@ function main()
   assert("Break", a, 1);
 
   // Member syntax
-  a.foo = 2;
-  a.bar = 4;
-  assert("Member", a.foo * a.bar, 8);
+  a = new File;
+  a.m_file = 1;
+  assert("Member", a.m_file, 1);
 
   // Files
   assert("Files", files(), true);

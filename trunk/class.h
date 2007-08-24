@@ -65,7 +65,7 @@ public:
   //
   Quad GetVars() const
   {
-    return m_vars;
+    return m_vars.size();
   }
 
   //
@@ -86,7 +86,7 @@ public:
   //
   // Add a variable
   //
-  void AddVar();
+  void AddVar(String const& name);
 
   //
   // Create a new instance
@@ -96,7 +96,12 @@ public:
   //
   // Lookup offset of function
   //
-  Quad Lookup(String const& name);
+  Quad LookupFun(String const& name);
+
+  //
+  // Lookup offset of variable
+  //
+  Quad LookupVar(String const& name);
 
 private:
 
@@ -104,13 +109,14 @@ private:
   // Types
   //
   typedef std::map<String, MemFunInfo> MemberFuns;
+  typedef std::map<String, Quad>       MemberVars;
 
   //
   // Members
   //
   String      m_name;
   MemberFuns  m_funs;
-  Quad        m_vars;
+  MemberVars  m_vars;
 
 };
 
@@ -136,25 +142,37 @@ public:
   //
   // Lookup offset of function
   //
-  Quad Lookup(String const& name);
+  Quad LookupFun(String const& name);
 
   //
-  // Retrieve pointer to variable
+  // Lookup offset of variable
+  //
+  Quad LookupVar(String const& name);
+
+  //
+  // Retrieve pointer to variable by index
   //
   VariantRef const& GetVar(Quad index);
+
+  //
+  // Retrieve pointer to variable by name
+  //
+  VariantRef const& GetVar(String const& name);
 
 private:
 
   //
   // Types
   //
-  typedef std::vector<VariantRef> MemberVars;
+  typedef std::vector<VariantRef>      IndexVars;
+  typedef std::map<String, VariantRef> NamedVars;
 
   //
   // Member data
   //
-  Class*      m_class;
-  MemberVars  m_vars;
+  Class*    m_class;
+  IndexVars m_indexVars;
+  NamedVars m_namedVars;
 
 };
 
