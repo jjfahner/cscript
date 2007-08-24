@@ -647,18 +647,15 @@ Annotator::AnnotateNewExpression(Ast* node)
 void 
 Annotator::AnnotateMemberExpression(Ast* node)
 {
+  // Annotate left side
+  AnnotateImpl(node->m_a1);
+
   // Create literal for right-hand side
   Ast* lit = new Ast(literal, Variant(
     node->m_a2.GetString(), Variant::stString));
 
   // Replace right-hand side with literal
   node->m_a2 = lit;
-
-  // Change type to index expression
-  node->m_type = index_expression;
-
-  // Annotate as index expression
-  AnnotateImpl(node);
 }
 
 void 

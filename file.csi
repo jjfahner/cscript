@@ -35,7 +35,7 @@ class File
     {
       return false;
     }
-    m_file = f;
+    this.m_file = f;
   }
 
   function Close()
