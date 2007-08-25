@@ -180,10 +180,6 @@ Optimizer::Optimize(Ast* node)
   case empty_statement:
     break;
 
-  case struct_declaration:
-    node = OptimizeStructDeclaration(node);
-    break;
-  
   case new_expression:
     break;
 
@@ -541,13 +537,6 @@ Optimizer::OptimizePrefixExpression(Ast* node)
 Ast* 
 Optimizer::OptimizeSwitchStatement(Ast* node)
 {
-  return node;
-}
-
-Ast* 
-Optimizer::OptimizeStructDeclaration(Ast* node)
-{
-  node->m_props["varcount"] = Quad(0);
   return node;
 }
 

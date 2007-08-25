@@ -436,9 +436,6 @@ CodeGenerator::GenerateCode(Ast* node)
     GenerateSwitchExpression(node);
     break;
 
-  case struct_declaration:
-    break;
-
   case new_expression:
     PushByte(op_pushl);
     PushLiteral(node->m_a1.GetString());
