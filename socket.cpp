@@ -99,7 +99,7 @@ Socket::Connect(Variant const& host, Variant const& port)
   }
 
   // Create a socket
-  unsigned int s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+  unsigned int s = (unsigned int)socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
   if(s == INVALID_SOCKET)
   {
     return Variant::False;
@@ -144,7 +144,7 @@ Socket::Send(Variant const& data, Variant const& len)
   int expected = (int)len.AsInt();
   if(expected == 0)
   {
-    expected = data.AsString().length();
+    expected = (int)data.AsString().length();
   }
 
   // Write data
