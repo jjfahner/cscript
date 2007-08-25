@@ -262,7 +262,6 @@ pause_statement(R) ::= PAUSE SEMICOLON . { R = p->AllocAst(pause_statement); }
 
 // Declaration starting point
 declaration_statement(R) ::= function_declaration(A) .            { R = A; }
-declaration_statement(R) ::= struct_declaration(A) SEMICOLON .    { R = A; }
 declaration_statement(R) ::= class_declaration(A)  SEMICOLON .    { R = A; }
 declaration_statement(R) ::= variable_declaration(A) SEMICOLON .  { R = A; }
 
@@ -273,23 +272,6 @@ declarator(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocAst(variabl
 
 declarator_sequence(R) ::= declarator(A) . { R = A; }
 declarator_sequence(R) ::= declarator_sequence(A) COMMA declarator(B) . { R = p->AllocAst(declaration_sequence, A, B); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// struct declaration
-//
-
-// Struct declaration. Unlike C, a struct declaration doesn't require (but does allow) a terminating semicolon to be valid.
-struct_declaration(R) ::= STRUCT IDENTIFIER(A) LBRACE                   RBRACE . { R = p->AllocAst(struct_declaration, String(A)); }
-struct_declaration(R) ::= STRUCT IDENTIFIER(A) LBRACE struct_members(B) RBRACE . { R = p->AllocAst(struct_declaration, String(A), B); }
-
-// Struct member
-struct_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
-
-// Struct members
-struct_members(R) ::= struct_member(A) . { R = A; }
-struct_members(R) ::= struct_members(A) struct_member(B) . { R = p->AllocAst(struct_members, A, B); }
 
 //////////////////////////////////////////////////////////////////////////
 //

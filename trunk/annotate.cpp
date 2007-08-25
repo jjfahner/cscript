@@ -433,15 +433,6 @@ Annotator::AnnotateImpl(Ast* node)
     AnnotateContinueStatement(node);
     break;
 
-  case struct_declaration:
-    AnnotateStructDeclaration(node);
-    break;
-
-  case struct_members:
-    AnnotateImpl(node->m_a1);
-    AnnotateImpl(node->m_a2);
-    break;
-
   case new_expression:
     AnnotateNewExpression(node);
     break;
@@ -605,32 +596,6 @@ Annotator::AnnotateVariableDeclaration(Ast* node)
   // Allocate slot
   node->m_props["varcount"] = Quad(1);
   node->m_props["varinfo"] = m_scope->DeclareVariable(node->m_a1);
-}
-
-void 
-Annotator::AnnotateStructDeclaration(Ast* node)
-{
-  // Check whether name is in use
-  if(m_structs.count(node->m_a1))
-  {
-    m_reporter.ReportError(E0008, &node->m_pos, 
-              node->m_a1.GetString().c_str());
-  }
-
-  // Store struct node
-  m_structs[node->m_a1] = node;
-
-  // Create new scope
-  PushScope(node);
-
-  // Handle member declarations
-  if(node->m_a2)
-  {
-    AnnotateImpl(node->m_a2);
-  }
-
-  // Pop scope
-  PopScope();
 }
 
 void 

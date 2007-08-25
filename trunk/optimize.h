@@ -50,7 +50,6 @@ private:
   Ast* OptimizeAssignmentExpression(Ast*);
   Ast* OptimizePrefixExpression(Ast*);
   Ast* OptimizeSwitchStatement(Ast*);
-  Ast* OptimizeStructDeclaration(Ast*);
   Ast* OptimizeVariableDeclaration(Ast*);
   Ast* OptimizeClassDeclaration(Ast*);
 
