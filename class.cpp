@@ -134,8 +134,8 @@ Class::AddFun(String const& name, Quad params, Quad offset)
 void 
 Class::AddVar(String const& name)
 {
-  //size_t size = ;
-  m_vars[name] = m_vars.size();
+  size_t size = m_vars.size();
+  m_vars[name] = size;
 }
 
 Instance* 
