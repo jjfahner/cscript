@@ -96,24 +96,38 @@ public:
   }
 
   //
+  // Explicit conversion
+  //
+  template <typename U>
+  U const& As() const
+  {
+    return any_cast<U const>(Get());
+  }
+  template <typename U>
+  U& As()
+  {
+    return any_cast<U>(Get());
+  }
+
+  //
   // Some typed conversions
   //
-  operator Quad() const
-  {
-    return any_cast<Quad>(Get());
-  }
-  operator int() const
-  {
-    return any_cast<int>(Get());
-  }
-  operator bool() const
-  {
-    return any_cast<bool>(Get());
-  }
-  operator String() const
-  {
-    return any_cast<String>(Get());
-  }
+//   operator Quad() const
+//   {
+//     return any_cast<Quad>(Get());
+//   }
+//   operator int() const
+//   {
+//     return any_cast<int>(Get());
+//   }
+//   operator bool() const
+//   {
+//     return any_cast<bool>(Get());
+//   }
+//   operator String() const
+//   {
+//     return any_cast<String>(Get());
+//   }
 
   //
   // Dereference

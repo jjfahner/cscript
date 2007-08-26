@@ -25,7 +25,8 @@
 
 Scope::Scope(Ast* node, Scope* parent) :
 m_node    (node),
-m_parent  (parent)
+m_parent  (parent),
+m_access  (accessPublic)
 {
   if(m_parent && m_parent->m_node->m_type == class_declaration)
   {
@@ -46,8 +47,16 @@ Scope::DeclareParameter(String const& name)
 }
 
 VarInfo 
-Scope::DeclareVariable(String const& name)
+Scope::DeclareVariable(Ast* node)
 {
+  // Apply default access
+  if(node->m_props.contains("access") && 
+     node->m_props["access"].As<AccessTypes>() == accessDefault)
+  {
+    node->m_props["access"] = m_access;
+  }
+
+  // Determine variable type and offset
   VarInfo vi;
   vi.m_offset = MakeVariableId();
   vi.m_type   = varLocal;
@@ -59,13 +68,22 @@ Scope::DeclareVariable(String const& name)
   {
     vi.m_type = varGlobal;
   }
-  m_variables[name] = vi;
+
+  // Store variable
+  m_variables[node->m_a1] = vi;
   return vi;
 }
 
 String
-Scope::DeclareFunction(String const& name, Ast* node)
+Scope::DeclareFunction(Ast* node)
 {
+  // Apply default access
+  if(node->m_props.contains("access") &&
+     node->m_props["access"].As<AccessTypes>() == accessDefault)
+  {
+    node->m_props["access"] = m_access;
+  }
+
   // Determine function info
   FunInfo fi;
   fi.m_node = node;
@@ -76,7 +94,7 @@ Scope::DeclareFunction(String const& name, Ast* node)
   }
 
   // Register function
-  m_functions[name] = fi;
+  m_functions[node->m_a1] = fi;
 
   // Connect to scope
   node->m_props["inscope"] = m_node;
@@ -88,7 +106,7 @@ Scope::DeclareFunction(String const& name, Ast* node)
   }
 
   // Determine mangled name
-  String mangled = name;
+  String mangled = node->m_a1;
   if(m_node->m_type == class_declaration)
   {
     mangled += "@" + String(m_node->m_a1);
@@ -99,7 +117,7 @@ Scope::DeclareFunction(String const& name, Ast* node)
 }
 
 bool
-Scope::LookupFun(String const& name, FunInfo& info) const
+Scope::LookupFun(String const& name, FunInfo& info, AccessTypes access = accessDefault) const
 {
   // Find in local scope
   Functions::const_iterator it = m_functions.find(name);
@@ -130,7 +148,7 @@ Scope::LookupFun(String const& name, FunInfo& info) const
 }
 
 bool
-Scope::LookupVar(String const& name, VarInfo& vi) const
+Scope::LookupVar(String const& name, VarInfo& vi, AccessTypes access = accessDefault) const
 {
   // Find in local scope
   Variables::const_iterator it;

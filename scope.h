@@ -75,6 +75,16 @@ public:
   Ast* GetNode() const;
 
   //
+  // Get current access
+  //
+  AccessTypes GetAccess() const;
+
+  //
+  // Change access specifier
+  //
+  void SetAccess(AccessTypes access);
+
+  //
   // Register a name
   //
   VarInfo DeclareParameter(String const& name);
@@ -82,22 +92,22 @@ public:
   //
   // Declare a name
   //
-  VarInfo DeclareVariable(String const& name);
+  VarInfo DeclareVariable(Ast* node);
 
   //
   // Declare a function
   //
-  String DeclareFunction(String const& name, Ast* node);
+  String DeclareFunction(Ast* node);
 
   //
   // Find a name
   //
-  bool LookupVar(String const& name, VarInfo& info) const;
+  bool LookupVar(String const& name, VarInfo& info, AccessTypes access) const;
 
   //
   // Find a function
   //
-  bool LookupFun(String const& name, FunInfo& info) const;
+  bool LookupFun(String const& name, FunInfo& info, AccessTypes access) const;
 
 private:
 
@@ -117,6 +127,7 @@ private:
   Ast*        m_node;
   Variables   m_variables;
   Functions   m_functions;
+  AccessTypes m_access;
 
 };
 
@@ -130,6 +141,18 @@ inline Ast*
 Scope::GetNode() const
 {
   return m_node;
+}
+
+inline AccessTypes
+Scope::GetAccess() const
+{
+  return m_access;
+}
+
+inline void 
+Scope::SetAccess(AccessTypes access)
+{
+  m_access = access;
 }
 
 #endif // CSCRIPT_SCOPE_H

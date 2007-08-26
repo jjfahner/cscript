@@ -281,9 +281,20 @@ declarator_sequence(R) ::= declarator_sequence(A) COMMA declarator(B) . { R = p-
 class_declaration(R) ::= CLASS IDENTIFIER(A) LBRACE                  RBRACE . { R = p->AllocAst(class_declaration, String(A)); }
 class_declaration(R) ::= CLASS IDENTIFIER(A) LBRACE class_members(B) RBRACE . { R = p->AllocAst(class_declaration, String(A), B); }
 
-class_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
-class_member(R) ::= function_declaration(A) . { R = A; }
+// Regular variable/function
+class_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; A->m_props["access"] = accessDefault; }
+class_member(R) ::= function_declaration(A) .           { R = A; A->m_props["access"] = accessDefault; }
+class_member(R) ::= access_specifier(A) variable_declaration(B) SEMICOLON . { R = B; B->m_props["access"] = A; }
+class_member(R) ::= access_specifier(A) function_declaration(B) .           { R = B; B->m_props["access"] = A; }
+class_member(R) ::= access_specifier(A) COLON .         { R = p->AllocAst(access_specifier, A); }
 
+// Access specifiers
+%type access_specifier { AccessTypes }
+access_specifier(R) ::= PRIVATE   . { R = accessPrivate;   }
+access_specifier(R) ::= PROTECTED . { R = accessProtected; }
+access_specifier(R) ::= PUBLIC .    { R = accessPublic;    }
+
+// Class members
 %type class_members { AstList* }
 class_members(R) ::= class_member(A) . { 
   R = new AstList;
