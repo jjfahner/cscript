@@ -80,6 +80,16 @@ enum AstTypes
   member_call,
   pause_statement,
   this_expression,
+  access_specifier,
+};
+
+enum AccessTypes
+{
+  accessNone,
+  accessDefault,
+  accessPrivate,
+  accessProtected,
+  accessPublic,
 };
 
 //////////////////////////////////////////////////////////////////////////

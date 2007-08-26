@@ -202,6 +202,9 @@ Optimizer::Optimize(Ast* node)
   case this_expression:
     break;
 
+  case access_specifier:
+    break;
+
   default:
     throw std::runtime_error("Unknown node type");
   }

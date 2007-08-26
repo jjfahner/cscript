@@ -164,18 +164,23 @@ Annotator::AnnotateStructure(Ast* node)
     }
     break;
 
+    // Handle access specifier
+  case access_specifier:
+    m_scope->SetAccess((AccessTypes)node->m_a1.GetNumber());
+    break;
+
     // Register function declaration
   case function_declaration:
     {
       // Declare in local scope
-      String mangled = m_scope->DeclareFunction(node->m_a1, node);
+      String mangled = m_scope->DeclareFunction(node);
 
       // Register global name
       m_functions[mangled] = node;
     }
     break;
 
-    // Register variable
+    // Register global/member variable
   case variable_declaration:
     AnnotateVariableDeclaration(node);
     break;
@@ -548,7 +553,7 @@ Annotator::AnnotateLValue(Ast* node)
 {
   // Find lvalue on stack
   VarInfo vi;
-  if(!m_scope->LookupVar(node->m_a1, vi))
+  if(!m_scope->LookupVar(node->m_a1, vi, accessDefault))
   {
     m_reporter.ReportError(E0003, &node->m_pos, node->m_a1.GetString().c_str());
   }
@@ -595,7 +600,7 @@ Annotator::AnnotateVariableDeclaration(Ast* node)
 
   // Allocate slot
   node->m_props["varcount"] = Quad(1);
-  node->m_props["varinfo"] = m_scope->DeclareVariable(node->m_a1);
+  node->m_props["varinfo"] = m_scope->DeclareVariable(node);
 }
 
 void 
@@ -750,7 +755,7 @@ Annotator::AnnotateClassDeclaration(Ast* node)
     else
     {
       // Register member function name
-      m_scope->DeclareFunction(node->m_a1, node);
+      m_scope->DeclareFunction(node);
     }
   }
 
@@ -767,7 +772,7 @@ Annotator::AnnotateFunctionCall(Ast* node)
   // Find function
   FunInfo fi;
   String name = node->m_a1;
-  if(!m_scope->LookupFun(name, fi))
+  if(!m_scope->LookupFun(name, fi, accessDefault))
   {
     m_reporter.ReportError(E0005, &node->m_pos, name.c_str());
     return;

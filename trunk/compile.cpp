@@ -837,12 +837,13 @@ CodeGenerator::GenerateClassDeclaration(Ast* node)
   Class* classDef = new Class(node->m_a1);
   node->m_props["classdef"] = classDef;
 
-  // Enumerate functions
+  // Enumerate members
   it = list->begin();
   ie = list->end();
   for(; it != ie; ++it)
   {
-    Ast* mem = *it;
+    // Retrieve declaration from member_declaration
+    Ast* mem = (*it);
     if(mem->m_type == function_declaration)
     {
       // Generate function
