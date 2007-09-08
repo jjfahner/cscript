@@ -502,6 +502,18 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\eval.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\eval.csc"
+			>
+		</File>
+		<File
+			RelativePath=".\eval.h"
+			>
+		</File>
+		<File
 			RelativePath=".\TODO"
 			>
 		</File>
