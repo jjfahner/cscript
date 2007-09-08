@@ -27,6 +27,7 @@
 #include "machine.h"
 #include "annotate.h"
 #include "optimize.h"
+#include "eval.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -416,6 +417,12 @@ int cscript_main(int argc, Char** argv)
 //
 int main(int argc, Char** argv)
 {
+#if 0
+  Evaluator eval;
+  eval.Eval("eval.csc");
+  cin.get();
+  return 0;
+#else
   int result = EXIT_FAILURE;
   try
   {
@@ -440,4 +447,6 @@ int main(int argc, Char** argv)
 #endif
 
 	return result;
+
+#endif
 }
