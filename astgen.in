@@ -209,7 +209,8 @@ id_expression(R) ::= IDENTIFIER(A) . { R = p->AllocAst(lvalue, String(A)); }
 // List definition
 list_literal(R) ::= LBRACKET list_content(A) RBRACKET . { R = p->AllocAst(list_literal, A); }
 list_content(R) ::= list_entry(A) . { R = p->AllocAst(list_content, A); }
-list_content(R) ::= list_content(A) COMMA list_entry(B) . { R = p->AllocAst(list_content, A, B); }
+list_content(R) ::= list_entry(A) COMMA list_content(B) . { R = p->AllocAst(list_content, A, B); }
+
 list_entry(R)   ::= expression(A) . { R = p->AllocAst(list_entry, A); }
 
 // New expression
