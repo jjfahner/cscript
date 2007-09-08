@@ -48,17 +48,22 @@ struct Evaluator::AutoScope
 
 struct return_exception
 {
-  return_exception() {}
-  return_exception(VariantRef const& value) : m_value(value) {}
+  Ast* m_node;
   VariantRef m_value;
+  return_exception(Ast* node) : m_node (node) {}
+  return_exception(Ast* node, VariantRef const& value) : m_node (node), m_value (value) {}
 };
 
 struct break_exception
 {
+  Ast* m_node;
+  break_exception(Ast* node) : m_node (node) {}
 };
 
 struct continue_exception
 {
+  Ast* m_node;
+  continue_exception(Ast* node) : m_node (node) {}
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -80,7 +85,24 @@ Evaluator::Eval(String file)
 {
   Parser parser(m_reporter);
   parser.Parse(file);
-  EvalStatement(parser.GetRoot());
+  if(m_reporter.GetErrorCount())
+  {
+    std::cout << "Aborted.\n";
+    return;
+  }
+
+  try
+  {
+    EvalStatement(parser.GetRoot());
+  }
+  catch(std::exception const& e)
+  {
+    std::cout << e.what() << "\n";
+  }
+  catch(...)
+  {
+    std::cout << "Unexpected\n";
+  }
 }
 
 void
@@ -113,25 +135,17 @@ Evaluator::EvalStatement(Ast* node)
     break;
 
   case statement_sequence:
-    {
-      AstList::const_iterator it, ie;
-      it = node->m_a1.GetList()->begin();
-      ie = node->m_a1.GetList()->end();
-      for(; it != ie; ++it)
-      {
-        EvalStatement(*it);
-      }
-    }
+    EvalStatementSeq(node);
     break;
 
   case expression_statement:
     EvalExpression(node->m_a1);
     break;
 
-    //////////////////////////////////////////////////////////////////////////
-    //
-    // Declarations
-    //
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Declarations
+  //
 
   case declaration_sequence:
     EvalStatement(node->m_a1);
@@ -167,10 +181,20 @@ Evaluator::EvalStatement(Ast* node)
     m_scope->m_args.push_back(EvalExpression(node->m_a1));    
     break;
 
-    //////////////////////////////////////////////////////////////////////////
-    //
-    // Control flow
-    //
+  case class_declaration:
+    EvalClassDecl(node);
+    break;
+
+  case class_members:
+    break;
+  
+  case access_specifier:
+    break;
+
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Control flow
+  //
 
   case for_statement:
     EvalForStatement(node);
@@ -198,54 +222,38 @@ Evaluator::EvalStatement(Ast* node)
   case return_statement:
     if(node->m_a1.Empty())
     {
-      throw return_exception();
+      throw return_exception(node);
     }
     else
     {
-      throw return_exception(EvalExpression(node->m_a1));
+      throw return_exception(node, EvalExpression(node->m_a1));
     }
     break;
 
   case break_statement:
-    throw break_exception();
+    throw break_exception(node);
   
   case continue_statement:
-    throw continue_exception();
+    throw continue_exception(node);
   
   case switch_statement:
+    EvalSwitchStatement(node);
     break;
   
-  case switch_body:
-    break;
-  
-  case switch_case:
-    break;
-  
-  case default_case:
-    break;
-
   case compound_statement:
+    if(node->m_a1)
     {
       AutoScope as(*this, node);
       EvalStatement(node->m_a1);
     }
     break;
 
-  case class_declaration:
-    break;
-
-  case class_members:
-    break;
-  
   case member_call:
     break;
   
   case pause_statement:
     break;
   
-  case access_specifier:
-    break;
-
     // Invalid
   default:
     throw std::out_of_range("Invalid node type");
@@ -257,6 +265,7 @@ Evaluator::EvalExpression(Ast* node)
 {
   switch(node->m_type)
   {
+
   case assignment_expression:
     switch(node->m_a1.GetNumber())
     {
@@ -268,7 +277,6 @@ Evaluator::EvalExpression(Ast* node)
     case op_assmod: return *EvalExpression(node->m_a2) %= *EvalExpression(node->m_a3);
     default:        throw std::out_of_range("Invalid assignment operator");
     }
-    break;
 
   case binary_expression:
     switch(node->m_a1.GetNumber())
@@ -276,11 +284,8 @@ Evaluator::EvalExpression(Ast* node)
     case op_add:    return *EvalExpression(node->m_a2) +  *EvalExpression(node->m_a3);
     case op_sub:    return *EvalExpression(node->m_a2) -  *EvalExpression(node->m_a3);
     case op_mul:    return *EvalExpression(node->m_a2) *  *EvalExpression(node->m_a3);
-//  case op_div:    return *EvalExpression(node->m_a2) /  *EvalExpression(node->m_a3);
-//  case op_mod:    return *EvalExpression(node->m_a2) %  *EvalExpression(node->m_a3);
-//  case op_bitor:  return *EvalExpression(node->m_a2) |  *EvalExpression(node->m_a3);
-    case op_bitxor: return *EvalExpression(node->m_a2) ^  *EvalExpression(node->m_a3);
-    case op_bitand: return *EvalExpression(node->m_a2) &  *EvalExpression(node->m_a3);
+    case op_div:    return *EvalExpression(node->m_a2) /  *EvalExpression(node->m_a3);
+    case op_mod:    return *EvalExpression(node->m_a2) %  *EvalExpression(node->m_a3);
     case op_logor:  return *EvalExpression(node->m_a2) || *EvalExpression(node->m_a3);
     case op_logand: return *EvalExpression(node->m_a2) && *EvalExpression(node->m_a3);
     case op_eq:     return *EvalExpression(node->m_a2) == *EvalExpression(node->m_a3);
@@ -291,10 +296,9 @@ Evaluator::EvalExpression(Ast* node)
     case op_ge:     return *EvalExpression(node->m_a2) >= *EvalExpression(node->m_a3);
     default:        throw std::out_of_range("Invalid binary operator");
     }
-    break;
 
   case ternary_expression:
-    return *EvalExpression(node->m_a1) ? *EvalExpression(node->m_a2) : *EvalExpression(node->m_a3);
+    return *EvalExpression(node->m_a1) ? EvalExpression(node->m_a2) : EvalExpression(node->m_a3);
 
   case prefix_expression:
     switch(node->m_a1.GetNumber())
@@ -304,7 +308,6 @@ Evaluator::EvalExpression(Ast* node)
     case op_negate: return  -*EvalExpression(node->m_a2);
     default:        throw std::out_of_range("Invalid prefix operator");
     }
-    break;
 
   case postfix_expression:
     switch(node->m_a1.GetNumber())
@@ -313,14 +316,9 @@ Evaluator::EvalExpression(Ast* node)
     case op_postdec: return (*EvalExpression(node->m_a2))--;
     default:        throw std::out_of_range("Invalid postfix operator");
     }
-    break;
-
-  case member_expression:
-    break;
 
   case index_expression:
     return (*EvalExpression(node->m_a1))[*EvalExpression(node->m_a2)];
-    break;
 
   case function_call:
     return EvalFunctionCall(node);
@@ -333,22 +331,27 @@ Evaluator::EvalExpression(Ast* node)
     return EvalLValue(node);
 
   case list_literal:
-    break;
-  case list_content:
-    break;
-  case list_entry:
-    break;
+    return EvalListLiteral(node);
 
   case new_expression:
-    break;
   case this_expression:
-    break;
-
-    // Invalid
+  case member_expression:
   default:
     throw std::out_of_range("Invalid expression type");
   }
   throw std::runtime_error("Not implemented");
+}
+
+void 
+Evaluator::EvalStatementSeq(Ast* node)
+{
+  AstList::const_iterator it, ie;
+  it = node->m_a1.GetList()->begin();
+  ie = node->m_a1.GetList()->end();
+  for(; it != ie; ++it)
+  {
+    EvalStatement(*it);
+  }
 }
 
 VariantRef  
@@ -414,6 +417,12 @@ Evaluator::EvalFunDecl(Ast* node)
   m_scope->m_funs[node->m_a1] = node;
 }
 
+void 
+Evaluator::EvalClassDecl(Ast* node)
+{
+
+}
+
 VariantRef  
 Evaluator::EvalFunctionCall(Ast* node)
 {
@@ -456,18 +465,15 @@ Evaluator::EvalFunctionCall(Ast* node)
     }
   }
 
-  // Push scope for arguments
-  AutoScope as(*this, node);
-
   // Evaluate arguments
+  AutoScope as(*this, node);
   EvalStatement(node->m_a2);
-
-  // Evaluate parameters
   EvalStatement(fun->m_a2);
 
   // Evaluate function body
   try
   {
+    AutoScope as(*this, node);
     EvalStatement(fun->m_a3);
     return Variant();
   }
@@ -475,6 +481,33 @@ Evaluator::EvalFunctionCall(Ast* node)
   {
     return e.m_value;
   }
+  catch(break_exception const&)
+  {
+    throw std::runtime_error("Invalid break statement");
+  }
+  catch(continue_exception const&)
+  {
+    throw std::runtime_error("Invalid continue statement");
+  }
+}
+
+VariantRef 
+Evaluator::EvalListLiteral(Ast* node)
+{
+  VariantRef v(Variant::stAssoc);
+  
+  Ast* child = node->m_a1;
+  while(child)
+  {
+    v->Append(EvalExpression(child->m_a1->m_a1));
+    if(child->m_a2.Empty()) 
+    {
+      break;
+    }
+    child = child->m_a2;
+  }
+
+  return v;
 }
 
 void 
@@ -489,9 +522,6 @@ Evaluator::EvalForStatement(Ast* node)
   // Evaluate loop
   for(;;)
   {
-    // Inner scope
-    AutoScope scope(*this, node);
-
     // Evaluate condition
     if(!*EvalExpression(node->m_a2))
     {
@@ -501,6 +531,7 @@ Evaluator::EvalForStatement(Ast* node)
     // For body
     try 
     {
+      AutoScope scope(*this, node);
       EvalStatement(node->m_a4);
     }
     catch(break_exception const&)
@@ -527,12 +558,9 @@ Evaluator::EvalWhileStatement(Ast* node)
 {
   while(*EvalExpression(node->m_a1))
   {
-    // Nested scope
-    AutoScope scope(*this, node);
-
-    // While body
     try
     {
+      AutoScope scope(*this, node);
       EvalStatement(node->m_a2);
     }
     catch(break_exception const&)
@@ -540,6 +568,50 @@ Evaluator::EvalWhileStatement(Ast* node)
       break;
     }
     catch(continue_exception const&)
+    {
+    }
+  }
+}
+
+void
+Evaluator::EvalSwitchStatement(Ast* node)
+{
+  // Switch value
+  VariantRef value = EvalExpression(node->m_a1);
+
+  // Create iterators
+  AstList* cases = node->m_a2;
+  AstList::const_iterator it = cases->begin();
+  AstList::const_iterator ie = cases->end();
+
+  // Find statement
+  Ast* statement = 0;
+  for(; it != ie; ++it)
+  {
+    if((*it)->m_type == default_case)
+    {
+      if(statement)
+      {
+        throw std::runtime_error("More than one default case in switch statement");
+      }
+      statement = (*it)->m_a1;
+    }
+    else if(*EvalExpression((*it)->m_a1) == *value)
+    {
+      statement = (*it)->m_a2;
+      break;
+    }
+  }
+
+  // Execute statement
+  if(statement)
+  {
+    try
+    {
+      AutoScope as(*this, node);
+      EvalStatement(statement);
+    }
+    catch(break_exception const&)
     {
     }
   }
