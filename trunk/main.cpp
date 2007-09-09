@@ -417,7 +417,7 @@ int cscript_main(int argc, Char** argv)
 //
 int main(int argc, Char** argv)
 {
-#if 1
+#if 0
   Evaluator eval;
   eval.Eval("eval.csc");
   cin.get();
