@@ -48,6 +48,8 @@ protected:
   void EvalForeachStatement(Ast* node);
   void EvalWhileStatement(Ast* node);
   void EvalSwitchStatement(Ast* node);
+  void EvalIfStatement(Ast* node);
+  void EvalReturnStatement(Ast* node);
 
   //
   // Expression handlers

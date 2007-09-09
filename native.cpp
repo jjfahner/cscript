@@ -97,7 +97,7 @@ ExecNative(Quad index, Quad numArgs, RefStack& stack, Quad SP)
   stack[SP] = ncv[index]->m_funPtr(args, numArgs);
 }
 
-inline void 
+void 
 AssertType(RefStack& args, Quad index, Variant::SubTypes type, char const* function)
 {
   if(index >= args.size())

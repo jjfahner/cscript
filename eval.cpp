@@ -166,10 +166,12 @@ Evaluator::EvalStatement(Ast* node)
     break;
 
   case parameter:
-    // TODO validate index in args vector
-    m_scope->m_vars.insert(std::make_pair(
-      node->m_a1.GetString(), 
-      m_scope->m_args[m_scope->m_vars.size()]));
+    if(m_scope->m_args.size() == m_scope->m_vars.size())
+    {
+      throw std::runtime_error("Not enough arguments in call to function");
+    }
+    m_scope->m_vars.insert(std::make_pair(node->m_a1.GetString(), 
+                       m_scope->m_args[m_scope->m_vars.size()]));
     break;
 
   case argument_list:
@@ -205,14 +207,7 @@ Evaluator::EvalStatement(Ast* node)
     break;
 
   case if_statement:
-    if(*EvalExpression(node->m_a1))
-    {
-      EvalStatement(node->m_a2);
-    }
-    else if(node->m_a3)
-    {
-      EvalStatement(node->m_a3);
-    }
+    EvalIfStatement(node);
     break;
 
   case while_statement:
@@ -220,14 +215,7 @@ Evaluator::EvalStatement(Ast* node)
     break;
   
   case return_statement:
-    if(node->m_a1.Empty())
-    {
-      throw return_exception(node);
-    }
-    else
-    {
-      throw return_exception(node, EvalExpression(node->m_a1));
-    }
+    EvalReturnStatement(node);
     break;
 
   case break_statement:
@@ -254,7 +242,6 @@ Evaluator::EvalStatement(Ast* node)
   case pause_statement:
     break;
   
-    // Invalid
   default:
     throw std::out_of_range("Invalid node type");
   }
@@ -420,6 +407,7 @@ Evaluator::EvalFunDecl(Ast* node)
 void 
 Evaluator::EvalClassDecl(Ast* node)
 {
+  AutoScope scope(*this, node);
 
 }
 
@@ -494,8 +482,10 @@ Evaluator::EvalFunctionCall(Ast* node)
 VariantRef 
 Evaluator::EvalListLiteral(Ast* node)
 {
+  // Create empty map
   VariantRef v(Variant::stAssoc);
   
+  // Recurse into map values
   Ast* child = node->m_a1;
   while(child)
   {
@@ -507,7 +497,26 @@ Evaluator::EvalListLiteral(Ast* node)
     child = child->m_a2;
   }
 
+  // Done
   return v;
+}
+
+void 
+Evaluator::EvalReturnStatement(Ast* node)
+{
+  // Determine return value
+  VariantRef value;
+  if(node->m_a1.Empty())
+  {
+    value = Variant::Null;
+  }
+  else
+  {
+    value = EvalExpression(node->m_a1);
+  }
+
+  // Throw return exception
+  throw return_exception(node, value);
 }
 
 void 
@@ -550,7 +559,62 @@ Evaluator::EvalForStatement(Ast* node)
 void 
 Evaluator::EvalForeachStatement(Ast* node)
 {
-  //VariantRef ref = EvalExpression(node->m_a1);
+  AutoScope scope(*this, node);
+
+  String varName;
+  Ast*   varNode = node->m_a1;
+
+  // Determine variable name
+  if(varNode->m_type == variable_declaration)
+  {
+    EvalStatement(node->m_a1);
+    varName = node->m_a1->m_a1;
+  }
+  else
+  {
+    varName = node->m_a1;
+  }
+
+  // Evaluate expression
+  VariantRef rhs = EvalExpression(node->m_a2);
+
+  // Fetch iterator
+  Variant::AssocType::iterator it = rhs->GetMap().begin();
+  Variant::AssocType::iterator ie = rhs->GetMap().end();
+
+  // Enumerate members
+  for(; it != ie; ++it)
+  {
+    // Assign value to iterator variable
+    m_scope->m_vars[varName] = it->second;
+
+    // Evaluate expression
+    try
+    {
+      AutoScope scope(*this, node);
+      EvalStatement(node->m_a3);
+    }
+    catch(break_exception const&)
+    {
+      break;
+    }
+    catch(continue_exception const&)
+    {
+    }
+  }
+}
+
+void
+Evaluator::EvalIfStatement(Ast* node)
+{
+  if(*EvalExpression(node->m_a1))
+  {
+    EvalStatement(node->m_a2);
+  }
+  else if(node->m_a3)
+  {
+    EvalStatement(node->m_a3);
+  }
 }
 
 void        
@@ -584,7 +648,7 @@ Evaluator::EvalSwitchStatement(Ast* node)
   AstList::const_iterator it = cases->begin();
   AstList::const_iterator ie = cases->end();
 
-  // Find statement
+  // Find case that matches switch value
   Ast* statement = 0;
   for(; it != ie; ++it)
   {
