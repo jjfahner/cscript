@@ -418,9 +418,7 @@ int cscript_main(int argc, Char** argv)
 int main(int argc, Char** argv)
 {
 #if 1
-  Evaluator eval;
-  eval.Eval("eval.csc");
-  cin.get();
+  Evaluator::Run();
   return 0;
 #else
   int result = EXIT_FAILURE;

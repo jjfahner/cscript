@@ -211,7 +211,7 @@ function main()
   assert("For break", a, 5);
   
   // Continue in for loop
-  var b = 0;
+    b = 0;
   for(a = 0; a < 10; ++a)
   {
     if(a >= 5) continue;
@@ -264,7 +264,7 @@ function main()
   assert("strstr", strstr(a, "wo"),    6);
   assert("strstr", strstr(a, "wa"),   -1);
   assert("strstr", strstr(a, "wo", 2), 6);
-  
+  /*
   // Logical or
   assert("Logical or", true  || false, true);
   assert("Logical or", false || true,  true);
@@ -282,7 +282,7 @@ function main()
   var f = false;
   assert("Not", !t, false);
   assert("Not", !f, true);
-  
+  */
   // Short-circuited logical or/and
   a = 0; ++a || ++a;
   assert("short-circuit or", a, 1);

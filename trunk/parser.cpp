@@ -27,7 +27,8 @@
 Parser::Parser(Reporter& reporter) :
 m_reporter  (reporter),
 m_root      (0),
-m_lexer     (0)
+m_lexer     (0),
+m_file      (0)
 {
 
 }
@@ -61,9 +62,24 @@ Parser::Parse(File& file)
   File* prevfile = m_file;
   m_file = &file;
 
+  // Try block for file pointer stacking
+  try
+  {
+    ParseText((char const*)file.GetData());
+    m_file = prevfile;
+  }
+  catch(...)
+  {
+    m_file = prevfile;
+  }
+}
+
+void 
+Parser::ParseText(char const* text)
+{
   // Create lexer for file
   Lexer lexer;
-  lexer.SetText((Char*)file.GetData());
+  lexer.SetText((char*)text);
 
   // Push lexer on stack
   Lexer* prevlexer = m_lexer;
@@ -88,9 +104,8 @@ Parser::Parse(File& file)
     // Destroy parser
     CScriptParseFree(pParser, free);
 
-    // Remove lexer and file
+    // Remove lexer
     m_lexer = prevlexer;
-    m_file = prevfile;
   }
   catch(...)
   {
@@ -99,7 +114,6 @@ Parser::Parse(File& file)
 
     // Remove lexer
     m_lexer = prevlexer;
-    m_file = prevfile;
 
     // Rethrow exception
     throw;
@@ -119,7 +133,7 @@ void
 Parser::OnSyntaxError()
 {
   FilePos pos;
-  pos.m_file = m_file->GetPath();
+  pos.m_file = m_file ? m_file->GetPath() : "";
   pos.m_line = m_lexer->GetLine();
   m_reporter.ReportError(E0013, &pos);
 }
@@ -140,7 +154,7 @@ Ast*
 Parser::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4)
 {
   FilePos pos;
-  pos.m_file = m_file->GetPath();
+  pos.m_file = m_file ? m_file->GetPath() : "";
   pos.m_line = m_lexer->GetLine();
 
   Ast* node = new Ast(type, a1, a2, a3, a4);  

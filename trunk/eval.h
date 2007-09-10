@@ -13,12 +13,17 @@ class Evaluator
 public:
 
   //
+  // Run
+  //
+  static void Run();
+
+  //
   // Construction
   //
   Evaluator();
 
   //
-  // Evaluation
+  // Evaluation of single code line
   //
   void Eval(String code);
 
@@ -36,6 +41,7 @@ protected:
   // Classes
   //
   struct Class;
+  typedef std::map<String, Class*> Classes;
 
   //
   // Statement handlers
@@ -68,6 +74,7 @@ protected:
   Reporter    m_reporter;
   Scope*      m_global;
   Scope*      m_scope;
+  Classes     m_classes;
 
 };
 

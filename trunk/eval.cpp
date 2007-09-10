@@ -42,6 +42,88 @@ struct Evaluator::AutoScope
   }
 };
 
+struct Evaluator::Class 
+{
+public:
+
+  //
+  // Access types
+  //
+  enum AccessTypes
+  {
+    Public,
+    Protected,
+    Private
+  };
+
+  //
+  // Construction
+  //
+  Class(String const& name) : m_name (name)
+  {
+  }
+
+  //
+  // Variables
+  //
+  struct Variable 
+  {
+    String      m_name;
+    AccessTypes m_access;
+    Ast*        m_node;
+  };
+
+  typedef std::map<String, Variable> Variables;
+
+  void AddVar(Ast* node, AccessTypes access)
+  {
+    Variable v = { node->m_a1, access, node };
+    m_vars[node->m_a1] = v;
+  }
+
+  Variable const* GetVar(String const& name) const
+  {
+    Variables::const_iterator it = m_vars.find(name);
+    return it == m_vars.end() ? 0 : &it->second;
+  }
+
+  //
+  // Functions
+  //
+  struct Function 
+  {
+    String      m_name;
+    AccessTypes m_access;
+    Ast*        m_node;
+  };
+
+  typedef std::map<String, Function> Functions;
+
+  void AddFun(Ast* node, AccessTypes access)
+  {
+    Function f = { node->m_a1, access, node };
+    m_funs[node->m_a1] = f;
+  }
+
+  Function const* GetFun(String const& name) const
+  {
+    Functions::const_iterator it = m_funs.find(name);
+    return it == m_funs.end() ? 0 : &it->second;
+  }
+
+private:
+
+  //
+  // Members
+  //
+  String    m_name;
+  Variables m_vars;
+  Functions m_funs;
+
+};
+
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Control flow exceptions
@@ -72,6 +154,22 @@ struct continue_exception
 // Evaluator implementation
 //
 
+/*static*/ void
+Evaluator::Run()
+{
+  Evaluator eval;
+  char buf[4097];
+  for(;;)
+  {
+    std::cout << "> ";
+    std::cin.getline(buf, 4096);
+
+    eval.Eval(buf);
+
+    std::cout << "\n";
+  }
+}
+
 Evaluator::Evaluator() :
 m_scope   (0)
 {
@@ -82,19 +180,22 @@ m_scope   (0)
 }
 
 void 
-Evaluator::Eval(String file)
+Evaluator::Eval(String text)
 {
   Parser parser(m_reporter);
-  parser.Parse(file);
+  parser.ParseText(text.c_str());
   if(m_reporter.GetErrorCount())
   {
     std::cout << "Aborted.\n";
     return;
   }
 
+  Ast* root = parser.GetRoot();
+  parser.SetRoot(0);
+
   try
   {
-    EvalStatement(parser.GetRoot());
+    EvalStatement(root);
   }
   catch(std::exception const& e)
   {
@@ -274,14 +375,19 @@ Evaluator::EvalExpression(Ast* node)
     case op_mul:    return *EvalExpression(node->m_a2) *  *EvalExpression(node->m_a3);
     case op_div:    return *EvalExpression(node->m_a2) /  *EvalExpression(node->m_a3);
     case op_mod:    return *EvalExpression(node->m_a2) %  *EvalExpression(node->m_a3);
-    case op_logor:  return *EvalExpression(node->m_a2) || *EvalExpression(node->m_a3);
-    case op_logand: return *EvalExpression(node->m_a2) && *EvalExpression(node->m_a3);
+
     case op_eq:     return *EvalExpression(node->m_a2) == *EvalExpression(node->m_a3);
     case op_ne:     return *EvalExpression(node->m_a2) != *EvalExpression(node->m_a3);
     case op_lt:     return *EvalExpression(node->m_a2) <  *EvalExpression(node->m_a3);
     case op_le:     return *EvalExpression(node->m_a2) <= *EvalExpression(node->m_a3);
     case op_gt:     return *EvalExpression(node->m_a2) >  *EvalExpression(node->m_a3);
     case op_ge:     return *EvalExpression(node->m_a2) >= *EvalExpression(node->m_a3);
+    
+    case op_logor:  return (bool)*EvalExpression(node->m_a2) || 
+                           (bool)*EvalExpression(node->m_a3) ;
+    case op_logand: return (bool)*EvalExpression(node->m_a2) && 
+                           (bool)*EvalExpression(node->m_a3) ;
+
     default:        throw std::out_of_range("Invalid binary operator");
     }
 
@@ -291,9 +397,15 @@ Evaluator::EvalExpression(Ast* node)
   case prefix_expression:
     switch(node->m_a1.GetNumber())
     {
-    case op_preinc: return ++*EvalExpression(node->m_a2);
+    case op_preinc: 
+      {
+        VariantRef value = EvalExpression(node->m_a2);
+        ++*value;
+        return value;
+      }
     case op_predec: return --*EvalExpression(node->m_a2);
     case op_negate: return  -*EvalExpression(node->m_a2);
+    case op_not:    return  !*EvalExpression(node->m_a2);
     default:        throw std::out_of_range("Invalid prefix operator");
     }
 
@@ -383,7 +495,11 @@ Evaluator::EvalVarDecl(Ast* node)
 
   // Determine right-hand value
   VariantRef value;
-  if(node->m_a2)
+  if(node->m_a2.Empty())
+  {
+    value = Variant();
+  }
+  else
   {
     value = EvalExpression(node->m_a2);
   }
@@ -409,7 +525,39 @@ void
 Evaluator::EvalClassDecl(Ast* node)
 {
   AutoScope scope(*this, node);
+  
+  // Check class name
+  if(m_classes.count(node->m_a1))
+  {
+    throw std::runtime_error("Class already declared");
+  }
 
+  // Create new class
+  Class* cl = new Class(node->m_a1);
+  m_classes[node->m_a1] = cl;
+
+  // Enumerate members
+  AstList* list = node->m_a2;
+  AstList::iterator it, ie;
+  it = list->begin();
+  ie = list->end();
+  for(; it != ie; ++it)
+  {
+    Ast* node = *it;
+    switch(node->m_type)
+    {
+    case variable_declaration:
+      cl->AddVar(node, Class::Public);
+      break;
+
+    case function_declaration:
+      cl->AddFun(node, Class::Public);
+      break;
+
+    default:
+      throw std::runtime_error("Invalid member type");
+    }
+  }
 }
 
 VariantRef  
@@ -452,7 +600,10 @@ Evaluator::EvalNativeCall(NativeCallInfo* fun, Ast* call)
 {
   // Evaluate arguments
   AutoScope as(*this, call);
-  EvalStatement(call->m_a2);
+  if(call->m_a2)
+  {
+    EvalStatement(call->m_a2);
+  }
 
   // Execute native call
   return fun->m_funPtr(m_scope->m_args, m_scope->m_args.size());
@@ -463,8 +614,11 @@ Evaluator::EvalScriptCall(Ast* fun, Ast* call)
 {
   // Evaluate arguments
   AutoScope as(*this, call);
-  EvalStatement(call->m_a2);
-  EvalStatement(fun->m_a2);
+  if(call->m_a2)
+  {
+    EvalStatement(call->m_a2);
+    EvalStatement(fun->m_a2);
+  }
 
   // Evaluate function body
   try
