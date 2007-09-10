@@ -26,7 +26,14 @@ AstData::AstData(Ast* node) :
 m_type    (Node),
 m_node    (node)
 {
-  ++m_node->m_refs;
+  if(m_node)
+  {
+    ++m_node->m_refs;
+  }
+  else
+  {
+    m_type = Null;
+  }
 }
 
 AstData::AstData(AstList* list) : 

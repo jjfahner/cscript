@@ -37,7 +37,7 @@ public:
   //
   // Lex from string
   //
-  void SetText(char* text);
+  void SetText(Char* text);
 
   //
   // Fetch next token

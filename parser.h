@@ -43,6 +43,11 @@ public:
   ~Parser();
 
   //
+  // Parse a string
+  //
+  void ParseText(char const* text);
+
+  //
   // Parse a file
   //
   void Parse(File& file);
