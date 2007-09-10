@@ -6,6 +6,7 @@
 #include "report.h"
 
 class Ast;
+struct NativeCallInfo;
 
 class Evaluator
 {
@@ -56,8 +57,10 @@ protected:
   //
   VariantRef EvalExpression(Ast* node);
   VariantRef EvalLValue(Ast* node);
-  VariantRef EvalFunctionCall(Ast* node);
   VariantRef EvalListLiteral(Ast* node);
+  VariantRef EvalFunctionCall(Ast* node);
+  VariantRef EvalNativeCall(NativeCallInfo* fun, Ast* call);
+  VariantRef EvalScriptCall(Ast* fun, Ast* call);
 
   //
   // Members

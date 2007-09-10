@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "parser.h"
 #include "astlist.h"
+#include "native.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -416,7 +417,7 @@ Evaluator::EvalFunctionCall(Ast* node)
 {
   Ast* fun = 0;
 
-  // Walk scopes
+  // Script functions
   Scope* scope = m_scope;
   for(;;)
   {
@@ -425,8 +426,7 @@ Evaluator::EvalFunctionCall(Ast* node)
     it = scope->m_funs.find(node->m_a1);
     if(it != scope->m_funs.end())
     {
-      fun = it->second;
-      break;
+      return EvalScriptCall(it->second, node);
     }
 
     // Parent scope
@@ -436,32 +436,40 @@ Evaluator::EvalFunctionCall(Ast* node)
     }
   }
 
-  // Unknown function
-  if(fun == 0)
+  // Native call
+  NativeCallInfo* nc = FindNative(node->m_a1);
+  if(nc)
   {
-    // Hack
-    if(node->m_a1.GetString() == "print")
-    {
-      AutoScope as(*this, node);
-      EvalStatement(node->m_a2);
-      std::cout << m_scope->m_args[0]->AsString();
-      return m_scope->m_args[0];
-    }
-    else
-    {
-      throw std::runtime_error("Undeclared function '" + node->m_a1.GetString() + "'");
-    }
+    return EvalNativeCall(nc, node);
   }
 
+  // Unknown call
+  throw std::runtime_error("Undeclared function '" + node->m_a1.GetString() + "'");
+}
+
+VariantRef 
+Evaluator::EvalNativeCall(NativeCallInfo* fun, Ast* call)
+{
   // Evaluate arguments
-  AutoScope as(*this, node);
-  EvalStatement(node->m_a2);
+  AutoScope as(*this, call);
+  EvalStatement(call->m_a2);
+
+  // Execute native call
+  return fun->m_funPtr(m_scope->m_args, m_scope->m_args.size());
+}
+
+VariantRef 
+Evaluator::EvalScriptCall(Ast* fun, Ast* call)
+{
+  // Evaluate arguments
+  AutoScope as(*this, call);
+  EvalStatement(call->m_a2);
   EvalStatement(fun->m_a2);
 
   // Evaluate function body
   try
   {
-    AutoScope as(*this, node);
+    AutoScope as(*this, call);
     EvalStatement(fun->m_a3);
     return Variant();
   }
