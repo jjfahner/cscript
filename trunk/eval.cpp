@@ -19,10 +19,70 @@ struct Evaluator::Scope
   typedef std::vector<VariantRef>       Arguments;
 
   //
+  // Create variable
+  //
+  virtual void NewVar(String const& name, Variant const& value = Variant::Null)
+  {
+    m_vars[name] = value;
+  }
+
+  //
+  // Retrieve variable
+  //
+  virtual VariantRef const& GetVar(String const& name) const
+  {
+    Variables::const_iterator it;
+    if((it = m_vars.find(name)) == m_vars.end())
+    {
+      throw std::runtime_error("Undefined variable '" + name + "'");
+    }
+    return it->second;
+  }
+
+  //
+  // Size
+  //
+  virtual void NewArg(VariantRef const& value)
+  {
+    m_args.push_back(value);
+  }
+
+  size_t GetVarCount() const
+  {
+    return m_vars.size();
+  }
+
+  VariantRef const& GetArg(size_t index) const
+  {
+    return m_args.at(index);
+  }
+
+  size_t GetArgCount() const
+  {
+    return m_args.size();
+  }
+
+  //
+  // Retrieve function
+  //
+  virtual Ast* GetFun(String const& name) const
+  {
+    Functions::const_iterator it;
+    if((it = m_funs.find(name)) == m_funs.end())
+    {
+      throw std::runtime_error("Undefined function '" + name + "'");
+    }
+    return it->second;
+  }
+
+  //
   // Members
   //
   Scope*      m_parent;
   Ast*        m_node;
+
+// private:
+
   Variables   m_vars;
   Functions   m_funs;
   Arguments   m_args;
@@ -64,6 +124,14 @@ public:
   }
 
   //
+  // Class name
+  //
+  String const& GetName() const
+  {
+    return m_name;
+  }
+
+  //
   // Variables
   //
   struct Variable 
@@ -87,6 +155,11 @@ public:
     return it == m_vars.end() ? 0 : &it->second;
   }
 
+  Variables const& GetVars() const
+  {
+    return m_vars;
+  }
+
   //
   // Functions
   //
@@ -105,10 +178,10 @@ public:
     m_funs[node->m_a1] = f;
   }
 
-  Function const* GetFun(String const& name) const
+  Ast* GetFun(String const& name) const
   {
     Functions::const_iterator it = m_funs.find(name);
-    return it == m_funs.end() ? 0 : &it->second;
+    return it == m_funs.end() ? 0 : it->second.m_node;
   }
 
 private:
@@ -122,6 +195,48 @@ private:
 
 };
 
+struct Evaluator::Instance : public Variant::Resource, public Scope
+{
+public:
+
+  //
+  // Construction
+  //
+  Instance(Class* c) : m_class (c)
+  {
+    Class::Variables const& vars = m_class->GetVars();
+    Class::Variables::const_iterator it, ie;
+    it = vars.begin();
+    ie = vars.end();
+    for(; it != ie; ++it)
+    {
+      NewVar(it->second.m_name);
+    }
+  }
+
+  //
+  // Retrieve member function
+  //
+  Ast* GetFun(String const& name)
+  {
+    try
+    {
+      return m_class->GetFun(name);
+    }
+    catch(...)
+    {
+      return Scope::GetFun(name);
+    }
+  }
+
+private:
+
+  //
+  // Members
+  //
+  Class*    m_class;
+
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -268,12 +383,11 @@ Evaluator::EvalStatement(Ast* node)
     break;
 
   case parameter:
-    if(m_scope->m_args.size() == m_scope->m_vars.size())
+    if(m_scope->GetArgCount() == m_scope->GetVarCount())
     {
       throw std::runtime_error("Not enough arguments in call to function");
     }
-    m_scope->m_vars.insert(std::make_pair(node->m_a1.GetString(), 
-                       m_scope->m_args[m_scope->m_vars.size()]));
+    m_scope->NewVar(node->m_a1.GetString(), *m_scope->GetArg(m_scope->GetVarCount()));
     break;
 
   case argument_list:
@@ -282,7 +396,7 @@ Evaluator::EvalStatement(Ast* node)
     break;
 
   case argument:
-    m_scope->m_args.push_back(EvalExpression(node->m_a1));    
+    m_scope->NewArg(EvalExpression(node->m_a1));
     break;
 
   case class_declaration:
@@ -338,9 +452,6 @@ Evaluator::EvalStatement(Ast* node)
     }
     break;
 
-  case member_call:
-    break;
-  
   case pause_statement:
     break;
   
@@ -388,6 +499,9 @@ Evaluator::EvalExpression(Ast* node)
     case op_logand: return (bool)*EvalExpression(node->m_a2) && 
                            (bool)*EvalExpression(node->m_a3) ;
 
+    case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3)) == 0;
+    case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3)) != 0;
+
     default:        throw std::out_of_range("Invalid binary operator");
     }
 
@@ -434,8 +548,17 @@ Evaluator::EvalExpression(Ast* node)
     return EvalListLiteral(node);
 
   case new_expression:
+    return EvalNewExpression(node);
+
   case this_expression:
+    throw std::out_of_range("Invalid expression type");
+
   case member_expression:
+    return EvalMemberExpression(node);
+
+  case member_call:
+    return EvalMemberCall(node);
+  
   default:
     throw std::out_of_range("Invalid expression type");
   }
@@ -840,5 +963,85 @@ Evaluator::EvalSwitchStatement(Ast* node)
     catch(break_exception const&)
     {
     }
+  }
+}
+
+VariantRef 
+Evaluator::EvalNewExpression(Ast* node)
+{
+  // Find class type
+  Classes::iterator it = m_classes.find(node->m_a1);
+  if(it == m_classes.end())
+  {
+    throw std::runtime_error("Undefined class '" + 
+                    node->m_a1.GetString() + "'");
+  }
+
+  // Instantiate
+  Instance* inst = new Instance(it->second);
+  inst->m_node = node;
+  return inst;
+}
+
+VariantRef 
+Evaluator::EvalMemberExpression(Ast* node)
+{
+  // Evaluate left side
+  VariantRef instVar = EvalExpression(node->m_a1);
+  if(instVar->GetType() != Variant::stResource)
+  {
+    throw std::runtime_error("Expression does not yield a class instance");
+  }
+  Instance* instPtr = dynamic_cast<Instance*>(instVar->GetResource());
+  if(instPtr == 0)
+  {
+    throw std::runtime_error("Expression does not yield a class instance");
+  }
+
+  // Retrieve value
+  return instPtr->GetVar(node->m_a2);  
+}
+
+VariantRef 
+Evaluator::EvalMemberCall(Ast* node)
+{
+  // Evaluate left side
+  VariantRef instVar = EvalExpression(node->m_a1);
+  if(instVar->GetType() != Variant::stResource)
+  {
+    throw std::runtime_error("Expression does not yield a class instance");
+  }
+  Instance* instPtr = dynamic_cast<Instance*>(instVar->GetResource());
+  if(instPtr == 0)
+  {
+    throw std::runtime_error("Expression does not yield a class instance");
+  }
+
+  // Retrieve function
+  Ast* fun = instPtr->GetFun(node->m_a2.GetNode()->m_a1);
+
+  // Push instance as scope
+  instPtr->m_parent = m_scope;
+  m_scope = instPtr;
+
+  // Ensure the scope stack is restored
+  try 
+  {
+    // Evaluate the function
+    VariantRef result = EvalScriptCall(fun, node->m_a2);
+
+    // Restore scope stack
+    m_scope = instPtr->m_parent;
+
+    // Done
+    return result;
+  }
+  catch(...)
+  {
+    // Restore scope stack
+    m_scope = instPtr->m_parent;
+
+    // Continue exception
+    throw;
   }
 }

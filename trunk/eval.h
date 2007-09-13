@@ -41,6 +41,7 @@ protected:
   // Classes
   //
   struct Class;
+  struct Instance;
   typedef std::map<String, Class*> Classes;
 
   //
@@ -67,6 +68,9 @@ protected:
   VariantRef EvalFunctionCall(Ast* node);
   VariantRef EvalNativeCall(NativeCallInfo* fun, Ast* call);
   VariantRef EvalScriptCall(Ast* fun, Ast* call);
+  VariantRef EvalNewExpression(Ast* node);
+  VariantRef EvalMemberExpression(Ast* node);
+  VariantRef EvalMemberCall(Ast* node);
 
   //
   // Members

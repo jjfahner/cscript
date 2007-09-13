@@ -514,6 +514,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\rtscope.h"
+			>
+		</File>
+		<File
 			RelativePath=".\TODO"
 			>
 		</File>
