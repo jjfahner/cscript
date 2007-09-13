@@ -264,7 +264,7 @@ function main()
   assert("strstr", strstr(a, "wo"),    6);
   assert("strstr", strstr(a, "wa"),   -1);
   assert("strstr", strstr(a, "wo", 2), 6);
-  /*
+  
   // Logical or
   assert("Logical or", true  || false, true);
   assert("Logical or", false || true,  true);
@@ -282,13 +282,13 @@ function main()
   var f = false;
   assert("Not", !t, false);
   assert("Not", !f, true);
-  */
+  
   // Short-circuited logical or/and
   a = 0; ++a || ++a;
   assert("short-circuit or", a, 1);
   a = 0; a++ && a++;
   assert("short-circuit and", a, 1);
-  
+  /*
   // Switch statement
   a = -1;
   switch(0) {
@@ -319,7 +319,7 @@ function main()
   default: a = 2; break;
   }
   assert("Break", a, 1);
-
+*/
   // Member syntax
   a = new File;
   a.m_file = 1;
