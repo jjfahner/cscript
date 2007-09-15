@@ -3,241 +3,25 @@
 #include "parser.h"
 #include "astlist.h"
 #include "native.h"
+#include "rtscope.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Scope implementation
 //
 
-struct Evaluator::Scope
-{
-  //
-  // Types
-  //
-  typedef std::map<String, VariantRef>  Variables;
-  typedef std::map<String, Ast*>        Functions;
-  typedef std::vector<VariantRef>       Arguments;
-
-  //
-  // Create variable
-  //
-  virtual void NewVar(String const& name, Variant const& value = Variant::Null)
-  {
-    m_vars[name] = value;
-  }
-
-  //
-  // Retrieve variable
-  //
-  virtual VariantRef const& GetVar(String const& name) const
-  {
-    Variables::const_iterator it;
-    if((it = m_vars.find(name)) == m_vars.end())
-    {
-      throw std::runtime_error("Undefined variable '" + name + "'");
-    }
-    return it->second;
-  }
-
-  //
-  // Size
-  //
-  virtual void NewArg(VariantRef const& value)
-  {
-    m_args.push_back(value);
-  }
-
-  size_t GetVarCount() const
-  {
-    return m_vars.size();
-  }
-
-  VariantRef const& GetArg(size_t index) const
-  {
-    return m_args.at(index);
-  }
-
-  size_t GetArgCount() const
-  {
-    return m_args.size();
-  }
-
-  //
-  // Retrieve function
-  //
-  virtual Ast* GetFun(String const& name) const
-  {
-    Functions::const_iterator it;
-    if((it = m_funs.find(name)) == m_funs.end())
-    {
-      throw std::runtime_error("Undefined function '" + name + "'");
-    }
-    return it->second;
-  }
-
-  //
-  // Members
-  //
-  Scope*      m_parent;
-  Ast*        m_node;
-
-// private:
-
-  Variables   m_vars;
-  Functions   m_funs;
-  Arguments   m_args;
-
-};
-
 struct Evaluator::AutoScope
 {
   Evaluator& m_eval;
-  AutoScope(Evaluator& eval, Ast* node) : m_eval (eval) 
+  AutoScope(Evaluator& eval, Scope* scope) : m_eval (eval) 
   {
-    m_eval.PushScope(node);
+    m_eval.PushScope(scope);
   }
   ~AutoScope()
   {
     m_eval.PopScope();
   }
 };
-
-struct Evaluator::Class 
-{
-public:
-
-  //
-  // Access types
-  //
-  enum AccessTypes
-  {
-    Public,
-    Protected,
-    Private
-  };
-
-  //
-  // Construction
-  //
-  Class(String const& name) : m_name (name)
-  {
-  }
-
-  //
-  // Class name
-  //
-  String const& GetName() const
-  {
-    return m_name;
-  }
-
-  //
-  // Variables
-  //
-  struct Variable 
-  {
-    String      m_name;
-    AccessTypes m_access;
-    Ast*        m_node;
-  };
-
-  typedef std::map<String, Variable> Variables;
-
-  void AddVar(Ast* node, AccessTypes access)
-  {
-    Variable v = { node->m_a1, access, node };
-    m_vars[node->m_a1] = v;
-  }
-
-  Variable const* GetVar(String const& name) const
-  {
-    Variables::const_iterator it = m_vars.find(name);
-    return it == m_vars.end() ? 0 : &it->second;
-  }
-
-  Variables const& GetVars() const
-  {
-    return m_vars;
-  }
-
-  //
-  // Functions
-  //
-  struct Function 
-  {
-    String      m_name;
-    AccessTypes m_access;
-    Ast*        m_node;
-  };
-
-  typedef std::map<String, Function> Functions;
-
-  void AddFun(Ast* node, AccessTypes access)
-  {
-    Function f = { node->m_a1, access, node };
-    m_funs[node->m_a1] = f;
-  }
-
-  Ast* GetFun(String const& name) const
-  {
-    Functions::const_iterator it = m_funs.find(name);
-    return it == m_funs.end() ? 0 : it->second.m_node;
-  }
-
-private:
-
-  //
-  // Members
-  //
-  String    m_name;
-  Variables m_vars;
-  Functions m_funs;
-
-};
-
-struct Evaluator::Instance : public Variant::Resource, public Scope
-{
-public:
-
-  //
-  // Construction
-  //
-  Instance(Class* c) : m_class (c)
-  {
-    Class::Variables const& vars = m_class->GetVars();
-    Class::Variables::const_iterator it, ie;
-    it = vars.begin();
-    ie = vars.end();
-    for(; it != ie; ++it)
-    {
-      NewVar(it->second.m_name);
-    }
-  }
-
-  //
-  // Retrieve member function
-  //
-  Ast* GetFun(String const& name)
-  {
-    try
-    {
-      return m_class->GetFun(name);
-    }
-    catch(...)
-    {
-      return Scope::GetFun(name);
-    }
-  }
-
-private:
-
-  //
-  // Members
-  //
-  Class*    m_class;
-
-};
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -288,10 +72,8 @@ Evaluator::Run()
 Evaluator::Evaluator() :
 m_scope   (0)
 {
-  m_global = new Scope;
-  m_global->m_node   = 0;
-  m_global->m_parent = 0;
-  m_scope = m_global;
+  m_global = new GlobalScope;
+  PushScope(m_global);
 }
 
 void 
@@ -323,20 +105,19 @@ Evaluator::Eval(String text)
 }
 
 void
-Evaluator::PushScope(Ast* node)
+Evaluator::PushScope(Scope* scope)
 {
-  Scope* newScope = new Scope;
-  newScope->m_parent  = m_scope;
-  newScope->m_node    = node;
-  m_scope = newScope;
+  m_scopes.push_front(m_scope);
+  m_scope = scope;
 }
 
 void 
 Evaluator::PopScope()
 {
-  Scope* oldScope = m_scope;
-  m_scope = oldScope->m_parent;
-  delete oldScope;
+  Scope* old = m_scope;
+  m_scope = m_scopes.front();
+  m_scopes.pop_front();
+  delete old;
 }
 
 void 
@@ -383,11 +164,7 @@ Evaluator::EvalStatement(Ast* node)
     break;
 
   case parameter:
-    if(m_scope->GetArgCount() == m_scope->GetVarCount())
-    {
-      throw std::runtime_error("Not enough arguments in call to function");
-    }
-    m_scope->NewVar(node->m_a1.GetString(), *m_scope->GetArg(m_scope->GetVarCount()));
+    EvalParameter(node);
     break;
 
   case argument_list:
@@ -396,7 +173,7 @@ Evaluator::EvalStatement(Ast* node)
     break;
 
   case argument:
-    m_scope->NewArg(EvalExpression(node->m_a1));
+    dynamic_cast<CallScope*>(m_scope)->AddArg(EvalExpression(node->m_a1));
     break;
 
   case class_declaration:
@@ -447,7 +224,7 @@ Evaluator::EvalStatement(Ast* node)
   case compound_statement:
     if(node->m_a1)
     {
-      AutoScope as(*this, node);
+      AutoScope as(*this, new Scope(m_scope));
       EvalStatement(node->m_a1);
     }
     break;
@@ -551,7 +328,7 @@ Evaluator::EvalExpression(Ast* node)
     return EvalNewExpression(node);
 
   case this_expression:
-    throw std::out_of_range("Invalid expression type");
+    return EvalThisExpression(node);
 
   case member_expression:
     return EvalMemberExpression(node);
@@ -580,42 +357,18 @@ Evaluator::EvalStatementSeq(Ast* node)
 VariantRef  
 Evaluator::EvalLValue(Ast* node)
 {
-  // Walk scopes
-  Scope* scope = m_scope;
-  for(;;)
+  VariantRef ref;
+  if(m_scope->FindVar(node->m_a1, ref))
   {
-    // Find variable in scope
-    Scope::Variables::iterator it;
-    it = scope->m_vars.find(node->m_a1);
-    if(it != scope->m_vars.end())
-    {
-      return it->second;
-    }
-
-    // Determine next level
-    if(scope->m_node->m_type == function_declaration)
-    {
-      break;
-    }
-    if((scope = scope->m_parent) == 0)
-    {
-      break;
-    }
+    return ref;
   }
-
-  // Not found
-  throw std::runtime_error("Undeclared variable '" + node->m_a1.GetString() + "'");
+  throw std::runtime_error("Undeclared variable '" + 
+                      node->m_a1.GetString() + "'");
 }
 
 void
 Evaluator::EvalVarDecl(Ast* node)
 {
-  // Check for duplicate declaration
-  if(m_scope->m_vars.count(node->m_a1))
-  {
-    throw std::runtime_error("Variable '" + node->m_a1.GetString() + "' already declared");
-  }
-
   // Determine right-hand value
   VariantRef value;
   if(node->m_a2.Empty())
@@ -628,27 +381,19 @@ Evaluator::EvalVarDecl(Ast* node)
   }
 
   // Create variable
-  m_scope->m_vars[node->m_a1] = value;
+  m_scope->AddVar(node->m_a1, value);
 }
 
 void        
 Evaluator::EvalFunDecl(Ast* node)
 {
-  // Check for duplicate declaration
-  if(m_scope->m_funs.count(node->m_a1))
-  {
-    throw std::runtime_error("Function '" + node->m_a1.GetString() + "' already declared");
-  }
-
-  // Insert into map
-  m_scope->m_funs[node->m_a1] = node;
+  // Insert into scope
+  m_scope->AddFun(node->m_a1, node);
 }
 
 void 
 Evaluator::EvalClassDecl(Ast* node)
 {
-  AutoScope scope(*this, node);
-  
   // Check class name
   if(m_classes.count(node->m_a1))
   {
@@ -670,11 +415,11 @@ Evaluator::EvalClassDecl(Ast* node)
     switch(node->m_type)
     {
     case variable_declaration:
-      cl->AddVar(node, Class::Public);
+      cl->AddVar(node->m_a1, node);
       break;
 
     case function_declaration:
-      cl->AddFun(node, Class::Public);
+      cl->AddFun(node->m_a1, node);
       break;
 
     default:
@@ -686,25 +431,11 @@ Evaluator::EvalClassDecl(Ast* node)
 VariantRef  
 Evaluator::EvalFunctionCall(Ast* node)
 {
-  Ast* fun = 0;
-
   // Script functions
-  Scope* scope = m_scope;
-  for(;;)
+  Ast* fun = 0;
+  if(m_scope->FindFun(node->m_a1, fun))
   {
-    // Find function declaration
-    Scope::Functions::iterator it;
-    it = scope->m_funs.find(node->m_a1);
-    if(it != scope->m_funs.end())
-    {
-      return EvalScriptCall(it->second, node);
-    }
-
-    // Parent scope
-    if((scope = scope->m_parent) == 0)
-    {
-      break;
-    }
+     return EvalScriptCall(fun, node);
   }
 
   // Native call
@@ -721,22 +452,26 @@ Evaluator::EvalFunctionCall(Ast* node)
 VariantRef 
 Evaluator::EvalNativeCall(NativeCallInfo* fun, Ast* call)
 {
+  // Create scope
+  CallScope* scope = new CallScope(m_scope);
+  AutoScope as(*this, scope);
+
   // Evaluate arguments
-  AutoScope as(*this, call);
   if(call->m_a2)
   {
     EvalStatement(call->m_a2);
   }
 
   // Execute native call
-  return fun->m_funPtr(m_scope->m_args, m_scope->m_args.size());
+  CallScope::Arguments const& args = scope->GetArgs();
+  return fun->m_funPtr(args, args.size());
 }
 
 VariantRef 
 Evaluator::EvalScriptCall(Ast* fun, Ast* call)
 {
   // Evaluate arguments
-  AutoScope as(*this, call);
+  AutoScope as(*this, new CallScope(m_scope));
   if(call->m_a2)
   {
     EvalStatement(call->m_a2);
@@ -746,7 +481,7 @@ Evaluator::EvalScriptCall(Ast* fun, Ast* call)
   // Evaluate function body
   try
   {
-    AutoScope as(*this, call);
+    AutoScope as(*this, new Scope(m_scope));
     EvalStatement(fun->m_a3);
     return Variant();
   }
@@ -808,7 +543,7 @@ void
 Evaluator::EvalForStatement(Ast* node)
 {
   // Outer scope
-  AutoScope scope(*this, node);
+  AutoScope scope(*this, new Scope(m_scope));
   
   // Evaluate init expression
   EvalStatement(node->m_a1);
@@ -825,7 +560,7 @@ Evaluator::EvalForStatement(Ast* node)
     // For body
     try 
     {
-      AutoScope scope(*this, node);
+      AutoScope scope(*this, new Scope(m_scope));
       EvalStatement(node->m_a4);
     }
     catch(break_exception const&)
@@ -844,7 +579,7 @@ Evaluator::EvalForStatement(Ast* node)
 void 
 Evaluator::EvalForeachStatement(Ast* node)
 {
-  AutoScope scope(*this, node);
+  AutoScope scope(*this, new Scope(m_scope));
 
   String varName;
   Ast*   varNode = node->m_a1;
@@ -860,6 +595,13 @@ Evaluator::EvalForeachStatement(Ast* node)
     varName = node->m_a1;
   }
 
+  // Fetch variable
+  VariantRef var;
+  if(!m_scope->FindVar(varName, var))
+  {
+    throw std::runtime_error("Failed to find iterator variable");
+  }
+
   // Evaluate expression
   VariantRef rhs = EvalExpression(node->m_a2);
 
@@ -871,12 +613,12 @@ Evaluator::EvalForeachStatement(Ast* node)
   for(; it != ie; ++it)
   {
     // Assign value to iterator variable
-    m_scope->m_vars[varName] = it->second;
+    *var = *it->second;
 
     // Evaluate expression
     try
     {
-      AutoScope scope(*this, node);
+      AutoScope scope(*this, new Scope(m_scope));
       EvalStatement(node->m_a3);
     }
     catch(break_exception const&)
@@ -909,7 +651,7 @@ Evaluator::EvalWhileStatement(Ast* node)
   {
     try
     {
-      AutoScope scope(*this, node);
+      AutoScope scope(*this, new Scope(m_scope));
       EvalStatement(node->m_a2);
     }
     catch(break_exception const&)
@@ -957,7 +699,7 @@ Evaluator::EvalSwitchStatement(Ast* node)
   {
     try
     {
-      AutoScope as(*this, node);
+      AutoScope as(*this, new Scope(m_scope));
       EvalStatement(statement);
     }
     catch(break_exception const&)
@@ -978,9 +720,7 @@ Evaluator::EvalNewExpression(Ast* node)
   }
 
   // Instantiate
-  Instance* inst = new Instance(it->second);
-  inst->m_node = node;
-  return inst;
+  return it->second->CreateInstance(*this);
 }
 
 VariantRef 
@@ -999,14 +739,23 @@ Evaluator::EvalMemberExpression(Ast* node)
   }
 
   // Retrieve value
-  return instPtr->GetVar(node->m_a2);  
+  VariantRef ref;
+  if(!instPtr->FindVar(node->m_a2, ref))
+  {
+    throw std::runtime_error("Class has no member '" + node->m_a2.GetString() + "'");
+  }
+  return ref;
 }
 
 VariantRef 
 Evaluator::EvalMemberCall(Ast* node)
 {
+  // Extract subnodes
+  Ast* lhs = node->m_a1;
+  Ast* rhs = node->m_a2;
+
   // Evaluate left side
-  VariantRef instVar = EvalExpression(node->m_a1);
+  VariantRef instVar = EvalExpression(lhs);
   if(instVar->GetType() != Variant::stResource)
   {
     throw std::runtime_error("Expression does not yield a class instance");
@@ -1017,31 +766,75 @@ Evaluator::EvalMemberCall(Ast* node)
     throw std::runtime_error("Expression does not yield a class instance");
   }
 
+  // Determine function name
+  String name = rhs->m_a1;
+
   // Retrieve function
-  Ast* fun = instPtr->GetFun(node->m_a2.GetNode()->m_a1);
-
-  // Push instance as scope
-  instPtr->m_parent = m_scope;
-  m_scope = instPtr;
-
-  // Ensure the scope stack is restored
-  try 
+  Ast* fun = 0;
+  if(!instPtr->FindFun(name, fun))
   {
-    // Evaluate the function
-    VariantRef result = EvalScriptCall(fun, node->m_a2);
-
-    // Restore scope stack
-    m_scope = instPtr->m_parent;
-
-    // Done
-    return result;
+    throw std::runtime_error("Class has no method '" + name + "'");
   }
-  catch(...)
+
+  // Evaluate arguments
+  CallScope* callScope = new CallScope(m_scope);
+  PushScope(callScope);
+  if(rhs->m_a2)
   {
-    // Restore scope stack
-    m_scope = instPtr->m_parent;
-
-    // Continue exception
-    throw;
+    EvalStatement(rhs->m_a2);
+    EvalStatement(fun->m_a2);
   }
+  m_scope = m_scopes.front();
+  m_scopes.pop_front();
+
+  // Push class scope
+  AutoScope as(*this, new ClassScope(m_global, instPtr));
+  // TODO insert this
+
+  // Push call as scope
+  callScope->SetParent(m_scope);
+  AutoScope cs(*this, callScope);
+
+  // Push regular scope
+  AutoScope fs(*this, new Scope(m_scope));
+
+  // Evaluate the function
+  EvalStatement(fun->m_a3);
+  return Variant();
+}
+
+VariantRef 
+Evaluator::EvalThisExpression(Ast* node)
+{
+  Scope* scope = m_scope;
+  while(scope)
+  {
+    ClassScope* cs = dynamic_cast<ClassScope*>(scope);
+    if(cs)
+    {
+      return cs->GetInstance();
+    }
+    scope = scope->GetParent();
+  }
+  throw std::runtime_error("Invalid context for this");
+}
+
+void
+Evaluator::EvalParameter(Ast* node)
+{
+  // Fetch call scope
+  CallScope* scope = dynamic_cast<CallScope*>(m_scope);
+  if(scope == 0)
+  {
+    throw std::runtime_error("Invalid scope for parameter evaluation");
+  }
+
+  // Check argument count
+  if(scope->GetArgCount() == scope->GetVarCount())
+  {
+    throw std::runtime_error("Not enough arguments in call to function");
+  }
+
+  // Add variable to scope
+  scope->AddVar(node->m_a1.GetString(), scope->GetArg(scope->GetVarCount()));
 }

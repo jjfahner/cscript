@@ -21,8 +21,6 @@
 #include "ast.h"
 #include "file.h"
 #include "lexer.h"
-#include "codegen.h"
-#include "machine.h"
 
 size_t g_nodeCount = 0;
 

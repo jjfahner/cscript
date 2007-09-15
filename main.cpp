@@ -20,15 +20,11 @@
 //////////////////////////////////////////////////////////////////////////
 #include "file.h"
 #include "cmdargs.h"
-#include "ast.h"
 #include "report.h"
 #include "parser.h"
-#include "codegen.h"
-#include "machine.h"
-#include "annotate.h"
-#include "optimize.h"
 #include "eval.h"
-
+#include "ast.h"
+/*
 //////////////////////////////////////////////////////////////////////////
 //
 // Print version
@@ -403,7 +399,7 @@ int cscript_main(int argc, Char** argv)
   // Execute mode
   return execute(args);
 }
-
+*/
 //
 // For keeping debug window open
 //
