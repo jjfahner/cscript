@@ -4,6 +4,7 @@
 #include "types.h"
 #include "var.h"
 #include "report.h"
+#include "rtscope.h"
 
 class Ast;
 struct NativeCallInfo;
@@ -27,21 +28,24 @@ public:
   //
   void Eval(String code);
 
+  //
+  // Evaluation of an expression
+  //
+  VariantRef EvalExpression(Ast* node);
+
 protected:
 
   //
   // Scope handling
   //
-  struct Scope;
   struct AutoScope;
-  void PushScope(Ast*);
+  void PushScope(Scope*);
   void PopScope();
+  typedef std::list<Scope*> ScopeList;
   
   //
   // Classes
   //
-  struct Class;
-  struct Instance;
   typedef std::map<String, Class*> Classes;
 
   //
@@ -58,11 +62,11 @@ protected:
   void EvalSwitchStatement(Ast* node);
   void EvalIfStatement(Ast* node);
   void EvalReturnStatement(Ast* node);
+  void EvalParameter(Ast* node);
 
   //
   // Expression handlers
   //
-  VariantRef EvalExpression(Ast* node);
   VariantRef EvalLValue(Ast* node);
   VariantRef EvalListLiteral(Ast* node);
   VariantRef EvalFunctionCall(Ast* node);
@@ -71,14 +75,16 @@ protected:
   VariantRef EvalNewExpression(Ast* node);
   VariantRef EvalMemberExpression(Ast* node);
   VariantRef EvalMemberCall(Ast* node);
+  VariantRef EvalThisExpression(Ast* node);
 
   //
   // Members
   //
-  Reporter    m_reporter;
-  Scope*      m_global;
-  Scope*      m_scope;
-  Classes     m_classes;
+  Reporter      m_reporter;
+  GlobalScope*  m_global;
+  ScopeList     m_scopes;
+  Scope*        m_scope;
+  Classes       m_classes;
 
 };
 

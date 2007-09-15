@@ -181,15 +181,19 @@
 			Name="runtime"
 			>
 			<File
-				RelativePath=".\class.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\class.h"
 				>
 			</File>
 			<File
-				RelativePath=".\machine.cpp"
+				RelativePath=".\eval.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\eval.csc"
+				>
+			</File>
+			<File
+				RelativePath=".\eval.h"
 				>
 			</File>
 			<File
@@ -207,6 +211,14 @@
 						DisableLanguageExtensions="false"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\rtscope.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\rtscope.h"
+				>
 			</File>
 			<File
 				RelativePath=".\var.cpp"
@@ -277,63 +289,11 @@
 			Name="compiler"
 			>
 			<File
-				RelativePath=".\annotate.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\annotate.h"
-				>
-			</File>
-			<File
-				RelativePath=".\astdata.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\astdata.h"
-				>
-			</File>
-			<File
-				RelativePath=".\astlist.h"
-				>
-			</File>
-			<File
-				RelativePath=".\codegen.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\codegen.h"
-				>
-			</File>
-			<File
-				RelativePath=".\compile.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\decompile.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\file.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\file.h"
-				>
-			</File>
-			<File
 				RelativePath=".\lexer.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\lexer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\optimize.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\optimize.h"
 				>
 			</File>
 			<File
@@ -345,31 +305,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\print.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\report.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\report.h"
 				>
 			</File>
 			<File
-				RelativePath=".\scope.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\scope.h"
-				>
-			</File>
-			<File
 				RelativePath=".\tokens.h"
-				>
-			</File>
-			<File
-				RelativePath=".\validate.cpp"
 				>
 			</File>
 		</Filter>
@@ -433,6 +373,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\astdata.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\astgen.in"
 				>
 				<FileConfiguration
@@ -447,11 +391,19 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\astlist.h"
+				>
+			</File>
+			<File
 				RelativePath=".\error.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\error.h"
+				>
+			</File>
+			<File
+				RelativePath=".\file.cpp"
 				>
 			</File>
 			<File
@@ -485,6 +437,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\report.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\types.h"
 				>
 			</File>
@@ -501,22 +457,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\eval.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\eval.csc"
-			>
-		</File>
-		<File
-			RelativePath=".\eval.h"
-			>
-		</File>
-		<File
-			RelativePath=".\rtscope.h"
-			>
-		</File>
 		<File
 			RelativePath=".\TODO"
 			>

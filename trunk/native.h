@@ -29,7 +29,7 @@ typedef std::vector<VariantRef> RefStack;
 //
 // Native call pointer
 //
-typedef VariantRef (*NativeCall)(RefStack& stack, Quad numArgs);
+typedef VariantRef (*NativeCall)(RefStack const& stack, Quad numArgs);
 
 //
 // Function information
@@ -61,15 +61,15 @@ struct NativeCallRegistrar
 // Native call handler
 //
 #define NATIVE_CALL(name,minPar,maxPar)                     \
-  VariantRef Native_##name(RefStack&, Quad);                \
+  VariantRef Native_##name(RefStack const&, Quad);          \
   NativeCallRegistrar register_##name(#name,                \
     Native_##name, minPar, maxPar);                         \
-  VariantRef Native_##name(RefStack& args, Quad numArgs)
+  VariantRef Native_##name(RefStack const& args, Quad numArgs)
 
 //
 // Check the argument type for a native call argument
 //
-void AssertType(RefStack& args, Quad index, Variant::SubTypes type, char const* function);
+void AssertType(RefStack const& args, Quad index, Variant::SubTypes type, char const* function);
 #define ASSERT_TYPE(idx,type) \
   AssertType(args, idx, Variant::type, __FUNCTION__)
 
@@ -82,7 +82,7 @@ NativeCallInfo* FindNative(String const& name);
 //
 // Execute a native call
 //
-void ExecNative(Quad index, Quad numArgs, RefStack& stack, Quad SP);
+void ExecNative(Quad index, Quad numArgs, RefStack const& stack, Quad SP);
 
 
 #endif // #ifndef CSCRIPT_NATIVE_CALLS_H

@@ -79,7 +79,7 @@ FindNative(String const& name)
 // Execute a native call
 //
 void 
-ExecNative(Quad index, Quad numArgs, RefStack& stack, Quad SP)
+ExecNative(Quad index, Quad numArgs, RefStack const& stack, Quad SP)
 {
   static NativeCalls& ncv = getNativeCalls();
 
@@ -94,11 +94,12 @@ ExecNative(Quad index, Quad numArgs, RefStack& stack, Quad SP)
   }
 
   // Call function
-  stack[SP] = ncv[index]->m_funPtr(args, numArgs);
+  throw std::runtime_error("Not supported");
+  //stack[SP] = ncv[index]->m_funPtr(args, numArgs);
 }
 
 void 
-AssertType(RefStack& args, Quad index, Variant::SubTypes type, char const* function)
+AssertType(RefStack const& args, Quad index, Variant::SubTypes type, char const* function)
 {
   if(index >= args.size())
   {
