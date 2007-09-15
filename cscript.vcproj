@@ -213,11 +213,11 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\rtscope.cpp"
+				RelativePath=".\scope.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\rtscope.h"
+				RelativePath=".\scope.h"
 				>
 			</File>
 			<File

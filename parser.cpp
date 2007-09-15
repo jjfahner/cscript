@@ -124,7 +124,7 @@ void
 Parser::OnParseFailure()
 {
   FilePos pos;
-  pos.m_file = m_file->GetPath();
+  pos.m_file = m_file ? m_file->GetPath() : "";
   pos.m_line = m_lexer->GetLine();
   m_reporter.ReportError(E0012, &pos);
 }
