@@ -39,6 +39,11 @@ public:
   Reporter();
 
   //
+  // Reset
+  //
+  void Reset();
+
+  //
   // Report an error
   //
   void ReportError(Notice const& notice, FilePos* pos, ...);

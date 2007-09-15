@@ -4,7 +4,7 @@
 #include "types.h"
 #include "var.h"
 #include "report.h"
-#include "rtscope.h"
+#include "scope.h"
 
 class Ast;
 struct NativeCallInfo;

@@ -3,7 +3,7 @@
 #include "parser.h"
 #include "astlist.h"
 #include "native.h"
-#include "rtscope.h"
+#include "scope.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -79,8 +79,11 @@ m_scope   (0)
 void 
 Evaluator::Eval(String text)
 {
+  m_reporter.Reset();
+
   Parser parser(m_reporter);
   parser.ParseText(text.c_str());
+
   if(m_reporter.GetErrorCount())
   {
     std::cout << "Aborted.\n";

@@ -30,6 +30,13 @@ m_warnings(0)
 }
 
 void 
+Reporter::Reset()
+{
+  m_errors   = 0;
+  m_warnings = 0;
+}
+
+void 
 Reporter::ReportError(Notice const& notice, FilePos* pos, ...)
 {
   static const char* szTemplate = "%s (%d) : error E%04d: %s\n";
