@@ -597,12 +597,12 @@ Evaluator::EvalForeachStatement(Ast* node)
   // Determine variable name
   if(varNode->m_type == variable_declaration)
   {
-    EvalStatement(node->m_a1);
-    varName = node->m_a1->m_a1;
+    EvalStatement(varNode);
+    varName = varNode->m_a1.GetString();
   }
   else
   {
-    varName = node->m_a1;
+    varName = node->m_a1.GetString();
   }
 
   // Fetch variable
