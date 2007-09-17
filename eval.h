@@ -14,11 +14,6 @@ class Evaluator
 public:
 
   //
-  // Run
-  //
-  static void Run();
-
-  //
   // Construction
   //
   Evaluator();
@@ -33,6 +28,21 @@ public:
   //
   VariantRef EvalExpression(Ast* node);
 
+  //
+  // Reset the evaluator
+  //
+  void Reset();
+
+  //
+  // Retrieve list of classes
+  //
+  VariantRef GetClassList() const;
+
+  //
+  // Retrieve list of functions
+  //
+  VariantRef GetFunctionList() const;
+
 protected:
 
   //
@@ -40,7 +50,7 @@ protected:
   //
   struct AutoScope;
   void PushScope(Scope*);
-  void PopScope();
+  void PopScope(bool doDelete = true);
   typedef std::list<Scope*> ScopeList;
   
   //
@@ -86,6 +96,35 @@ protected:
   Scope*        m_scope;
   Classes       m_classes;
 
+};
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Control flow exceptions
+//
+
+struct return_exception
+{
+  Ast* m_node;
+  VariantRef m_value;
+  return_exception(Ast* node) : m_node (node) {}
+  return_exception(Ast* node, VariantRef const& value) : m_node (node), m_value (value) {}
+};
+
+struct break_exception
+{
+  Ast* m_node;
+  break_exception(Ast* node) : m_node (node) {}
+};
+
+struct continue_exception
+{
+  Ast* m_node;
+  continue_exception(Ast* node) : m_node (node) {}
+};
+
+struct reset_exception
+{
 };
 
 #endif // CSCRIPT_EVAL_H

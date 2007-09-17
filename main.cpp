@@ -24,14 +24,14 @@
 #include "parser.h"
 #include "eval.h"
 #include "ast.h"
-/*
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Print version
 //
-void version()
+void banner()
 {
-  cout << "CScript 0.3  Copyright (C) 2007  Jan-Jaap Fahner.\n\n";
+  cout << "CScript 0.5  Copyright (C) 2007  Jan-Jaap Fahner.\n\n";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,16 +41,13 @@ void version()
 
 int usage()
 {
-  version();
+  banner();
   cout << 
     "Usage: cscript [options] [file]\n\n"
     "Options:\n\n"
-    "-a --annotate=FILE   Annotate source file (requires -o)\n"
-    "-c --compile=FILE    Compile source file (requires -o)\n"
-    "-d --decompile=FILE  Decompile binary code (requires -o)\n"
+    "-q --quiet           Don't display banner"
     "-e --execute=FILE    Name of a file to execute\n"
     "-i --interactive     Run interpreter in interactive mode\n"
-    "-o --output=FILE     Name of output file\n"
     "\n"
     "This program comes with ABSOLUTELY NO WARRANTY.\n"
     "This is free software, and you are welcome to redistribute it\n"
@@ -61,300 +58,75 @@ int usage()
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Annotation mode
-//
-
-int annotate(CmdArgs const& args)
-{
-  Reporter reporter;
-
-  // Check input
-  String srcFile;
-  if(args.IsSet("-a"))
-  {
-    srcFile = args["-a"];
-  }
-  else if(args.IsSet("--annotate"))
-  {
-    srcFile = args["--annotate"];
-  }
-  if(srcFile.empty())
-  {
-    usage();
-    return EXIT_FAILURE;
-  }
-
-  // Check output filename
-  String outFile;
-  if(args.IsSet("-o"))
-  {
-    outFile = args["-o"];
-  }
-  else if(args.IsSet("--output"))
-  {
-    outFile = args["--output"];
-  }
-  if(outFile.empty())
-  {
-    usage();
-    return EXIT_FAILURE;
-  }
-
-  Parser parser(reporter);
-  CodeGenerator cg(reporter);
-
-  // Generate ast
-  parser.Parse(srcFile);
-  
-  // Optimize code
-  Optimizer optimizer;
-  Ast* root = optimizer.Optimize(parser.GetRoot());
-
-  // Annotate code
-  Annotator annotator(reporter);
-  annotator.Annotate(root);
-
-  // Print annotated code
-  cg.Print(outFile, root);
-
-  // Done
-  return 0;
-
-  // Succeeded
-  return EXIT_SUCCESS;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Compile mode
-//
-
-int compile(CmdArgs const& args)
-{
-  Reporter reporter;
-
-  // Check input
-  String srcFile;
-  if(args.IsSet("-c"))
-  {
-    srcFile = args["-c"];
-  }
-  else if(args.IsSet("--compile"))
-  {
-    srcFile = args["--compile"];
-  }
-  if(srcFile.empty())
-  {
-    usage();
-    return EXIT_FAILURE;
-  }
-
-  // Check output filename
-  String outFile;
-  if(args.IsSet("-o"))
-  {
-    outFile = args["-o"];
-  }
-  else if(args.IsSet("--output"))
-  {
-    outFile = args["--output"];
-  }
-  if(outFile.empty())
-  {
-    usage();
-    return EXIT_FAILURE;
-  }
-
-  // Generate ast
-  Parser parser(reporter);
-  parser.Parse(srcFile);
-
-  // Generate code
-  CodeGenerator cg(reporter);
-  cg.Generate(parser.GetRoot(), true);
-
-  // Write file
-  std::ofstream ofs(outFile.c_str(), std::ios::binary);
-  ofs.write((char*)cg.GetCode(), cg.GetSize());
-  ofs.close();
-  
-  // Done
-  return 0;
-
-  // Succeeded
-  return EXIT_SUCCESS;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Decompile binary code
-//
-
-int decompile(CmdArgs const& args)
-{
-  Reporter reporter;
-
-  // Check input
-  String srcFile;
-  if(args.IsSet("-d"))
-  {
-    srcFile = args["-d"];
-  }
-  else if(args.IsSet("--decompile"))
-  {
-    srcFile = args["--decompile"];
-  }
-  if(srcFile.empty())
-  {
-    usage();
-    return EXIT_FAILURE;
-  }
-
-  // Check output filename
-  String outFile;
-  if(args.IsSet("-o"))
-  {
-    outFile = args["-o"];
-  }
-  else if(args.IsSet("--output"))
-  {
-    outFile = args["--output"];
-  }
-  if(outFile.empty())
-  {
-    usage();
-    return EXIT_FAILURE;
-  }
-
-  // Open input file
-  File file;
-  file.Open(srcFile);
-
-  // Check for binary file
-  if(file.GetType() != File::binary)
-  {
-    std::cout << "Error: invalid file format\n";
-    return EXIT_FAILURE;
-  }
-
-  // Create output file
-  std::ofstream ofs(outFile.c_str());
-
-  // Decompile source code
-  CodeGenerator cg(reporter);
-  cg.Decompile(file.GetData(),
-               file.GetHeader()->m_codeseg, 
-               file.GetHeader()->m_codelen + file.GetHeader()->m_proclen, 
-               ofs);
-
-  // Close file
-  ofs.close();
-
-  // Done
-  return 0;
-
-  // Succeeded
-  return EXIT_SUCCESS;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Interactive mode
 //
 
 int interactive(CmdArgs const& args)
 {
-  return EXIT_FAILURE;
+  // Not quiet
+  if(!(args.IsSet("-q") || args.IsSet("--quiet")))
+  {
+    banner();
+  }
+
+  // Create evaluator instance
+  Evaluator eval;
+
+  // Line buffer
+  char line[4097];
+
+  // Code buffer
+  String code;
+
+  // Continuous evaluation
+  for(;;)
+  {
+    // Prompt for line
+    std::cout << "> ";
+    std::cin.getline(line, 4096);
+
+    // Empty lines. TODO: trim line
+    size_t len = strlen(line);
+    if(len == 0)
+    {
+      continue;
+    }
+
+    // Line continuation
+    bool continuation = false;
+    if(line[len - 1] == '\\')
+    {
+      line[len - 1] = 0;
+      continuation = true;
+    }
+
+    // Add to code
+    code += line;
+    if(continuation)
+    {
+      continue;
+    }
+
+    // Execute input
+    eval.Eval(code);
+    code.clear();
+
+    // Ensure new line
+    std::cout << "\n";
+  }
+
+  // Never reached
+  return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Execute a file
+// Execute file
 //
 
-int execute(CmdArgs const& args)
+int execute(CmdArgs const&)
 {
-  Reporter reporter;
-
-  // Find files to execute
-  StringMap files = args.GetValues();
-  if(files.size() != 1)
-  {
-    usage();
-    return EXIT_FAILURE;
-  }
-
-  // Store filename
-  String filename = files.begin()->first;
-
-  // Open the file
-  File file;
-  file.Open(filename);
-
-  // Fetch code pointer from file
-  Byte* code = 0;
-  Quad  offset = 0;
-  if(file.GetType() == File::binary)
-  {
-    // Take pointer to code segment
-    code = file.GetData();
-    offset = file.GetHeader()->m_codeseg;
-  }
-  else
-  {
-    // Generate ast
-    Parser parser(reporter);
-    parser.Parse(file);
-
-    // Generate code
-    CodeGenerator cg(reporter);
-    if(!parser.GetRoot())
-    {
-      return EXIT_FAILURE;
-    }
-    cg.Generate(parser.GetRoot(), true);
-
-    // Check whether compilation succeeded
-    if(cg.GetCode() == 0)
-    {
-      return EXIT_FAILURE;
-    }
-
-    // Write to file
-#ifdef _DEBUG
-    std::ofstream ofs((filename + ".csb").c_str(), std::ios::binary);
-    ofs.write((char*)cg.GetCode(), cg.GetSize());
-    ofs.close();
-#endif
-
-    // Take code from parser
-    BinHeader* header = (BinHeader*) cg.ReleaseCode();
-    code = (Byte*)header;
-    offset = header->m_codeseg;
-
-    // Decompile
-#if 0
-    ofs.open((filename + ".txt").c_str());
-    cg.Decompile(code,
-                 header->m_codeseg, 
-                 header->m_codelen + header->m_proclen, 
-                 ofs);
-#endif
-  }
-
-  // Header pointer
-  BinHeader* header = (BinHeader*) code;
-
-  Machine machine;
-
-  // Read classes
-  machine.ReadClasses(code + header->m_vtabseg);
-
-  // Execute code
-  machine.Execute(code, offset);
-
-  // Program succeeded
-	return EXIT_SUCCESS;
+  return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -372,34 +144,22 @@ int cscript_main(int argc, Char** argv)
     return usage();
   }
 
-  // Interactive mode
-  if(args.IsSet("-i"))
+  // No args
+  if(args.GetCount() == 1)
   {
     return interactive(args);
   }
 
-  // Annotate mode
-  if(args.IsSet("-a") || args.IsSet("--annotate"))
+  // Interactive mode
+  if(args.IsSet("-i") ||args.IsSet("--interactive"))
   {
-    return annotate(args);
-  }
-
-  // Compile mode
-  if(args.IsSet("-c") || args.IsSet("--compile"))
-  {
-    return compile(args);
-  }
-
-  // Decompile
-  if(args.IsSet("-d") || args.IsSet("--decompile"))
-  {
-    return decompile(args);
+    return interactive(args);
   }
 
   // Execute mode
   return execute(args);
 }
-*/
+
 //
 // For keeping debug window open
 //
@@ -413,10 +173,6 @@ int cscript_main(int argc, Char** argv)
 //
 int main(int argc, Char** argv)
 {
-#if 1
-  Evaluator::Run();
-  return 0;
-#else
   int result = EXIT_FAILURE;
   try
   {
@@ -441,6 +197,4 @@ int main(int argc, Char** argv)
 #endif
 
 	return result;
-
-#endif
 }

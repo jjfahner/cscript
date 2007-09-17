@@ -155,6 +155,12 @@ class Scope
 public:
 
   //
+  // Types
+  //
+  typedef std::map<String, VariantRef> Variables;
+  typedef std::map<String, Ast*      > Functions;
+
+  //
   // Construction
   //
   Scope(Scope* parent = 0) : m_parent (parent)
@@ -213,6 +219,14 @@ public:
   }
 
   //
+  // Retrieve list of variables
+  //
+  Variables const& GetVariables() const
+  {
+    return m_vars;
+  }
+
+  //
   // Add a function
   //
   virtual void AddFun(String const& name, Ast* fun)
@@ -234,6 +248,15 @@ public:
       return m_parent->FindFun(name, fun);
     }
     return false;
+  }
+
+  //
+  // Retrieve list of functions
+  //
+  virtual Functions const& GetFunctions() const
+  {
+    static Functions functions;
+    return functions;
   }
 
 protected:
@@ -259,12 +282,6 @@ protected:
   {
     return false;
   }
-
-  //
-  // Types
-  //
-  typedef std::map<String, VariantRef> Variables;
-  typedef std::map<String, Ast*      > Functions;
 
   //
   // Members
@@ -293,6 +310,14 @@ public:
       throw std::runtime_error("Function already declared");
     }
     m_funs[name] = fun;
+  }
+
+  //
+  // Retrieve list of functions
+  //
+  virtual Functions const& GetFunctions() const
+  {
+    return m_funs;
   }
 
 protected:

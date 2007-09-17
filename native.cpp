@@ -248,8 +248,3 @@ NATIVE_CALL(strchr, 2, 3)
   }
   return Variant(res);
 }
-
-NATIVE_CALL(eval, 1, 1)
-{
-  return evaluator.Eval(args[0]->AsString());
-}
