@@ -33,6 +33,11 @@ public:
   CmdArgs(int argc, Char** argv);
 
   //
+  // Number of arguments
+  //
+  size_t GetCount() const;
+
+  //
   // Is option set
   //
   bool IsSet(String const& name) const;
@@ -65,6 +70,12 @@ private:
   StringMap m_args;
 
 };
+
+inline size_t 
+CmdArgs::GetCount() const
+{
+  return m_args.size();
+}
 
 inline bool 
 CmdArgs::IsSet(String const& name) const

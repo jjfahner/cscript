@@ -7,45 +7,48 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Native calls
+//
+
+NATIVE_CALL(eval, 1, 1)
+{
+  return evaluator.Eval(args[0]->AsString());
+}
+
+NATIVE_CALL(reset, 0, 0)
+{
+  throw reset_exception();
+}
+
+NATIVE_CALL(classes, 0, 0)
+{
+  return evaluator.GetClassList();
+}
+
+NATIVE_CALL(functions, 0, 0)
+{
+  return evaluator.GetFunctionList();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Scope implementation
 //
 
 struct Evaluator::AutoScope
 {
   Evaluator& m_eval;
-  AutoScope(Evaluator& eval, Scope* scope) : m_eval (eval) 
+  bool m_delete;
+  AutoScope(Evaluator& eval, Scope* scope, bool autoDelete = true) : 
+  m_eval    (eval), 
+  m_delete  (autoDelete)
   {
     m_eval.PushScope(scope);
   }
   ~AutoScope()
   {
-    m_eval.PopScope();
+    m_eval.PopScope(m_delete);
   }
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Control flow exceptions
-//
-
-struct return_exception
-{
-  Ast* m_node;
-  VariantRef m_value;
-  return_exception(Ast* node) : m_node (node) {}
-  return_exception(Ast* node, VariantRef const& value) : m_node (node), m_value (value) {}
-};
-
-struct break_exception
-{
-  Ast* m_node;
-  break_exception(Ast* node) : m_node (node) {}
-};
-
-struct continue_exception
-{
-  Ast* m_node;
-  continue_exception(Ast* node) : m_node (node) {}
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,57 +56,100 @@ struct continue_exception
 // Evaluator implementation
 //
 
-/*static*/ void
-Evaluator::Run()
-{
-  Evaluator eval;
-  char buf[4097];
-  for(;;)
-  {
-    std::cout << "> ";
-    std::cin.getline(buf, 4096);
-
-    eval.Eval(buf);
-
-    std::cout << "\n";
-  }
-}
-
 Evaluator::Evaluator() :
 m_scope   (0)
 {
   m_global = new GlobalScope;
-  PushScope(m_global);
+}
+
+void 
+Evaluator::Reset()
+{
+  // Clear any errors
+  m_reporter.Reset();
+
+  // Create new global scope
+  delete m_global;
+  m_global = new GlobalScope;
+
+  // Forget classes
+  m_classes.clear();
+}
+
+VariantRef 
+Evaluator::GetClassList() const
+{
+  VariantRef list(Variant::stAssoc);
+  Classes::const_iterator it = m_classes.begin();
+  Classes::const_iterator ie = m_classes.end();
+  for(; it != ie; ++it)
+  {
+    list->Append(it->first);
+  }
+  return list;
+}
+
+VariantRef 
+Evaluator::GetFunctionList() const
+{
+  VariantRef list(Variant::stAssoc);
+  Scope::Functions const& funs = m_global->GetFunctions();
+  Scope::Functions::const_iterator it, ie;
+  it = funs.begin();
+  ie = funs.end();
+  for(; it != ie; ++it)
+  {
+    list->Append(it->first);
+  }
+  return list;
 }
 
 VariantRef 
 Evaluator::Eval(String text)
 {
+  // Clear errors
   m_reporter.Reset();
 
+  // Parse code
   Parser parser(m_reporter);
   parser.ParseText(text.c_str());
 
+  // Check error count
   if(m_reporter.GetErrorCount())
   {
     std::cout << "Aborted.\n";
     return Variant::Null;
   }
 
+  // Retrieve code root
   Ast* root = parser.GetRoot();
   parser.SetRoot(0);
 
+  // Evaluate code
   try
   {
+    // Push global scope. Don't delete when done
+    AutoScope gs(*this, m_global, false);
+
+    // Evaluate code
     EvalStatement(root);
+    
+    // Statement returned nothing
     return Variant::Null;
   }
   catch(return_exception const& e)
   {
+    // Statement returned value
     return e.m_value;
+  }
+  catch(reset_exception const&)
+  {
+    // Reset request
+    Reset();
   }
   catch(std::exception const& e)
   {
+    // Statement threw exception
     std::cout << e.what() << "\n";
     return Variant::Null;
   }
@@ -122,12 +168,18 @@ Evaluator::PushScope(Scope* scope)
 }
 
 void 
-Evaluator::PopScope()
+Evaluator::PopScope(bool doDelete)
 {
+  // Remove scope from stack
   Scope* old = m_scope;
   m_scope = m_scopes.front();
   m_scopes.pop_front();
-  delete old;
+
+  // Delete the scope
+  if(doDelete)
+  {
+    delete old;
+  }
 }
 
 void 
