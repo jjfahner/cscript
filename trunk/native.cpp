@@ -19,7 +19,6 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "native.h"
-#include "socket.h"
 
 #ifdef _MSC_VER
 #include <process.h>
@@ -46,8 +45,6 @@ NativeCallRegistrar::NativeCallRegistrar(String const& name, NativeCall call, Qu
   static NativeCalls& ncv = getNativeCalls();
   NativeCallInfo* fun = new NativeCallInfo;
   fun->m_name   = name;
-  fun->m_native = true;
-  fun->m_offset = (Quad)ncv.size();
   fun->m_minPar = minPar;
   fun->m_maxPar = maxPar;
   fun->m_funPtr = call;
@@ -74,31 +71,8 @@ FindNative(String const& name)
   return 0;
 }
 
-//
-// Execute a native call
-//
 void 
-ExecNative(Quad index, Quad numArgs, RefStack const& stack, Quad SP)
-{
-  static NativeCalls& ncv = getNativeCalls();
-
-  // Create argument vector
-  std::vector<VariantRef> args;
-  args.resize(numArgs);
-
-  // Copy arguments
-  for(Quad i = 0; i < numArgs; ++i)
-  {
-    args[i] = stack[SP-1-i];
-  }
-
-  // Call function
-  throw std::runtime_error("Not supported");
-  //stack[SP] = ncv[index]->m_funPtr(args, numArgs);
-}
-
-void 
-AssertType(RefStack const& args, Quad index, Variant::SubTypes type, char const* function)
+AssertType(Arguments const& args, Quad index, Variant::SubTypes type, char const* function)
 {
   if(index >= args.size())
   {
@@ -151,7 +125,7 @@ NATIVE_CALL(print, 1, 1)
 NATIVE_CALL(exit, 0, 1)
 {
   int ret = 0;
-  if(numArgs == 1)
+  if(args.size() == 1)
   {
     ret = (int) args[0]->AsInt();
   }
@@ -165,7 +139,7 @@ NATIVE_CALL(exit, 0, 1)
 NATIVE_CALL(quit, 0, 1)
 {
   int ret = 0;
-  if(numArgs == 1)
+  if(args.size() == 1)
   {
     ret = (int) args[0]->AsInt();
   }
@@ -213,7 +187,7 @@ NATIVE_CALL(substr, 2, 3)
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stInt);
-  if(numArgs == 2)
+  if(args.size() == 2)
   {
     return Variant(
       args[0]->GetString().substr(
@@ -231,7 +205,7 @@ NATIVE_CALL(strstr, 2, 3)
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
   Quad offset = 0;
-  if(numArgs == 3)
+  if(args.size() == 3)
   {
     ASSERT_TYPE(2, stInt);
     offset = (Quad)args[2]->GetInt();
@@ -255,7 +229,7 @@ NATIVE_CALL(strchr, 2, 3)
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
   Quad offset = 0;
-  if(numArgs == 3)
+  if(args.size() == 3)
   {
     ASSERT_TYPE(2, stInt);
     offset = (Quad)args[2]->GetInt();

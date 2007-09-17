@@ -288,7 +288,7 @@ function main()
   assert("short-circuit or", a, 1);
   a = 0; a++ && a++;
   assert("short-circuit and", a, 1);
-  /*
+
   // Switch statement
   a = -1;
   switch(0) {
@@ -319,7 +319,7 @@ function main()
   default: a = 2; break;
   }
   assert("Break", a, 1);
-*/
+
   // Member syntax
   a = new File;
   a.m_file = 1;

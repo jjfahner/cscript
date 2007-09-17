@@ -24,12 +24,14 @@
 #include "types.h"
 #include "var.h"
 
-typedef std::vector<VariantRef> RefStack;
+class Evaluator;
+
+typedef std::vector<VariantRef> Arguments;
 
 //
 // Native call pointer
 //
-typedef VariantRef (*NativeCall)(RefStack const& stack, Quad numArgs);
+typedef VariantRef (*NativeCall)(Evaluator& evaluator, Arguments const& args);
 
 //
 // Function information
@@ -37,11 +39,8 @@ typedef VariantRef (*NativeCall)(RefStack const& stack, Quad numArgs);
 struct NativeCallInfo
 {
   String        m_name;
-  bool          m_native;
-  Quad          m_offset;
   Quad          m_minPar;
   Quad          m_maxPar;
-  StringList    m_params;
   NativeCall    m_funPtr;
 };
 
@@ -60,19 +59,18 @@ struct NativeCallRegistrar
 //
 // Native call handler
 //
-#define NATIVE_CALL(name,minPar,maxPar)                     \
-  VariantRef Native_##name(RefStack const&, Quad);          \
-  NativeCallRegistrar register_##name(#name,                \
-    Native_##name, minPar, maxPar);                         \
-  VariantRef Native_##name(RefStack const& args, Quad numArgs)
+#define NATIVE_CALL(name,minPar,maxPar)                                   \
+  VariantRef Native_##name(Evaluator& evaluator, Arguments const& args);  \
+  NativeCallRegistrar register_##name(#name,                              \
+    Native_##name, minPar, maxPar);                                       \
+  VariantRef Native_##name(Evaluator& evaluator, Arguments const& args)
 
 //
 // Check the argument type for a native call argument
 //
-void AssertType(RefStack const& args, Quad index, Variant::SubTypes type, char const* function);
+void AssertType(Arguments const& args, Quad index, Variant::SubTypes type, char const* function);
 #define ASSERT_TYPE(idx,type) \
   AssertType(args, idx, Variant::type, __FUNCTION__)
-
 
 //
 // Resolve a native call by name
@@ -82,7 +80,7 @@ NativeCallInfo* FindNative(String const& name);
 //
 // Execute a native call
 //
-void ExecNative(Quad index, Quad numArgs, RefStack const& stack, Quad SP);
+void ExecNative(Quad function, Evaluator& evaluator, Arguments const& args);
 
 
 #endif // #ifndef CSCRIPT_NATIVE_CALLS_H

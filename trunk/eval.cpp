@@ -467,7 +467,7 @@ Evaluator::EvalNativeCall(NativeCallInfo* fun, Ast* call)
 
   // Execute native call
   CallScope::Arguments const& args = scope->GetArgs();
-  return fun->m_funPtr(args, args.size());
+  return fun->m_funPtr(*this, args);
 }
 
 VariantRef 
