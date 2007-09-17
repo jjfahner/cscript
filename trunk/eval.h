@@ -26,7 +26,7 @@ public:
   //
   // Evaluation of single code line
   //
-  void Eval(String code);
+  VariantRef Eval(String code);
 
   //
   // Evaluation of an expression

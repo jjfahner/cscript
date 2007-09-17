@@ -76,7 +76,7 @@ m_scope   (0)
   PushScope(m_global);
 }
 
-void 
+VariantRef 
 Evaluator::Eval(String text)
 {
   m_reporter.Reset();
@@ -87,7 +87,7 @@ Evaluator::Eval(String text)
   if(m_reporter.GetErrorCount())
   {
     std::cout << "Aborted.\n";
-    return;
+    return Variant::Null;
   }
 
   Ast* root = parser.GetRoot();
@@ -96,14 +96,21 @@ Evaluator::Eval(String text)
   try
   {
     EvalStatement(root);
+    return Variant::Null;
+  }
+  catch(return_exception const& e)
+  {
+    return e.m_value;
   }
   catch(std::exception const& e)
   {
     std::cout << e.what() << "\n";
+    return Variant::Null;
   }
   catch(...)
   {
     std::cout << "Unexpected\n";
+    return Variant::Null;
   }
 }
 

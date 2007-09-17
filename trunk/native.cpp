@@ -19,6 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "native.h"
+#include "eval.h"
 
 #ifdef _MSC_VER
 #include <process.h>
@@ -246,4 +247,9 @@ NATIVE_CALL(strchr, 2, 3)
     return Variant(-1);
   }
   return Variant(res);
+}
+
+NATIVE_CALL(eval, 1, 1)
+{
+  return evaluator.Eval(args[0]->AsString());
 }
