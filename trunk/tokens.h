@@ -26,7 +26,7 @@
 //
 // Include lemon-generated symbols
 //
-#include "astgen.h"
+#include "cscript.h"
 
 //
 // Types

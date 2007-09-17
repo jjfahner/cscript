@@ -21,7 +21,7 @@
 #include "parser.h"
 #include "file.h"
 #include "lexer.h"
-#include "astgen.c"
+#include "cscript.c"
 #include "report.h"
 
 Parser::Parser(Reporter& reporter) :
