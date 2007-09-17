@@ -3,27 +3,3 @@
 // TODO file for cscript
 //
 
-//
-// Language
-//
-- Implement binary search for switch statement
-- Implement closures
-- Implement classes
-- Implement variadic argument lists
-
-//
-// Core logic
-//
-- Convert stack to pointers instead of Ref<Variant>
-- Move generator, decompiler etc. to own classes
-
-//
-// Binary format
-//
-
-//
-// Application
-//
-- Rethink immediate-mode/interactive interface
-- Debugger facilities
-- Expose debug/release build mode through command line
