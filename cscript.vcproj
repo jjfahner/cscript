@@ -181,23 +181,11 @@
 			Name="runtime"
 			>
 			<File
-				RelativePath=".\class.h"
-				>
-			</File>
-			<File
 				RelativePath=".\eval.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\eval.csc"
-				>
-			</File>
-			<File
 				RelativePath=".\eval.h"
-				>
-			</File>
-			<File
-				RelativePath=".\machine.h"
 				>
 			</File>
 			<File
@@ -232,6 +220,10 @@
 		<Filter
 			Name="test"
 			>
+			<File
+				RelativePath=".\eval.csc"
+				>
+			</File>
 			<File
 				RelativePath=".\file.csi"
 				>
