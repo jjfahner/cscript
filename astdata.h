@@ -118,7 +118,7 @@ public:
     return m_node;
   }
 
-  String GetString() const
+  String const& GetString() const
   {
     AssertType(Text);
     return *m_string;
@@ -130,7 +130,7 @@ public:
     return m_list;
   }
 
-  Variant GetValue() const
+  Variant const& GetValue() const
   {
     AssertType(Value);
     return *m_value;
@@ -152,12 +152,12 @@ public:
     return GetList();
   }
 
-  operator String () const
+  operator String const& () const
   {
     return GetString();
   }
 
-  operator Variant () const
+  operator Variant const& () const
   {
     return GetValue();
   }

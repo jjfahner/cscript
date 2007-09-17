@@ -68,6 +68,16 @@ public:
   }
 
   //
+  // Construction from valid type for T
+  //
+  template <typename U>
+  Ref(U const& rhs) :
+  m_counted (new T(rhs))
+  {
+    ++m_counted->m_refs;
+  }
+
+  //
   // Copy construction
   //
   Ref(Ref const& rhs) :
