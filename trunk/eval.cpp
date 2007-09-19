@@ -242,7 +242,6 @@ Evaluator::EvalExpression(Ast* node)
   case new_expression:        return EvalNewExpression(node);
   case this_expression:       return EvalThisExpression(node);
   case member_expression:     return EvalMemberExpression(node);
-  case member_call:           return EvalMemberCall(node);
   }
   throw std::out_of_range("Invalid expression type");
 }
@@ -422,22 +421,70 @@ Evaluator::EvalClassDecl(Ast* node)
 VariantRef  
 Evaluator::EvalFunctionCall(Ast* node)
 {
-  // Script functions
-  Ast* fun = 0;
-  if(m_scope->FindFun(node->m_a1, fun))
-  {
-     return EvalScriptCall(fun, node);
-  }
+  Function fun;
 
-  // Native call
-  NativeCallInfo* nc = FindNative(node->m_a1);
-  if(nc)
+  // Member call
+  if(node->m_a3)
   {
+    // Evaluate instance expression
+    fun.m_inst = EvalInstance(node->m_a3);
+
+    // Find member function only
+    if(!fun.m_inst->FindFun(node->m_a1, fun.m_code))
+    {
+      throw std::runtime_error("Class has no member '" + 
+                          node->m_a1.GetString() + "'");
+    }
+  }
+  else if(m_scope->FindFun(node->m_a1, fun))
+  {
+    // Found function
+  }
+  else if(NativeCallInfo* nc = FindNative(node->m_a1))
+  {
+    // Found native call
     return EvalNativeCall(nc, node);
   }
+  else
+  {
+    // No such function
+    throw std::runtime_error("Undeclared function '" + 
+                        node->m_a1.GetString() + "'");
+  }
 
-  // Unknown call
-  throw std::runtime_error("Undeclared function '" + node->m_a1.GetString() + "'");
+  // Evaluate argument list
+  Scope* argScope = EvalArguments(fun.m_code->m_a2, node->m_a2);
+
+  // Push class scope
+  std::auto_ptr<AutoScope> as;
+  if(fun.m_inst)
+  {
+    Scope* scope = new ClassScope(m_global, fun.m_inst);
+    as = std::auto_ptr<AutoScope>(new AutoScope(*this, scope));
+  }
+
+  // Push callscope
+  argScope->SetParent(m_scope);
+  AutoScope cs(*this, argScope);
+
+  // Evaluate function body
+  try
+  {
+    EvalStatement(fun.m_code->m_a3);
+    return Variant();
+  }
+  catch(return_exception const& e)
+  {
+    return e.m_value;
+  }
+  catch(break_exception const&)
+  {
+    throw std::runtime_error("Invalid break statement");
+  }
+  catch(continue_exception const&)
+  {
+    throw std::runtime_error("Invalid continue statement");
+  }
 }
 
 VariantRef 
@@ -458,96 +505,6 @@ Evaluator::EvalNativeCall(NativeCallInfo* fun, Ast* call)
 
   // Execute native call
   return fun->m_funPtr(*this, args);
-}
-
-VariantRef 
-Evaluator::EvalScriptCall(Ast* fun, Ast* call)
-{
-  // Evaluate arguments
-  Scope* argScope = EvalArguments(fun->m_a2, call->m_a2);
-
-  // Push argument and evaluation scope
-  AutoScope cs(*this, argScope);
-  AutoScope as(*this, new Scope(m_scope));
-
-  // Evaluate function body
-  try
-  {
-    EvalStatement(fun->m_a3);
-    return Variant();
-  }
-  catch(return_exception const& e)
-  {
-    return e.m_value;
-  }
-  catch(break_exception const&)
-  {
-    throw std::runtime_error("Invalid break statement");
-  }
-  catch(continue_exception const&)
-  {
-    throw std::runtime_error("Invalid continue statement");
-  }
-}
-
-VariantRef 
-Evaluator::EvalMemberCall(Ast* node)
-{
-  // Extract subnodes
-  Ast* lhs = node->m_a1;
-  Ast* rhs = node->m_a2;
-
-  // Evaluate left side
-  VariantRef instVar = EvalExpression(lhs);
-  if(instVar->GetType() != Variant::stResource)
-  {
-    throw std::runtime_error("Expression does not yield a class instance");
-  }
-  Instance* instPtr = dynamic_cast<Instance*>(instVar->GetResource());
-  if(instPtr == 0)
-  {
-    throw std::runtime_error("Expression does not yield a class instance");
-  }
-
-  // Determine function name
-  String name = rhs->m_a1;
-
-  // Retrieve function
-  Ast* fun = 0;
-  if(!instPtr->FindFun(name, fun))
-  {
-    throw std::runtime_error("Class has no method '" + name + "'");
-  }
-
-  // Evaluate arguments in new scope
-  Scope* argScope = EvalArguments(fun->m_a2, rhs->m_a2);
-
-  // Push class scope
-  AutoScope as(*this, new ClassScope(m_global, instPtr));
-
-  // Push callscope
-  argScope->SetParent(m_scope);
-  AutoScope cs(*this, argScope);
-
-  // Evaluate the function
-  try 
-  {
-    AutoScope fs(*this, new Scope(m_scope));
-    EvalStatement(fun->m_a3);
-    return Variant();
-  }
-  catch(return_exception const& e)
-  {
-    return e.m_value;
-  }
-  catch(break_exception const&)
-  {
-    throw std::runtime_error("Invalid break statement");
-  }
-  catch(continue_exception const&)
-  {
-    throw std::runtime_error("Invalid continue statement");
-  }
 }
 
 Scope* 
@@ -595,7 +552,6 @@ Evaluator::EvalArguments(AstList const* pars, AstList const* args)
       // Evaluate argument
       parVal = EvalExpression(*ai++);
     }
-
     
     // Add to scope
     m_scope->AddVar(parName, parVal);
@@ -604,6 +560,29 @@ Evaluator::EvalArguments(AstList const* pars, AstList const* args)
   // Return the new scope
   argScope.m_delete = false;
   return m_scope;
+}
+
+Instance* 
+Evaluator::EvalInstance(Ast* node)
+{
+  // Evaluate expression
+  VariantRef instVar = EvalExpression(node);
+
+  // Must be a resource
+  if(instVar->GetType() != Variant::stResource)
+  {
+    throw std::runtime_error("Expression does not yield a class instance");
+  }
+  
+  // Must be an instance
+  Instance* instPtr = dynamic_cast<Instance*>(instVar->GetResource());
+  if(instPtr == 0)
+  {
+    throw std::runtime_error("Expression does not yield a class instance");
+  }
+
+  // Done
+  return instPtr;
 }
 
 VariantRef 
@@ -834,16 +813,7 @@ VariantRef
 Evaluator::EvalMemberExpression(Ast* node)
 {
   // Evaluate left side
-  VariantRef instVar = EvalExpression(node->m_a1);
-  if(instVar->GetType() != Variant::stResource)
-  {
-    throw std::runtime_error("Expression does not yield a class instance");
-  }
-  Instance* instPtr = dynamic_cast<Instance*>(instVar->GetResource());
-  if(instPtr == 0)
-  {
-    throw std::runtime_error("Expression does not yield a class instance");
-  }
+  Instance* instPtr = EvalInstance(node->m_a1);
 
   // Retrieve value
   VariantRef ref;

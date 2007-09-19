@@ -176,7 +176,7 @@ postfix_expression(R) ::= postfix_expression(A) ADDADD .                        
 postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = p->AllocAst(postfix_expression, op_postdec, A); }
 postfix_expression(R) ::= function_call(A) .                                      { R = A; }
 postfix_expression(R) ::= postfix_expression(A) DOT IDENTIFIER(B).                { R = p->AllocAst(member_expression, A, String(B)); }
-postfix_expression(R) ::= postfix_expression(A) DOT function_call(B) .            { R = p->AllocAst(member_call, A, B); }
+postfix_expression(R) ::= postfix_expression(A) DOT function_call(B) .            { R = B; B->m_a3 = A; }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocAst(index_expression, A, B); }
 
 // Function call

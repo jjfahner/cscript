@@ -1460,7 +1460,7 @@ static void yy_reduce(
         break;
       case 62:
 #line 179 "cscript.in"
-{ yygotominor.yy67 = p->AllocAst(member_call, yymsp[-2].minor.yy67, yymsp[0].minor.yy67); }
+{ yygotominor.yy67 = yymsp[0].minor.yy67; yymsp[0].minor.yy67->m_a3 = yymsp[-2].minor.yy67; }
 #line 1466 "cscript.c"
         break;
       case 63:

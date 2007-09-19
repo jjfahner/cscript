@@ -5,6 +5,20 @@
 #include "var.h"
 #include "class.h"
 
+class Instance;
+
+struct Function
+{
+  Instance*   m_inst;
+  Ast*        m_code;
+
+  Function(Ast* code = 0, Instance* inst = 0) :
+  m_code  (code),
+  m_inst  (inst)
+  {
+  }
+};
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Default scope implementation
@@ -113,7 +127,7 @@ public:
   //
   // Retrieve a function
   //
-  virtual bool FindFun(String const& name, Ast*& fun) const 
+  virtual bool FindFun(String const& name, Function& fun) const 
   {
     if(FindFunLocal(name, fun))
     {
@@ -192,7 +206,7 @@ protected:
   //
   // Retrieve a function from local scope
   //
-  virtual bool FindFunLocal(String const& name, Ast*& node) const
+  virtual bool FindFunLocal(String const& name, Function& node) const
   {
     return false;
   }
@@ -272,14 +286,15 @@ protected:
   //
   // Retrieve a function
   //
-  virtual bool FindFunLocal(String const& name, Ast*& node) const
+  virtual bool FindFunLocal(String const& name, Function& fun) const
   {
     Functions::const_iterator it = m_funs.find(name);
     if(it == m_funs.end())
     {
       return false;
     }
-    node = it->second;
+    fun.m_inst = 0;
+    fun.m_code = it->second;
     return true;
   }
 
@@ -360,9 +375,15 @@ protected:
   //
   // Retrieve a local function
   //
-  virtual bool FindFunLocal(String const& name, Ast*& fun) const
+  virtual bool FindFunLocal(String const& name, Function& fun) const
   {
-    return m_inst->FindFun(name, fun);
+    Ast* node = 0;
+    if(m_inst->FindFun(name, fun.m_code))
+    {
+      fun.m_inst = m_inst;
+      return true;
+    }
+    return false;
   }
 
   //
