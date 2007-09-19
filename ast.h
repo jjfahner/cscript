@@ -78,7 +78,6 @@ enum AstTypes
   class_declaration,
   class_members,
   member_call,
-  pause_statement,
   this_expression,
   access_specifier,
 };

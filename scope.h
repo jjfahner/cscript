@@ -3,147 +3,7 @@
 
 #include "types.h"
 #include "var.h"
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Runtime class
-//
-
-class Class
-{
-public:
-
-  //
-  // Construction
-  //
-  Class(String const& name) : m_name (name)
-  {
-  }
-
-  //
-  // Add a member variable
-  //
-  virtual void AddVar(String const& name, Ast* node)
-  {
-    if(m_vars.count(name))
-    {
-      throw std::runtime_error("Variable already declared");
-    }
-    m_vars[name] = node;
-  }
-
-  //
-  // Add a member function
-  //
-  virtual void AddFun(String const& name, Ast* node)
-  {
-    if(m_funs.count(name))
-    {
-      throw std::runtime_error("Variable already declared");
-    }
-    m_funs[name] = node;
-  }
-
-  //
-  // Find a member function
-  //
-  virtual bool FindFun(String const& name, Ast*& fun) const 
-  {
-    NamedNodeMap::const_iterator it = m_funs.find(name);
-    if(it == m_funs.end())
-    {
-      return false;
-    }
-    fun = it->second;
-    return true;
-  }
-
-  //
-  // Construct an instance
-  //
-  class Instance* CreateInstance(class Evaluator& eval) const;
-
-protected:
-
-  //
-  // Types
-  //
-  typedef std::map<String, Ast*> NamedNodeMap;
-
-  //
-  // Members
-  //
-  String        m_name;
-  NamedNodeMap  m_vars;
-  NamedNodeMap  m_funs;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Runtime class instance
-//
-
-class Instance : public Variant::Resource
-{
-public:
-
-  //
-  // Construction
-  //
-  Instance(Class const* c) : m_class (c)
-  {
-  }
-
-  //
-  // Number of instance variables
-  //
-  virtual size_t GetVarCount() const
-  {
-    return m_vars.size();
-  }
-
-  //
-  // Retrieve a variable
-  //
-  virtual bool FindVar(String const& name, VariantRef& ref) const
-  {
-    Variables::const_iterator it = m_vars.find(name);
-    if(it == m_vars.end())
-    {
-      return false;
-    }
-    ref = it->second;
-    return true;
-  }
-
-  //
-  // Retrieve a function
-  //
-  virtual bool FindFun(String const& name, Ast*& fun) const 
-  {
-    return m_class->FindFun(name, fun);
-  }
-
-protected:
-
-  //
-  // Types
-  //
-  typedef std::map<String, VariantRef> Variables;
-
-  //
-  // Members
-  //
-  Class const*  m_class;
-  Variables     m_vars;
-
-  //
-  // Class required access for instantiation
-  //
-  friend class Class;
-
-};
+#include "class.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -159,6 +19,7 @@ public:
   //
   typedef std::map<String, VariantRef> Variables;
   typedef std::map<String, Ast*      > Functions;
+  typedef std::map<String, Class*    > Classes;
 
   //
   // Construction
@@ -181,6 +42,11 @@ public:
   {
     return m_parent;
   }
+
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Variables
+  //
 
   //
   // Number of variables
@@ -226,6 +92,11 @@ public:
     return m_vars;
   }
 
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Functions
+  //
+
   //
   // Add a function
   //
@@ -259,10 +130,48 @@ public:
     return functions;
   }
 
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Classes
+  //
+
+  //
+  // Add a new class
+  //
+  virtual void AddClass(Class* node)
+  {
+    throw std::runtime_error("Invalid context for class declaration");
+  }
+
+  //
+  // Find a class by name
+  //
+  virtual bool FindClass(String const& name, Class*& node)
+  {
+    if(FindClassLocal(name, node))
+    {
+      return true;
+    }
+    if(m_parent)
+    {
+      return m_parent->FindClass(name, node);
+    }
+    return false;
+  }
+
+  //
+  // Retrieve list of classes
+  //
+  virtual Classes const& GetClasses() const
+  {
+    static Classes classes;
+    return classes;
+  }
+
 protected:
 
   //
-  // Retrieve a variable from local scope only
+  // Retrieve a variable from local scope
   //
   virtual bool FindVarLocal(String const& name, VariantRef& ref) const
   {
@@ -276,9 +185,17 @@ protected:
   }
 
   //
-  // Retrieve a function from local scope only
+  // Retrieve a function from local scope
   //
-  virtual bool FindFunLocal(String const& name, Ast*& fun) const
+  virtual bool FindFunLocal(String const& name, Ast*& node) const
+  {
+    return false;
+  }
+
+  //
+  // Retrieve a class from local scope
+  //
+  virtual bool FindClassLocal(String const& name, Class*& node) const
   {
     return false;
   }
@@ -300,6 +217,11 @@ class GlobalScope : public Scope
 {
 public:
 
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Functions
+  //
+
   //
   // Add a function
   //
@@ -320,26 +242,62 @@ public:
     return m_funs;
   }
 
+  //
+  // Add class to this scope
+  //
+  virtual void AddClass(Class* c)
+  {
+    if(m_classes.count(c->GetName()))
+    {
+      throw std::runtime_error("Class already declared");
+    }
+    m_classes[c->GetName()] = c;
+  }
+
+  //
+  // Retrieve list of classes
+  //
+  virtual Classes const& GetClasses() const
+  {
+    return m_classes;
+  }
+
 protected:
 
   //
   // Retrieve a function
   //
-  virtual bool FindFunLocal(String const& name, Ast*& fun) const
+  virtual bool FindFunLocal(String const& name, Ast*& node) const
   {
     Functions::const_iterator it = m_funs.find(name);
     if(it == m_funs.end())
     {
       return false;
     }
-    fun = it->second;
+    node = it->second;
     return true;
   }
+
+  //
+  // Retrieve a class
+  //
+  virtual bool FindClassLocal(String const& name, Class*& node) const
+  {
+    Classes::const_iterator it = m_classes.find(name);
+    if(it == m_classes.end())
+    {
+      return false;
+    }
+    node = it->second;
+    return true;
+  }
+
 
   //
   // Members
   //
   Functions m_funs;
+  Classes   m_classes;
 
 };
 
