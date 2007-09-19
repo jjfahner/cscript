@@ -180,9 +180,7 @@ postfix_expression(R) ::= postfix_expression(A) DOT function_call(B) .          
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocAst(index_expression, A, B); }
 
 // Function call
-//function_call(R) ::= IDENTIFIER(A) LPAREN                  RPAREN . { R = p->AllocAst(function_call, String(A)); }
 function_call(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(function_call, String(A), B); }
-
 
 // Primary expression
 primary_expression(R) ::= literal(A) .                  { R = A; }
@@ -315,27 +313,25 @@ function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAR
 // Single parameter
 parameter(R) ::= IDENTIFIER(A) . { R = p->AllocAst(parameter, String(A)); }
 
+// Single optional parameter
+opt_parameter(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocAst(parameter, String(A), B); }
+
 // Parameter list
 %type parameter_list { AstList* }
 parameter_list(R) ::= . { R = new AstList; }
-parameter_list(R) ::= parameter(A) . { R = new AstList; R->push_back(A); }
-parameter_list(R) ::= parameter_list(A) COMMA parameter(B) . { R = A; R->push_back(B); }
-
-// Optional parameter
-//opt_parameter(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocAst(parameter, String(A), B); }
+parameter_list(R) ::= parameters(A)     . { R = A; }
+parameter_list(R) ::= opt_parameters(A) . { R = A; }
+parameter_list(R) ::= parameters(A) COMMA opt_parameters(B) . { R = A; A->adopt(*B); }
 
 // List of parameters
-//parameters(R) ::= parameter(A) . { R = A; }
-//parameters(R) ::= parameters(A) COMMA parameter(B) . { R = p->AllocAst(parameter_list, A, B); }
+%type parameters { AstList* }
+parameters(R) ::= parameter(A) . { R = new AstList; R->push_back(A); }
+parameters(R) ::= parameters(A) COMMA parameter(B) . { R = A; A->push_back(B); }
 
 // List of optional parameters
-//opt_parameters(R) ::= opt_parameter(A) . { R = A; }
-//opt_parameters(R) ::= opt_parameters(A) COMMA opt_parameter(B) . { R = p->AllocAst(parameter_list, A, B); }
-
-// Parameter list
-//parameter_list(R) ::= parameters(A) .     { R = A; }
-//parameter_list(R) ::= opt_parameters(A) . { R = A; }
-//parameter_list(R) ::= parameters(A) COMMA opt_parameters(B) . { R = p->AllocAst(parameter_list, A, B); }
+%type opt_parameters { AstList* }
+opt_parameters(R) ::= opt_parameter(A) . { R = new AstList; R->push_back(A); }
+opt_parameters(R) ::= opt_parameters(A) COMMA opt_parameter(B) . { R = A; A->push_back(B); }
 
 // Function body. Traditionally, this is a compound statement, but
 // there's no actual need for that.
