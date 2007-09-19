@@ -198,23 +198,6 @@ Evaluator::EvalStatement(Ast* node)
 
   case variable_declaration:  EvalVarDecl(node);  break;
   case function_declaration:  EvalFunDecl(node);  break;
-
-  case parameter_list:
-    EvalStatement(node->m_a1);
-    EvalStatement(node->m_a2);
-    break;
-
-  case parameter:             EvalParameter(node);  break;
-
-  case argument_list:
-    EvalStatement(node->m_a1);
-    EvalStatement(node->m_a2);
-    break;
-
-  case argument:
-    dynamic_cast<CallScope*>(m_scope)->AddArg(EvalExpression(node->m_a1));
-    break;
-
   case class_declaration:     EvalClassDecl(node);   break;
   case class_members:         break;  
   case access_specifier:      break;
@@ -460,18 +443,20 @@ Evaluator::EvalFunctionCall(Ast* node)
 VariantRef 
 Evaluator::EvalNativeCall(NativeCallInfo* fun, Ast* call)
 {
-  // Create scope
-  CallScope* scope = new CallScope(m_scope);
-  AutoScope as(*this, scope);
-
   // Evaluate arguments
+  Arguments args;
   if(call->m_a2)
   {
-    EvalStatement(call->m_a2);
+    AstList::const_iterator ai, ae;
+    ai = call->m_a2.GetList()->begin();
+    ae = call->m_a2.GetList()->end();
+    for(; ai != ae; ++ai)
+    {
+      args.push_back(EvalExpression(*ai));
+    }
   }
 
   // Execute native call
-  CallScope::Arguments const& args = scope->GetArgs();
   return fun->m_funPtr(*this, args);
 }
 
@@ -479,17 +464,15 @@ VariantRef
 Evaluator::EvalScriptCall(Ast* fun, Ast* call)
 {
   // Evaluate arguments
-  AutoScope as(*this, new CallScope(m_scope));
-  if(call->m_a2)
-  {
-    EvalStatement(call->m_a2);
-    EvalStatement(fun->m_a2);
-  }
+  Scope* argScope = EvalArguments(fun->m_a2, call->m_a2);
+
+  // Push argument and evaluation scope
+  AutoScope cs(*this, argScope);
+  AutoScope as(*this, new Scope(m_scope));
 
   // Evaluate function body
   try
   {
-    AutoScope as(*this, new Scope(m_scope));
     EvalStatement(fun->m_a3);
     return Variant();
   }
@@ -505,6 +488,115 @@ Evaluator::EvalScriptCall(Ast* fun, Ast* call)
   {
     throw std::runtime_error("Invalid continue statement");
   }
+}
+
+VariantRef 
+Evaluator::EvalMemberCall(Ast* node)
+{
+  // Extract subnodes
+  Ast* lhs = node->m_a1;
+  Ast* rhs = node->m_a2;
+
+  // Evaluate left side
+  VariantRef instVar = EvalExpression(lhs);
+  if(instVar->GetType() != Variant::stResource)
+  {
+    throw std::runtime_error("Expression does not yield a class instance");
+  }
+  Instance* instPtr = dynamic_cast<Instance*>(instVar->GetResource());
+  if(instPtr == 0)
+  {
+    throw std::runtime_error("Expression does not yield a class instance");
+  }
+
+  // Determine function name
+  String name = rhs->m_a1;
+
+  // Retrieve function
+  Ast* fun = 0;
+  if(!instPtr->FindFun(name, fun))
+  {
+    throw std::runtime_error("Class has no method '" + name + "'");
+  }
+
+  // Evaluate arguments in new scope
+  Scope* argScope = EvalArguments(fun->m_a2, rhs->m_a2);
+
+  // Push class scope
+  AutoScope as(*this, new ClassScope(m_global, instPtr));
+
+  // Push callscope
+  argScope->SetParent(m_scope);
+  AutoScope cs(*this, argScope);
+
+  // Evaluate the function
+  try 
+  {
+    AutoScope fs(*this, new Scope(m_scope));
+    EvalStatement(fun->m_a3);
+    return Variant();
+  }
+  catch(return_exception const& e)
+  {
+    return e.m_value;
+  }
+  catch(break_exception const&)
+  {
+    throw std::runtime_error("Invalid break statement");
+  }
+  catch(continue_exception const&)
+  {
+    throw std::runtime_error("Invalid continue statement");
+  }
+}
+
+Scope* 
+Evaluator::EvalArguments(AstList const* pars, AstList const* args)
+{
+  // Create scope for arguments
+  AutoScope argScope(*this, new Scope(m_scope));
+
+  // Iterators for pars and args
+  AstList::const_iterator pi, pe, ai, ae;
+  pi = pars->begin(); pe = pars->end();
+  ai = args->begin(); ae = args->end();
+
+  // Enumerate parameters and arguments in parallel
+  for(;; ++pi, ++ai)
+  {
+    // End of both lists
+    if(pi == pe && ai == ae)
+    {
+      break;
+    }
+
+    // End of parameters
+    if(pi == pe)
+    {
+      // TODO varargs
+      throw std::runtime_error("Too many arguments in call to function");
+    }
+
+    // End of arguments
+    if(ai == ae)
+    {
+      // TODO default values
+      throw std::runtime_error("Not enough arguments in call to function");
+    }
+
+    // Retrieve parameter name
+    String parName = (*pi)->m_a1;
+
+    // Evaluate argument
+    VariantRef parVal = EvalExpression(*ai);
+    
+    // Add to scope
+    m_scope->AddVar(parName, parVal);
+  }
+
+  // Return the new scope
+  argScope.m_delete = false;
+  return m_scope;
 }
 
 VariantRef 
@@ -756,77 +848,6 @@ Evaluator::EvalMemberExpression(Ast* node)
 }
 
 VariantRef 
-Evaluator::EvalMemberCall(Ast* node)
-{
-  // Extract subnodes
-  Ast* lhs = node->m_a1;
-  Ast* rhs = node->m_a2;
-
-  // Evaluate left side
-  VariantRef instVar = EvalExpression(lhs);
-  if(instVar->GetType() != Variant::stResource)
-  {
-    throw std::runtime_error("Expression does not yield a class instance");
-  }
-  Instance* instPtr = dynamic_cast<Instance*>(instVar->GetResource());
-  if(instPtr == 0)
-  {
-    throw std::runtime_error("Expression does not yield a class instance");
-  }
-
-  // Determine function name
-  String name = rhs->m_a1;
-
-  // Retrieve function
-  Ast* fun = 0;
-  if(!instPtr->FindFun(name, fun))
-  {
-    throw std::runtime_error("Class has no method '" + name + "'");
-  }
-
-  // Evaluate arguments
-  CallScope* callScope = new CallScope(m_scope);
-  PushScope(callScope);
-  if(rhs->m_a2)
-  {
-    EvalStatement(rhs->m_a2);
-    EvalStatement(fun->m_a2);
-  }
-  m_scope = m_scopes.front();
-  m_scopes.pop_front();
-
-  // Push class scope
-  AutoScope as(*this, new ClassScope(m_global, instPtr));
-  // TODO insert this
-
-  // Push call as scope
-  callScope->SetParent(m_scope);
-  AutoScope cs(*this, callScope);
-
-  // Push regular scope
-  AutoScope fs(*this, new Scope(m_scope));
-
-  // Evaluate the function
-  try 
-  {
-    EvalStatement(fun->m_a3);
-    return Variant();
-  }
-  catch(return_exception const& e)
-  {
-    return e.m_value;
-  }
-  catch(break_exception const&)
-  {
-    throw std::runtime_error("Invalid break statement");
-  }
-  catch(continue_exception const&)
-  {
-    throw std::runtime_error("Invalid continue statement");
-  }
-}
-
-VariantRef 
 Evaluator::EvalThisExpression(Ast* node)
 {
   Scope* scope = m_scope;
@@ -840,24 +861,4 @@ Evaluator::EvalThisExpression(Ast* node)
     scope = scope->GetParent();
   }
   throw std::runtime_error("Invalid context for this");
-}
-
-void
-Evaluator::EvalParameter(Ast* node)
-{
-  // Fetch call scope
-  CallScope* scope = dynamic_cast<CallScope*>(m_scope);
-  if(scope == 0)
-  {
-    throw std::runtime_error("Invalid scope for parameter evaluation");
-  }
-
-  // Check argument count
-  if(scope->GetArgCount() == scope->GetVarCount())
-  {
-    throw std::runtime_error("Not enough arguments in call to function");
-  }
-
-  // Add variable to scope
-  scope->AddVar(node->m_a1.GetString(), scope->GetArg(scope->GetVarCount()));
 }
