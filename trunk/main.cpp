@@ -145,7 +145,8 @@ int cscript_main(int argc, Char** argv)
   }
 
   // No args
-  if(args.GetCount() == 1)
+  
+  if(args.GetCount() == 0)
   {
     return interactive(args);
   }

@@ -375,6 +375,26 @@
 			<File
 				RelativePath=".\cscript.in"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating parser..."
+						CommandLine="lemon.exe cscript.in&#x0D;&#x0A;"
+						Outputs="cscript.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating parser..."
+						CommandLine="lemon.exe cscript.in&#x0D;&#x0A;"
+						Outputs="cscript.c"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\error.cpp"
@@ -439,6 +459,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\class.h"
+			>
+		</File>
 		<File
 			RelativePath=".\TODO"
 			>

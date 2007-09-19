@@ -54,11 +54,6 @@ protected:
   typedef std::list<Scope*> ScopeList;
   
   //
-  // Classes
-  //
-  typedef std::map<String, Class*> Classes;
-
-  //
   // Statement handlers
   //
   void EvalStatement(Ast* node);
@@ -86,6 +81,12 @@ protected:
   VariantRef EvalMemberExpression(Ast* node);
   VariantRef EvalMemberCall(Ast* node);
   VariantRef EvalThisExpression(Ast* node);
+  VariantRef EvalAssignment(Ast* node);
+  VariantRef EvalBinary(Ast* node);
+  VariantRef EvalTernary(Ast* node);
+  VariantRef EvalPrefix(Ast* node);
+  VariantRef EvalPostfix(Ast* node);
+  VariantRef EvalIndex(Ast* node);
 
   //
   // Members
@@ -94,7 +95,6 @@ protected:
   GlobalScope*  m_global;
   ScopeList     m_scopes;
   Scope*        m_scope;
-  Classes       m_classes;
 
 };
 
