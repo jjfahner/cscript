@@ -299,8 +299,8 @@ Evaluator::EvalBinary(Ast* node)
                          (bool)*EvalExpression(node->m_a3) ;
   case op_logand: return (bool)*EvalExpression(node->m_a2) && 
                          (bool)*EvalExpression(node->m_a3) ;
-  case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3)) == 0;
-  case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3)) != 0;
+  case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) == 0;
+  case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) != 0;
   }  
   throw std::out_of_range("Invalid binary operator");
 }
@@ -385,7 +385,8 @@ Evaluator::EvalVarDecl(Ast* node)
   }
   else
   {
-    value = EvalExpression(node->m_a2);
+    // Assign value-of rhs
+    value = *EvalExpression(node->m_a2);
   }
 
   // Create variable
@@ -806,8 +807,23 @@ Evaluator::EvalMemberCall(Ast* node)
   AutoScope fs(*this, new Scope(m_scope));
 
   // Evaluate the function
-  EvalStatement(fun->m_a3);
-  return Variant();
+  try 
+  {
+    EvalStatement(fun->m_a3);
+    return Variant();
+  }
+  catch(return_exception const& e)
+  {
+    return e.m_value;
+  }
+  catch(break_exception const&)
+  {
+    throw std::runtime_error("Invalid break statement");
+  }
+  catch(continue_exception const&)
+  {
+    throw std::runtime_error("Invalid continue statement");
+  }
 }
 
 VariantRef 
