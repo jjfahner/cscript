@@ -391,8 +391,8 @@ Evaluator::EvalClassDecl(Ast* node)
   // Create new class
   Class* cl = new Class(node->m_a1);
   
-  // Insert into scope - this fails outside of
-  // global/class scopes
+  // Insert into scope - this fails 
+  // outside of global/class scopes
   m_scope->AddClass(cl);
 
   // Enumerate members
@@ -562,7 +562,7 @@ Evaluator::EvalArguments(AstList const* pars, AstList const* args)
   ai = args->begin(); ae = args->end();
 
   // Enumerate parameters and arguments in parallel
-  for(;; ++pi, ++ai)
+  for(;; ++pi)
   {
     // End of both lists
     if(pi == pe && ai == ae)
@@ -577,18 +577,25 @@ Evaluator::EvalArguments(AstList const* pars, AstList const* args)
       throw std::runtime_error("Too many arguments in call to function");
     }
 
+    // Retrieve parameter name
+    String parName = (*pi)->m_a1;
+    VariantRef parVal;
+
     // End of arguments
     if(ai == ae)
     {
-      // TODO default values
-      throw std::runtime_error("Not enough arguments in call to function");
+      if((*pi)->m_a2.Empty())
+      {
+        throw std::runtime_error("Not enough arguments in call to function");
+      }
+      parVal = EvalExpression((*pi)->m_a2);
+    }
+    else
+    {
+      // Evaluate argument
+      parVal = EvalExpression(*ai++);
     }
 
-    // Retrieve parameter name
-    String parName = (*pi)->m_a1;
-
-    // Evaluate argument
-    VariantRef parVal = EvalExpression(*ai);
     
     // Add to scope
     m_scope->AddVar(parName, parVal);

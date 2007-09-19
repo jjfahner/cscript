@@ -47,6 +47,15 @@ public:
     clear();
   }
 
+  void adopt(AstList& rhs)
+  {
+    m_list.insert(m_list.end(),
+            rhs.m_list.begin(), 
+            rhs.m_list.end());
+
+    rhs.m_list.clear();
+  }
+
   void push_back(Ast* node)
   {
     ++node->m_refs;
