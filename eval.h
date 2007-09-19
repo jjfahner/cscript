@@ -75,10 +75,8 @@ protected:
   VariantRef EvalListLiteral(Ast* node);
   VariantRef EvalFunctionCall(Ast* node);
   VariantRef EvalNativeCall(NativeCallInfo* fun, Ast* call);
-  VariantRef EvalScriptCall(Ast* fun, Ast* call);
   VariantRef EvalNewExpression(Ast* node);
   VariantRef EvalMemberExpression(Ast* node);
-  VariantRef EvalMemberCall(Ast* node);
   VariantRef EvalThisExpression(Ast* node);
   VariantRef EvalAssignment(Ast* node);
   VariantRef EvalBinary(Ast* node);
@@ -86,6 +84,11 @@ protected:
   VariantRef EvalPrefix(Ast* node);
   VariantRef EvalPostfix(Ast* node);
   VariantRef EvalIndex(Ast* node);
+  
+  //
+  // Evaluate expression expecting an instance
+  //
+  Instance* EvalInstance(Ast* node);
 
   //
   // Evaluate argument list
