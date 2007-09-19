@@ -36,12 +36,17 @@ public:
   }
 
   //
-  // Retrieve parent scope
+  // Parent scope
   //
   virtual Scope* GetParent() const
   {
     return m_parent;
   }
+  virtual void SetParent(Scope* parent)
+  {
+    m_parent = parent;
+  }
+
 
   //////////////////////////////////////////////////////////////////////////
   //
@@ -366,76 +371,5 @@ protected:
   class Instance* m_inst;
 
 };
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Function call scope
-//
-
-class CallScope : public Scope
-{
-public:
-
-  //
-  // Types
-  //
-  typedef std::vector<VariantRef> Arguments;
-
-  //
-  // Construction
-  //
-  CallScope(Scope* parent) : Scope(parent)
-  {
-  }
-
-  //
-  // Set parent scope
-  //
-  void SetParent(Scope* parent)
-  {
-    m_parent = parent;
-  }
-
-  //
-  // Add an argument
-  //
-  virtual void AddArg(VariantRef ref)
-  {
-    m_args.push_back(ref);
-  }
-
-  //
-  // Number of arguments
-  //
-  virtual size_t GetArgCount() const
-  {
-    return m_args.size();
-  }
-
-  //
-  // Retrieve argument
-  //
-  virtual VariantRef const& GetArg(size_t index) const
-  {
-    return m_args.at(index);
-  }
-
-  //
-  // Retrieve arguments
-  //
-  virtual Arguments const& GetArgs() const
-  {
-    return m_args;
-  }
-
-protected:
-
-  //
-  // Members
-  //
-  Arguments m_args;
-
-};
-
 
 #endif // CSCRIPT_RTSCOPE_H

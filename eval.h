@@ -67,7 +67,6 @@ protected:
   void EvalSwitchStatement(Ast* node);
   void EvalIfStatement(Ast* node);
   void EvalReturnStatement(Ast* node);
-  void EvalParameter(Ast* node);
 
   //
   // Expression handlers
@@ -87,6 +86,11 @@ protected:
   VariantRef EvalPrefix(Ast* node);
   VariantRef EvalPostfix(Ast* node);
   VariantRef EvalIndex(Ast* node);
+
+  //
+  // Evaluate argument list
+  //
+  Scope* EvalArguments(AstList const* pars, AstList const* args);
 
   //
   // Members
