@@ -67,3 +67,6 @@
 #define TOK_SWITCH                         67
 #define TOK_CASE                           68
 #define TOK_DEFAULT                        69
+#define TOK_EXTERN                         70
+#define TOK_INT                            71
+#define TOK_STR                            72

@@ -68,14 +68,6 @@ public:
   //
 
   //
-  // Number of variables
-  //
-  virtual size_t GetVarCount() const
-  {
-    return m_vars.size();
-  }
-
-  //
   // Add a variable
   //
   virtual void AddVar(String const& name, VariantRef const& value)
@@ -344,14 +336,6 @@ public:
   Instance* GetInstance() const
   {
     return m_inst;
-  }
-
-  //
-  // Number of variables
-  //
-  virtual size_t GetVarCount() const
-  {
-    return m_inst->GetVarCount();
   }
 
   //

@@ -31,6 +31,8 @@ public:
 
   typedef ListImpl::iterator iterator;
   typedef ListImpl::const_iterator const_iterator;
+  typedef ListImpl::reverse_iterator reverse_iterator;
+  typedef ListImpl::const_reverse_iterator const_reverse_iterator;
 
   AstList() :
   m_refs (0)
@@ -98,6 +100,26 @@ public:
   const_iterator end() const
   {
     return m_list.end();
+  }
+
+  reverse_iterator rbegin()
+  {
+    return m_list.rbegin();
+  }
+
+  reverse_iterator rend()
+  {
+    return m_list.rend();
+  }
+
+  const_reverse_iterator rbegin() const
+  {
+    return m_list.rbegin();
+  }
+
+  const_reverse_iterator rend() const
+  {
+    return m_list.rend();
   }
 
   AstList const& operator = (AstList const& rhs)

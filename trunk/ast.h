@@ -48,7 +48,7 @@ enum AstTypes
   member_expression,
   index_expression,
   function_call,
-  literal,
+  literal_value,
   lvalue,
   list_literal,
   list_content,
@@ -77,9 +77,10 @@ enum AstTypes
   new_expression,
   class_declaration,
   class_members,
-  member_call,
   this_expression,
   access_specifier,
+  extern_declaration,
+  extern_parameter
 };
 
 enum AccessTypes
