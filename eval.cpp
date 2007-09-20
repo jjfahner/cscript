@@ -908,58 +908,54 @@ Evaluator::EvalExternCall(Function const& fun, Ast* call)
     throw std::runtime_error("Invalid number of arguments");
   }
   
-  // Allocate a call stack
-  static const size_t stacks = 1024*1024*2;
-  char* stackp = (char*)malloc(stacks);
-  char* stackt = stackp + stacks;
-  char* stackc = stackt;
+  // Allocate memory for arguments
+  int argbytes = args.size() * sizeof(int);
+  int* stack = new int[args.size()];
 
-  // Push arguments onto stack in reverse order
+  // Copy arguments into buffer stack in reverse order
   size_t argIndex = args.size() - 1;
+  size_t parIndex = 0;
   AstList::const_reverse_iterator pi, pe;
   pi = fun.m_code->m_a4.GetList()->rbegin();
   pe = fun.m_code->m_a4.GetList()->rend();
-  for(; pi != pe; ++pi, --argIndex)
+  for(; pi != pe; ++pi, --argIndex, ++parIndex)
   {
     Ast* par = (*pi);
     switch(par->m_a2.GetNumber())
     {
     case 1:   // int
-      stackc -= 4;
-      *((int*)stackc) = (int)args[argIndex]->GetInt();
+      stack[parIndex] = (int)args[argIndex]->GetInt();
       break;
 
     case 2:   // string
-      stackc -= 4;
-      *((char**)stackc) = (char*)args[argIndex]->GetString().c_str();
+      stack[parIndex] = (int)args[argIndex]->GetString().c_str();
       break;
 
     default:
-      free(stackt);
+      delete [] stack;
       throw std::runtime_error("Invalid argument type");
     }
   }
 
-	static void* oldstack;
-	static void* procaddr;
-  int result;
+  int dst;
+  int res;
 
-  // Place function pointer in global memory,
-  // since we're about to replace the stack
-  procaddr = proc;
-  
+  // Make space on stack and copy address
+   __asm sub esp, argbytes;
+   __asm mov dst, esp
+
+  // Copy and delete arguments
+  memmove((void*)dst, stack, argbytes);
+  delete [] stack;
+
 	// Invoke native function
-  __asm
-  {
-	  mov oldstack, esp;    // Copy stack pointer
-	  mov esp, stackc;      // Replace stack pointer
-    call procaddr;        // Call function
-	  mov esp, oldstack;    // Restore stack pointer
-    mov result, eax;      // Copy return value
-  }
+  __asm call proc;
+
+  // Copy return value
+  __asm mov res, eax;
 
   // Done
-  return VariantRef(result);
+  return VariantRef(res);
 }
 
 #else
