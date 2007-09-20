@@ -181,8 +181,20 @@
 			Name="runtime"
 			>
 			<File
+				RelativePath=".\class.h"
+				>
+			</File>
+			<File
 				RelativePath=".\eval.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\eval.h"
@@ -459,10 +471,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\class.h"
-			>
-		</File>
 		<File
 			RelativePath=".\TODO"
 			>

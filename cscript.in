@@ -108,6 +108,7 @@ statement(R) ::= return_statement(A) .      { R = A; }
 statement(R) ::= switch_statement(A) .      { R = A; }
 statement(R) ::= break_statement(A) .       { R = A; }
 statement(R) ::= continue_statement(A) .    { R = A; }
+statement(R) ::= extern_declaration(A) .    { R = A; }
 
 // Error recovery
 statement(R) ::= error .                    { R = p->AllocAst(empty_statement); }
@@ -190,15 +191,15 @@ primary_expression(R) ::= list_literal(A) .             { R = A; }
 primary_expression(R) ::= THIS .                        { R = p->AllocAst(this_expression); }
 
 // Literals
-literal(R) ::= INTEGER(A) . { R = p->AllocAst(literal, Variant(String(A), Variant::stInt)); }
-literal(R) ::= HEX(A) .     { R = p->AllocAst(literal, Variant(hex2dec(String(A).c_str()))); }
-literal(R) ::= BIN(A) .     { R = p->AllocAst(literal, Variant(bin2dec(String(A).c_str()))); }
-literal(R) ::= ROM(A) .     { R = p->AllocAst(literal, Variant(rom2dec(String(A).c_str()))); }
-literal(R) ::= REAL(A) .    { R = p->AllocAst(literal, Variant(String(A), Variant::stReal)); } 
-literal(R) ::= STRING(A) .  { R = p->AllocAst(literal, Variant(String(A), Variant::stString)); }
-literal(R) ::= TRUE .       { R = p->AllocAst(literal, Variant(true));    }
-literal(R) ::= FALSE .      { R = p->AllocAst(literal, Variant(false));   }
-literal(R) ::= NULL .       { R = p->AllocAst(literal, Variant());        }
+literal(R) ::= INTEGER(A) . { R = p->AllocAst(literal_value, Variant(String(A), Variant::stInt)); }
+literal(R) ::= HEX(A) .     { R = p->AllocAst(literal_value, Variant(hex2dec(String(A).c_str()))); }
+literal(R) ::= BIN(A) .     { R = p->AllocAst(literal_value, Variant(bin2dec(String(A).c_str()))); }
+literal(R) ::= ROM(A) .     { R = p->AllocAst(literal_value, Variant(rom2dec(String(A).c_str()))); }
+literal(R) ::= REAL(A) .    { R = p->AllocAst(literal_value, Variant(String(A), Variant::stReal)); } 
+literal(R) ::= STRING(A) .  { R = p->AllocAst(literal_value, Variant(String(A), Variant::stString)); }
+literal(R) ::= TRUE .       { R = p->AllocAst(literal_value, Variant(true));    }
+literal(R) ::= FALSE .      { R = p->AllocAst(literal_value, Variant(false));   }
+literal(R) ::= NULL .       { R = p->AllocAst(literal_value, Variant());        }
 
 // Id expression
 id_expression(R) ::= IDENTIFIER(A) . { R = p->AllocAst(lvalue, String(A)); }
@@ -400,3 +401,22 @@ default_case(R) ::= DEFAULT COLON case_statements(A) . { R = p->AllocAst(default
 
 // Case content
 case_statements(R) ::= statement_sequence(A) . { R = A; }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Switch statement
+//
+
+extern_declaration(R) ::= EXTERN STRING (A) extern_type(B) IDENTIFIER(C) LPAREN extern_parameter_list(D) RPAREN SEMICOLON . { 
+  R = new Ast(extern_declaration, String(C), String(A), B, D); }
+
+%type extern_type { int }
+extern_type(R) ::= INT . { R = 1; }
+extern_type(R) ::= STR . { R = 2; }
+
+extern_parameter(R) ::= extern_type(A) IDENTIFIER(B) . { R = new Ast(extern_parameter, String(B), A); }
+
+%type extern_parameter_list { AstList* }
+extern_parameter_list(R) ::= . { R = new AstList(); }
+extern_parameter_list(R) ::= extern_parameter(A) . { R = new AstList(); R->push_back(A); }
+extern_parameter_list(R) ::= extern_parameter_list(A) COMMA extern_parameter(B) . { R = A; R->push_back(B); }

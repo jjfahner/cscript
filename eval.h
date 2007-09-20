@@ -67,14 +67,17 @@ protected:
   void EvalSwitchStatement(Ast* node);
   void EvalIfStatement(Ast* node);
   void EvalReturnStatement(Ast* node);
+  void EvalExternDecl(Ast* node);
 
   //
   // Expression handlers
   //
-  VariantRef EvalLValue(Ast* node);
-  VariantRef EvalListLiteral(Ast* node);
   VariantRef EvalFunctionCall(Ast* node);
   VariantRef EvalNativeCall(NativeCallInfo* fun, Ast* call);
+  VariantRef EvalExternCall(Function const& fun, Ast* call);
+
+  VariantRef EvalLValue(Ast* node);
+  VariantRef EvalListLiteral(Ast* node);
   VariantRef EvalNewExpression(Ast* node);
   VariantRef EvalMemberExpression(Ast* node);
   VariantRef EvalThisExpression(Ast* node);

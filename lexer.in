@@ -53,15 +53,18 @@ int parseNextToken(Char*& start, Char*& end)
   "continue"                { return TOK_CONTINUE; }
   "default"                 { return TOK_DEFAULT; }
   "else"                    { return TOK_ELSE; }
+  "extern"                  { return TOK_EXTERN; }
   "false"                   { return TOK_FALSE; }
   "for"                     { return TOK_FOR; }
   "function"				        { return TOK_FUNCTION; }
   "if"                      { return TOK_IF; }
   "in"                      { return TOK_IN; }
   "include"                 { return TOK_INCLUDE; }
+  "int"                     { return TOK_INT; }
   "new"                     { return TOK_NEW; }
   "null"                    { return TOK_NULL; }
   "return"                  { return TOK_RETURN; }
+  "string"                  { return TOK_STR; }
   "switch"                  { return TOK_SWITCH; }
   "this"                    { return TOK_THIS; }
   "true"                    { return TOK_TRUE; }

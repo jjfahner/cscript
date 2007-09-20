@@ -211,6 +211,8 @@ Evaluator::EvalStatement(Ast* node)
 
   case break_statement:       throw break_exception(node);  
   case continue_statement:    throw continue_exception(node);
+
+  case extern_declaration:    EvalExternDecl(node);  break;
   
   case compound_statement:
     if(node->m_a1)
@@ -236,7 +238,7 @@ Evaluator::EvalExpression(Ast* node)
   case postfix_expression:    return EvalPostfix(node);
   case index_expression:      return EvalIndex(node);
   case function_call:         return EvalFunctionCall(node);
-  case literal:               return node->m_a1.GetValue();
+  case literal_value:         return node->m_a1.GetValue();
   case lvalue:                return EvalLValue(node);
   case list_literal:          return EvalListLiteral(node);
   case new_expression:        return EvalNewExpression(node);
@@ -418,6 +420,13 @@ Evaluator::EvalClassDecl(Ast* node)
   }
 }
 
+void 
+Evaluator::EvalExternDecl(Ast* node)
+{
+  // Insert into scope
+  m_scope->AddFun(node->m_a1, node);
+}
+
 VariantRef  
 Evaluator::EvalFunctionCall(Ast* node)
 {
@@ -438,7 +447,12 @@ Evaluator::EvalFunctionCall(Ast* node)
   }
   else if(m_scope->FindFun(node->m_a1, fun))
   {
-    // Found function
+    // Check for extern
+    if(fun.m_code->m_type == extern_declaration)
+    {
+      return EvalExternCall(fun, node);
+    }
+    // Continue below
   }
   else if(NativeCallInfo* nc = FindNative(node->m_a1))
   {
@@ -567,6 +581,20 @@ Evaluator::EvalInstance(Ast* node)
 {
   // Evaluate expression
   VariantRef instVar = EvalExpression(node);
+
+  // Depending on type, box the return value
+  switch(instVar->GetType())
+  {
+  case Variant::stResource:
+    break;
+  case Variant::stBool:
+  case Variant::stInt:
+  case Variant::stString:
+  case Variant::stAssoc:
+//    return instVar;
+  default:
+    throw std::runtime_error("Expression does not yield an object");
+  }
 
   // Must be a resource
   if(instVar->GetType() != Variant::stResource)
@@ -839,3 +867,107 @@ Evaluator::EvalThisExpression(Ast* node)
   }
   throw std::runtime_error("Invalid context for this");
 }
+
+#ifdef WIN32
+
+#include <windows.h>
+
+VariantRef 
+Evaluator::EvalExternCall(Function const& fun, Ast* call)
+{
+  // Load library
+  HMODULE hModule = LoadLibrary(fun.m_code->m_a2.GetString().c_str());
+  if(hModule == 0)
+  {
+    throw std::runtime_error("Failed to load library");
+  }
+
+  // Find function address
+  FARPROC proc = GetProcAddress(hModule, fun.m_code->m_a1.GetString().c_str());
+  if(proc == 0)
+  {
+    throw std::runtime_error("Failed to retrieve function pointer");
+  }
+
+  // Evaluate arguments
+  std::vector<VariantRef> args;
+  if(call->m_a2)
+  {
+    AstList::const_iterator ai, ae;
+    ai = call->m_a2.GetList()->begin();
+    ae = call->m_a2.GetList()->end();
+    for(; ai != ae; ++ai)
+    {
+      args.push_back(EvalExpression(*ai));
+    }
+  }
+
+  // Check argument count
+  if(args.size() != fun.m_code->m_a4.GetList()->size())
+  {
+    throw std::runtime_error("Invalid number of arguments");
+  }
+  
+  // Allocate a call stack
+  static const size_t stacks = 1024*1024*2;
+  char* stackp = (char*)malloc(stacks);
+  char* stackt = stackp + stacks;
+  char* stackc = stackt;
+
+  // Push arguments onto stack in reverse order
+  size_t argIndex = args.size() - 1;
+  AstList::const_reverse_iterator pi, pe;
+  pi = fun.m_code->m_a4.GetList()->rbegin();
+  pe = fun.m_code->m_a4.GetList()->rend();
+  for(; pi != pe; ++pi, --argIndex)
+  {
+    Ast* par = (*pi);
+    switch(par->m_a2.GetNumber())
+    {
+    case 1:   // int
+      stackc -= 4;
+      *((int*)stackc) = (int)args[argIndex]->GetInt();
+      break;
+
+    case 2:   // string
+      stackc -= 4;
+      *((char**)stackc) = (char*)args[argIndex]->GetString().c_str();
+      break;
+
+    default:
+      free(stackt);
+      throw std::runtime_error("Invalid argument type");
+    }
+  }
+
+	static void* oldstack;
+	static void* procaddr;
+  int result;
+
+  // Place function pointer in global memory,
+  // since we're about to replace the stack
+  procaddr = proc;
+  
+	// Invoke native function
+  __asm
+  {
+	  mov oldstack, esp;    // Copy stack pointer
+	  mov esp, stackc;      // Replace stack pointer
+    call procaddr;        // Call function
+	  mov esp, oldstack;    // Restore stack pointer
+    mov result, eax;      // Copy return value
+  }
+
+  // Done
+  return VariantRef(result);
+}
+
+#else
+
+VariantRef 
+Evaluator::EvalExternCall(Function const& fun, Ast* call)
+{
+  throw std::runtime_error("Extern calls not implemented on this platform");
+}
+
+#endif
