@@ -112,9 +112,9 @@ public:
   //
   // Some typed conversions
   //
-//   operator Quad() const
+//   operator int32() const
 //   {
-//     return any_cast<Quad>(Get());
+//     return any_cast<int32>(Get());
 //   }
 //   operator int() const
 //   {

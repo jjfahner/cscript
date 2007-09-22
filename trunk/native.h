@@ -39,8 +39,8 @@ typedef VariantRef (*NativeCall)(Evaluator& evaluator, Arguments const& args);
 struct NativeCallInfo
 {
   String        m_name;
-  Quad          m_minPar;
-  Quad          m_maxPar;
+  int32          m_minPar;
+  int32          m_maxPar;
   NativeCall    m_funPtr;
 };
 
@@ -52,8 +52,8 @@ struct NativeCallRegistrar
   NativeCallRegistrar(
     String const& name, 
     NativeCall call, 
-    Quad minPar, 
-    Quad maxPar);
+    int32 minPar, 
+    int32 maxPar);
 };
 
 //
@@ -68,7 +68,7 @@ struct NativeCallRegistrar
 //
 // Check the argument type for a native call argument
 //
-void AssertType(Arguments const& args, Quad index, Variant::SubTypes type, char const* function);
+void AssertType(Arguments const& args, int32 index, Variant::SubTypes type, char const* function);
 #define ASSERT_TYPE(idx,type) \
   AssertType(args, idx, Variant::type, __FUNCTION__)
 
@@ -80,7 +80,7 @@ NativeCallInfo* FindNative(String const& name);
 //
 // Execute a native call
 //
-void ExecNative(Quad function, Evaluator& evaluator, Arguments const& args);
+void ExecNative(int32 function, Evaluator& evaluator, Arguments const& args);
 
 
 #endif // #ifndef CSCRIPT_NATIVE_CALLS_H

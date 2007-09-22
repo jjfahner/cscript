@@ -50,7 +50,7 @@ void
 File::Open(String const& path)
 {
   // Open the input file
-  ifstream ifs(path.c_str(), std::ios::binary);
+  std::ifstream ifs(path.c_str(), std::ios::binary);
   if(!ifs.good())
   {
     throw std::runtime_error("Failed to open file");
@@ -72,7 +72,7 @@ File::Open(String const& path)
 
   // Read file and null-terminate
   ifs.read((char*)buf, len);
-  *(Quad*)(buf + len) = 0;
+  *(int32*)(buf + len) = 0;
 
   // Close file
   ifs.close();
@@ -82,58 +82,50 @@ File::Open(String const& path)
   m_data = buf;
   m_size = len;
 
-  // Overlay bin header
-  if(((BinHeader*)m_buff)->m_magic == FILE_MAGIC)
+  // Set source type
+  m_type = source;
+
+  // Determine encoding
+  EncTypes enctype;
+  if(m_size >= 4 && strncmp((char*)m_data, "\x00\x00\xfe\xff", 4) == 0)
   {
-    m_type = binary;
+    enctype = UTF32BE;
+    m_data += 4;
+    m_size -= 4;
+  }
+  else if(len >= 4 && strncmp((char*)m_data, "\xff\xfe\x00\x00", 4) == 0)
+  {
+    enctype = UTF32LE;
+    m_data += 4;
+    m_size -= 4;
+  }
+  else if(len >= 3 && strncmp((char*)m_data, "\xef\xbb\xbf", 3) == 0)
+  {
+    enctype = UTF8;
+    m_data += 3;
+    m_size -= 3;
+  }
+  else if(len >= 2 && strncmp((char*)m_data, "\xfe\xff", 2) == 0)
+  {
+    enctype = UTF16BE;
+    m_data += 2;
+    m_size -= 2;
+  }
+  else if(len >= 2 && strncmp((char*)m_data, "\xff\xfe", 2) == 0)
+  {
+    enctype = UTF16BE;
+    m_data += 2;
+    m_size -= 2;
   }
   else
   {
-    // Set source type
-    m_type = source;
- 
-    // Determine encoding
-    EncTypes enctype;
-    if(m_size >= 4 && strncmp((char*)m_data, "\x00\x00\xfe\xff", 4) == 0)
-    {
-      enctype = UTF32BE;
-      m_data += 4;
-      m_size -= 4;
-    }
-    else if(len >= 4 && strncmp((char*)m_data, "\xff\xfe\x00\x00", 4) == 0)
-    {
-      enctype = UTF32LE;
-      m_data += 4;
-      m_size -= 4;
-    }
-    else if(len >= 3 && strncmp((char*)m_data, "\xef\xbb\xbf", 3) == 0)
-    {
-      enctype = UTF8;
-      m_data += 3;
-      m_size -= 3;
-    }
-    else if(len >= 2 && strncmp((char*)m_data, "\xfe\xff", 2) == 0)
-    {
-      enctype = UTF16BE;
-      m_data += 2;
-      m_size -= 2;
-    }
-    else if(len >= 2 && strncmp((char*)m_data, "\xff\xfe", 2) == 0)
-    {
-      enctype = UTF16BE;
-      m_data += 2;
-      m_size -= 2;
-    }
-    else
-    {
-      enctype = UTF8;
-    }
+    enctype = UTF8;
+  }
 
-    // Check supported types
-    if(enctype != UTF8)
-    {
-      throw std::runtime_error("Encoding not supported");
-    }
+  // Check supported types
+  if(enctype != UTF8)
+  {
+    throw std::runtime_error("Encoding not supported");
   }
 }
 
@@ -149,7 +141,7 @@ File::GetType() const
   return m_type;
 }
 
-Quad 
+int32 
 File::GetSize() const
 {
   return m_size;
@@ -159,10 +151,4 @@ Byte*
 File::GetData() const
 {
   return m_data;
-}
-
-BinHeader* 
-File::GetHeader() const
-{
-  return (BinHeader*)m_data;
 }

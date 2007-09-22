@@ -41,7 +41,7 @@ NativeCalls& getNativeCalls()
 //
 // Register a native call
 //
-NativeCallRegistrar::NativeCallRegistrar(String const& name, NativeCall call, Quad minPar, Quad maxPar)
+NativeCallRegistrar::NativeCallRegistrar(String const& name, NativeCall call, int32 minPar, int32 maxPar)
 {
   static NativeCalls& ncv = getNativeCalls();
   NativeCallInfo* fun = new NativeCallInfo;
@@ -73,7 +73,7 @@ FindNative(String const& name)
 }
 
 void 
-AssertType(Arguments const& args, Quad index, Variant::SubTypes type, char const* function)
+AssertType(Arguments const& args, int32 index, Variant::SubTypes type, char const* function)
 {
   if(index >= args.size())
   {
@@ -94,27 +94,27 @@ void PrintVariant(VariantRef const& ref)
 {
   switch(ref->GetType())
   {
-  case Variant::stNull:       cout << "null"; return;
-  case Variant::stBool:       cout << (ref->GetBool() ? "true" : "false"); return;
-  case Variant::stInt:        cout << ref->GetInt(); return;
-  case Variant::stString:     cout << ref->GetString(); return;
+  case Variant::stNull:       std::cout << "null"; return;
+  case Variant::stBool:       std::cout << (ref->GetBool() ? "true" : "false"); return;
+  case Variant::stInt:        std::cout << ref->GetInt(); return;
+  case Variant::stString:     std::cout << ref->GetString(); return;
   case Variant::stAssoc:      break;
-  case Variant::stResource:   cout << "resource"; return;
+  case Variant::stResource:   std::cout << "resource"; return;
   default: throw std::runtime_error("Invalid subtype");
   }
 
   Variant::AssocType::const_iterator it, ie;
   it = ref->GetMap().begin();
   ie = ref->GetMap().end();
-  cout << "[";
+  std::cout << "[";
   String sep;
   for(; it != ie; ++it)
   {
-    cout << sep;
+    std::cout << sep;
     sep = ",";
     PrintVariant(it->second);
   }
-  std::wcout << "]";
+  std::cout << "]";
 }
 
 NATIVE_CALL(print, 1, 1)
@@ -154,7 +154,7 @@ NATIVE_CALL(quit, 0, 1)
 NATIVE_CALL(read, 0, 0)
 {
   String line;
-  cin >> line;
+  std::cin >> line;
   return Variant(line);
 }
 
@@ -205,11 +205,11 @@ NATIVE_CALL(strstr, 2, 3)
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
-  Quad offset = 0;
+  int32 offset = 0;
   if(args.size() == 3)
   {
     ASSERT_TYPE(2, stInt);
-    offset = (Quad)args[2]->GetInt();
+    offset = (int32)args[2]->GetInt();
   }
   String const& src = args[0]->GetString();
   String const& str = args[1]->GetString();
@@ -229,11 +229,11 @@ NATIVE_CALL(strchr, 2, 3)
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
-  Quad offset = 0;
+  int32 offset = 0;
   if(args.size() == 3)
   {
     ASSERT_TYPE(2, stInt);
-    offset = (Quad)args[2]->GetInt();
+    offset = (int32)args[2]->GetInt();
   }
   String const& src = args[0]->GetString();
   String const& chr = args[1]->GetString();

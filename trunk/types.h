@@ -38,21 +38,23 @@
 //
 #ifdef _MSC_VER
 
-typedef unsigned __int8   Byte;
-typedef unsigned __int16  Word;
-typedef unsigned __int32  Quad;
-
+typedef unsigned __int8   int8;
+typedef unsigned __int16  int16;
+typedef unsigned __int32  int32;
 typedef __int64           int64;
+
+typedef unsigned __int8   Byte;
 
 #elif defined(__GNUC__)
 
 #include <stdint.h>
 
-typedef uint8_t           Byte;
-typedef uint16_t          Word;
-typedef uint32_t          Quad;
-
+typedef uint8_t           int8;
+typedef uint16_t          int16;
+typedef uint32_t          int32;
 typedef int64_t           int64;
+
+typedef uint8_t           Byte;
 
 #else
 
@@ -72,17 +74,7 @@ typedef int64_t           int64;
 //
 // Compiler version
 //
-#define COMPVER (MAKEVER(0,4,0,0))
-
-//
-// Machine version
-//
-#define MACHVER (MAKEVER(0,4,0,0))
-
-//
-// File magic
-//
-#define FILE_MAGIC (MAKEVER(0xc0,0xc1,0xa0,0xa1))
+#define VERSION (MAKEVER(0,4,0,0))
 
 //
 // Char type
@@ -93,14 +85,6 @@ typedef char Char;
 // String type
 //
 typedef std::string String;
-
-//
-// Stream types
-//
-static std::istream& cin  = std::cin;
-static std::ostream& cout = std::cout;
-typedef std::ifstream   ifstream;
-typedef std::ofstream   ofstream;
 
 //
 // String maps
@@ -120,7 +104,7 @@ class AstList;
 struct FilePos
 {
   String  m_file;
-  Quad    m_line;
+  int32   m_line;
 };
 
 

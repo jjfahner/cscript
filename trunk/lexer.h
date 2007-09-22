@@ -47,7 +47,7 @@ public:
   //
   // Current line
   //
-  Quad GetLine() const {
+  int32 GetLine() const {
     return m_line;
   }
 
@@ -65,7 +65,7 @@ private:
   Char*   m_source;
   size_t  m_length;
   Char*   m_strptr;
-  Quad    m_line;
+  int32    m_line;
   int     m_string;
 
 };
