@@ -65,7 +65,7 @@ public:
   {
   }
 
-  AstData(Quad number) : 
+  AstData(int32 number) : 
   m_type    (Number),
   m_number  (number)
   {
@@ -136,7 +136,7 @@ public:
     return *m_value;
   }
 
-  Quad GetNumber() const
+  int32 GetNumber() const
   {
     AssertType(Number);
     return m_number;
@@ -162,7 +162,7 @@ public:
     return GetValue();
   }
 
-  operator Quad () const
+  operator int32 () const
   {
     return GetNumber();
   }
@@ -183,7 +183,7 @@ private:
     String*   m_string;
     AstList*  m_list;
     Variant*  m_value;
-    Quad      m_number;
+    int32      m_number;
   };
 
 };

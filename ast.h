@@ -101,7 +101,7 @@ class Ast
 {
 public:
 
-  typedef std::map<String, Quad> Annotations;
+  typedef std::map<String, int32> Annotations;
 
   //
   // Construction

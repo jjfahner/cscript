@@ -293,12 +293,62 @@
 			Name="parser"
 			>
 			<File
+				RelativePath=".\cscript.in"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating parser..."
+						CommandLine="lemon.exe cscript.in&#x0D;&#x0A;"
+						Outputs="cscript.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating parser..."
+						CommandLine="lemon.exe cscript.in&#x0D;&#x0A;"
+						Outputs="cscript.c"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\lexer.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\lexer.h"
 				>
+			</File>
+			<File
+				RelativePath=".\lexer.in"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating lexer"
+						CommandLine="re2c.exe -iswb -o lexer.gen lexer.in&#x0D;&#x0A;"
+						AdditionalDependencies="cscript.in"
+						Outputs="lexer.gen"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Compiling lexer"
+						CommandLine="re2c -o lexer.gen lexer.in&#x0D;&#x0A;"
+						AdditionalDependencies="cscript.in"
+						Outputs="lexer.gen"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\parser.cpp"
@@ -385,30 +435,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cscript.in"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating parser..."
-						CommandLine="lemon.exe cscript.in&#x0D;&#x0A;"
-						Outputs="cscript.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating parser..."
-						CommandLine="lemon.exe cscript.in&#x0D;&#x0A;"
-						Outputs="cscript.c"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\error.cpp"
 				>
 			</File>
@@ -419,32 +445,6 @@
 			<File
 				RelativePath=".\file.cpp"
 				>
-			</File>
-			<File
-				RelativePath=".\lexer.in"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating lexer"
-						CommandLine="re2c.exe -iswb -o lexer.gen lexer.in&#x0D;&#x0A;"
-						AdditionalDependencies="cscript.in"
-						Outputs="lexer.gen"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Compiling lexer"
-						CommandLine="re2c -o lexer.gen lexer.in&#x0D;&#x0A;"
-						AdditionalDependencies="cscript.in"
-						Outputs="lexer.gen"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\opcodes.h"

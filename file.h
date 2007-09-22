@@ -24,34 +24,6 @@
 #include "types.h"
 
 //
-// Header for compiled file
-//
-struct BinHeader
-{
-  // General
-  Quad    m_magic;
-  Quad    m_compver;
-  Quad    m_machver;
-  Quad    m_filelen;
-
-  // Global code segment
-  Quad    m_codeseg;
-  Quad    m_codelen;
-
-  // Procedure segment
-  Quad    m_procseg;
-  Quad    m_proclen;
-
-  // Data segment
-  Quad    m_dataseg;
-  Quad    m_datalen;
-
-  // Class segment
-  Quad    m_vtabseg;
-  Quad    m_vtablen;
-};
-
-//
 // File wrapper
 //
 class File 
@@ -106,11 +78,6 @@ public:
   FileTypes GetType() const;
 
   //
-  // Binary header
-  //
-  BinHeader* GetHeader() const;
-
-  //
   // Get path
   //
   String GetPath() const;
@@ -118,7 +85,7 @@ public:
   //
   // Get length
   //
-  Quad GetSize() const;
+  int32 GetSize() const;
 
   //
   // Get pointer to file data
@@ -130,11 +97,11 @@ private:
   //
   // Members
   //
-  String      m_path;
-  FileTypes   m_type;
-  Byte*       m_buff;
-  Byte*       m_data;
-  Quad        m_size;
+  String    m_path;
+  FileTypes m_type;
+  Byte*     m_buff;
+  Byte*     m_data;
+  int32     m_size;
 
 };
 

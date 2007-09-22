@@ -20,10 +20,10 @@
 //////////////////////////////////////////////////////////////////////////
 #include "convert.h"
 
-Quad 
+int32 
 hex2dec(char const* src)
 {
-  Quad value = 0;
+  int32 value = 0;
 
   // Skip type marker
   if(*src == '0' && *(src+1) == 'x')
@@ -57,10 +57,10 @@ hex2dec(char const* src)
   return value;
 }
 
-Quad 
+int32 
 bin2dec(char const* src)
 {
-  Quad value = 0;
+  int32 value = 0;
 
   // Skip type marker
   if(*src == '0' && *(src+1) == 'b')
@@ -109,10 +109,10 @@ romdigit(char ch)
   }
 }
 
-Quad 
+int32 
 rom2dec(char const* src)
 {
-  Quad value = 0;
+  int32 value = 0;
 
   // Skip type marker
   if(*src == '0' && *(src+1) == 'r')

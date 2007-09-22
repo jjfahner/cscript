@@ -31,7 +31,7 @@
 //
 void banner()
 {
-  cout << "CScript 0.5  Copyright (C) 2007  Jan-Jaap Fahner.\n\n";
+  std::cout << "CScript 0.5  Copyright (C) 2007  Jan-Jaap Fahner.\n\n";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ void banner()
 int usage()
 {
   banner();
-  cout << 
+  std::cout << 
     "Usage: cscript [options] [file]\n\n"
     "Options:\n\n"
     "-q --quiet           Don't display banner"
@@ -181,19 +181,19 @@ int main(int argc, Char** argv)
   }
   catch(std::exception const& e)
   {
-    cout << "\nException: " << e.what() << "\n";
+    std::cout << "\nException: " << e.what() << "\n";
   }
   catch(...)
   {
-    cout << "\nUnexpected exception\n";
+    std::cout << "\nUnexpected exception\n";
   }
 
   // Keep console running under MSC devenv
 #if defined(_MSC_VER) && defined(_DEBUG)
   if(IsDebuggerPresent())
   {
-    cout << "\n\nPress enter to quit";
-    cin.get();
+    std::cout << "\n\nPress enter to quit";
+    std::cin.get();
   }
 #endif
 
