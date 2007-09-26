@@ -181,6 +181,10 @@
 			Name="runtime"
 			>
 			<File
+				RelativePath=".\class.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\class.h"
 				>
 			</File>
@@ -192,12 +196,28 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="false"
+						DisableLanguageExtensions="true"
 					/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\eval.h"
+				>
+			</File>
+			<File
+				RelativePath=".\function.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\function.h"
 				>
 			</File>
 			<File
@@ -475,14 +495,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\function.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\function.h"
-			>
-		</File>
 		<File
 			RelativePath=".\TODO"
 			>

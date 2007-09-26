@@ -1,43 +1,37 @@
 #include "scope.h"
 #include "eval.h"
 #include "ast.h"
+#include "function.h"
+#include "class.h"
 
-Instance* 
-Class::CreateInstance(Evaluator& eval) const
+void 
+GlobalScope::AddFun(Function* fun)
 {
-  // Create new instance
-  Instance* inst = new Instance(this);
-
-  // Enumerate variable definitions
-  try
+  if(m_funs.count(fun->GetName()))
   {
-    NamedNodeMap::const_iterator it, ie;
-    it = m_vars.begin();
-    ie = m_vars.end();
-    for(; it != ie; ++it)
-    {
-      // Evaluate initial value
-      VariantRef value;
-      if(it->second->m_a2.Empty())
-      {
-        value = Variant::Null;
-      }
-      else
-      {
-        value = eval.EvalExpression(it->second->m_a2);
-      }
-
-      // Instantiate member variable
-      inst->m_vars[it->first] = value;
-    }
-
-    // Return new instance
-    return inst;
+    throw std::runtime_error("Function already declared");
   }
-  catch(...)
+  m_funs[fun->GetName()] = fun;
+}
+
+void 
+GlobalScope::AddClass(Class* c)
+{
+  if(m_classes.count(c->GetName()))
   {
-    // Do cleanup
-    delete inst;
-    throw;
+    throw std::runtime_error("Class already declared");
   }
+  m_classes[c->GetName()] = c;
+}
+
+bool 
+ClassScope::FindVarLocal(String const& name, VariantRef& ref) const
+{
+  return m_inst->FindVar(name, ref);
+}
+
+bool 
+ClassScope::FindFunLocal(String const& name, Function*& fun) const
+{
+  return m_inst->FindFun(name, fun);
 }

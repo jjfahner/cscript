@@ -98,10 +98,6 @@ protected:
   VariantRef EvalFunctionCall(Ast* node);
   friend class ScriptFunction;
   VariantRef EvalScriptCall (ScriptFunction* fun,  Arguments const& args);
-  friend class NativeFunction;
-  VariantRef EvalNativeCall (NativeFunction* fun,  Arguments const& args);
-  friend class BuiltinFunction;
-  VariantRef EvalBuiltinCall(BuiltinFunction* fun, Arguments const& args);
 
   //
   // Evaluate expression expecting an instance

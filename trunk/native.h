@@ -33,36 +33,26 @@ class Evaluator;
 typedef VariantRef (*NativeCall)(Evaluator& evaluator, Arguments const& args);
 
 //
-// Function information
-//
-struct NativeCallInfo
-{
-  String        m_name;
-  int32          m_minPar;
-  int32          m_maxPar;
-  NativeCall    m_funPtr;
-};
-
-//
 // Registrar for native calls
 //
 struct NativeCallRegistrar
 {
-  NativeCallRegistrar(
-    String const& name, 
-    NativeCall call, 
-    int32 minPar, 
-    int32 maxPar);
+  NativeCallRegistrar(String const& decl, NativeCall call);
 };
+
+#define CONCATENATE_DIRECT(s1, s2)  s1##s2
+#define CONCATENATE(s1, s2)         CONCATENATE_DIRECT(s1, s2)
+#define UNIQUE_PREFIXED(str)        CONCATENATE(str, __LINE__)
+#define UNIQUE_IDENTIFIER           UNIQUE_PREFIXED(unique) 
 
 //
 // Native call handler
 //
-#define NATIVE_CALL(name,minPar,maxPar)                                   \
-  VariantRef Native_##name(Evaluator& evaluator, Arguments const& args);  \
-  NativeCallRegistrar register_##name(#name,                              \
-    Native_##name, minPar, maxPar);                                       \
-  VariantRef Native_##name(Evaluator& evaluator, Arguments const& args)
+#define GETLINE __LINE__
+#define NATIVE_CALL(decl)                                                                           \
+  static VariantRef          UNIQUE_PREFIXED(native_)   (Evaluator& evaluator, Arguments const& args);   \
+  static NativeCallRegistrar UNIQUE_PREFIXED(registrar_)(decl, UNIQUE_PREFIXED(native_));           \
+  static VariantRef          UNIQUE_PREFIXED(native_)   (Evaluator& evaluator, Arguments const& args)
 
 //
 // Check the argument type for a native call argument

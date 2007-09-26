@@ -4,28 +4,30 @@
 #include "astlist.h"
 #include "native.h"
 #include "scope.h"
+#include "function.h"
+#include "class.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Native calls
 //
 
-NATIVE_CALL(eval, 1, 1)
+NATIVE_CALL("function eval(string code)")
 {
   return evaluator.Eval(args[0]->AsString());
 }
 
-NATIVE_CALL(reset, 0, 0)
+NATIVE_CALL("function reset()")
 {
   throw reset_exception();
 }
 
-NATIVE_CALL(classes, 0, 0)
+NATIVE_CALL("function classes()")
 {
   return evaluator.GetClassList();
 }
 
-NATIVE_CALL(functions, 0, 0)
+NATIVE_CALL("function functions()")
 {
   return evaluator.GetFunctionList();
 }
@@ -205,6 +207,7 @@ Evaluator::EvalStatement(Ast* node)
 
   case variable_declaration:  EvalVarDecl(node);  break;
   case function_declaration:  EvalFunDecl(node);  break;
+  case extern_declaration:    EvalExternDecl(node);  break;
   case class_declaration:     EvalClassDecl(node);   break;
   case class_members:         break;  
   case access_specifier:      break;
@@ -219,8 +222,6 @@ Evaluator::EvalStatement(Ast* node)
   case break_statement:       throw break_exception(node);  
   case continue_statement:    throw continue_exception(node);
 
-  case extern_declaration:    EvalExternDecl(node);  break;
-  
   case compound_statement:
     if(node->m_a1)
     {
@@ -387,8 +388,13 @@ Evaluator::EvalVarDecl(Ast* node)
 void        
 Evaluator::EvalFunDecl(Ast* node)
 {
-  // Insert into scope
   m_scope->AddFun(new ScriptFunction(node->m_a1, node));
+}
+
+void 
+Evaluator::EvalExternDecl(Ast* node)
+{
+  m_scope->AddFun(new ExternFunction(node->m_a1));
 }
 
 void 
@@ -427,15 +433,6 @@ Evaluator::EvalClassDecl(Ast* node)
   }
 }
 
-void 
-Evaluator::EvalExternDecl(Ast* node)
-{
-  // Insert into scope
-  // TODO
-  throw std::runtime_error("Not implemented");
-  //m_scope->AddFun(new NativeFunction("blabla"));
-}
-
 VariantRef  
 Evaluator::EvalFunctionCall(Ast* node)
 {
@@ -469,8 +466,8 @@ Evaluator::EvalFunctionCall(Ast* node)
   {
     // Positional arguments
     AstList::const_iterator ai, ae;
-    ai = node->m_a2.GetList()->begin();
-    ae = node->m_a2.GetList()->end();
+    ai = arglist->begin();
+    ae = arglist->end();
     for(; ai != ae; ++ai)
     {
       args.push_back(EvalExpression(*ai));
@@ -537,16 +534,6 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments const& args)
       parVal = args[index];
     }
   }
-  */
-  return Variant();
-}
-
-VariantRef 
-Evaluator::EvalNativeCall(NativeFunction* fun, Arguments const& args)
-{
-  /*
-  // Execute native call
-  return fun->m_funPtr(*this, args);
   */
   return Variant();
 }
@@ -897,105 +884,3 @@ Evaluator::EvalThisExpression(Ast* node)
   }
   throw std::runtime_error("Invalid context for this");
 }
-
-#ifdef WIN32
-
-#include <windows.h>
-
-VariantRef 
-Evaluator::EvalBuiltinCall(BuiltinFunction* fun, Arguments const& args)
-{/*
-  // Load library
-  HMODULE hModule = LoadLibrary(fun.m_code->m_a2.GetString().c_str());
-  if(hModule == 0)
-  {
-    throw std::runtime_error("Failed to load library");
-  }
-
-  // Find function address
-  FARPROC proc = GetProcAddress(hModule, fun.m_code->m_a1.GetString().c_str());
-  if(proc == 0)
-  {
-    throw std::runtime_error("Failed to retrieve function pointer");
-  }
-
-  // Evaluate arguments
-  std::vector<VariantRef> args;
-  if(call->m_a2)
-  {
-    AstList::const_iterator ai, ae;
-    ai = call->m_a2.GetList()->begin();
-    ae = call->m_a2.GetList()->end();
-    for(; ai != ae; ++ai)
-    {
-      args.push_back(EvalExpression(*ai));
-    }
-  }
-
-  // Check argument count
-  if(args.size() != fun.m_code->m_a4.GetList()->size())
-  {
-    throw std::runtime_error("Invalid number of arguments");
-  }
-  
-  // Allocate memory for arguments
-  int argbytes = args.size() * sizeof(int);
-  int* stack = new int[args.size()];
-
-  // Copy arguments into buffer stack in reverse order
-  size_t argIndex = args.size() - 1;
-  size_t parIndex = 0;
-  AstList::const_reverse_iterator pi, pe;
-  pi = fun.m_code->m_a4.GetList()->rbegin();
-  pe = fun.m_code->m_a4.GetList()->rend();
-  for(; pi != pe; ++pi, --argIndex, ++parIndex)
-  {
-    Ast* par = (*pi);
-    switch(par->m_a2.GetNumber())
-    {
-    case 1:   // int
-      stack[parIndex] = (int)args[argIndex]->GetInt();
-      break;
-
-    case 2:   // string
-      stack[parIndex] = (int)args[argIndex]->GetString().c_str();
-      break;
-
-    default:
-      delete [] stack;
-      throw std::runtime_error("Invalid argument type");
-    }
-  }
-
-  int dst;
-  int res;
-
-  // Make space on stack and copy address
-   __asm sub esp, argbytes;
-   __asm mov dst, esp
-
-  // Copy and delete arguments
-  memmove((void*)dst, stack, argbytes);
-  delete [] stack;
-
-	// Invoke native function
-  __asm call proc;
-
-  // Copy return value
-  __asm mov res, eax;
-
-  // Done
-  return VariantRef(res);
-  */
-  return VariantRef();
-}
-
-#else
-
-VariantRef 
-Evaluator::EvalExternCall(Function const& fun, Ast* call)
-{
-  throw std::runtime_error("Extern calls not implemented on this platform");
-}
-
-#endif

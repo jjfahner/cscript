@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include "native.h"
 #include "eval.h"
+#include "function.h"
 
 #ifdef _MSC_VER
 #include <process.h>
@@ -29,49 +30,16 @@
 #endif
 
 //
-// Mapping between index and call
-//
-typedef std::vector<NativeCallInfo*> NativeCalls;
-NativeCalls& getNativeCalls()
-{
-  static NativeCalls nativeCalls;
-  return nativeCalls;
-}
-
-//
 // Register a native call
 //
-NativeCallRegistrar::NativeCallRegistrar(String const& name, NativeCall call, int32 minPar, int32 maxPar)
+NativeCallRegistrar::NativeCallRegistrar(String const& decl, NativeCall call)
 {
-  static NativeCalls& ncv = getNativeCalls();
-  NativeCallInfo* fun = new NativeCallInfo;
-  fun->m_name   = name;
-  fun->m_minPar = minPar;
-  fun->m_maxPar = maxPar;
-  fun->m_funPtr = call;
-  ncv.push_back(fun);
+  Evaluator::GetGlobalScope().AddFun(new NativeFunction(decl, call));
 }
 
 //
-// Find a native call index
+// Check argument type for a native call
 //
-NativeCallInfo* 
-FindNative(String const& name)
-{
-  static NativeCalls& ncv = getNativeCalls();
-
-  size_t i = 0, n = ncv.size();
-  for(; i < n; ++i)
-  {
-    if(ncv[i]->m_name == name)
-    {
-      return ncv[i];
-    }
-  }
-
-  return 0;
-}
-
 void 
 AssertType(Arguments const& args, size_t index, Variant::SubTypes type, char const* function)
 {
@@ -117,13 +85,13 @@ void PrintVariant(VariantRef const& ref)
   std::cout << "]";
 }
 
-NATIVE_CALL(print, 1, 1)
+NATIVE_CALL("function print(value)")
 {
   PrintVariant(args[0]);
   return args[0];
 }
 
-NATIVE_CALL(exit, 0, 1)
+NATIVE_CALL("function exit(int exitcode = 0)")
 {
   int ret = 0;
   if(args.size() == 1)
@@ -137,7 +105,7 @@ NATIVE_CALL(exit, 0, 1)
   return args[0];
 }
 
-NATIVE_CALL(quit, 0, 1)
+NATIVE_CALL("function quit(int exitcode = 0)")
 {
   int ret = 0;
   if(args.size() == 1)
@@ -151,14 +119,14 @@ NATIVE_CALL(quit, 0, 1)
   return args[0];
 }
 
-NATIVE_CALL(read, 0, 0)
+NATIVE_CALL("function read()")
 {
   String line;
   std::cin >> line;
   return Variant(line);
 }
 
-NATIVE_CALL(count, 1, 1)
+NATIVE_CALL("function count()")
 {
   if(args[0]->GetType() != Variant::stAssoc)
   {
@@ -167,7 +135,7 @@ NATIVE_CALL(count, 1, 1)
   return Variant(args[0]->GetMap().size());
 }
 
-NATIVE_CALL(exec, 1, 1)
+NATIVE_CALL("function exec(string command)")
 {
   // Pass to system
   return Variant(system(args[0]->GetString().c_str()));
@@ -178,13 +146,13 @@ NATIVE_CALL(exec, 1, 1)
 // String functions
 //
 
-NATIVE_CALL(strlen, 1, 1)
+NATIVE_CALL("function strlen(string value)")
 {
   ASSERT_TYPE(0, stString);
   return Variant(args[0]->GetString().length());
 }
 
-NATIVE_CALL(substr, 2, 3)
+NATIVE_CALL("function substr(string data, int start, int len = 0)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stInt);
@@ -201,7 +169,7 @@ NATIVE_CALL(substr, 2, 3)
     (int)args[2]->GetInt()));
 }
 
-NATIVE_CALL(strstr, 2, 3)
+NATIVE_CALL("function strstr(string data, string what, int start = 0)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
@@ -225,7 +193,7 @@ NATIVE_CALL(strstr, 2, 3)
   return Variant(res);
 }
 
-NATIVE_CALL(strchr, 2, 3)
+NATIVE_CALL("function strchr(string data, string char, int start = 0)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);

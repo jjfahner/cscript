@@ -82,7 +82,7 @@ Lexer::Lex(Token& token)
     {
     case 0:               return false;
     case TOK_WHITESPACE:  m_strptr = end; continue;
-    case TOK_STRING:      m_strptr = end; return LexString(token);
+    case TOK_LIT_STRING:  m_strptr = end; return LexString(token);
     case TOK_NEWLINE:     m_strptr = end; ++m_line; continue;
     case TOK_COMMENT:     LexComment(); continue;
     }
@@ -125,7 +125,7 @@ Lexer::LexString(Token& token)
   Char  wch;
 
   // Init token
-  token.m_type = TOK_STRING;
+  token.m_type = TOK_LIT_STRING;
   token.m_text = m_strptr;
   token.m_size = 0;
 

@@ -215,7 +215,7 @@ Socket::Receive(Variant const& length, Variant const& timeout)
 // Native call interface to socket class
 //
 
-NATIVE_CALL(socket, 2, 2)
+NATIVE_CALL("function socket(string name, int port)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stInt);
@@ -230,14 +230,14 @@ NATIVE_CALL(socket, 2, 2)
   return Variant(s);
 }
 
-NATIVE_CALL(closesocket, 1, 1)
+NATIVE_CALL("function closesocket(s)")
 {
   Socket* s = args[0]->GetTypedRes<Socket>();
   s->Disconnect();
   return Variant::True;
 }
 
-NATIVE_CALL(send, 2, 3)
+NATIVE_CALL("function send(socket, string data, int len = 0)")
 {
   Socket* s = args[0]->GetTypedRes<Socket>();
   if(args.size() == 2)
@@ -250,7 +250,7 @@ NATIVE_CALL(send, 2, 3)
   }
 }
 
-NATIVE_CALL(recv, 2, 3)
+NATIVE_CALL("function recv(socket, int len, int timeout = 0)")
 {
   Socket* s = args[0]->GetTypedRes<Socket>();
   if(args.size() == 2)
