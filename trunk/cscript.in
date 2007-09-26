@@ -363,6 +363,17 @@ function_body(R) ::= statement(A) . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
+// External function declaration
+//
+
+extern_declaration(R) ::= EXTERN LIT_STRING(A) type(B) IDENTIFIER(C) 
+  LPAREN parameter_list(D) RPAREN SEMICOLON . 
+{ 
+  R = new Ast(extern_declaration, String(C), D, String(A), B); 
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // For statement
 //
 
@@ -424,14 +435,3 @@ default_case(R) ::= DEFAULT COLON case_statements(A) . { R = p->AllocAst(default
 
 // Case content
 case_statements(R) ::= statement_sequence(A) . { R = A; }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Switch statement
-//
-
-extern_declaration(R) ::= EXTERN STRING (A) type(B) IDENTIFIER(C) 
-  LPAREN parameter_list(D) RPAREN SEMICOLON . 
-{ 
-  R = new Ast(extern_declaration, String(C), String(A), B, D); 
-}

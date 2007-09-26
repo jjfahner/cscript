@@ -1,6 +1,7 @@
 #include "function.h"
 #include "eval.h"
 #include "parser.h"
+#include "astlist.h"
 
 AstList const* 
 ScriptFunction::GetParameters() const
@@ -43,67 +44,58 @@ NativeFunction::Execute(Evaluator& evaluator, Arguments const& args)
   return m_call(evaluator, args);
 }
 
+AstList const* 
+ExternFunction::GetParameters() const
+{
+  return m_node->m_a2;
+}
+
 #ifdef WIN32
 
 #include <windows.h>
 
 VariantRef
 ExternFunction::Execute(Evaluator& evaluator, Arguments const& args)
-{/*
+{
   // Load library
-  HMODULE hModule = LoadLibrary(fun.m_code->m_a2.GetString().c_str());
+  HMODULE hModule = LoadLibrary(m_node->m_a3.GetString().c_str());
   if(hModule == 0)
   {
     throw std::runtime_error("Failed to load library");
   }
 
   // Find function address
-  FARPROC proc = GetProcAddress(hModule, fun.m_code->m_a1.GetString().c_str());
+  FARPROC proc = GetProcAddress(hModule, m_node->m_a1.GetString().c_str());
   if(proc == 0)
   {
     throw std::runtime_error("Failed to retrieve function pointer");
   }
 
-  // Evaluate arguments
-  std::vector<VariantRef> args;
-  if(call->m_a2)
-  {
-    AstList::const_iterator ai, ae;
-    ai = call->m_a2.GetList()->begin();
-    ae = call->m_a2.GetList()->end();
-    for(; ai != ae; ++ai)
-    {
-      args.push_back(EvalExpression(*ai));
-    }
-  }
-
-  // Check argument count
-  if(args.size() != fun.m_code->m_a4.GetList()->size())
-  {
-    throw std::runtime_error("Invalid number of arguments");
-  }
-  
   // Allocate memory for arguments
   int argbytes = args.size() * sizeof(int);
   int* stack = new int[args.size()];
 
-  // Copy arguments into buffer stack in reverse order
-  size_t argIndex = args.size() - 1;
-  size_t parIndex = 0;
+  // Copy arguments into buffer stack
+  size_t index = 0;
   AstList::const_reverse_iterator pi, pe;
-  pi = fun.m_code->m_a4.GetList()->rbegin();
-  pe = fun.m_code->m_a4.GetList()->rend();
-  for(; pi != pe; ++pi, --argIndex, ++parIndex)
+  pi = m_node->m_a2.GetList()->rbegin();
+  pe = m_node->m_a2.GetList()->rend();
+  for(; pi != pe; ++pi, ++index)
   {
     Ast* par = (*pi);
-    switch(par->m_a2.GetNumber())
+    Ast* typ = par->m_a2;
+    if(typ->m_type != builtin_type)
     {
-    case 1:   // int
-      stack[parIndex] = (int)args[argIndex]->GetInt();
+      throw std::runtime_error("Invalid argument type");
+    }
+    switch(typ->m_a1.GetNumber())
+    {
+    case Variant::stInt:   // int
+      stack[index] = (int)args[index]->GetInt();
       break;
 
-    case 2:   // string
-      stack[parIndex] = (int)args[argIndex]->GetString().c_str();
+    case Variant::stString:   // string
+      stack[index] = (int)args[index]->GetString().c_str();
       break;
 
     default:
@@ -131,8 +123,6 @@ ExternFunction::Execute(Evaluator& evaluator, Arguments const& args)
 
   // Done
   return VariantRef(res);
-  */
-  return VariantRef();
 }
 
 #else

@@ -369,7 +369,7 @@ Evaluator::EvalFunDecl(Ast* node)
 void 
 Evaluator::EvalExternDecl(Ast* node)
 {
-  m_scope->AddFun(new ExternFunction(node->m_a1));
+  m_scope->AddFun(new ExternFunction(node->m_a1, node));
 }
 
 void 

@@ -153,23 +153,28 @@ public:
   //
   // Construction
   //
-  ExternFunction(String name) :
-  Function (name)
+  ExternFunction(String name, Ast* node) :
+  Function  (name),
+  m_node    (node)
   {
   }
 
   //
   // Parameter list
   //
-  virtual AstList const* GetParameters() const
-  {
-    throw std::runtime_error("Not implemented");
-  }
+  virtual AstList const* GetParameters() const;
 
   //
   // Execution
   //
   virtual VariantRef Execute(Evaluator& evaluator, Arguments const& args);
+
+protected:
+
+  //
+  // Members
+  //
+  Ast* m_node;
 
 };
 
