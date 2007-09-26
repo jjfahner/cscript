@@ -230,7 +230,7 @@ type(R) ::= IDENTIFIER(A) . { R = new Ast(class_type, String(A));            }
 function_call(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(function_call, String(A), B); }
 
 // Positional argument
-positional_argument(R) ::= conditional_expression(A) . { R = A; }
+positional_argument(R) ::= expression(A) . { R = A; }
 
 // Argument list containing 1 or more positional arguments
 %type positional_argument_list { AstList* }
@@ -238,7 +238,7 @@ positional_argument_list(R) ::= positional_argument(A) . { R = new AstList; R->p
 positional_argument_list(R) ::= positional_argument_list(A) COMMA positional_argument(B) . { R = A; A->push_back(B); }
 
 // Named argument
-named_argument(R) ::= IDENTIFIER(A) ASSIGN conditional_expression(B) . { R = p->AllocAst(named_argument, String(A), B); }
+named_argument(R) ::= IDENTIFIER(A) COLON expression(B) . { R = p->AllocAst(named_argument, String(A), B); }
 
 // Argument list containing 1 or more named arguments
 %type named_argument_list { AstList* }
