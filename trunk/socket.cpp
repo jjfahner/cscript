@@ -240,26 +240,12 @@ NATIVE_CALL("function closesocket(s)")
 NATIVE_CALL("function send(socket, string data, int len = 0)")
 {
   Socket* s = args[0]->GetTypedRes<Socket>();
-  if(args.size() == 2)
-  {
-    return s->Send(*args[1]);
-  }
-  else
-  {
-    return s->Send(*args[1], *args[2]);
-  }
+  return s->Send(*args[1], *args[2]);
 }
 
 NATIVE_CALL("function recv(socket, int len, int timeout = 0)")
 {
   Socket* s = args[0]->GetTypedRes<Socket>();
-  if(args.size() == 2)
-  {
-    return s->Receive(*args[1]);  
-  }
-  else
-  {
-    return s->Receive(*args[1], *args[2]);  
-  }
+  return s->Receive(*args[1], *args[2]);  
 }
 

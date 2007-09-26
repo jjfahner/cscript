@@ -9,31 +9,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Native calls
-//
-
-NATIVE_CALL("function eval(string code)")
-{
-  return evaluator.Eval(args[0]->AsString());
-}
-
-NATIVE_CALL("function reset()")
-{
-  throw reset_exception();
-}
-
-NATIVE_CALL("function classes()")
-{
-  return evaluator.GetClassList();
-}
-
-NATIVE_CALL("function functions()")
-{
-  return evaluator.GetFunctionList();
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Scope implementation
 //
 
@@ -461,22 +436,13 @@ Evaluator::EvalFunctionCall(Ast* node)
   }
 
   // Evaluate arguments
-  AstList* arglist = node->m_a2->m_a1;
   if(node->m_a2->m_type == positional_arguments)
   {
-    // Positional arguments
-    AstList::const_iterator ai, ae;
-    ai = arglist->begin();
-    ae = arglist->end();
-    for(; ai != ae; ++ai)
-    {
-      args.push_back(EvalExpression(*ai));
-    }
+    EvalPositionalArguments(fun, node->m_a2->m_a1, args);
   }
   else
   {
-    // Named arguments
-    throw std::runtime_error("Named parameter resolving not implemented yet");
+    EvalNamedArguments(fun, node->m_a2->m_a1, args);
   }
 
   // Evaluate function
@@ -498,61 +464,20 @@ Evaluator::EvalFunctionCall(Ast* node)
   }
 }
 
-VariantRef 
-Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments const& args)
-{/*
-  // Parameter iterators
-  AstList::const_iterator pi, pe;
-  pi = fun->GetNode()->m_a2.GetList()->begin(); 
-  pe = fun->GetNode()->m_a2.GetList()->end();
-
-  // Create scope
-  AutoScope as(*this, new Scope(m_global));
+void 
+Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Arguments& args)
+{
+  AstList const* parlist = fun->GetParameters();
 
   // Enumerate parameters
-  size_t index = 0;
+  AstList::const_iterator pi, pe, ai, ae;
+  pi = parlist->begin();
+  pe = parlist->end();
+  ai = arglist->begin();
+  ae = arglist->end();
   for(;;)
   {
-    // All parameters have values
-    if(index == args.size() && pi == pe)
-    {
-      break;
-    }
-    
-    // No more arguments, handle default values
-    VariantRef value;
-    if(index == args.size())
-    {
-      if((*pi)->m_a2.Empty())
-      {
-        throw std::runtime_error("Not enough arguments in call to function");
-      }
-      parVal = EvalExpression((*pi)->m_a2);
-    }
-    else
-    {
-      parVal = args[index];
-    }
-  }
-  */
-  return Variant();
-}
-
-Scope* 
-Evaluator::EvalArguments(AstList const* pars, AstList const* args)
-{
-  // Create scope for arguments
-  AutoScope argScope(*this, new Scope(m_scope));
-
-  // Iterators for pars and args
-  AstList::const_iterator pi, pe, ai, ae;
-  pi = pars->begin(); pe = pars->end();
-  ai = args->begin(); ae = args->end();
-
-  // Enumerate parameters and arguments in parallel
-  for(;; ++pi)
-  {
-    // End of both lists
+    // End of lists
     if(pi == pe && ai == ae)
     {
       break;
@@ -562,35 +487,103 @@ Evaluator::EvalArguments(AstList const* pars, AstList const* args)
     if(pi == pe)
     {
       // TODO varargs
-      throw std::runtime_error("Too many arguments in call to function");
+      throw std::runtime_error("Too many arguments in call to '" + fun->GetName() + "'");
     }
-
-    // Retrieve parameter name
-    String parName = (*pi)->m_a1;
-    VariantRef parVal;
 
     // End of arguments
     if(ai == ae)
     {
-      if((*pi)->m_a2.Empty())
+      if((*pi)->m_a3)
       {
-        throw std::runtime_error("Not enough arguments in call to function");
+        args.push_back(EvalExpression((*pi)->m_a3));
+        ++pi;
+        continue;
       }
-      parVal = EvalExpression((*pi)->m_a2);
+      throw std::runtime_error("Not enough arguments in call to '" + fun->GetName() + "'");
+    }
+
+    // Evaluate argument
+    args.push_back(EvalExpression(*ai));
+
+    // Next iteration
+    ++pi;
+    ++ai;
+  }
+}
+
+void 
+Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& args)
+{
+  // TODO: validate superfluous/double arguments
+
+  AstList const* parlist = fun->GetParameters();
+
+  // Enumerate parameters
+  AstList::const_iterator pi, pe;
+  pi = parlist->begin();
+  pe = parlist->end();
+  for(; pi != pe; ++pi)
+  {
+    // Extract parameter name
+    String parname = (*pi)->m_a1.GetString();
+
+    // Find named argument for parameter
+    AstList::const_iterator ai, ae;
+    ai = arglist->begin();
+    ae = arglist->end();
+    for(; ai != ae; ++ai)
+    {
+      if((*ai)->m_a1.GetString() == parname)
+      {
+        break;
+      }
+    }
+
+    // Handle result
+    if(ai != ae)
+    {
+      // Fill in positional argument
+      args.push_back(EvalExpression((*ai)->m_a2));
+    }
+    else if((*pi)->m_a3)
+    {
+      // Evaluate default value
+      args.push_back(EvalExpression((*pi)->m_a3));
     }
     else
     {
-      // Evaluate argument
-      parVal = EvalExpression(*ai++);
+      // Missing argument
+      throw std::runtime_error("No value specified for parameter '" + parname + "'");
     }
-    
-    // Add to scope
-    m_scope->AddVar(parName, parVal);
+  }
+}
+
+VariantRef 
+Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments const& args)
+{
+  // Parameter iterators
+  AstList::const_iterator pi, pe;
+  pi = fun->GetParameters()->begin();
+  pe = fun->GetParameters()->end();
+
+  // Create parameter scope
+  AutoScope ps(*this, new Scope(m_global));
+
+  // Enumerate parameters
+  size_t index = 0;
+  for(; pi != pe; ++pi, ++index)
+  {
+    m_scope->AddVar((*pi)->m_a1, args[index]);
   }
 
-  // Return the new scope
-  argScope.m_delete = false;
-  return m_scope;
+  // Create function execution scope
+  AutoScope es(*this, new Scope(m_scope));
+
+  // Execute expression
+  EvalStatement(fun->GetNode()->m_a3);
+
+  // No return value
+  return Variant();
 }
 
 Instance* 

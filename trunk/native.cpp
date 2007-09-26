@@ -93,30 +93,20 @@ NATIVE_CALL("function print(value)")
 
 NATIVE_CALL("function exit(int exitcode = 0)")
 {
-  int ret = 0;
-  if(args.size() == 1)
-  {
-    ret = (int) args[0]->AsInt();
-  }
-
-  exit(ret);
+  // Exit with specified exit code
+  exit((int) args[0]->AsInt());
 
   // Never executed
-  return args[0];
+  throw std::runtime_error("exit() failed");
 }
 
 NATIVE_CALL("function quit(int exitcode = 0)")
 {
-  int ret = 0;
-  if(args.size() == 1)
-  {
-    ret = (int) args[0]->AsInt();
-  }
+  // Exit with specified exit code
+  exit((int) args[0]->AsInt());
 
-  exit(ret);
-  
   // Never executed
-  return args[0];
+  throw std::runtime_error("exit() failed");
 }
 
 NATIVE_CALL("function read()")
@@ -126,7 +116,7 @@ NATIVE_CALL("function read()")
   return Variant(line);
 }
 
-NATIVE_CALL("function count()")
+NATIVE_CALL("function count(arg)")
 {
   if(args[0]->GetType() != Variant::stAssoc)
   {
@@ -156,31 +146,21 @@ NATIVE_CALL("function substr(string data, int start, int len = 0)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stInt);
-  if(args.size() == 2)
-  {
-    return Variant(
-      args[0]->GetString().substr(
-      (int)args[1]->GetInt()));
-  }
   ASSERT_TYPE(2, stInt);
-  return Variant(
-    args[0]->GetString().substr(
-    (int)args[1]->GetInt(), 
-    (int)args[2]->GetInt()));
+  int off = (int)args[1]->GetInt();
+  int len = (int)args[2]->GetInt();
+  if(len == 0) len = String::npos;
+  return Variant(args[0]->GetString().substr(off, len));
 }
 
 NATIVE_CALL("function strstr(string data, string what, int start = 0)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
-  int32 offset = 0;
-  if(args.size() == 3)
-  {
-    ASSERT_TYPE(2, stInt);
-    offset = (int32)args[2]->GetInt();
-  }
+  ASSERT_TYPE(2, stInt);
   String const& src = args[0]->GetString();
   String const& str = args[1]->GetString();
+  int32 offset = (int32)args[2]->GetInt();
   if(str.length() < 1)
   {
     throw std::runtime_error("Empty string in call to strstr");
@@ -197,14 +177,10 @@ NATIVE_CALL("function strchr(string data, string char, int start = 0)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
-  int32 offset = 0;
-  if(args.size() == 3)
-  {
-    ASSERT_TYPE(2, stInt);
-    offset = (int32)args[2]->GetInt();
-  }
+  ASSERT_TYPE(2, stInt);
   String const& src = args[0]->GetString();
   String const& chr = args[1]->GetString();
+  int32 offset = (int32)args[2]->GetInt();
   if(chr.length() < 1)
   {
     throw std::runtime_error("Empty string in call to strchr");
@@ -216,3 +192,24 @@ NATIVE_CALL("function strchr(string data, string char, int start = 0)")
   }
   return Variant(res);
 }
+
+NATIVE_CALL("function eval(string code)")
+{
+  return evaluator.Eval(args[0]->AsString());
+}
+
+NATIVE_CALL("function reset()")
+{
+  throw reset_exception();
+}
+
+NATIVE_CALL("function classes()")
+{
+  return evaluator.GetClassList();
+}
+
+NATIVE_CALL("function functions()")
+{
+  return evaluator.GetFunctionList();
+}
+
