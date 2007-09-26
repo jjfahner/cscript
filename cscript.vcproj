@@ -431,6 +431,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\astdata.h"
+				>
+			</File>
+			<File
 				RelativePath=".\astlist.h"
 				>
 			</File>
@@ -471,6 +475,14 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\function.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\function.h"
+			>
+		</File>
 		<File
 			RelativePath=".\TODO"
 			>

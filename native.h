@@ -23,10 +23,9 @@
 
 #include "types.h"
 #include "var.h"
+#include "eval.h"
 
 class Evaluator;
-
-typedef std::vector<VariantRef> Arguments;
 
 //
 // Native call pointer
@@ -68,7 +67,7 @@ struct NativeCallRegistrar
 //
 // Check the argument type for a native call argument
 //
-void AssertType(Arguments const& args, int32 index, Variant::SubTypes type, char const* function);
+void AssertType(Arguments const& args, size_t index, Variant::SubTypes type, char const* function);
 #define ASSERT_TYPE(idx,type) \
   AssertType(args, idx, Variant::type, __FUNCTION__)
 

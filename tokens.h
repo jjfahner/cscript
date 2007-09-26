@@ -41,39 +41,13 @@
 #define TOK_WHITESPACE    82
 
 //
-// Define additional instruction values
-//
-#define TOK_LVALUE        100
-#define TOK_RVALUE        101
-#define TOK_PREINC        102
-#define TOK_PRESUB        103
-#define TOK_POSTINC       104
-#define TOK_POSTSUB       105
-#define TOK_HALT          106
-#define TOK_VARINIT       107
-#define TOK_POP           108
-#define TOK_UNDEF         109
-#define TOK_JMP           110
-#define TOK_JZ            111
-#define TOK_JNZ           112
-#define TOK_INDEX         113
-#define TOK_CALL          114
-#define TOK_CALLN         115
-#define TOK_RET           116
-#define TOK_ARRAY         117
-#define TOK_STATEMENT     118
-#define TOK_STATEMENTSEQ  119
-#define TOK_ARGUMENTS     120
-
-//
 // Define token structure
 //
-
 struct Token
 {
-  Char const*  m_text;
-  size_t          m_size;
-  int             m_type;
+  Char const* m_text;
+  size_t      m_size;
+  int         m_type;
 
   operator String () const
   {

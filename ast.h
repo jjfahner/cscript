@@ -53,8 +53,6 @@ enum AstTypes
   list_literal,
   list_content,
   list_entry,
-  argument_list,
-  argument,
   function_declaration,
   parameter,
   parameter_list,
@@ -80,7 +78,12 @@ enum AstTypes
   this_expression,
   access_specifier,
   extern_declaration,
-  extern_parameter
+  extern_parameter,
+  builtin_type,
+  class_type,
+  positional_arguments,
+  named_arguments,
+  named_argument,
 };
 
 enum AccessTypes

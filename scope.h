@@ -4,20 +4,9 @@
 #include "types.h"
 #include "var.h"
 #include "class.h"
+#include "function.h"
 
 class Instance;
-
-struct Function
-{
-  Instance*   m_inst;
-  Ast*        m_code;
-
-  Function(Ast* code = 0, Instance* inst = 0) :
-  m_code  (code),
-  m_inst  (inst)
-  {
-  }
-};
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -32,7 +21,7 @@ public:
   // Types
   //
   typedef std::map<String, VariantRef> Variables;
-  typedef std::map<String, Ast*      > Functions;
+  typedef std::map<String, Function* > Functions;
   typedef std::map<String, Class*    > Classes;
 
   //
@@ -111,7 +100,7 @@ public:
   //
   // Add a function
   //
-  virtual void AddFun(String const& name, Ast* fun)
+  virtual void AddFun(Function* fun)
   {
     throw std::runtime_error("Invalid scope for function declaration");
   }
@@ -119,7 +108,7 @@ public:
   //
   // Retrieve a function
   //
-  virtual bool FindFun(String const& name, Function& fun) const 
+  virtual bool FindFun(String const& name, Function*& fun) const 
   {
     if(FindFunLocal(name, fun))
     {
@@ -198,7 +187,7 @@ protected:
   //
   // Retrieve a function from local scope
   //
-  virtual bool FindFunLocal(String const& name, Function& node) const
+  virtual bool FindFunLocal(String const& name, Function*& node) const
   {
     return false;
   }
@@ -221,12 +210,21 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Global scope
+// Global scope. Despite the name, GlobalScope is not *the* top-level
+// scope, but merely *one* of the top-level scopes.
 //
 
 class GlobalScope : public Scope
 {
 public:
+
+  //
+  // Construction
+  //
+  GlobalScope(Scope* parent = 0) :
+  Scope (parent)
+  {
+  }
 
   //////////////////////////////////////////////////////////////////////////
   //
@@ -236,13 +234,13 @@ public:
   //
   // Add a function
   //
-  virtual void AddFun(String const& name, Ast* fun)
+  virtual void AddFun(Function* fun)
   {
-    if(m_funs.count(name))
+    if(m_funs.count(fun->GetName()))
     {
       throw std::runtime_error("Function already declared");
     }
-    m_funs[name] = fun;
+    m_funs[fun->GetName()] = fun;
   }
 
   //
@@ -278,15 +276,14 @@ protected:
   //
   // Retrieve a function
   //
-  virtual bool FindFunLocal(String const& name, Function& fun) const
+  virtual bool FindFunLocal(String const& name, Function*& fun) const
   {
     Functions::const_iterator it = m_funs.find(name);
     if(it == m_funs.end())
     {
       return false;
     }
-    fun.m_inst = 0;
-    fun.m_code = it->second;
+    fun = it->second;
     return true;
   }
 
@@ -359,15 +356,9 @@ protected:
   //
   // Retrieve a local function
   //
-  virtual bool FindFunLocal(String const& name, Function& fun) const
+  virtual bool FindFunLocal(String const& name, Function*& fun) const
   {
-    Ast* node = 0;
-    if(m_inst->FindFun(name, fun.m_code))
-    {
-      fun.m_inst = m_inst;
-      return true;
-    }
-    return false;
+    return m_inst->FindFun(name, fun);
   }
 
   //
