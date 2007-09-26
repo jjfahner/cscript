@@ -4,6 +4,8 @@
 #include "types.h"
 #include "var.h"
 
+class Function;
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Runtime class
@@ -43,7 +45,7 @@ public:
   //
   // Add a member function
   //
-  virtual void AddFun(String const& name, Ast* node)
+  virtual void AddFun(String const& name, Function* node)
   {
     if(m_funs.count(name))
     {
@@ -55,9 +57,9 @@ public:
   //
   // Find a member function
   //
-  virtual bool FindFun(String const& name, Ast*& fun) const 
+  virtual bool FindFun(String const& name, Function*& fun) const 
   {
-    NamedNodeMap::const_iterator it = m_funs.find(name);
+    FunctionMap::const_iterator it = m_funs.find(name);
     if(it == m_funs.end())
     {
       return false;
@@ -76,14 +78,15 @@ protected:
   //
   // Types
   //
-  typedef std::map<String, Ast*> NamedNodeMap;
+  typedef std::map<String, Function*> FunctionMap;
+  typedef std::map<String, Ast*>      NamedNodeMap;
 
   //
   // Members
   //
   String        m_name;
   NamedNodeMap  m_vars;
-  NamedNodeMap  m_funs;
+  FunctionMap   m_funs;
 
 };
 
@@ -128,7 +131,7 @@ public:
   //
   // Retrieve a function
   //
-  virtual bool FindFun(String const& name, Ast*& fun) const 
+  virtual bool FindFun(String const& name, Function*& fun) const 
   {
     return m_class->FindFun(name, fun);
   }

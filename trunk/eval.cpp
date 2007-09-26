@@ -56,10 +56,17 @@ struct Evaluator::AutoScope
 // Evaluator implementation
 //
 
+/*static*/ GlobalScope&
+Evaluator::GetGlobalScope()
+{
+  static GlobalScope scope;
+  return scope;
+}
+
 Evaluator::Evaluator() :
 m_scope   (0)
 {
-  m_global = new GlobalScope;
+  m_global = new GlobalScope(&GetGlobalScope());
 }
 
 void 
@@ -70,7 +77,7 @@ Evaluator::Reset()
 
   // Create new global scope
   delete m_global;
-  m_global = new GlobalScope;
+  m_global = new GlobalScope(&GetGlobalScope());
 }
 
 VariantRef 
@@ -381,7 +388,7 @@ void
 Evaluator::EvalFunDecl(Ast* node)
 {
   // Insert into scope
-  m_scope->AddFun(node->m_a1, node);
+  m_scope->AddFun(new ScriptFunction(node->m_a1, node));
 }
 
 void 
@@ -411,7 +418,7 @@ Evaluator::EvalClassDecl(Ast* node)
       break;
 
     case function_declaration:
-      cl->AddFun(node->m_a1, node);
+      cl->AddFun(node->m_a1, new ScriptFunction(node->m_a1, node));
       break;
 
     default:
@@ -424,68 +431,61 @@ void
 Evaluator::EvalExternDecl(Ast* node)
 {
   // Insert into scope
-  m_scope->AddFun(node->m_a1, node);
+  // TODO
+  throw std::runtime_error("Not implemented");
+  //m_scope->AddFun(new NativeFunction("blabla"));
 }
 
 VariantRef  
 Evaluator::EvalFunctionCall(Ast* node)
 {
-  Function fun;
+  Function* fun = 0;
+  Arguments args;
 
-  // Member call
+  // Resolve function pointer
   if(node->m_a3)
   {
     // Evaluate instance expression
-    fun.m_inst = EvalInstance(node->m_a3);
+    args.push_back(EvalExpression(node->m_a3));
 
-    // Find member function only
-    if(!fun.m_inst->FindFun(node->m_a1, fun.m_code))
+    // Resolve function on object
+    if(!args[0]->GetTypedRes<Instance>()->FindFun(node->m_a1, fun))
     {
-      throw std::runtime_error("Class has no member '" + 
-                          node->m_a1.GetString() + "'");
+      throw std::runtime_error("Object doesn't support this method");
     }
-  }
-  else if(m_scope->FindFun(node->m_a1, fun))
-  {
-    // Check for extern
-    if(fun.m_code->m_type == extern_declaration)
-    {
-      return EvalExternCall(fun, node);
-    }
-    // Continue below
-  }
-  else if(NativeCallInfo* nc = FindNative(node->m_a1))
-  {
-    // Found native call
-    return EvalNativeCall(nc, node);
   }
   else
   {
-    // No such function
-    throw std::runtime_error("Undeclared function '" + 
-                        node->m_a1.GetString() + "'");
+    // Resolve function in scope stack
+    if(!m_scope->FindFun(node->m_a1, fun))
+    {
+      throw std::runtime_error("Unknown method");
+    }
   }
 
-  // Evaluate argument list
-  Scope* argScope = EvalArguments(fun.m_code->m_a2, node->m_a2);
-
-  // Push class scope
-  std::auto_ptr<AutoScope> as;
-  if(fun.m_inst)
+  // Evaluate arguments
+  AstList* arglist = node->m_a2->m_a1;
+  if(node->m_a2->m_type == positional_arguments)
   {
-    Scope* scope = new ClassScope(m_global, fun.m_inst);
-    as = std::auto_ptr<AutoScope>(new AutoScope(*this, scope));
+    // Positional arguments
+    AstList::const_iterator ai, ae;
+    ai = node->m_a2.GetList()->begin();
+    ae = node->m_a2.GetList()->end();
+    for(; ai != ae; ++ai)
+    {
+      args.push_back(EvalExpression(*ai));
+    }
+  }
+  else
+  {
+    // Named arguments
+    throw std::runtime_error("Named parameter resolving not implemented yet");
   }
 
-  // Push callscope
-  argScope->SetParent(m_scope);
-  AutoScope cs(*this, argScope);
-
-  // Evaluate function body
+  // Evaluate function
   try
   {
-    EvalStatement(fun.m_code->m_a3);
-    return Variant();
+    return fun->Execute(*this, args);
   }
   catch(return_exception const& e)
   {
@@ -502,23 +502,53 @@ Evaluator::EvalFunctionCall(Ast* node)
 }
 
 VariantRef 
-Evaluator::EvalNativeCall(NativeCallInfo* fun, Ast* call)
-{
-  // Evaluate arguments
-  Arguments args;
-  if(call->m_a2)
+Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments const& args)
+{/*
+  // Parameter iterators
+  AstList::const_iterator pi, pe;
+  pi = fun->GetNode()->m_a2.GetList()->begin(); 
+  pe = fun->GetNode()->m_a2.GetList()->end();
+
+  // Create scope
+  AutoScope as(*this, new Scope(m_global));
+
+  // Enumerate parameters
+  size_t index = 0;
+  for(;;)
   {
-    AstList::const_iterator ai, ae;
-    ai = call->m_a2.GetList()->begin();
-    ae = call->m_a2.GetList()->end();
-    for(; ai != ae; ++ai)
+    // All parameters have values
+    if(index == args.size() && pi == pe)
     {
-      args.push_back(EvalExpression(*ai));
+      break;
+    }
+    
+    // No more arguments, handle default values
+    VariantRef value;
+    if(index == args.size())
+    {
+      if((*pi)->m_a2.Empty())
+      {
+        throw std::runtime_error("Not enough arguments in call to function");
+      }
+      parVal = EvalExpression((*pi)->m_a2);
+    }
+    else
+    {
+      parVal = args[index];
     }
   }
+  */
+  return Variant();
+}
 
+VariantRef 
+Evaluator::EvalNativeCall(NativeFunction* fun, Arguments const& args)
+{
+  /*
   // Execute native call
   return fun->m_funPtr(*this, args);
+  */
+  return Variant();
 }
 
 Scope* 
@@ -873,8 +903,8 @@ Evaluator::EvalThisExpression(Ast* node)
 #include <windows.h>
 
 VariantRef 
-Evaluator::EvalExternCall(Function const& fun, Ast* call)
-{
+Evaluator::EvalBuiltinCall(BuiltinFunction* fun, Arguments const& args)
+{/*
   // Load library
   HMODULE hModule = LoadLibrary(fun.m_code->m_a2.GetString().c_str());
   if(hModule == 0)
@@ -956,6 +986,8 @@ Evaluator::EvalExternCall(Function const& fun, Ast* call)
 
   // Done
   return VariantRef(res);
+  */
+  return VariantRef();
 }
 
 #else

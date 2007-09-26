@@ -180,9 +180,6 @@ postfix_expression(R) ::= postfix_expression(A) DOT IDENTIFIER(B).              
 postfix_expression(R) ::= postfix_expression(A) DOT function_call(B) .            { R = B; B->m_a3 = A; }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocAst(index_expression, A, B); }
 
-// Function call
-function_call(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(function_call, String(A), B); }
-
 // Primary expression
 primary_expression(R) ::= literal(A) .                  { R = A; }
 primary_expression(R) ::= id_expression(A) .            { R = A; }
@@ -191,15 +188,15 @@ primary_expression(R) ::= list_literal(A) .             { R = A; }
 primary_expression(R) ::= THIS .                        { R = p->AllocAst(this_expression); }
 
 // Literals
-literal(R) ::= INTEGER(A) . { R = p->AllocAst(literal_value, Variant(String(A), Variant::stInt)); }
-literal(R) ::= HEX(A) .     { R = p->AllocAst(literal_value, Variant(hex2dec(String(A).c_str()))); }
-literal(R) ::= BIN(A) .     { R = p->AllocAst(literal_value, Variant(bin2dec(String(A).c_str()))); }
-literal(R) ::= ROM(A) .     { R = p->AllocAst(literal_value, Variant(rom2dec(String(A).c_str()))); }
-literal(R) ::= REAL(A) .    { R = p->AllocAst(literal_value, Variant(String(A), Variant::stReal)); } 
-literal(R) ::= STRING(A) .  { R = p->AllocAst(literal_value, Variant(String(A), Variant::stString)); }
-literal(R) ::= TRUE .       { R = p->AllocAst(literal_value, Variant(true));    }
-literal(R) ::= FALSE .      { R = p->AllocAst(literal_value, Variant(false));   }
-literal(R) ::= NULL .       { R = p->AllocAst(literal_value, Variant());        }
+literal(R) ::= LIT_INTEGER(A) . { R = p->AllocAst(literal_value, Variant(String(A), Variant::stInt)); }
+literal(R) ::= LIT_HEX(A) .     { R = p->AllocAst(literal_value, Variant(hex2dec(String(A).c_str()))); }
+literal(R) ::= LIT_BIN(A) .     { R = p->AllocAst(literal_value, Variant(bin2dec(String(A).c_str()))); }
+literal(R) ::= LIT_ROM(A) .     { R = p->AllocAst(literal_value, Variant(rom2dec(String(A).c_str()))); }
+literal(R) ::= LIT_REAL(A) .    { R = p->AllocAst(literal_value, Variant(String(A), Variant::stReal)); } 
+literal(R) ::= LIT_STRING(A) .  { R = p->AllocAst(literal_value, Variant(String(A), Variant::stString)); }
+literal(R) ::= TRUE .           { R = p->AllocAst(literal_value, Variant(true));    }
+literal(R) ::= FALSE .          { R = p->AllocAst(literal_value, Variant(false));   }
+literal(R) ::= NULL .           { R = p->AllocAst(literal_value, Variant());        }
 
 // Id expression
 id_expression(R) ::= IDENTIFIER(A) . { R = p->AllocAst(lvalue, String(A)); }
@@ -216,18 +213,42 @@ new_expression(R) ::= NEW IDENTIFIER(A) . { R = p->AllocAst(new_expression, Stri
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Types
+//
+
+type(R) ::= BOOL .          { R = new Ast(builtin_type, Variant::stBool);    }
+type(R) ::= INT .           { R = new Ast(builtin_type, Variant::stInt);     }
+type(R) ::= STRING .        { R = new Ast(builtin_type, Variant::stString);  }
+type(R) ::= IDENTIFIER(A) . { R = new Ast(class_type, String(A));            }
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Function calls
 //
 
-// An argument is any expression. If expression lists become part
-// of the language, this will have to be changed to something else.
-argument(R) ::= expression(A) . { R = A; }
+// Function call
+function_call(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(function_call, String(A), B); }
 
-// Argument list containing 1 or more arguments
-%type argument_list { AstList* }
-argument_list(R) ::= . { R = new AstList; }
-argument_list(R) ::= argument(A) . { R = new AstList; R->push_back(A); }
-argument_list(R) ::= argument_list(A) COMMA argument(B) . { R = A; A->push_back(B); }
+// Positional argument
+positional_argument(R) ::= conditional_expression(A) . { R = A; }
+
+// Argument list containing 1 or more positional arguments
+%type positional_argument_list { AstList* }
+positional_argument_list(R) ::= positional_argument(A) . { R = new AstList; R->push_back(A); }
+positional_argument_list(R) ::= positional_argument_list(A) COMMA positional_argument(B) . { R = A; A->push_back(B); }
+
+// Named argument
+named_argument(R) ::= IDENTIFIER(A) ASSIGN conditional_expression(B) . { R = p->AllocAst(named_argument, String(A), B); }
+
+// Argument list containing 1 or more named arguments
+%type named_argument_list { AstList* }
+named_argument_list(R) ::= named_argument(A) . { R = new AstList; R->push_back(A); }
+named_argument_list(R) ::= named_argument_list(A) COMMA named_argument(B) . { R = A; A->push_back(B); }
+
+// Argument list
+argument_list(R) ::= .                              { R = p->AllocAst(positional_arguments, new AstList); }
+argument_list(R) ::= positional_argument_list(A) .  { R = p->AllocAst(positional_arguments, A); }
+argument_list(R) ::= named_argument_list(A) .       { R = p->AllocAst(named_arguments,      A); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -243,7 +264,7 @@ compound_statement(R) ::= LBRACE RBRACE .                       { R = p->AllocAs
 compound_statement(R) ::= LBRACE statement_sequence(A) RBRACE . { R = p->AllocAst(compound_statement, A); }
 
 // Include statement
-include_statement(R) ::= INCLUDE STRING(A) SEMICOLON . { p->Parse(A); R = p->GetRoot(); }
+include_statement(R) ::= INCLUDE LIT_STRING(A) SEMICOLON . { p->Parse(A); R = p->GetRoot(); }
 
 // Return statement - leaves return expression on the stack
 return_statement(R) ::= RETURN expression(A) SEMICOLON . { R = p->AllocAst(return_statement, A); }
@@ -312,10 +333,12 @@ class_members(R) ::= class_members(A) class_member(B) . {
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(function_declaration, String(A), B, C); }
 
 // Single parameter
-parameter(R) ::= IDENTIFIER(A) . { R = p->AllocAst(parameter, String(A)); }
+parameter(R) ::= type(A) IDENTIFIER(B) . { R = p->AllocAst(parameter, String(B), A); }
+parameter(R) ::=         IDENTIFIER(B) . { R = p->AllocAst(parameter, String(B)); }
 
 // Single optional parameter
-opt_parameter(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocAst(parameter, String(A), B); }
+opt_parameter(R) ::= type(A) IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocAst(parameter, String(B), A,         C); }
+opt_parameter(R) ::=         IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocAst(parameter, String(B), AstData(), C); }
 
 // Parameter list
 %type parameter_list { AstList* }
@@ -407,16 +430,8 @@ case_statements(R) ::= statement_sequence(A) . { R = A; }
 // Switch statement
 //
 
-extern_declaration(R) ::= EXTERN STRING (A) extern_type(B) IDENTIFIER(C) LPAREN extern_parameter_list(D) RPAREN SEMICOLON . { 
-  R = new Ast(extern_declaration, String(C), String(A), B, D); }
-
-%type extern_type { int }
-extern_type(R) ::= INT . { R = 1; }
-extern_type(R) ::= STR . { R = 2; }
-
-extern_parameter(R) ::= extern_type(A) IDENTIFIER(B) . { R = new Ast(extern_parameter, String(B), A); }
-
-%type extern_parameter_list { AstList* }
-extern_parameter_list(R) ::= . { R = new AstList(); }
-extern_parameter_list(R) ::= extern_parameter(A) . { R = new AstList(); R->push_back(A); }
-extern_parameter_list(R) ::= extern_parameter_list(A) COMMA extern_parameter(B) . { R = A; R->push_back(B); }
+extern_declaration(R) ::= EXTERN STRING (A) type(B) IDENTIFIER(C) 
+  LPAREN parameter_list(D) RPAREN SEMICOLON . 
+{ 
+  R = new Ast(extern_declaration, String(C), String(A), B, D); 
+}

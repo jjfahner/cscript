@@ -9,9 +9,17 @@
 class Ast;
 struct NativeCallInfo;
 
+typedef std::vector<VariantRef> Arguments;
+
 class Evaluator
 {
 public:
+
+  //
+  // Static top-level scope, used by 
+  // all instances of Evaluator
+  //
+  static GlobalScope& GetGlobalScope();
 
   //
   // Construction
@@ -72,10 +80,6 @@ protected:
   //
   // Expression handlers
   //
-  VariantRef EvalFunctionCall(Ast* node);
-  VariantRef EvalNativeCall(NativeCallInfo* fun, Ast* call);
-  VariantRef EvalExternCall(Function const& fun, Ast* call);
-
   VariantRef EvalLValue(Ast* node);
   VariantRef EvalListLiteral(Ast* node);
   VariantRef EvalNewExpression(Ast* node);
@@ -87,7 +91,18 @@ protected:
   VariantRef EvalPrefix(Ast* node);
   VariantRef EvalPostfix(Ast* node);
   VariantRef EvalIndex(Ast* node);
-  
+
+  //
+  // Function handlers
+  //
+  VariantRef EvalFunctionCall(Ast* node);
+  friend class ScriptFunction;
+  VariantRef EvalScriptCall (ScriptFunction* fun,  Arguments const& args);
+  friend class NativeFunction;
+  VariantRef EvalNativeCall (NativeFunction* fun,  Arguments const& args);
+  friend class BuiltinFunction;
+  VariantRef EvalBuiltinCall(BuiltinFunction* fun, Arguments const& args);
+
   //
   // Evaluate expression expecting an instance
   //

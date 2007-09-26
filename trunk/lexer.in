@@ -47,6 +47,7 @@ int parseNextToken(Char*& start, Char*& end)
   "/*"                      { return TOK_COMMENT; }
 
   /* Keywords */
+  "bool"                    { return TOK_BOOL; }
   "break"                   { return TOK_BREAK; }
   "case"                    { return TOK_CASE; }
   "class"                   { return TOK_CLASS; }
@@ -64,7 +65,7 @@ int parseNextToken(Char*& start, Char*& end)
   "new"                     { return TOK_NEW; }
   "null"                    { return TOK_NULL; }
   "return"                  { return TOK_RETURN; }
-  "string"                  { return TOK_STR; }
+  "string"                  { return TOK_STRING; }
   "switch"                  { return TOK_SWITCH; }
   "this"                    { return TOK_THIS; }
   "true"                    { return TOK_TRUE; }
@@ -75,14 +76,14 @@ int parseNextToken(Char*& start, Char*& end)
   [a-zA-Z_][a-zA-Z_0-9]*    { return TOK_IDENTIFIER; }
 
   /* Number formats */  
-  [0-9]+                    { return TOK_INTEGER; }
-  [0-9]+"."[0-9]+           { return TOK_REAL; }
-  "0x"[0-9a-fA-F]+          { return TOK_HEX; }
-  "0b"[01]+                 { return TOK_BIN; }
-  "0r"[MDCLXVIO]+           { return TOK_ROM; }
+  [0-9]+                    { return TOK_LIT_INTEGER; }
+  [0-9]+"."[0-9]+           { return TOK_LIT_REAL; }
+  "0x"[0-9a-fA-F]+          { return TOK_LIT_HEX; }
+  "0b"[01]+                 { return TOK_LIT_BIN; }
+  "0r"[MDCLXVIO]+           { return TOK_LIT_ROM; }
   
   /* Strings */
-  ["]                       { return TOK_STRING; }
+  ["]                       { return TOK_LIT_STRING; }
   
   /* operators */
   "==="   { return TOK_SEQ; }

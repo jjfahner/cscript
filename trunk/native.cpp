@@ -73,7 +73,7 @@ FindNative(String const& name)
 }
 
 void 
-AssertType(Arguments const& args, int32 index, Variant::SubTypes type, char const* function)
+AssertType(Arguments const& args, size_t index, Variant::SubTypes type, char const* function)
 {
   if(index >= args.size())
   {
