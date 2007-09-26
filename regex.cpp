@@ -944,7 +944,7 @@ Regex::MatchTypeString(MatchTypes type)
 #include "var.h"
 #include "types.h"
 
-NATIVE_CALL(match, 2, 3)
+NATIVE_CALL("function match(string pattern, string data, int offset = 0)")
 {
   // Check types
   ASSERT_TYPE(0, stString);

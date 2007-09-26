@@ -3,10 +3,10 @@
 
 #include "types.h"
 #include "var.h"
-#include "class.h"
-#include "function.h"
 
 class Instance;
+class Function;
+class Class;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -234,14 +234,7 @@ public:
   //
   // Add a function
   //
-  virtual void AddFun(Function* fun)
-  {
-    if(m_funs.count(fun->GetName()))
-    {
-      throw std::runtime_error("Function already declared");
-    }
-    m_funs[fun->GetName()] = fun;
-  }
+  virtual void AddFun(Function* fun);
 
   //
   // Retrieve list of functions
@@ -254,22 +247,7 @@ public:
   //
   // Add class to this scope
   //
-  virtual void AddClass(Class* c)
-  {
-    if(m_classes.count(c->GetName()))
-    {
-      throw std::runtime_error("Class already declared");
-    }
-    m_classes[c->GetName()] = c;
-  }
-
-  //
-  // Retrieve list of classes
-  //
-  virtual Classes const& GetClasses() const
-  {
-    return m_classes;
-  }
+  virtual void AddClass(Class* c);
 
 protected:
 
@@ -348,23 +326,17 @@ protected:
   //
   // Retrieve a local variable
   //
-  virtual bool FindVarLocal(String const& name, VariantRef& ref) const
-  {
-    return m_inst->FindVar(name, ref);
-  }
+  virtual bool FindVarLocal(String const& name, VariantRef& ref) const;
 
   //
   // Retrieve a local function
   //
-  virtual bool FindFunLocal(String const& name, Function*& fun) const
-  {
-    return m_inst->FindFun(name, fun);
-  }
+  virtual bool FindFunLocal(String const& name, Function*& fun) const;
 
   //
   // Members
   //
-  class Instance* m_inst;
+  Instance* m_inst;
 
 };
 
