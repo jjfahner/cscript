@@ -949,20 +949,16 @@ NATIVE_CALL("function match(string pattern, string data, int offset = 0)")
   // Check types
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
+  ASSERT_TYPE(2, stInt);
   
   // Fetch string pointers
   char const* pat = args[0]->GetString().c_str();
   char const* src = args[1]->GetString().c_str();
 
   // Retrieve offset
-  int offset = 0;
   int length = (int)args[1]->GetString().length();
-  if(args.size() == 3)
-  {
-    ASSERT_TYPE(2, stInt);
-    offset = (int) args[2]->GetInt();
-    offset = std::min(offset, length);
-  }
+  int offset = (int) args[2]->GetInt();
+  offset = std::min(offset, length);
 
   // Compile pattern
   Regex r(pat);

@@ -170,14 +170,7 @@ NATIVE_CALL("function fwrite(file, string buffer, int length = 0)")
   }
 
   // Write to file
-  if(args.size() == 2)
-  {
-    return f->Write(*args[1]);
-  }
-  else
-  {
-    return f->Write(*args[1], *args[2]);
-  }
+  return f->Write(*args[1], *args[2]);
 }
 
 NATIVE_CALL("function fclose(file)")

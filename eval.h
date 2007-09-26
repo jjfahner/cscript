@@ -107,7 +107,8 @@ protected:
   //
   // Evaluate argument list
   //
-  Scope* EvalArguments(AstList const* pars, AstList const* args);
+  void EvalPositionalArguments(Function* fun, AstList const* arglist, Arguments& args);
+  void EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& args);
 
   //
   // Members
