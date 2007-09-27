@@ -5,11 +5,10 @@
 #include "var.h"
 #include "report.h"
 #include "scope.h"
+#include "args.h"
 
 class Ast;
 struct NativeCallInfo;
-
-typedef std::vector<VariantRef> Arguments;
 
 class Evaluator
 {
@@ -58,7 +57,7 @@ protected:
   //
   class AutoScope;
   void PushScope(Scope*);
-  void PopScope(bool doDelete = true);
+  void PopScope();
   typedef std::list<Scope*> ScopeList;
   
   //
@@ -98,8 +97,6 @@ protected:
   VariantRef EvalFunctionCall(Ast* node);
   friend class ScriptFunction;
   VariantRef EvalScriptCall(ScriptFunction* fun, Arguments& args);
-  friend class MemberFunction;
-  VariantRef EvalMemberCall(MemberFunction* fun, Arguments& args);
 
   //
   // Evaluate expression expecting an instance

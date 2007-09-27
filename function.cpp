@@ -15,12 +15,6 @@ ScriptFunction::Execute(Evaluator& evaluator, Arguments& args)
   return evaluator.EvalScriptCall(this, args);
 }
 
-VariantRef 
-MemberFunction::Execute(Evaluator& evaluator, Arguments& args)
-{
-  return evaluator.EvalMemberCall(this, args);
-}
-
 NativeFunction::NativeFunction(String decl, NativeCall call) :
 Function  (""),
 m_call    (call)

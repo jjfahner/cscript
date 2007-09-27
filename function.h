@@ -4,9 +4,9 @@
 #include "types.h"
 #include "var.h"
 #include "native.h"
+#include "args.h"
 
 class Evaluator;
-typedef std::vector<VariantRef> Arguments;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -129,11 +129,6 @@ public:
   {
     return m_class;
   }
-
-  //
-  // Execution
-  //
-  virtual VariantRef Execute(Evaluator& evaluator, Arguments& args);
 
 protected:
 
