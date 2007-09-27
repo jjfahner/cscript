@@ -144,6 +144,9 @@ function main()
 {
   print("cscript test suite\n\n");
 
+  // Reset error count
+  errors = 0;
+
   // Number formats
   assert("Binary literal", 0b0000000, 0);
   assert("Binary literal", 0b0000001, 1);

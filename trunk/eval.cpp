@@ -9,23 +9,52 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Scope implementation
+// Autoscoping implementation
 //
 
-struct Evaluator::AutoScope
+class Evaluator::AutoScope
 {
-  Evaluator& m_eval;
-  bool m_delete;
-  AutoScope(Evaluator& eval, Scope* scope, bool autoDelete = true) : 
+public:
+
+  AutoScope(Evaluator& eval, Scope* scope = 0, bool autoDelete = true) : 
   m_eval    (eval), 
-  m_delete  (autoDelete)
+  m_scope   (0),
+  m_delete  (0)
   {
-    m_eval.PushScope(scope);
+    if(scope)
+    {
+      Set(scope, autoDelete);
+    }
   }
+
   ~AutoScope()
   {
-    m_eval.PopScope(m_delete);
+    Reset();
   }
+
+  void Reset()
+  {
+    if(m_scope)
+    {
+      m_eval.PopScope(m_delete);
+      m_scope = 0;
+    }
+  }
+
+  void Set(Scope* scope, bool autoDelete = true)
+  {
+    Reset();
+    m_eval.PushScope(scope);
+    m_scope  = scope;
+    m_delete = autoDelete;
+  }
+  
+private:
+
+  Evaluator&  m_eval;
+  Scope*      m_scope;
+  bool        m_delete;
+
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -399,7 +428,7 @@ Evaluator::EvalClassDecl(Ast* node)
       break;
 
     case function_declaration:
-      cl->AddFun(node->m_a1, new ScriptFunction(node->m_a1, node));
+      cl->AddFun(node->m_a1, new MemberFunction(node->m_a1, cl, node));
       break;
 
     default:
@@ -433,6 +462,12 @@ Evaluator::EvalFunctionCall(Ast* node)
     {
       throw std::runtime_error("Unknown method");
     }
+
+    // In case of member function, prepend instance
+    if(dynamic_cast<MemberFunction*>(fun))
+    {
+      args.push_back(EvalThisExpression(0));
+    }
   }
 
   // Evaluate arguments
@@ -462,6 +497,55 @@ Evaluator::EvalFunctionCall(Ast* node)
   {
     throw std::runtime_error("Invalid continue statement");
   }
+}
+
+VariantRef 
+Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
+{
+  // Parameter iterators
+  AstList::const_iterator pi, pe;
+  pi = fun->GetParameters()->begin();
+  pe = fun->GetParameters()->end();
+
+  // Determine parent scope
+  Scope* parentScope = m_global;
+  if(dynamic_cast<ClassScope*>(m_scope))
+  {
+    parentScope = m_scope;
+  }
+
+  // Create parameter scope
+  AutoScope ps(*this, new Scope(parentScope));
+
+  // Enumerate parameters
+  size_t index = 0;
+  for(; pi != pe; ++pi, ++index)
+  {
+    m_scope->AddVar((*pi)->m_a1, args[index]);
+  }
+
+  // Create function execution scope
+  AutoScope es(*this, new Scope(m_scope));
+
+  // Execute expression
+  EvalStatement(fun->GetNode()->m_a3);
+
+  // No return value
+  return Variant();
+}
+
+VariantRef 
+Evaluator::EvalMemberCall(MemberFunction* fun, Arguments& args)
+{
+  // Extract instance
+  Instance* inst = args[0]->GetTypedRes<Instance>();
+  args.erase(args.begin());
+
+  // Create class scope
+  AutoScope cs(*this, new ClassScope(m_global, inst));
+
+  // Evaluate as regular script call from here
+  return EvalScriptCall(fun, args);
 }
 
 void 
@@ -556,34 +640,6 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
       throw std::runtime_error("No value specified for parameter '" + parname + "'");
     }
   }
-}
-
-VariantRef 
-Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments const& args)
-{
-  // Parameter iterators
-  AstList::const_iterator pi, pe;
-  pi = fun->GetParameters()->begin();
-  pe = fun->GetParameters()->end();
-
-  // Create parameter scope
-  AutoScope ps(*this, new Scope(m_global));
-
-  // Enumerate parameters
-  size_t index = 0;
-  for(; pi != pe; ++pi, ++index)
-  {
-    m_scope->AddVar((*pi)->m_a1, args[index]);
-  }
-
-  // Create function execution scope
-  AutoScope es(*this, new Scope(m_scope));
-
-  // Execute expression
-  EvalStatement(fun->GetNode()->m_a3);
-
-  // No return value
-  return Variant();
 }
 
 Instance* 
