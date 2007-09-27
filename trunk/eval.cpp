@@ -17,8 +17,9 @@ class Evaluator::AutoScope
 public:
 
   AutoScope(Evaluator& eval, Scope* scope = 0) : 
-  m_eval    (eval), 
-  m_scope   (0)
+  m_eval (eval), 
+  m_prv  (0),
+  m_cur  (0)
   {
     if(scope)
     {
@@ -33,24 +34,29 @@ public:
 
   void Reset()
   {
-    if(m_scope)
+    if(m_cur)
     {
-      m_eval.PopScope();
-      m_scope = 0;
+      m_eval.PopScope(m_prv);
+      m_prv = 0;
+      m_cur = 0;
     }
   }
 
   void Set(Scope* scope)
   {
     Reset();
-    m_eval.PushScope(scope);
-    m_scope  = scope;
+    m_prv = m_eval.PushScope(scope);
+    m_cur = scope;
   }
   
 private:
 
+  //
+  // Members
+  //
   Evaluator&  m_eval;
-  Scope*      m_scope;
+  Scope*      m_prv;
+  Scope*      m_cur;
 
 };
 
@@ -75,9 +81,6 @@ m_scope   (0)
 void 
 Evaluator::Reset()
 {
-  // Clear any errors
-  m_reporter.Reset();
-
   // Create new global scope
   delete m_global;
   m_global = new GlobalScope(&GetGlobalScope());
@@ -116,15 +119,14 @@ Evaluator::GetFunctionList() const
 VariantRef 
 Evaluator::Eval(String text)
 {
-  // Clear errors
-  m_reporter.Reset();
+  Reporter reporter;
 
   // Parse code
-  Parser parser(m_reporter);
+  Parser parser(reporter);
   parser.ParseText(text.c_str());
 
   // Check error count
-  if(m_reporter.GetErrorCount())
+  if(reporter.GetErrorCount())
   {
     std::cout << "Aborted.\n";
     return Variant::Null;
@@ -169,26 +171,26 @@ Evaluator::Eval(String text)
   }
 }
 
-void
+Scope*
 Evaluator::PushScope(Scope* scope)
 {
-  m_scopes.push_front(m_scope);
+  Scope* prv = m_scope;
   m_scope = scope;
+  return prv;
+
 }
 
 void 
-Evaluator::PopScope()
+Evaluator::PopScope(Scope* prv)
 {
-  // Remove scope from stack
-  Scope* old = m_scope;
-  m_scope = m_scopes.front();
-  m_scopes.pop_front();
-
-  // Delete every non-global scope
-  if(dynamic_cast<GlobalScope*>(old) == 0)
+  // Delete non-global scope
+  if(dynamic_cast<GlobalScope*>(m_scope) == 0)
   {
-    delete old;
+    delete m_scope;
   }
+
+  // Restore scope
+  m_scope = prv;
 }
 
 void 

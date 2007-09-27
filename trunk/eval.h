@@ -56,8 +56,8 @@ protected:
   // Scope handling
   //
   class AutoScope;
-  void PushScope(Scope*);
-  void PopScope();
+  Scope* PushScope(Scope* scope);
+  void PopScope(Scope* prv);
   typedef std::list<Scope*> ScopeList;
   
   //
@@ -112,9 +112,7 @@ protected:
   //
   // Members
   //
-  Reporter      m_reporter;
   GlobalScope*  m_global;
-  ScopeList     m_scopes;
   Scope*        m_scope;
 
 };
