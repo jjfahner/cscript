@@ -10,9 +10,15 @@ ScriptFunction::GetParameters() const
 }
 
 VariantRef 
-ScriptFunction::Execute(Evaluator& evaluator, Arguments const& args)
+ScriptFunction::Execute(Evaluator& evaluator, Arguments& args)
 {
   return evaluator.EvalScriptCall(this, args);
+}
+
+VariantRef 
+MemberFunction::Execute(Evaluator& evaluator, Arguments& args)
+{
+  return evaluator.EvalMemberCall(this, args);
 }
 
 NativeFunction::NativeFunction(String decl, NativeCall call) :
@@ -39,7 +45,7 @@ m_call    (call)
 }
 
 VariantRef
-NativeFunction::Execute(Evaluator& evaluator, Arguments const& args)
+NativeFunction::Execute(Evaluator& evaluator, Arguments& args)
 {
   return m_call(evaluator, args);
 }
@@ -55,7 +61,7 @@ ExternFunction::GetParameters() const
 #include <windows.h>
 
 VariantRef
-ExternFunction::Execute(Evaluator& evaluator, Arguments const& args)
+ExternFunction::Execute(Evaluator& evaluator, Arguments& args)
 {
   // Load library
   HMODULE hModule = LoadLibrary(m_node->m_a3.GetString().c_str());
@@ -128,7 +134,7 @@ ExternFunction::Execute(Evaluator& evaluator, Arguments const& args)
 #else
 
 VariantRef
-ExternFunction::Execute(Evaluator& evaluator, Arguments const& args)
+ExternFunction::Execute(Evaluator& evaluator, Arguments& args)
 {
   throw std::runtime_error("Extern calls not implemented on this platform");
 }

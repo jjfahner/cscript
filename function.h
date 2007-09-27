@@ -48,7 +48,7 @@ public:
   //
   // Execute function 
   //
-  virtual VariantRef Execute(Evaluator& evaluator, Arguments const& args) = 0;
+  virtual VariantRef Execute(Evaluator& evaluator, Arguments& args) = 0;
 
 protected:
 
@@ -93,7 +93,7 @@ public:
   //
   // Execution
   //
-  virtual VariantRef Execute(Evaluator& evaluator, Arguments const& args);
+  virtual VariantRef Execute(Evaluator& evaluator, Arguments& args);
 
 protected:
 
@@ -101,6 +101,46 @@ protected:
   // Members
   //
   Ast* m_node;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Script function
+//
+
+class MemberFunction : public ScriptFunction
+{
+public:
+
+  //
+  // Construction
+  // 
+  MemberFunction(String name, Class* cl, Ast* node) :
+  ScriptFunction(name, node),
+  m_class(cl)
+  {
+  }
+
+  //
+  // Retrieve class
+  //
+  Class* GetClass() const
+  {
+    return m_class;
+  }
+
+  //
+  // Execution
+  //
+  virtual VariantRef Execute(Evaluator& evaluator, Arguments& args);
+
+protected:
+
+  //
+  // Members
+  //
+  Class*  m_class;
 
 };
 
@@ -129,7 +169,7 @@ public:
   //
   // Execution
   //
-  virtual VariantRef Execute(Evaluator& evaluator, Arguments const& args);
+  virtual VariantRef Execute(Evaluator& evaluator, Arguments& args);
 
 protected:
 
@@ -167,7 +207,7 @@ public:
   //
   // Execution
   //
-  virtual VariantRef Execute(Evaluator& evaluator, Arguments const& args);
+  virtual VariantRef Execute(Evaluator& evaluator, Arguments& args);
 
 protected:
 

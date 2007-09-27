@@ -56,7 +56,7 @@ protected:
   //
   // Scope handling
   //
-  struct AutoScope;
+  class AutoScope;
   void PushScope(Scope*);
   void PopScope(bool doDelete = true);
   typedef std::list<Scope*> ScopeList;
@@ -97,7 +97,9 @@ protected:
   //
   VariantRef EvalFunctionCall(Ast* node);
   friend class ScriptFunction;
-  VariantRef EvalScriptCall (ScriptFunction* fun,  Arguments const& args);
+  VariantRef EvalScriptCall(ScriptFunction* fun, Arguments& args);
+  friend class MemberFunction;
+  VariantRef EvalMemberCall(MemberFunction* fun, Arguments& args);
 
   //
   // Evaluate expression expecting an instance
