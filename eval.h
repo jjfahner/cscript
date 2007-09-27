@@ -84,7 +84,7 @@ protected:
   VariantRef EvalListLiteral(Ast* node);
   VariantRef EvalNewExpression(Ast* node);
   VariantRef EvalMemberExpression(Ast* node);
-  VariantRef EvalThisExpression(Ast* node);
+  VariantRef EvalThisExpression();
   VariantRef EvalAssignment(Ast* node);
   VariantRef EvalBinary(Ast* node);
   VariantRef EvalTernary(Ast* node);

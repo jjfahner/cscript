@@ -78,8 +78,8 @@ ExternFunction::Execute(Evaluator& evaluator, Arguments& args)
   }
 
   // Allocate memory for arguments
-  int argbytes = args.size() * sizeof(int);
-  int* stack = new int[args.size()];
+  size_t argbytes = args.size() * sizeof(int);
+  intptr_t * stack = new intptr_t[args.size()];
 
   // Copy arguments into buffer stack
   size_t index = 0;
@@ -101,7 +101,7 @@ ExternFunction::Execute(Evaluator& evaluator, Arguments& args)
       break;
 
     case Variant::stString:   // string
-      stack[index] = (int)args[index]->GetString().c_str();
+      stack[index] = (intptr_t)args[index]->GetString().c_str();
       break;
 
     default:
@@ -110,8 +110,8 @@ ExternFunction::Execute(Evaluator& evaluator, Arguments& args)
     }
   }
 
-  int dst;
-  int res;
+  intptr_t dst;
+  intptr_t res;
 
   // Make space on stack and copy address
    __asm sub esp, argbytes;
@@ -128,7 +128,7 @@ ExternFunction::Execute(Evaluator& evaluator, Arguments& args)
   __asm mov res, eax;
 
   // Done
-  return VariantRef(res);
+  return VariantRef((Variant::IntType)res);
 }
 
 #else

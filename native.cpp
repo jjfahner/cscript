@@ -147,8 +147,8 @@ NATIVE_CALL("function substr(string data, int start, int len = 0)")
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stInt);
   ASSERT_TYPE(2, stInt);
-  int off = (int)args[1]->GetInt();
-  int len = (int)args[2]->GetInt();
+  String::size_type off = (String::size_type)args[1]->GetInt();
+  String::size_type len = (String::size_type)args[2]->GetInt();
   if(len == 0) len = String::npos;
   return Variant(args[0]->GetString().substr(off, len));
 }

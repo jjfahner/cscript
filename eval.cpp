@@ -254,7 +254,7 @@ Evaluator::EvalExpression(Ast* node)
   case lvalue:                return EvalLValue(node);
   case list_literal:          return EvalListLiteral(node);
   case new_expression:        return EvalNewExpression(node);
-  case this_expression:       return EvalThisExpression(node);
+  case this_expression:       return EvalThisExpression();
   case member_expression:     return EvalMemberExpression(node);
   }
   throw std::out_of_range("Invalid expression type");
@@ -466,7 +466,7 @@ Evaluator::EvalFunctionCall(Ast* node)
     // In case of member function, prepend instance
     if(dynamic_cast<MemberFunction*>(fun))
     {
-      args.push_back(EvalThisExpression(0));
+      args.push_back(EvalThisExpression());
     }
   }
 
@@ -919,7 +919,7 @@ Evaluator::EvalMemberExpression(Ast* node)
 }
 
 VariantRef 
-Evaluator::EvalThisExpression(Ast* node)
+Evaluator::EvalThisExpression()
 {
   Scope* scope = m_scope;
   while(scope)
