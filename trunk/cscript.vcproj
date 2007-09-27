@@ -504,6 +504,14 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\args.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\args.h"
+			>
+		</File>
+		<File
 			RelativePath=".\TODO"
 			>
 		</File>

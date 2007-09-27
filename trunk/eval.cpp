@@ -16,14 +16,13 @@ class Evaluator::AutoScope
 {
 public:
 
-  AutoScope(Evaluator& eval, Scope* scope = 0, bool autoDelete = true) : 
+  AutoScope(Evaluator& eval, Scope* scope = 0) : 
   m_eval    (eval), 
-  m_scope   (0),
-  m_delete  (0)
+  m_scope   (0)
   {
     if(scope)
     {
-      Set(scope, autoDelete);
+      Set(scope);
     }
   }
 
@@ -36,24 +35,22 @@ public:
   {
     if(m_scope)
     {
-      m_eval.PopScope(m_delete);
+      m_eval.PopScope();
       m_scope = 0;
     }
   }
 
-  void Set(Scope* scope, bool autoDelete = true)
+  void Set(Scope* scope)
   {
     Reset();
     m_eval.PushScope(scope);
     m_scope  = scope;
-    m_delete = autoDelete;
   }
   
 private:
 
   Evaluator&  m_eval;
   Scope*      m_scope;
-  bool        m_delete;
 
 };
 
@@ -140,8 +137,8 @@ Evaluator::Eval(String text)
   // Evaluate code
   try
   {
-    // Push global scope. Don't delete when done
-    AutoScope gs(*this, m_global, false);
+    // Push global scope
+    AutoScope gs(*this, m_global);
 
     // Evaluate code
     EvalStatement(root);
@@ -180,15 +177,15 @@ Evaluator::PushScope(Scope* scope)
 }
 
 void 
-Evaluator::PopScope(bool doDelete)
+Evaluator::PopScope()
 {
   // Remove scope from stack
   Scope* old = m_scope;
   m_scope = m_scopes.front();
   m_scopes.pop_front();
 
-  // Delete the scope
-  if(doDelete)
+  // Delete every non-global scope
+  if(dynamic_cast<GlobalScope*>(old) == 0)
   {
     delete old;
   }
@@ -447,10 +444,10 @@ Evaluator::EvalFunctionCall(Ast* node)
   if(node->m_a3)
   {
     // Evaluate instance expression
-    args.push_back(EvalExpression(node->m_a3));
+    args.SetInstance(EvalExpression(node->m_a3));
 
     // Resolve function on object
-    if(!args[0]->GetTypedRes<Instance>()->FindFun(node->m_a1, fun))
+    if(!args.GetInstance()->FindFun(node->m_a1, fun))
     {
       throw std::runtime_error("Object doesn't support this method");
     }
@@ -466,9 +463,12 @@ Evaluator::EvalFunctionCall(Ast* node)
     // In case of member function, prepend instance
     if(dynamic_cast<MemberFunction*>(fun))
     {
-      args.push_back(EvalThisExpression());
+      args.SetInstance(EvalThisExpression());
     }
   }
+
+  // Add parameters to arguments
+  args.SetParameters(fun->GetParameters());
 
   // Evaluate arguments
   if(node->m_a2->m_type == positional_arguments)
@@ -502,24 +502,28 @@ Evaluator::EvalFunctionCall(Ast* node)
 VariantRef 
 Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 {
-  // Parameter iterators
-  AstList::const_iterator pi, pe;
-  pi = fun->GetParameters()->begin();
-  pe = fun->GetParameters()->end();
+  // Class scope
+  AutoScope cs(*this);
 
   // Determine parent scope
   Scope* parentScope = m_global;
-  if(dynamic_cast<ClassScope*>(m_scope))
+  if(dynamic_cast<MemberFunction*>(fun))
   {
+    // Create class scope
+    cs.Set(new ClassScope(parentScope, args.GetInstance()));
+
+    // Adjust parent scope
     parentScope = m_scope;
   }
 
-  // Create parameter scope
-  AutoScope ps(*this, new Scope(parentScope));
+  // Create argument scope
+  AutoScope as(*this, new Scope(parentScope));
 
-  // Enumerate parameters
-  size_t index = 0;
-  for(; pi != pe; ++pi, ++index)
+  // Insert arguments into argument scope
+  AstList::const_iterator pi, pe;
+  pi = fun->GetParameters()->begin();
+  pe = fun->GetParameters()->end();
+  for(size_t index = 0; pi != pe; ++pi, ++index)
   {
     m_scope->AddVar((*pi)->m_a1, args[index]);
   }
@@ -532,20 +536,6 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 
   // No return value
   return Variant();
-}
-
-VariantRef 
-Evaluator::EvalMemberCall(MemberFunction* fun, Arguments& args)
-{
-  // Extract instance
-  Instance* inst = args[0]->GetTypedRes<Instance>();
-  args.erase(args.begin());
-
-  // Create class scope
-  AutoScope cs(*this, new ClassScope(m_global, inst));
-
-  // Evaluate as regular script call from here
-  return EvalScriptCall(fun, args);
 }
 
 void 

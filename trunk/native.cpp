@@ -178,9 +178,9 @@ NATIVE_CALL("function strchr(string data, string char, int start = 0)")
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
   ASSERT_TYPE(2, stInt);
-  String const& src = args[0]->GetString();
-  String const& chr = args[1]->GetString();
-  int32 offset = (int32)args[2]->GetInt();
+  String const& src = args["data"]->GetString();
+  String const& chr = args["char"]->GetString();
+  int32 offset = (int32)args["start"]->GetInt();
   if(chr.length() < 1)
   {
     throw std::runtime_error("Empty string in call to strchr");
@@ -212,4 +212,3 @@ NATIVE_CALL("function functions()")
 {
   return evaluator.GetFunctionList();
 }
-
