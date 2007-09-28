@@ -84,6 +84,8 @@ enum AstTypes
   positional_arguments,
   named_arguments,
   named_argument,
+  try_statement,
+  throw_statement
 };
 
 enum AccessTypes

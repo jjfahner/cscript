@@ -75,6 +75,7 @@ protected:
   void EvalIfStatement(Ast* node);
   void EvalReturnStatement(Ast* node);
   void EvalExternDecl(Ast* node);
+  void EvalTryStatement(Ast* node);
 
   //
   // Expression handlers
@@ -144,6 +145,14 @@ struct continue_exception
 
 struct reset_exception
 {
+};
+
+struct script_exception
+{
+  Ast* m_node;
+  VariantRef m_value;
+  script_exception(Ast* node) : m_node (node) {}
+  script_exception(Ast* node, VariantRef const& value) : m_node (node), m_value (value) {}
 };
 
 #endif // CSCRIPT_EVAL_H
