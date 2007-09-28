@@ -71,3 +71,6 @@
 #define TOK_SWITCH                         71
 #define TOK_CASE                           72
 #define TOK_DEFAULT                        73
+#define TOK_TRY                            74
+#define TOK_CATCH                          75
+#define TOK_THROW                          76

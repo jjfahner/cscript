@@ -50,6 +50,7 @@ int parseNextToken(Char*& start, Char*& end)
   "bool"                    { return TOK_BOOL; }
   "break"                   { return TOK_BREAK; }
   "case"                    { return TOK_CASE; }
+  "catch"                   { return TOK_CATCH; }
   "class"                   { return TOK_CLASS; }
   "continue"                { return TOK_CONTINUE; }
   "default"                 { return TOK_DEFAULT; }
@@ -68,7 +69,9 @@ int parseNextToken(Char*& start, Char*& end)
   "string"                  { return TOK_STRING; }
   "switch"                  { return TOK_SWITCH; }
   "this"                    { return TOK_THIS; }
+  "throw"                   { return TOK_THROW; }
   "true"                    { return TOK_TRUE; }
+  "try"                     { return TOK_TRY; }
   "var"                     { return TOK_VAR; }
   "while"                   { return TOK_WHILE; }
 

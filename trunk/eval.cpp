@@ -199,22 +199,15 @@ Evaluator::EvalStatement(Ast* node)
   switch(node->m_type)
   {
   case empty_statement:       break;
+
   case translation_unit:      EvalStatement(node->m_a1);  break;
   case statement_sequence:    EvalStatementSeq(node);     break;
   case expression_statement:  EvalExpression(node->m_a1); break;
-
-  case declaration_sequence:
-    EvalStatement(node->m_a1);
-    EvalStatement(node->m_a2);
-    break;
-
-  case variable_declaration:  EvalVarDecl(node);  break;
-  case function_declaration:  EvalFunDecl(node);  break;
-  case extern_declaration:    EvalExternDecl(node);  break;
-  case class_declaration:     EvalClassDecl(node);   break;
-  case class_members:         break;  
-  case access_specifier:      break;
-
+  case variable_declaration:  EvalVarDecl(node);          break;
+  case function_declaration:  EvalFunDecl(node);          break;
+  case extern_declaration:    EvalExternDecl(node);       break;
+  case class_declaration:     EvalClassDecl(node);        break;
+  case try_statement:         EvalTryStatement(node);     break;
   case for_statement:         EvalForStatement(node);     break;
   case foreach_statement:     EvalForeachStatement(node); break;
   case if_statement:          EvalIfStatement(node);      break;
@@ -224,6 +217,13 @@ Evaluator::EvalStatement(Ast* node)
 
   case break_statement:       throw break_exception(node);  
   case continue_statement:    throw continue_exception(node);
+  case throw_statement:       throw script_exception(node, 
+                                  EvalExpression(node->m_a1));
+
+  case declaration_sequence:
+    EvalStatement(node->m_a1);
+    EvalStatement(node->m_a2);
+    break;
 
   case compound_statement:
     if(node->m_a1)
@@ -924,4 +924,19 @@ Evaluator::EvalThisExpression()
     scope = scope->GetParent();
   }
   throw std::runtime_error("Invalid context for this");
+}
+
+void 
+Evaluator::EvalTryStatement(Ast* node)
+{
+  try 
+  {
+    EvalStatement(node->m_a1);
+  }
+  catch(script_exception const& e)
+  {
+    AutoScope scope(*this, new Scope(m_scope));
+    m_scope->AddVar(node->m_a2, e.m_value);
+    EvalStatement(node->m_a3);
+  }
 }
