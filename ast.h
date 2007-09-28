@@ -85,6 +85,8 @@ enum AstTypes
   named_arguments,
   named_argument,
   try_statement,
+  catch_block,
+  finally_block,
   throw_statement
 };
 

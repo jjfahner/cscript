@@ -64,15 +64,4 @@ void AssertType(Arguments const& args, size_t index, Variant::SubTypes type, cha
 #define ASSERT_TYPE(idx,type) \
   AssertType(args, idx, Variant::type, __FUNCTION__)
 
-//
-// Resolve a native call by name
-//
-NativeCallInfo* FindNative(String const& name);
-
-//
-// Execute a native call
-//
-void ExecNative(int32 function, Evaluator& evaluator, Arguments const& args);
-
-
 #endif // #ifndef CSCRIPT_NATIVE_CALLS_H

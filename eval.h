@@ -6,9 +6,7 @@
 #include "report.h"
 #include "scope.h"
 #include "args.h"
-
-class Ast;
-struct NativeCallInfo;
+#include "ast.h"
 
 class Evaluator
 {
@@ -123,36 +121,43 @@ protected:
 // Control flow exceptions
 //
 
-struct return_exception
+//
+// Base class for all script exceptions
+//
+struct script_exception : public std::exception
 {
   Ast* m_node;
+  script_exception(Ast* node) : std::exception(), m_node (node) {}
+};
+
+struct break_exception : public script_exception
+{
+  break_exception(Ast* node) : script_exception (node) {}
+};
+
+struct continue_exception : public script_exception
+{
+  continue_exception(Ast* node) : script_exception (node) {}
+};
+
+struct reset_exception : public script_exception
+{
+  Ast m_node;
+  reset_exception() : script_exception (&m_node), m_node (empty_statement) {}
+};
+
+struct return_exception : public script_exception
+{
   VariantRef m_value;
-  return_exception(Ast* node) : m_node (node) {}
-  return_exception(Ast* node, VariantRef const& value) : m_node (node), m_value (value) {}
+  return_exception(Ast* node) : script_exception (node) {}
+  return_exception(Ast* node, VariantRef const& value) : script_exception (node), m_value (value) {}
 };
 
-struct break_exception
+struct user_exception : public script_exception
 {
-  Ast* m_node;
-  break_exception(Ast* node) : m_node (node) {}
-};
-
-struct continue_exception
-{
-  Ast* m_node;
-  continue_exception(Ast* node) : m_node (node) {}
-};
-
-struct reset_exception
-{
-};
-
-struct script_exception
-{
-  Ast* m_node;
   VariantRef m_value;
-  script_exception(Ast* node) : m_node (node) {}
-  script_exception(Ast* node, VariantRef const& value) : m_node (node), m_value (value) {}
+  user_exception(Ast* node) : script_exception (node) {}
+  user_exception(Ast* node, VariantRef const& value) : script_exception (node), m_value (value) {}
 };
 
 #endif // CSCRIPT_EVAL_H

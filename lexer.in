@@ -57,6 +57,7 @@ int parseNextToken(Char*& start, Char*& end)
   "else"                    { return TOK_ELSE; }
   "extern"                  { return TOK_EXTERN; }
   "false"                   { return TOK_FALSE; }
+  "finally"                 { return TOK_FINALLY; }
   "for"                     { return TOK_FOR; }
   "function"				        { return TOK_FUNCTION; }
   "if"                      { return TOK_IF; }
