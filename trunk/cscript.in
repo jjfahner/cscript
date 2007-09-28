@@ -443,6 +443,12 @@ case_statements(R) ::= statement_sequence(A) . { R = A; }
 // Exception handling
 //
 
-try_statement(R) ::= TRY compound_statement(A) CATCH LPAREN IDENTIFIER(B) RPAREN compound_statement(C) . { R = p->AllocAst(try_statement, A, String(B), C); }
+try_statement(R) ::= TRY compound_statement(A) catch_block(B) .                   { R = p->AllocAst(try_statement, A, B); }
+try_statement(R) ::= TRY compound_statement(A) finally_block(B) .                 { R = p->AllocAst(try_statement, A, AstData(), B); }
+try_statement(R) ::= TRY compound_statement(A) catch_block(B) finally_block(C) .  { R = p->AllocAst(try_statement, A, B, C); }
+
+catch_block(R) ::= CATCH LPAREN IDENTIFIER(A) RPAREN compound_statement(B) . { R = p->AllocAst(catch_block, String(A), B); }
+
+finally_block(R) ::= FINALLY compound_statement(A) . { R = p->AllocAst(finally_block, A); }
 
 throw_statement(R) ::= THROW expression(A) SEMICOLON . { R = p->AllocAst(throw_statement, A); }

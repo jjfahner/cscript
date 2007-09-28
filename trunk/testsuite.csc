@@ -136,6 +136,59 @@ function files()
   return to == res;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Exception handling
+//
+
+function try_catch()
+{
+  try
+  {
+    throw 1;
+    return false;
+  }
+  catch(e)
+  {
+    return e == 1;
+  }
+  return false;
+}
+
+function try_finally()
+{
+  try
+  {
+    throw 1;
+    return false;
+  }
+  finally
+  {
+    return true;
+  }
+  return false;
+}
+
+function try_catch_finally()
+{
+  var i = 0;
+  try
+  {
+    throw 1;
+    return false;
+  }
+  catch(e)
+  {
+    i += e;
+  }
+  finally
+  {
+    i += 1;
+  }
+  return i == 2;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Test cases
@@ -341,6 +394,11 @@ function main()
   assert("Regex", match("[a-zA-Z-]+", "jan-jaap"), "jan-jaap");
   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net@"), "");
   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net"), "jan-jaap@jan-jaap.net");
+
+  // Exception handling
+  assert("try_catch", try_catch(), true);
+  assert("try_finally", try_finally(), true);
+  assert("try_catch_finally", try_catch_finally(), true);
 
   // Print result
   if(errors == 0)

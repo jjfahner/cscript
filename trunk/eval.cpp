@@ -116,6 +116,19 @@ Evaluator::GetFunctionList() const
   return list;
 }
 
+inline void 
+PrintLineInfo(script_exception const& e)
+{
+  if(!e.m_node->m_pos.m_file.empty())
+  {
+    std::cout 
+      << e.m_node->m_pos.m_file 
+      << "("
+      << e.m_node->m_pos.m_line
+      << ") : ";
+  }
+}
+
 VariantRef 
 Evaluator::Eval(String text)
 {
@@ -139,36 +152,54 @@ Evaluator::Eval(String text)
   // Evaluate code
   try
   {
-    // Push global scope
     AutoScope gs(*this, m_global);
-
-    // Evaluate code
     EvalStatement(root);
-    
-    // Statement returned nothing
-    return Variant::Null;
   }
+  // Return statement
   catch(return_exception const& e)
   {
-    // Statement returned value
     return e.m_value;
   }
+  // Reset statement
   catch(reset_exception const&)
   {
-    // Reset request
     Reset();
   }
+  // Uncaught user_exception in script
+  catch(user_exception const& e)
+  {
+    PrintLineInfo(e);
+    std::cout << "Uncaught exception '" << e.m_value->AsString() << "'\n";
+  }
+  // Invalid break statement
+  catch(break_exception const& e)
+  {
+    PrintLineInfo(e);
+    std::cout << "Invalid break statement\n";
+  }
+  // Invalid continue statement
+  catch(continue_exception const& e)
+  {
+    PrintLineInfo(e);
+    std::cout << "Invalid continue statement\n";
+  }
+  // Unexpected exception in script
+  catch(script_exception const& e)
+  {
+    PrintLineInfo(e);
+    std::cout << "Uncaught exception '" << typeid(e).name() << "'\n";
+  }
+  // System exception
   catch(std::exception const& e)
   {
-    // Statement threw exception
     std::cout << e.what() << "\n";
-    return Variant::Null;
   }
+  // Unknown exception type
   catch(...)
   {
-    std::cout << "Unexpected\n";
-    return Variant::Null;
+    std::cout << "Unexpected exceptino\n";
   }
+  return Variant::Null;
 }
 
 Scope*
@@ -177,19 +208,15 @@ Evaluator::PushScope(Scope* scope)
   Scope* prv = m_scope;
   m_scope = scope;
   return prv;
-
 }
 
 void 
 Evaluator::PopScope(Scope* prv)
 {
-  // Delete non-global scope
   if(dynamic_cast<GlobalScope*>(m_scope) == 0)
   {
     delete m_scope;
   }
-
-  // Restore scope
   m_scope = prv;
 }
 
@@ -217,7 +244,7 @@ Evaluator::EvalStatement(Ast* node)
 
   case break_statement:       throw break_exception(node);  
   case continue_statement:    throw continue_exception(node);
-  case throw_statement:       throw script_exception(node, 
+  case throw_statement:       throw user_exception(node, 
                                   EvalExpression(node->m_a1));
 
   case declaration_sequence:
@@ -490,14 +517,6 @@ Evaluator::EvalFunctionCall(Ast* node)
   catch(return_exception const& e)
   {
     return e.m_value;
-  }
-  catch(break_exception const&)
-  {
-    throw std::runtime_error("Invalid break statement");
-  }
-  catch(continue_exception const&)
-  {
-    throw std::runtime_error("Invalid continue statement");
   }
 }
 
@@ -929,14 +948,48 @@ Evaluator::EvalThisExpression()
 void 
 Evaluator::EvalTryStatement(Ast* node)
 {
-  try 
+  try
   {
-    EvalStatement(node->m_a1);
+    try 
+    {
+      // Execute guarded block
+      EvalStatement(node->m_a1);
+    }
+    catch(user_exception const& e)
+    {
+      // Handle only when handler is present
+      if(node->m_a2)
+      {
+        // Insert exception into scope
+        AutoScope scope(*this, new Scope(m_scope));
+        m_scope->AddVar(node->m_a2->m_a1, e.m_value);
+
+        // Evaluate catch block
+        EvalStatement(node->m_a2->m_a2);
+      }
+      else
+      {
+        // Propagate exception
+        throw;
+      }
+    }
   }
-  catch(script_exception const& e)
+  catch(...)
   {
-    AutoScope scope(*this, new Scope(m_scope));
-    m_scope->AddVar(node->m_a2, e.m_value);
-    EvalStatement(node->m_a3);
+    // Exception thrown in catch block
+    if(node->m_a3)
+    {
+      // Evaluate finally
+      EvalStatement(node->m_a3->m_a1);
+    }
+
+    // Re-throw exception from catch block
+    throw;
+  }
+
+  // Evaluate finally
+  if(node->m_a3)
+  {
+    EvalStatement(node->m_a3->m_a1);
   }
 }
