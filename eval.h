@@ -7,6 +7,7 @@
 #include "scope.h"
 #include "args.h"
 #include "ast.h"
+#include "function.h"
 
 class Evaluator
 {
@@ -133,17 +134,20 @@ struct script_exception : public std::exception
 struct break_exception : public script_exception
 {
   break_exception(Ast* node) : script_exception (node) {}
+  ~break_exception() throw () {}
 };
 
 struct continue_exception : public script_exception
 {
   continue_exception(Ast* node) : script_exception (node) {}
+  ~continue_exception() throw () {}
 };
 
 struct reset_exception : public script_exception
 {
   Ast m_node;
   reset_exception() : script_exception (&m_node), m_node (empty_statement) {}
+  ~reset_exception() throw () {}
 };
 
 struct return_exception : public script_exception
@@ -151,6 +155,7 @@ struct return_exception : public script_exception
   VariantRef m_value;
   return_exception(Ast* node) : script_exception (node) {}
   return_exception(Ast* node, VariantRef const& value) : script_exception (node), m_value (value) {}
+  ~return_exception() throw() {}
 };
 
 struct user_exception : public script_exception
@@ -158,6 +163,7 @@ struct user_exception : public script_exception
   VariantRef m_value;
   user_exception(Ast* node) : script_exception (node) {}
   user_exception(Ast* node, VariantRef const& value) : script_exception (node), m_value (value) {}
+  ~user_exception() throw() {}
 };
 
 #endif // CSCRIPT_EVAL_H
