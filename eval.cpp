@@ -546,23 +546,40 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
     }
 
     // End of arguments
+    VariantRef value;
     if(ai == ae)
     {
-      if((*pi)->m_a3)
+      // Must have default value
+      if(!(*pi)->m_a3)
       {
-        args.push_back(EvalExpression((*pi)->m_a3));
-        ++pi;
-        continue;
+        throw std::runtime_error("Not enough arguments in call to '" + fun->GetName() + "'");
       }
-      throw std::runtime_error("Not enough arguments in call to '" + fun->GetName() + "'");
+
+      // Evaluate default value
+      value = EvalExpression((*pi)->m_a3);
+    }
+    else
+    {
+      // Evaluate argument
+      value = EvalExpression(*ai);
     }
 
-    // Evaluate argument
-    args.push_back(EvalExpression(*ai));
+    // Assign by value/by ref
+    if((*pi)->m_a4.GetNumber() == ptByRef)
+    {
+      args.push_back(value);
+    }
+    else
+    {
+      args.push_back(*value);
+    }
 
     // Next iteration
     ++pi;
-    ++ai;
+    if(ai != ae)
+    {
+      ++ai;
+    }
   }
 }
 
@@ -594,21 +611,32 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
       }
     }
 
-    // Handle result
+    // Evaluate argument
+    VariantRef value;
     if(ai != ae)
     {
       // Fill in positional argument
-      args.push_back(EvalExpression((*ai)->m_a2));
+      value = EvalExpression((*ai)->m_a2);
     }
     else if((*pi)->m_a3)
     {
       // Evaluate default value
-      args.push_back(EvalExpression((*pi)->m_a3));
+      value = EvalExpression((*pi)->m_a3);
     }
     else
     {
       // Missing argument
       throw std::runtime_error("No value specified for parameter '" + parname + "'");
+    }
+
+    // Assign by value/by ref
+    if((*pi)->m_a4.GetNumber() == ptByRef)
+    {
+      args.push_back(value);
+    }
+    else
+    {
+      args.push_back(*value);
     }
   }
 }

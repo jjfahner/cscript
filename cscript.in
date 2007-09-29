@@ -335,12 +335,14 @@ class_members(R) ::= class_members(A) class_member(B) . {
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(function_declaration, String(A), B, C); }
 
 // Single parameter
-parameter(R) ::= type(A) IDENTIFIER(B) . { R = p->AllocAst(parameter, String(B), A); }
-parameter(R) ::=         IDENTIFIER(B) . { R = p->AllocAst(parameter, String(B)); }
+parameter(R) ::= type(A) IDENTIFIER(B) .        { R = p->AllocAst(parameter, String(B), A,         AstData(), ptByVal); }
+parameter(R) ::=         IDENTIFIER(B) .        { R = p->AllocAst(parameter, String(B), AstData(), AstData(), ptByVal); }
+parameter(R) ::= type(A) BITAND IDENTIFIER(B) . { R = p->AllocAst(parameter, String(B), A,         AstData(), ptByRef); }
+parameter(R) ::=         BITAND IDENTIFIER(B) . { R = p->AllocAst(parameter, String(B), AstData(), AstData(), ptByRef); }
 
 // Single optional parameter
-opt_parameter(R) ::= type(A) IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocAst(parameter, String(B), A,         C); }
-opt_parameter(R) ::=         IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocAst(parameter, String(B), AstData(), C); }
+opt_parameter(R) ::= type(A) IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocAst(parameter, String(B), A,         C, ptByVal); }
+opt_parameter(R) ::=         IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocAst(parameter, String(B), AstData(), C, ptByVal); }
 
 // Parameter list
 %type parameter_list { AstList* }
