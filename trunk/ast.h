@@ -99,6 +99,12 @@ enum AccessTypes
   accessPublic,
 };
 
+enum ParameterTypes
+{
+  ptByVal,
+  ptByRef,
+};
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Ast base type
