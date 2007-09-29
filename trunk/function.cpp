@@ -31,8 +31,8 @@ m_call    (call)
   }
 
   // Extract name and parameter list
-  m_name = p.GetRoot()->m_a1->m_a1;
-  m_pars = p.GetRoot()->m_a1->m_a2;
+  m_name = p.GetRoot()->m_a1->m_a1.GetString();
+  m_pars = p.GetRoot()->m_a1->m_a2.GetList();
 
   // Make sure the tree isn't deleted
   p.SetRoot(0);
