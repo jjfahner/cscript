@@ -10,9 +10,9 @@ ScriptFunction::GetParameters() const
 }
 
 VariantRef 
-ScriptFunction::Execute(Evaluator& evaluator, Arguments& args)
+ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
-  return evaluator.EvalScriptCall(this, args);
+  return evaluator->EvalScriptCall(this, args);
 }
 
 NativeFunction::NativeFunction(String decl, NativeCall call) :
@@ -39,7 +39,7 @@ m_call    (call)
 }
 
 VariantRef
-NativeFunction::Execute(Evaluator& evaluator, Arguments& args)
+NativeFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
   return m_call(evaluator, args);
 }
@@ -55,7 +55,7 @@ ExternFunction::GetParameters() const
 #include <windows.h>
 
 VariantRef
-ExternFunction::Execute(Evaluator& evaluator, Arguments& args)
+ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
   // Load library
   HMODULE hModule = LoadLibrary(m_node->m_a3.GetString().c_str());

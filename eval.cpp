@@ -16,7 +16,7 @@ class Evaluator::AutoScope
 {
 public:
 
-  AutoScope(Evaluator& eval, Scope* scope = 0) : 
+  AutoScope(Evaluator* eval, Scope* scope = 0) : 
   m_eval (eval), 
   m_prv  (0),
   m_cur  (0)
@@ -34,9 +34,13 @@ public:
 
   void Reset()
   {
-    if(m_cur)
+    if(m_prv)
     {
-      m_eval.PopScope(m_prv);
+      if(dynamic_cast<GlobalScope*>(m_eval->m_scope) == 0)
+      {
+        delete m_eval->m_scope;
+      }
+      m_eval->m_scope = m_prv;
       m_prv = 0;
       m_cur = 0;
     }
@@ -44,9 +48,13 @@ public:
 
   void Set(Scope* scope)
   {
-    Reset();
-    m_prv = m_eval.PushScope(scope);
+    if(m_prv)
+    {
+      Reset();
+    }
+    m_prv = m_eval->m_scope;
     m_cur = scope;
+    m_eval->m_scope = m_cur;
   }
   
 private:
@@ -54,7 +62,7 @@ private:
   //
   // Members
   //
-  Evaluator&  m_eval;
+  Evaluator*  m_eval;
   Scope*      m_prv;
   Scope*      m_cur;
 
@@ -84,36 +92,6 @@ Evaluator::Reset()
   // Create new global scope
   delete m_global;
   m_global = new GlobalScope(&GetGlobalScope());
-}
-
-VariantRef 
-Evaluator::GetClassList() const
-{
-  VariantRef list(Variant::stAssoc);
-  Scope::Classes const& classes = m_global->GetClasses();
-  Scope::Classes::const_iterator it, ie;
-  it = classes.begin();
-  ie = classes.end();
-  for(; it != ie; ++it)
-  {
-    list->Append(it->first);
-  }
-  return list;
-}
-
-VariantRef 
-Evaluator::GetFunctionList() const
-{
-  VariantRef list(Variant::stAssoc);
-  Scope::Functions const& funs = m_global->GetFunctions();
-  Scope::Functions::const_iterator it, ie;
-  it = funs.begin();
-  ie = funs.end();
-  for(; it != ie; ++it)
-  {
-    list->Append(it->first);
-  }
-  return list;
 }
 
 inline void 
@@ -152,7 +130,7 @@ Evaluator::Eval(String text)
   // Evaluate code
   try
   {
-    AutoScope gs(*this, m_global);
+    AutoScope gs(this, m_global);
     EvalStatement(root);
   }
   // Return statement
@@ -202,24 +180,6 @@ Evaluator::Eval(String text)
   return Variant::Null;
 }
 
-Scope*
-Evaluator::PushScope(Scope* scope)
-{
-  Scope* prv = m_scope;
-  m_scope = scope;
-  return prv;
-}
-
-void 
-Evaluator::PopScope(Scope* prv)
-{
-  if(dynamic_cast<GlobalScope*>(m_scope) == 0)
-  {
-    delete m_scope;
-  }
-  m_scope = prv;
-}
-
 void 
 Evaluator::EvalStatement(Ast* node)
 {
@@ -255,7 +215,7 @@ Evaluator::EvalStatement(Ast* node)
   case compound_statement:
     if(node->m_a1)
     {
-      AutoScope as(*this, new Scope(m_scope));
+      AutoScope as(this, new Scope(m_scope));
       EvalStatement(node->m_a1);
     }
     break;
@@ -512,7 +472,7 @@ Evaluator::EvalFunctionCall(Ast* node)
   // Evaluate function
   try
   {
-    return fun->Execute(*this, args);
+    return fun->Execute(this, args);
   }
   catch(return_exception const& e)
   {
@@ -524,7 +484,7 @@ VariantRef
 Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 {
   // Class scope
-  AutoScope cs(*this);
+  AutoScope cs(this);
 
   // Determine parent scope
   Scope* parentScope = m_global;
@@ -538,7 +498,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   }
 
   // Create argument scope
-  AutoScope as(*this, new Scope(parentScope));
+  AutoScope as(this, new Scope(parentScope));
 
   // Insert arguments into argument scope
   AstList::const_iterator pi, pe;
@@ -550,7 +510,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   }
 
   // Create function execution scope
-  AutoScope es(*this, new Scope(m_scope));
+  AutoScope es(this, new Scope(m_scope));
 
   // Execute expression
   EvalStatement(fun->GetNode()->m_a3);
@@ -734,7 +694,7 @@ void
 Evaluator::EvalForStatement(Ast* node)
 {
   // Outer scope
-  AutoScope scope(*this, new Scope(m_scope));
+  AutoScope scope(this, new Scope(m_scope));
   
   // Evaluate init expression
   EvalStatement(node->m_a1);
@@ -751,7 +711,7 @@ Evaluator::EvalForStatement(Ast* node)
     // For body
     try 
     {
-      AutoScope scope(*this, new Scope(m_scope));
+      AutoScope scope(this, new Scope(m_scope));
       EvalStatement(node->m_a4);
     }
     catch(break_exception const&)
@@ -770,7 +730,7 @@ Evaluator::EvalForStatement(Ast* node)
 void 
 Evaluator::EvalForeachStatement(Ast* node)
 {
-  AutoScope scope(*this, new Scope(m_scope));
+  AutoScope scope(this, new Scope(m_scope));
 
   String varName;
   Ast*   varNode = node->m_a1;
@@ -809,7 +769,7 @@ Evaluator::EvalForeachStatement(Ast* node)
     // Evaluate expression
     try
     {
-      AutoScope scope(*this, new Scope(m_scope));
+      AutoScope scope(this, new Scope(m_scope));
       EvalStatement(node->m_a3);
     }
     catch(break_exception const&)
@@ -842,7 +802,7 @@ Evaluator::EvalWhileStatement(Ast* node)
   {
     try
     {
-      AutoScope scope(*this, new Scope(m_scope));
+      AutoScope scope(this, new Scope(m_scope));
       EvalStatement(node->m_a2);
     }
     catch(break_exception const&)
@@ -890,7 +850,7 @@ Evaluator::EvalSwitchStatement(Ast* node)
   {
     try
     {
-      AutoScope as(*this, new Scope(m_scope));
+      AutoScope as(this, new Scope(m_scope));
       EvalStatement(statement);
     }
     catch(break_exception const&)
@@ -911,7 +871,7 @@ Evaluator::EvalNewExpression(Ast* node)
   }
 
   // Instantiate
-  return c->CreateInstance(*this);
+  return c->CreateInstance(this);
 }
 
 VariantRef 
@@ -961,7 +921,7 @@ Evaluator::EvalTryStatement(Ast* node)
       if(node->m_a2)
       {
         // Insert exception into scope
-        AutoScope scope(*this, new Scope(m_scope));
+        AutoScope scope(this, new Scope(m_scope));
         m_scope->AddVar(node->m_a2->m_a1, e.m_value);
 
         // Evaluate catch block

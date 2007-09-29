@@ -30,7 +30,7 @@ class Arguments;
 //
 // Native call pointer
 //
-typedef VariantRef (*NativeCall)(Evaluator& evaluator, Arguments const& args);
+typedef VariantRef (*NativeCall)(Evaluator* evaluator, Arguments const& args);
 
 //
 // Registrar for native calls
@@ -53,9 +53,9 @@ struct NativeCallRegistrar
 //
 #define GETLINE __LINE__
 #define NATIVE_CALL(decl)                                                                           \
-  static VariantRef          UNIQUE_PREFIXED(native_)   (Evaluator& evaluator, Arguments const& args);   \
+  static VariantRef          UNIQUE_PREFIXED(native_)   (Evaluator* evaluator, Arguments const& args);   \
   static NativeCallRegistrar UNIQUE_PREFIXED(registrar_)(decl, UNIQUE_PREFIXED(native_));           \
-  static VariantRef          UNIQUE_PREFIXED(native_)   (Evaluator& evaluator, Arguments const& args)
+  static VariantRef          UNIQUE_PREFIXED(native_)   (Evaluator* evaluator, Arguments const& args)
 
 //
 // Check the argument type for a native call argument

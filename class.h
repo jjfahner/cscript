@@ -5,6 +5,7 @@
 #include "var.h"
 
 class Function;
+class Evaluator;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -71,7 +72,7 @@ public:
   //
   // Construct an instance
   //
-  class Instance* CreateInstance(class Evaluator& eval) const;
+  class Instance* CreateInstance(Evaluator* eval) const;
 
 protected:
 

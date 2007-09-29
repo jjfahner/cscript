@@ -195,20 +195,10 @@ NATIVE_CALL("function strchr(string data, string char, int start = 0)")
 
 NATIVE_CALL("function eval(string code)")
 {
-  return evaluator.Eval(args[0]->AsString());
+  return evaluator->Eval(args[0]->AsString());
 }
 
 NATIVE_CALL("function reset()")
 {
   throw reset_exception();
-}
-
-NATIVE_CALL("function classes()")
-{
-  return evaluator.GetClassList();
-}
-
-NATIVE_CALL("function functions()")
-{
-  return evaluator.GetFunctionList();
 }

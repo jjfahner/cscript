@@ -3,7 +3,7 @@
 #include "eval.h"
 
 Instance* 
-Class::CreateInstance(Evaluator& eval) const
+Class::CreateInstance(Evaluator* eval) const
 {
   // Create new instance
   Instance* inst = new Instance(this);
@@ -24,7 +24,7 @@ Class::CreateInstance(Evaluator& eval) const
       }
       else
       {
-        value = eval.EvalExpression(it->second->m_a2);
+        value = eval->EvalExpression(it->second->m_a2);
       }
 
       // Instantiate member variable

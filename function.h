@@ -48,7 +48,7 @@ public:
   //
   // Execute function 
   //
-  virtual VariantRef Execute(Evaluator& evaluator, Arguments& args) = 0;
+  virtual VariantRef Execute(Evaluator* evaluator, Arguments& args) = 0;
 
 protected:
 
@@ -93,7 +93,7 @@ public:
   //
   // Execution
   //
-  virtual VariantRef Execute(Evaluator& evaluator, Arguments& args);
+  virtual VariantRef Execute(Evaluator* evaluator, Arguments& args);
 
 protected:
 
@@ -164,7 +164,7 @@ public:
   //
   // Execution
   //
-  virtual VariantRef Execute(Evaluator& evaluator, Arguments& args);
+  virtual VariantRef Execute(Evaluator* evaluator, Arguments& args);
 
 protected:
 
@@ -202,7 +202,7 @@ public:
   //
   // Execution
   //
-  virtual VariantRef Execute(Evaluator& evaluator, Arguments& args);
+  virtual VariantRef Execute(Evaluator* evaluator, Arguments& args);
 
 protected:
 
