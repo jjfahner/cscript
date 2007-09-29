@@ -39,26 +39,13 @@ public:
   //
   void Reset();
 
-  //
-  // Retrieve list of classes
-  //
-  VariantRef GetClassList() const;
-
-  //
-  // Retrieve list of functions
-  //
-  VariantRef GetFunctionList() const;
-
 protected:
 
   //
   // Scope handling
   //
   class AutoScope;
-  Scope* PushScope(Scope* scope);
-  void PopScope(Scope* prv);
-  typedef std::list<Scope*> ScopeList;
-  
+
   //
   // Statement handlers
   //
