@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include "types.h"
 #include "native.h"
+#include "args.h"
 
 class NativeFile : public Variant::Resource
 {
