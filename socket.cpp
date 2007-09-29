@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include "socket.h"
 #include "native.h"
+#include "args.h"
 
 // Include windows socket headers
 #ifdef _MSC_VER

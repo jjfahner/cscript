@@ -23,9 +23,9 @@
 
 #include "types.h"
 #include "var.h"
-#include "eval.h"
 
 class Evaluator;
+class Arguments;
 
 //
 // Native call pointer
