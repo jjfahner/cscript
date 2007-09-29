@@ -35,11 +35,9 @@ class Socket
     var s = socket(address, port);
     if(s === false)
     {
-      return false;
+      throw "failed to connect socket";
     }
-
     m_socket = s;
-    return true;
   }
 
   //
@@ -62,9 +60,12 @@ class Socket
   {
     if(m_socket == null)
     {
-      return false;
+      throw "socket not connected";
     }
-    return send(m_socket, data, length);
+    if(send(m_socket, data, length) === false)
+    {
+      throw "failed to send data";
+    }
   }
 
   //
@@ -74,9 +75,12 @@ class Socket
   {
     if(m_socket == null)
     {
-      return false;
+      throw "socket not connected";
     }
-    return recv(m_socket, length, timeout);
+    if(recv(m_socket, length, timeout) === false)
+    {
+      throw "failed to receive data";
+    }
   }
 
 };

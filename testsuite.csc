@@ -55,37 +55,34 @@ function assert(description, result, expected)
 //
 function sockets()
 {
-  // Connect
-  var sock = new Socket;
-  if(sock.Connect("jan-jaap.net", 80) === false)
+  try
   {
-    return "Failed to connect socket";
+    // Connect socket
+    var sock = new Socket;
+    sock.Connect("jan-jaap.net", 80);
+
+    // Build request
+    var req = "GET / HTTP/1.0\r\n";
+    req += "Host: jan-jaap.net\r\n";
+    req += "User-Agent: cscript\r\n";
+    req += "Connection: close\r\n\r\n";
+
+    // Send data
+    sock.Send(req, strlen(req));
+
+    // Receive response
+    var r = sock.Recv(100000, 5);
+
+    // Disconnect socket
+    sock.Close();
+
+    // Succeeded
+    return true;
   }
-
-  // Build request
-  var req = "GET / HTTP/1.0\r\n";
-  req += "Host: jan-jaap.net\r\n";
-  req += "User-Agent: cscript\r\n";
-  req += "Connection: close\r\n\r\n";
-
-  // Send data
-  if(sock.Send(req, strlen(req)) === false)
+  catch(e)
   {
-    return "Failed to send data";
+    return false;
   }
-
-  // Receive response
-  var r = sock.Recv(100000, 5);
-  if(r === false)
-  {
-    return "Failed to receive data";
-  }
-
-  // Disconnect socket
-  sock.Close();
-
-  // Done
-  return 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -385,7 +382,7 @@ function main()
   assert("Files", files(), true);
   
   // Test sockets
-  assert("Socket", sockets(), 1);
+  assert("Socket", sockets(), true);
 
   // Test regular expressions
   assert("Regex", match("aa", "aaa"), "aa");
