@@ -335,21 +335,26 @@ class_members(R) ::= class_members(A) class_member(B) . {
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(function_declaration, String(A), B, C); }
 
 // Single parameter
-parameter(R) ::= type(A) IDENTIFIER(B) .        { R = p->AllocAst(parameter, String(B), A,         AstData(), ptByVal); }
-parameter(R) ::=         IDENTIFIER(B) .        { R = p->AllocAst(parameter, String(B), AstData(), AstData(), ptByVal); }
-parameter(R) ::= type(A) BITAND IDENTIFIER(B) . { R = p->AllocAst(parameter, String(B), A,         AstData(), ptByRef); }
-parameter(R) ::=         BITAND IDENTIFIER(B) . { R = p->AllocAst(parameter, String(B), AstData(), AstData(), ptByRef); }
+parameter(R) ::= type(A) IDENTIFIER(B) .        { R = p->AllocAst(parameter, String(B), ptByVal, A); }
+parameter(R) ::=         IDENTIFIER(B) .        { R = p->AllocAst(parameter, String(B), ptByVal);    }
+parameter(R) ::= type(A) BITAND IDENTIFIER(B) . { R = p->AllocAst(parameter, String(B), ptByRef, A); }
+parameter(R) ::=         BITAND IDENTIFIER(B) . { R = p->AllocAst(parameter, String(B), ptByRef);    }
 
 // Single optional parameter
-opt_parameter(R) ::= type(A) IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocAst(parameter, String(B), A,         C, ptByVal); }
-opt_parameter(R) ::=         IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocAst(parameter, String(B), AstData(), C, ptByVal); }
+opt_parameter(R) ::= type(A) IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocAst(parameter, String(B), ptByVal, A,         C); }
+opt_parameter(R) ::=         IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocAst(parameter, String(B), ptByVal, AstData(), C); }
+
+// Variadic argument
+variadic_parameter(R) ::= IDENTIFIER(A) VARIADIC . { R = p->AllocAst(parameter, String(A), ptVariadic); }
 
 // Parameter list
 %type parameter_list { AstList* }
 parameter_list(R) ::= . { R = new AstList; }
 parameter_list(R) ::= parameters(A)     . { R = A; }
 parameter_list(R) ::= opt_parameters(A) . { R = A; }
+parameter_list(R) ::= variadic_parameter(A) . { R = new AstList; R->push_back(A); }
 parameter_list(R) ::= parameters(A) COMMA opt_parameters(B) . { R = A; A->adopt(*B); }
+parameter_list(R) ::= parameters(A) COMMA variadic_parameter(B) . { R = A; A->push_back(B); }
 
 // List of parameters
 %type parameters { AstList* }

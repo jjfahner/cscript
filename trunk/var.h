@@ -115,6 +115,16 @@ public:
   }
 
   //
+  // Type construction
+  //
+  Variant(SubTypes type) :
+  m_int   (0),
+  m_type  (stNull)
+  {
+    SetType(type);
+  }
+
+  //
   // Copy construction with conversion
   //
   Variant(Variant const& value, SubTypes type) :

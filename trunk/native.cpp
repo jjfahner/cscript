@@ -202,3 +202,77 @@ NATIVE_CALL("function reset()")
 {
   throw reset_exception();
 }
+
+
+#ifdef WIN32
+
+#include <windows.h>
+
+NATIVE_CALL("function native(string libname, string fun, arglist...)")
+{
+  // Load library
+  HMODULE hModule = LoadLibrary(args[0]->GetString().c_str());
+  if(hModule == 0)
+  {
+    throw std::runtime_error("Failed to load library");
+  }
+
+  // Find function address
+  FARPROC proc = GetProcAddress(hModule, args[1]->GetString().c_str());
+  if(proc == 0)
+  {
+    throw std::runtime_error("Failed to retrieve function pointer");
+  }
+
+  // Retrieve map
+  Variant::AssocType& map = args[2]->GetMap();
+
+  // Allocate memory for arguments
+  size_t argbytes = map.size() * sizeof(int);
+  intptr_t * stack = new intptr_t[map.size()];
+
+  // Copy arguments into buffer stack
+  for(size_t index = 0; index < map.size(); ++index)
+  {
+    VariantRef& arg = map[Variant(index)];
+    switch(arg->GetType())
+    {
+    case Variant::stInt:   // int
+      stack[index] = (int)arg->GetInt();
+      break;
+
+    case Variant::stString:   // string
+      stack[index] = (intptr_t)arg->GetString().c_str();
+      break;
+
+    default:
+      delete [] stack;
+      throw std::runtime_error("Invalid argument type");
+    }
+  }
+
+  intptr_t dst;
+  intptr_t res;
+
+  // Make space on stack and copy address
+   __asm sub esp, argbytes;
+   __asm mov dst, esp
+
+  // Copy and delete arguments
+  memmove((void*)dst, stack, argbytes);
+  delete [] stack;
+
+	// Invoke native function
+  __asm call proc;
+
+  // Copy return value
+  __asm mov res, eax;
+
+  // Free the library
+  FreeLibrary(hModule);
+
+  // Done
+  return VariantRef((Variant::IntType)res);
+}
+
+#endif

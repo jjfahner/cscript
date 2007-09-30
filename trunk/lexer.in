@@ -90,6 +90,7 @@ int parseNextToken(Char*& start, Char*& end)
   ["]                       { return TOK_LIT_STRING; }
   
   /* operators */
+  "..."   { return TOK_VARIADIC; }
   "==="   { return TOK_SEQ; }
   "!=="   { return TOK_SNE; }
   "=="    { return TOK_EQUALS; }

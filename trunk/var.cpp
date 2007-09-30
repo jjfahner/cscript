@@ -266,5 +266,6 @@ Variant::Append(VariantRef const& ref)
   {
     MakeMap();
   }
-  (*m_map)[m_map->size()] = ref;
+  size_t key = m_map->size();
+  (*m_map)[Variant(key)] = ref;
 }

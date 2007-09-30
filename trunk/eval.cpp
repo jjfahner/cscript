@@ -561,8 +561,24 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
     // End of parameters
     if(pi == pe)
     {
-      // TODO varargs
       throw std::runtime_error("Too many arguments in call to '" + fun->GetName() + "'");
+    }
+
+    // Variadic parameter
+    if((*pi)->m_a2.GetNumber() == ptVariadic)
+    {
+      // Insert assoc
+      args.push_back(Variant::stAssoc);
+
+      // Insert remaining arguments
+      for(; ai != ae; ++ai)
+      {
+        // Evaluate argument and append on list
+        args[args.size() - 1]->Append(*EvalExpression(*ai));
+      }
+
+      // Done
+      break;
     }
 
     // End of arguments
@@ -570,13 +586,13 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
     if(ai == ae)
     {
       // Must have default value
-      if(!(*pi)->m_a3)
+      if(!(*pi)->m_a4)
       {
         throw std::runtime_error("Not enough arguments in call to '" + fun->GetName() + "'");
       }
 
       // Evaluate default value
-      value = EvalExpression((*pi)->m_a3);
+      value = EvalExpression((*pi)->m_a4);
     }
     else
     {
@@ -585,7 +601,7 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
     }
 
     // Assign by value/by ref
-    if((*pi)->m_a4.GetNumber() == ptByRef)
+    if((*pi)->m_a2.GetNumber() == ptByRef)
     {
       args.push_back(value);
     }
@@ -618,6 +634,14 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
   {
     // Extract parameter name
     String parname = (*pi)->m_a1.GetString();
+
+    // Cannot supply named arguments for variadic parameter
+    if((*pi)->m_a2.GetNumber() == ptVariadic)
+    {
+      // Variadic is always last in list - add empty list and stop
+      args.push_back(Variant::stAssoc);
+      break;
+    }
 
     // Find named argument for parameter
     AstList::const_iterator ai, ae;
