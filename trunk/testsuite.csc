@@ -393,9 +393,9 @@ function main()
   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net"), "jan-jaap@jan-jaap.net");
 
   // Exception handling
-  assert("try_catch", try_catch(), true);
-  assert("try_finally", try_finally(), true);
-  assert("try_catch_finally", try_catch_finally(), true);
+  assert("Try/catch", try_catch(), true);
+  assert("Try/finally", try_finally(), true);
+  assert("Try/catch/finally", try_catch_finally(), true);
 
   // Print result
   if(errors == 0)

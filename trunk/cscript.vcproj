@@ -119,8 +119,11 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="false"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				DisableLanguageExtensions="true"
 				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"

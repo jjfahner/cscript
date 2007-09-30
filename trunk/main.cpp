@@ -31,7 +31,7 @@
 //
 void banner()
 {
-  std::cout << "CScript 0.5  Copyright (C) 2007  Jan-Jaap Fahner.\n\n";
+  std::cout << "CScript 0.6  Copyright (C) 2007  Jan-Jaap Fahner.\n\n";
 }
 
 //////////////////////////////////////////////////////////////////////////
