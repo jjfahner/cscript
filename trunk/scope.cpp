@@ -53,5 +53,11 @@ ClassScope::FindVarLocal(String const& name, VariantRef& ref) const
 bool 
 ClassScope::FindFunLocal(String const& name, Function*& fun) const
 {
-  return m_inst->FindFun(name, fun);
+  MemberFunction* memfun;
+  if(m_inst->FindFun(name, memfun))
+  {
+    fun = memfun;
+    return true;
+  }
+  return false;
 }

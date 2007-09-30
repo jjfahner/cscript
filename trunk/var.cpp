@@ -122,17 +122,44 @@ Variant::MakeInt()
 void 
 Variant::MakeString()
 {
-  Char buf[50];
   switch(m_type)
   {
-  case stNull:  buf[0] = 0; break;
-  case stBool:  strcpy(buf, m_bln ? "true" : "false"); break;
-  case stInt:   sprintf(buf, "%d", (int)m_int); break;
-  default:      throw std::runtime_error("Invalid conversion");
+  case stNull:  
+    *this = "";
+    return;
+  
+  case stBool:  
+    *this = m_bln ? "true" : "false"; 
+    return;
+
+  case stInt:   
+    {
+      Char buf[50];
+      sprintf(buf, "%d", (int)m_int); 
+      *this = buf;
+      return;
+    }
+
+  case stAssoc:
+    {
+      AssocType::const_iterator it, ie;
+      it = GetMap().begin();
+      ie = GetMap().end();
+      String sep, val;
+      val = "[";
+      for(; it != ie; ++it)
+      {
+        val += sep;
+        sep = ",";
+        val += it->second->AsString();
+      }
+      val += "]";
+      *this = val;
+      return;
+    }
+
   }
-  Clear();
-  m_str = new String(buf);
-  m_type   = stString;
+  throw std::runtime_error("Invalid conversion");
 }
 
 void 

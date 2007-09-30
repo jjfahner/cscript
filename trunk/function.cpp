@@ -35,6 +35,13 @@ ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
   return evaluator->EvalScriptCall(this, args);
 }
 
+AstList const* 
+ConversionOperator::GetParameters() const
+{
+  static AstList list;
+  return &list;
+}
+
 NativeFunction::NativeFunction(String decl, NativeCall call) :
 Function  (""),
 m_call    (call)
@@ -104,10 +111,6 @@ ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
   {
     Ast* par = (*pi);
     Ast* typ = par->m_a2;
-    if(typ->m_type != builtin_type)
-    {
-      throw std::runtime_error("Invalid argument type");
-    }
     switch(typ->m_a1.GetNumber())
     {
     case Variant::stInt:   // int

@@ -24,8 +24,9 @@
 #include "types.h"
 #include "var.h"
 
-class Function;
 class Evaluator;
+class MemberFunction;
+class ConversionOperator;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -66,7 +67,7 @@ public:
   //
   // Add a member function
   //
-  virtual void AddFun(String const& name, Function* node)
+  virtual void AddFun(String const& name, MemberFunction* node)
   {
     if(m_funs.count(name))
     {
@@ -78,7 +79,7 @@ public:
   //
   // Find a member function
   //
-  virtual bool FindFun(String const& name, Function*& fun) const 
+  virtual bool FindFun(String const& name, MemberFunction*& fun) const 
   {
     FunctionMap::const_iterator it = m_funs.find(name);
     if(it == m_funs.end())
@@ -86,6 +87,32 @@ public:
       return false;
     }
     fun = it->second;
+    return true;
+  }
+
+  //
+  // Add a conversion operator
+  //
+  virtual void AddConversion(String const& name, ConversionOperator* node)
+  {
+    if(m_conv.count(name))
+    {
+      throw std::runtime_error("Conversion already declared");
+    }
+    m_conv[name] = node;
+  }
+
+  //
+  // Finc a conversion operator
+  //
+  virtual bool FindConversion(String const& name, ConversionOperator*& node) const
+  {
+    ConversionMap::const_iterator it = m_conv.find(name);
+    if(it == m_conv.end())
+    {
+      return false;
+    }
+    node = it->second;
     return true;
   }
 
@@ -99,8 +126,9 @@ protected:
   //
   // Types
   //
-  typedef std::map<String, Function*> FunctionMap;
-  typedef std::map<String, Ast*>      NamedNodeMap;
+  typedef std::map<String, Ast*>                NamedNodeMap;
+  typedef std::map<String, MemberFunction*>     FunctionMap;
+  typedef std::map<String, ConversionOperator*> ConversionMap;
 
   //
   // Members
@@ -108,6 +136,7 @@ protected:
   String        m_name;
   NamedNodeMap  m_vars;
   FunctionMap   m_funs;
+  ConversionMap m_conv;
 
 };
 
@@ -125,6 +154,14 @@ public:
   //
   Instance(Class const* c) : m_class (c)
   {
+  }
+
+  //
+  // Class
+  //
+  Class const* GetClass() const
+  {
+    return m_class;
   }
 
   //
@@ -152,7 +189,7 @@ public:
   //
   // Retrieve a function
   //
-  virtual bool FindFun(String const& name, Function*& fun) const 
+  virtual bool FindFun(String const& name, MemberFunction*& fun) const 
   {
     return m_class->FindFun(name, fun);
   }

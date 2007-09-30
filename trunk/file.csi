@@ -25,7 +25,13 @@
 
 class File
 {
+  var m_name;
   var m_file;
+
+  operator string ()
+  {
+    return m_name;
+  }
 
   function Open(filename, mode)
   {
@@ -35,6 +41,7 @@ class File
     {
       return false;
     }
+    m_name = filename;
     this.m_file = f;
   }
 

@@ -85,7 +85,7 @@ void PrintVariant(VariantRef const& ref)
   std::cout << "]";
 }
 
-NATIVE_CALL("function print(value)")
+NATIVE_CALL("function print(string value)")
 {
   PrintVariant(args[0]);
   return args[0];

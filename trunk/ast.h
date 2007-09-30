@@ -79,15 +79,16 @@ enum AstTypes
   access_specifier,
   extern_declaration,
   extern_parameter,
-  builtin_type,
-  class_type,
+  type_specifier,
   positional_arguments,
   named_arguments,
   named_argument,
   try_statement,
   catch_block,
   finally_block,
-  throw_statement
+  throw_statement,
+  conversion_expression,
+  conversion_operator,
 };
 
 enum AccessTypes

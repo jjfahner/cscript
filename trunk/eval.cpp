@@ -20,7 +20,6 @@
 //////////////////////////////////////////////////////////////////////////
 #include "eval.h"
 #include "ast.h"
-#include "parser.h"
 #include "astlist.h"
 #include "native.h"
 #include "scope.h"
@@ -93,6 +92,8 @@ private:
 // Evaluator implementation
 //
 
+Reporter g_reporter;
+
 /*static*/ GlobalScope&
 Evaluator::GetGlobalScope()
 {
@@ -101,6 +102,7 @@ Evaluator::GetGlobalScope()
 }
 
 Evaluator::Evaluator() :
+m_parser  (g_reporter),
 m_scope   (0)
 {
   m_global = new GlobalScope(&GetGlobalScope());
@@ -112,6 +114,9 @@ Evaluator::Reset()
   // Create new global scope
   delete m_global;
   m_global = new GlobalScope(&GetGlobalScope());
+
+  // Reset the parser
+  m_parser.m_types.clear();
 }
 
 inline void 
@@ -130,22 +135,22 @@ PrintLineInfo(script_exception const& e)
 VariantRef 
 Evaluator::Eval(String text)
 {
-  Reporter reporter;
+  // Reset reporter
+  g_reporter.Reset();
 
   // Parse code
-  Parser parser(reporter);
-  parser.ParseText(text.c_str());
+  m_parser.ParseText(text.c_str());
 
   // Check error count
-  if(reporter.GetErrorCount())
+  if(g_reporter.GetErrorCount())
   {
     std::cout << "Aborted.\n";
     return Variant::Null;
   }
 
   // Retrieve code root
-  Ast* root = parser.GetRoot();
-  parser.SetRoot(0);
+  Ast* root = m_parser.GetRoot();
+  m_parser.SetRoot(0);
 
   // Evaluate code
   try
@@ -261,7 +266,8 @@ Evaluator::EvalExpression(Ast* node)
   case list_literal:          return EvalListLiteral(node);
   case new_expression:        return EvalNewExpression(node);
   case this_expression:       return EvalThisExpression();
-  case member_expression:     return EvalMemberExpression(node);
+  case member_expression:     return EvalMemberExpression(node);  
+  case conversion_expression: return EvalConversion(node);
   }
   throw std::out_of_range("Invalid expression type");
 }
@@ -437,6 +443,10 @@ Evaluator::EvalClassDecl(Ast* node)
       cl->AddFun(node->m_a1, new MemberFunction(node->m_a1, cl, node));
       break;
 
+    case conversion_operator:
+      cl->AddConversion(node->m_a1->m_a2, new ConversionOperator(node->m_a1->m_a2, cl, node));
+      break;
+
     default:
       throw std::runtime_error("Invalid member type");
     }
@@ -456,10 +466,12 @@ Evaluator::EvalFunctionCall(Ast* node)
     args.SetInstance(EvalExpression(node->m_a3));
 
     // Resolve function on object
-    if(!args.GetInstance()->FindFun(node->m_a1, fun))
+    MemberFunction* memfun;
+    if(!args.GetInstance()->FindFun(node->m_a1, memfun))
     {
       throw std::runtime_error("Object doesn't support this method");
     }
+    fun = memfun;
   }
   else
   {
@@ -533,10 +545,15 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   AutoScope es(this, new Scope(m_scope));
 
   // Execute expression
-  EvalStatement(fun->GetNode()->m_a3);
-
-  // No return value
-  return Variant();
+  try
+  {
+    EvalStatement(fun->GetNode()->m_a3);
+    return Variant();
+  }
+  catch(return_exception const& e)
+  {
+    return e.m_value;
+  }
 }
 
 void 
@@ -574,6 +591,8 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
       for(; ai != ae; ++ai)
       {
         // Evaluate argument and append on list
+        // Note: arguments in variadic argument list
+        // are always by value - note the dereference.
         args[args.size() - 1]->Append(*EvalExpression(*ai));
       }
 
@@ -600,15 +619,22 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
       value = EvalExpression(*ai);
     }
 
-    // Assign by value/by ref
-    if((*pi)->m_a2.GetNumber() == ptByRef)
+    // Handle byref/byval
+    if((*pi)->m_a2.GetNumber() == ptByVal)
     {
-      args.push_back(value);
+      // Dereference the value
+      value = *value;
     }
-    else
+
+    // Apply type conversion to value
+    if((*pi)->m_a3)
     {
-      args.push_back(*value);
+      // TODO 
+      value = PerformConversion(value, (*pi)->m_a3);
     }
+
+    // Add to argument list
+    args.push_back(value);
 
     // Next iteration
     ++pi;
@@ -622,7 +648,8 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
 void 
 Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& args)
 {
-  // TODO: validate superfluous/double arguments
+  // TODO: validate superfluous/duplicate arguments
+  // TODO: implement type conversions
 
   AstList const* parlist = fun->GetParameters();
 
@@ -676,10 +703,12 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
     // Assign by value/by ref
     if((*pi)->m_a4.GetNumber() == ptByRef)
     {
+      // TODO validate type is correct for byref?
       args.push_back(value);
     }
     else
     {
+      // TODO execute conversion to type
       args.push_back(*value);
     }
   }
@@ -1024,4 +1053,60 @@ Evaluator::EvalTryStatement(Ast* node)
   {
     EvalStatement(node->m_a3->m_a1);
   }
+}
+
+VariantRef 
+Evaluator::EvalConversion(Ast* node)
+{
+  // Evaluate expression
+  // Note: value is derefenced, so conversion
+  // does not happen in-place
+  VariantRef value = *EvalExpression(node->m_a2);
+
+  // Perform the conversion
+  return PerformConversion(value, node->m_a1);
+}
+
+VariantRef 
+Evaluator::PerformConversion(VariantRef value, Ast* typeNode)
+{
+  // Retrieve target type
+  Variant::SubTypes newType = (Variant::SubTypes)
+                typeNode->m_a1.GetNumber();
+
+  // Determine source type
+  Variant::SubTypes oldType = value->GetType();
+
+  // Conversion from class type to any type
+  if(oldType == Variant::stResource)
+  {
+    // Extract instance
+    Instance* inst = value->GetTypedRes<Instance>();
+    
+    // Try to find a conversion operator
+    ConversionOperator* conv;
+    if(inst->GetClass()->FindConversion(typeNode->m_a2, conv))
+    {
+      // Create arguments
+      Arguments args;
+      args.SetInstance(inst);
+
+      // Execute conversion
+      value = conv->Execute(this, args);
+    }
+    else
+    {
+      // Cannot convert to class type
+      throw std::runtime_error("Conversion to class type not implemented");
+    }
+  }
+
+  // Attempt to coerce the type
+  if(value->GetType() != newType)
+  {
+    value->SetType(newType);
+  }
+
+  // Return converted value
+  return value;
 }
