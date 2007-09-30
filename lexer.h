@@ -24,6 +24,7 @@
 #include "types.h"
 
 struct Token;
+class Parser;
 
 class Lexer 
 {
@@ -32,7 +33,7 @@ public:
   //
   // Construction
   //
-  Lexer();
+  Lexer(Parser& parser);
 
   //
   // Lex from string
@@ -62,6 +63,7 @@ private:
   //
   // Members
   //
+  Parser& m_parser;
   Char*   m_source;
   size_t  m_length;
   Char*   m_strptr;

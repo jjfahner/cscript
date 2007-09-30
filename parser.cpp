@@ -78,7 +78,7 @@ void
 Parser::ParseText(char const* text)
 {
   // Create lexer for file
-  Lexer lexer;
+  Lexer lexer(*this);
   lexer.SetText((char*)text);
 
   // Push lexer on stack
@@ -153,12 +153,22 @@ Parser::SetRoot(Ast* root)
 Ast* 
 Parser::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4)
 {
+  // Set file position
   FilePos pos;
   pos.m_file = m_file ? m_file->GetPath() : "";
   pos.m_line = m_lexer->GetLine();
 
+  // Create node
   Ast* node = new Ast(type, a1, a2, a3, a4);  
   node->m_pos = pos;
+  
+  // Register new types
+  if(type == class_declaration)
+  {
+    m_types[a1] = node;
+  }
+  
+  // Return the new node
   return node;
 }
 

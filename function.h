@@ -161,6 +161,30 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Conversion operator
+//
+
+class ConversionOperator : public MemberFunction
+{
+public:
+
+  //
+  // Construction
+  // 
+  ConversionOperator(String name, Class* cl, Ast* node) :
+  MemberFunction(name, cl, node)
+  {
+  }
+
+  //
+  // Override parameters call; conversion operators have no parameters
+  //
+  virtual AstList const* GetParameters() const;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Native function
 //
 

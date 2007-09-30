@@ -79,10 +79,14 @@ private:
   //
   // Members
   //
-  Ast*                m_root;
-  Reporter&           m_reporter;
-  File*               m_file;
-  Lexer*              m_lexer;
+  Ast*                    m_root;
+  Reporter&               m_reporter;
+  File*                   m_file;
+  Lexer*                  m_lexer;
+
+public:
+
+  std::map<String, Ast*>  m_types;
 
 };
 

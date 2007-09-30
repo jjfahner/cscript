@@ -28,6 +28,7 @@
 #include "args.h"
 #include "ast.h"
 #include "function.h"
+#include "parser.h"
 
 class Evaluator
 {
@@ -97,6 +98,7 @@ protected:
   VariantRef EvalPrefix(Ast* node);
   VariantRef EvalPostfix(Ast* node);
   VariantRef EvalIndex(Ast* node);
+  VariantRef EvalConversion(Ast* node);
 
   //
   // Function handlers
@@ -111,6 +113,11 @@ protected:
   Instance* EvalInstance(Ast* node);
 
   //
+  // Convert a value in-place
+  //
+  VariantRef PerformConversion(VariantRef value, Ast* type);
+
+  //
   // Evaluate argument list
   //
   void EvalPositionalArguments(Function* fun, AstList const* arglist, Arguments& args);
@@ -119,6 +126,7 @@ protected:
   //
   // Members
   //
+  Parser        m_parser;
   GlobalScope*  m_global;
   Scope*        m_scope;
 

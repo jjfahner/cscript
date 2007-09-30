@@ -66,6 +66,7 @@ int parseNextToken(Char*& start, Char*& end)
   "int"                     { return TOK_INT; }
   "new"                     { return TOK_NEW; }
   "null"                    { return TOK_NULL; }
+  "operator"                { return TOK_OPERATOR; }
   "return"                  { return TOK_RETURN; }
   "string"                  { return TOK_STRING; }
   "switch"                  { return TOK_SWITCH; }

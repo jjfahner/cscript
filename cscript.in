@@ -188,6 +188,7 @@ primary_expression(R) ::= id_expression(A) .            { R = A; }
 primary_expression(R) ::= LPAREN expression(A) RPAREN . { R = A; }
 primary_expression(R) ::= list_literal(A) .             { R = A; }
 primary_expression(R) ::= THIS .                        { R = p->AllocAst(this_expression); }
+primary_expression(R) ::= type(A) LPAREN expression(B) RPAREN . { R = p->AllocAst(conversion_expression, A, B); }
 
 // Literals
 literal(R) ::= LIT_INTEGER(A) . { R = p->AllocAst(literal_value, Variant(String(A), Variant::stInt)); }
@@ -211,17 +212,18 @@ list_content(R) ::= list_entry(A) COMMA list_content(B) . { R = p->AllocAst(list
 list_entry(R)   ::= expression(A) . { R = p->AllocAst(list_entry, A); }
 
 // New expression
-new_expression(R) ::= NEW IDENTIFIER(A) . { R = p->AllocAst(new_expression, String(A)); }
+new_expression(R) ::= NEW TYPE(A) .       { R = p->AllocAst(new_expression, String(A)); }
+// TODO add error when type is unknown
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Types
 //
 
-type(R) ::= BOOL .          { R = new Ast(builtin_type, Variant::stBool);    }
-type(R) ::= INT .           { R = new Ast(builtin_type, Variant::stInt);     }
-type(R) ::= STRING .        { R = new Ast(builtin_type, Variant::stString);  }
-type(R) ::= IDENTIFIER(A) . { R = new Ast(class_type, String(A));            }
+type(R) ::= BOOL(A) .   { R = new Ast(type_specifier, Variant::stBool,   String(A)); }
+type(R) ::= INT(A) .    { R = new Ast(type_specifier, Variant::stInt,    String(A)); }
+type(R) ::= STRING(A) . { R = new Ast(type_specifier, Variant::stString, String(A)); }
+type(R) ::= TYPE(A) .   { R = new Ast(type_specifier, Variant::stNull,   String(A)); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -299,21 +301,26 @@ declarator_sequence(R) ::= declarator_sequence(A) COMMA declarator(B) . { R = p-
 // Class declaration
 //
 
-class_declaration(R) ::= CLASS IDENTIFIER(A) LBRACE                  RBRACE . { R = p->AllocAst(class_declaration, String(A)); }
+class_declaration(R) ::= CLASS IDENTIFIER(A) LBRACE                  RBRACE . { R = p->AllocAst(class_declaration, String(A), new AstList); }
 class_declaration(R) ::= CLASS IDENTIFIER(A) LBRACE class_members(B) RBRACE . { R = p->AllocAst(class_declaration, String(A), B); }
 
 // Regular variable/function
 class_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; A->m_props["access"] = accessDefault; }
 class_member(R) ::= function_declaration(A) .           { R = A; A->m_props["access"] = accessDefault; }
-class_member(R) ::= access_specifier(A) variable_declaration(B) SEMICOLON . { R = B; B->m_props["access"] = A; }
-class_member(R) ::= access_specifier(A) function_declaration(B) .           { R = B; B->m_props["access"] = A; }
-class_member(R) ::= access_specifier(A) COLON .         { R = p->AllocAst(access_specifier, A); }
+class_member(R) ::= conversion_operator(A) .            { R = A; A->m_props["access"] = accessDefault; }
 
-// Access specifiers
-%type access_specifier { AccessTypes }
-access_specifier(R) ::= PRIVATE   . { R = accessPrivate;   }
-access_specifier(R) ::= PROTECTED . { R = accessProtected; }
-access_specifier(R) ::= PUBLIC .    { R = accessPublic;    }
+//class_member(R) ::= access_specifier(A) variable_declaration(B) SEMICOLON . { R = B; B->m_props["access"] = A; }
+//class_member(R) ::= access_specifier(A) function_declaration(B) .           { R = B; B->m_props["access"] = A; }
+//class_member(R) ::= access_specifier(A) COLON .         { R = p->AllocAst(access_specifier, A); }
+
+// // Access specifiers
+// %type access_specifier { AccessTypes }
+// access_specifier(R) ::= PRIVATE   . { R = accessPrivate;   }
+// access_specifier(R) ::= PROTECTED . { R = accessProtected; }
+// access_specifier(R) ::= PUBLIC .    { R = accessPublic;    }
+
+// Conversion operator - make sure to have approx. the same layout as for regular functions
+conversion_operator(R) ::= OPERATOR type(A) LPAREN RPAREN compound_statement(B) . { R = p->AllocAst(conversion_operator, A, new AstList, B); }
 
 // Class members
 %type class_members { AstList* }
