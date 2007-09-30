@@ -82,7 +82,7 @@ typedef uint8_t           Byte;
 //
 // Compiler version
 //
-#define VERSION (MAKEVER(0,4,0,0))
+#define VERSION (MAKEVER(0,6,0,0))
 
 //
 // Char type
