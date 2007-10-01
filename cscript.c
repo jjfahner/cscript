@@ -1675,22 +1675,22 @@ static void yy_reduce(
         break;
       case 88:
 #line 223 "cscript.in"
-{ yygotominor.yy247 = new Ast(type_specifier, Variant::stBool,   String(yymsp[0].minor.yy0)); }
+{ yygotominor.yy247 = new Ast(type_specifier, Variant::stBool,      String(yymsp[0].minor.yy0)); }
 #line 1681 "cscript.c"
         break;
       case 89:
 #line 224 "cscript.in"
-{ yygotominor.yy247 = new Ast(type_specifier, Variant::stInt,    String(yymsp[0].minor.yy0)); }
+{ yygotominor.yy247 = new Ast(type_specifier, Variant::stInt,       String(yymsp[0].minor.yy0)); }
 #line 1686 "cscript.c"
         break;
       case 90:
 #line 225 "cscript.in"
-{ yygotominor.yy247 = new Ast(type_specifier, Variant::stString, String(yymsp[0].minor.yy0)); }
+{ yygotominor.yy247 = new Ast(type_specifier, Variant::stString,    String(yymsp[0].minor.yy0)); }
 #line 1691 "cscript.c"
         break;
       case 91:
 #line 226 "cscript.in"
-{ yygotominor.yy247 = new Ast(type_specifier, Variant::stNull,   String(yymsp[0].minor.yy0)); }
+{ yygotominor.yy247 = new Ast(type_specifier, Variant::stInstance,  String(yymsp[0].minor.yy0)); }
 #line 1696 "cscript.c"
         break;
       case 92:

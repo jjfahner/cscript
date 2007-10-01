@@ -114,7 +114,7 @@ protected:
   //
   // Convert a value in-place
   //
-  VariantRef PerformConversion(VariantRef value, TypeInfo const& newType);
+  void PerformConversion(VariantRef& value, TypeInfo const& newType);
 
   //
   // Evaluate argument list

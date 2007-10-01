@@ -171,15 +171,31 @@ public:
   //
   // Construction
   // 
-  ConversionOperator(String name, Class* cl, Ast* node) :
-  MemberFunction(name, cl, node)
+  ConversionOperator(Class* cl, TypeInfo const& ti, Ast* node) :
+  MemberFunction(ti.GetName(), cl, node),
+  m_ti (ti)
   {
+  }
+
+  //
+  // Retrieve type info
+  //
+  TypeInfo const& GetTypeInfo() const
+  {
+    return m_ti;
   }
 
   //
   // Override parameters call; conversion operators have no parameters
   //
   virtual AstList const* GetParameters() const;
+
+protected:
+
+  //
+  // Members
+  //
+  TypeInfo m_ti;
 
 };
 

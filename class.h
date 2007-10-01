@@ -23,6 +23,7 @@
 
 #include "types.h"
 #include "var.h"
+#include "typeinfo.h"
 
 class Evaluator;
 class MemberFunction;
@@ -93,28 +94,12 @@ public:
   //
   // Add a conversion operator
   //
-  virtual void AddConversion(String const& name, ConversionOperator* node)
-  {
-    if(m_conv.count(name))
-    {
-      throw std::runtime_error("Conversion already declared");
-    }
-    m_conv[name] = node;
-  }
+  virtual void AddConversion(ConversionOperator* node);
 
   //
   // Finc a conversion operator
   //
-  virtual bool FindConversion(String const& name, ConversionOperator*& node) const
-  {
-    ConversionMap::const_iterator it = m_conv.find(name);
-    if(it == m_conv.end())
-    {
-      return false;
-    }
-    node = it->second;
-    return true;
-  }
+  virtual bool FindConversion(TypeInfo const& type, ConversionOperator*& node) const;
 
   //
   // Construct an instance
@@ -126,9 +111,9 @@ protected:
   //
   // Types
   //
-  typedef std::map<String, Ast*>                NamedNodeMap;
-  typedef std::map<String, MemberFunction*>     FunctionMap;
-  typedef std::map<String, ConversionOperator*> ConversionMap;
+  typedef std::map<String,    Ast*>                NamedNodeMap;
+  typedef std::map<String,    MemberFunction*>     FunctionMap;
+  typedef std::map<TypeInfo,  ConversionOperator*> ConversionMap;
 
   //
   // Members

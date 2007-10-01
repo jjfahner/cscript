@@ -21,6 +21,29 @@
 #include "class.h"
 #include "ast.h"
 #include "eval.h"
+#include "function.h"
+
+void 
+Class::AddConversion(ConversionOperator* node)
+{
+  if(m_conv.count(node->GetTypeInfo()))
+  {
+    throw std::runtime_error("Conversion already declared");
+  }
+  m_conv[node->GetTypeInfo()] = node;
+}
+
+bool 
+Class::FindConversion(TypeInfo const& type, ConversionOperator*& node) const
+{
+  ConversionMap::const_iterator it = m_conv.find(type);
+  if(it == m_conv.end())
+  {
+    return false;
+  }
+  node = it->second;
+  return true;
+}
 
 Instance* 
 Class::CreateInstance(Evaluator* eval) const

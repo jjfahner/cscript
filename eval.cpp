@@ -444,7 +444,7 @@ Evaluator::EvalClassDecl(Ast* node)
       break;
 
     case conversion_operator:
-      cl->AddConversion(node->m_a1->m_a2, new ConversionOperator(node->m_a1->m_a2, cl, node));
+      cl->AddConversion(new ConversionOperator(cl, node->m_a1.GetNode(), node));
       break;
 
     default:
@@ -629,8 +629,7 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
     // Apply type conversion to value
     if((*pi)->m_a3)
     {
-      // TODO 
-      value = PerformConversion(value, (*pi)->m_a3.GetNode());
+      PerformConversion(value, (*pi)->m_a3.GetNode());
     }
 
     // Add to argument list
@@ -1027,11 +1026,12 @@ Evaluator::EvalConversion(Ast* node)
   VariantRef value = *EvalExpression(node->m_a2);
 
   // Perform the conversion
-  return PerformConversion(value, node->m_a1.GetNode());
+  PerformConversion(value, node->m_a1.GetNode());
+  return value;
 }
 
-VariantRef 
-Evaluator::PerformConversion(VariantRef value, TypeInfo const& newType)
+void 
+Evaluator::PerformConversion(VariantRef& value, TypeInfo const& newType)
 {
   // Determine old type
   TypeInfo oldType(value);
@@ -1039,10 +1039,10 @@ Evaluator::PerformConversion(VariantRef value, TypeInfo const& newType)
   // Ignore when equal
   if(oldType == newType)
   {
-    return value;
+    return;
   }
 
-  // Conversion from class type to any type
+  // Conversion from class type via conversion operator
   if(oldType == Variant::stInstance)
   {
     // Extract instance
@@ -1058,20 +1058,23 @@ Evaluator::PerformConversion(VariantRef value, TypeInfo const& newType)
 
       // Execute conversion
       value = conv->Execute(this, args);
-    }
-    else
-    {
-      // Cannot convert to class type
-      throw std::runtime_error("Conversion to class type not implemented");
+      return;
     }
   }
 
-  // Attempt to coerce the type
-  if(value->GetType() != newType)
+  // Conversion to class type via constructor
+  if(newType == Variant::stInstance)
   {
-    value->SetType(newType);
+    // TODO
   }
 
-  // Return converted value
-  return value;
+  // No way to convert from/to instance
+  if(oldType == Variant::stInstance || newType == Variant::stInstance)
+  {
+    throw std::runtime_error("Cannot convert from '" + oldType.GetName() + 
+                                            "' to '" + newType.GetName() + "'");
+  }
+
+  // Attempt to perform scalar conversion
+  value->SetType(newType);
 }
