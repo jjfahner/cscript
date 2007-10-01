@@ -435,12 +435,16 @@ Evaluator::EvalClassDecl(Ast* node)
     Ast* node = *it;
     switch(node->m_type)
     {
+    case constructor:
+      cl->SetConstructor(new Constructor(cl, node));
+      break;
+
     case variable_declaration:
-      cl->AddVar(node->m_a1, node);
+      cl->AddVariable(node->m_a1, node);
       break;
 
     case function_declaration:
-      cl->AddFun(node->m_a1, new MemberFunction(node->m_a1, cl, node));
+      cl->AddFunction(node->m_a1, new MemberFunction(node->m_a1, cl, node));
       break;
 
     case conversion_operator:
@@ -927,14 +931,50 @@ Evaluator::EvalNewExpression(Ast* node)
 {
   // Find class type
   Class* c = 0;
-  if(!m_scope->FindClass(node->m_a1, c))
+  if(!m_scope->FindClass(node->m_a1->m_a2, c))
   {
     throw std::runtime_error("Undefined class '" + 
-                    node->m_a1.GetString() + "'");
+              node->m_a1->m_a2.GetString() + "'");
   }
 
   // Instantiate
-  return c->CreateInstance(this);
+  Instance* inst = c->CreateInstance(this);
+
+  // Execute constructor
+  if(Constructor* fun = inst->GetClass()->GetConstructor())
+  {
+    // Prep arguments
+    Arguments args;
+    args.SetInstance(inst);
+    args.SetParameters(fun->GetParameters());
+
+    // Evaluate arguments
+    if(node->m_a2->m_type == positional_arguments)
+    {
+      EvalPositionalArguments(fun, node->m_a2->m_a1, args);
+    }
+    else
+    {
+      EvalNamedArguments(fun, node->m_a2->m_a1, args);
+    }
+    
+    // Execute constructor
+    try 
+    {
+      fun->Execute(this, args);
+    }
+    catch(return_exception const&)
+    {
+
+    }
+    catch(...)
+    {
+      delete inst;
+    }
+  }
+
+  // Done
+  return inst;
 }
 
 VariantRef 

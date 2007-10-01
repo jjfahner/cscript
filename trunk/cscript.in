@@ -212,8 +212,8 @@ list_content(R) ::= list_entry(A) COMMA list_content(B) . { R = p->AllocAst(list
 list_entry(R)   ::= expression(A) . { R = p->AllocAst(list_entry, A); }
 
 // New expression
-new_expression(R) ::= NEW TYPE(A) .       { R = p->AllocAst(new_expression, String(A)); }
-// TODO add error when type is unknown
+new_expression(R) ::= NEW type(A) .                                { R = p->AllocAst(new_expression, A, new AstList); }
+new_expression(R) ::= NEW type(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(new_expression, A, B); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -301,23 +301,21 @@ declarator_sequence(R) ::= declarator_sequence(A) COMMA declarator(B) . { R = p-
 // Class declaration
 //
 
-class_declaration(R) ::= CLASS IDENTIFIER(A) LBRACE                  RBRACE . { R = p->AllocAst(class_declaration, String(A), new AstList); }
-class_declaration(R) ::= CLASS IDENTIFIER(A) LBRACE class_members(B) RBRACE . { R = p->AllocAst(class_declaration, String(A), B); }
+// Class split into header and body to ensure early registration of the class name
+class_declaration(R) ::= class_start(A) LBRACE                  RBRACE . { R = A; A->m_a2 = new AstList; }
+class_declaration(R) ::= class_start(A) LBRACE class_members(B) RBRACE . { R = A; A->m_a2 = B; }
 
-// Regular variable/function
-class_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; A->m_props["access"] = accessDefault; }
-class_member(R) ::= function_declaration(A) .           { R = A; A->m_props["access"] = accessDefault; }
-class_member(R) ::= conversion_operator(A) .            { R = A; A->m_props["access"] = accessDefault; }
+// Class start
+class_start(R) ::= CLASS IDENTIFIER(A) . { R = p->AllocAst(class_declaration, String(A)); }
 
-//class_member(R) ::= access_specifier(A) variable_declaration(B) SEMICOLON . { R = B; B->m_props["access"] = A; }
-//class_member(R) ::= access_specifier(A) function_declaration(B) .           { R = B; B->m_props["access"] = A; }
-//class_member(R) ::= access_specifier(A) COLON .         { R = p->AllocAst(access_specifier, A); }
+// Class members
+class_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
+class_member(R) ::= function_declaration(A) .           { R = A; }
+class_member(R) ::= conversion_operator(A) .            { R = A; }
+class_member(R) ::= constructor(A) .                    { R = A; }
 
-// // Access specifiers
-// %type access_specifier { AccessTypes }
-// access_specifier(R) ::= PRIVATE   . { R = accessPrivate;   }
-// access_specifier(R) ::= PROTECTED . { R = accessProtected; }
-// access_specifier(R) ::= PUBLIC .    { R = accessPublic;    }
+// Constructor
+constructor(R) ::= type(A) LPAREN parameter_list(B) RPAREN compound_statement(C) . { R = p->AllocAst(constructor, A, B, C); }
 
 // Conversion operator - make sure to have approx. the same layout as for regular functions
 conversion_operator(R) ::= OPERATOR type(A) LPAREN RPAREN compound_statement(B) . { R = p->AllocAst(conversion_operator, A, new AstList, B); }

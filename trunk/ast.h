@@ -89,6 +89,7 @@ enum AstTypes
   throw_statement,
   conversion_expression,
   conversion_operator,
+  constructor,
 };
 
 enum AccessTypes
