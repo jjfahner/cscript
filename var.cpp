@@ -19,11 +19,22 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "var.h"
+#include "class.h"
 
 /*static*/ const Variant Variant::Null;
 /*static*/ const Variant Variant::True(true);
 /*static*/ const Variant Variant::False(false);
 
+Variant::Variant(Instance* inst) :
+m_type (stNull),
+m_inst (0)
+{
+  if(m_inst = inst)
+  {
+    m_type = stInstance;
+    ++m_inst->m_refs;
+  }
+}
 
 Variant const& 
 Variant::operator = (Variant const& rhs)
@@ -46,6 +57,7 @@ Variant::operator = (Variant const& rhs)
   {
   case stString:   m_str = new StringType(*m_str); break;
   case stAssoc:    m_map = new AssocType(*m_map);  break;
+  case stInstance: m_inst->m_refs++;               break;
   case stResource: m_res->m_refs++;                break;
   }
 
@@ -64,6 +76,9 @@ Variant::Clear()
     break;
   case stAssoc:    
     delete m_map; 
+    break;
+  case stInstance:
+    if(--m_res->m_refs == 0) delete m_inst;
     break;
   case stResource: 
     if(--m_res->m_refs == 0) delete m_res; 
@@ -222,6 +237,8 @@ Variant::Compare(Variant const& rhs, bool exact) const
     if(diff > 0) return  1;
     return 0;
   }
+
+  // TODO compare instances?
 
   // Cannot compare
   return -1;

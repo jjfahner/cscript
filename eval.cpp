@@ -463,7 +463,7 @@ Evaluator::EvalFunctionCall(Ast* node)
   if(node->m_a3)
   {
     // Evaluate instance expression
-    args.SetInstance(EvalExpression(node->m_a3));
+    args.SetInstance(EvalExpression(node->m_a3)->GetInstance());
 
     // Resolve function on object
     MemberFunction* memfun;
@@ -484,7 +484,7 @@ Evaluator::EvalFunctionCall(Ast* node)
     // In case of member function, prepend instance
     if(dynamic_cast<MemberFunction*>(fun))
     {
-      args.SetInstance(EvalThisExpression());
+      args.SetInstance(EvalThisExpression()->GetInstance());
     }
   }
 
@@ -712,43 +712,6 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
       args.push_back(*value);
     }
   }
-}
-
-Instance* 
-Evaluator::EvalInstance(Ast* node)
-{
-  // Evaluate expression
-  VariantRef instVar = EvalExpression(node);
-
-  // Depending on type, box the return value
-  switch(instVar->GetType())
-  {
-  case Variant::stResource:
-    break;
-  case Variant::stBool:
-  case Variant::stInt:
-  case Variant::stString:
-  case Variant::stAssoc:
-//    return instVar;
-  default:
-    throw std::runtime_error("Expression does not yield an object");
-  }
-
-  // Must be a resource
-  if(instVar->GetType() != Variant::stResource)
-  {
-    throw std::runtime_error("Expression does not yield a class instance");
-  }
-  
-  // Must be an instance
-  Instance* instPtr = dynamic_cast<Instance*>(instVar->GetResource());
-  if(instPtr == 0)
-  {
-    throw std::runtime_error("Expression does not yield a class instance");
-  }
-
-  // Done
-  return instPtr;
 }
 
 VariantRef 
@@ -979,7 +942,7 @@ VariantRef
 Evaluator::EvalMemberExpression(Ast* node)
 {
   // Evaluate left side
-  Instance* instPtr = EvalInstance(node->m_a1);
+  Instance* instPtr = EvalExpression(node->m_a1)->GetInstance();
 
   // Retrieve value
   VariantRef ref;
@@ -1080,10 +1043,10 @@ Evaluator::PerformConversion(VariantRef value, TypeInfo const& newType)
   }
 
   // Conversion from class type to any type
-  if(oldType == Variant::stResource)
+  if(oldType == Variant::stInstance)
   {
     // Extract instance
-    Instance* inst = value->GetTypedRes<Instance>();
+    Instance* inst = value->GetInstance();
     
     // Try to find a conversion operator
     ConversionOperator* conv;
