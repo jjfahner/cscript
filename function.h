@@ -161,6 +161,25 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Constructor
+//
+
+class Constructor : public MemberFunction
+{
+public:
+
+  //
+  // Construction
+  //
+  Constructor(Class* cl, Ast* node) :
+  MemberFunction("", cl, node)
+  {
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Conversion operator
 //
 

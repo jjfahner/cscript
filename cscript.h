@@ -45,10 +45,10 @@
 #define TOK_NULL                           45
 #define TOK_COMMA                          46
 #define TOK_NEW                            47
-#define TOK_TYPE                           48
-#define TOK_BOOL                           49
-#define TOK_INT                            50
-#define TOK_STRING                         51
+#define TOK_BOOL                           48
+#define TOK_INT                            49
+#define TOK_STRING                         50
+#define TOK_TYPE                           51
 #define TOK_SEMICOLON                      52
 #define TOK_LBRACE                         53
 #define TOK_RBRACE                         54

@@ -28,6 +28,7 @@
 class Evaluator;
 class MemberFunction;
 class ConversionOperator;
+class Constructor;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -41,7 +42,9 @@ public:
   //
   // Construction
   //
-  Class(String const& name) : m_name (name)
+  Class(String const& name) : 
+  m_name (name),
+  m_constructor (0)
   {
   }
 
@@ -54,9 +57,29 @@ public:
   }
 
   //
+  // Fetch constructors
+  //
+  virtual Constructor* GetConstructor() const
+  {
+    return m_constructor;
+  }
+
+  //
+  // Add a constructor
+  //
+  virtual void SetConstructor(Constructor* constructor)
+  {
+    if(m_constructor)
+    {
+      throw std::runtime_error("Class already has a constructor");
+    }
+    m_constructor = constructor;
+  }
+  
+  //
   // Add a member variable
   //
-  virtual void AddVar(String const& name, Ast* node)
+  virtual void AddVariable(String const& name, Ast* node)
   {
     if(m_vars.count(name))
     {
@@ -68,7 +91,7 @@ public:
   //
   // Add a member function
   //
-  virtual void AddFun(String const& name, MemberFunction* node)
+  virtual void AddFunction(String const& name, MemberFunction* node)
   {
     if(m_funs.count(name))
     {
@@ -119,6 +142,7 @@ protected:
   // Members
   //
   String        m_name;
+  Constructor*  m_constructor;
   NamedNodeMap  m_vars;
   FunctionMap   m_funs;
   ConversionMap m_conv;
