@@ -220,10 +220,10 @@ new_expression(R) ::= NEW TYPE(A) .       { R = p->AllocAst(new_expression, Stri
 // Types
 //
 
-type(R) ::= BOOL(A) .   { R = new Ast(type_specifier, Variant::stBool,   String(A)); }
-type(R) ::= INT(A) .    { R = new Ast(type_specifier, Variant::stInt,    String(A)); }
-type(R) ::= STRING(A) . { R = new Ast(type_specifier, Variant::stString, String(A)); }
-type(R) ::= TYPE(A) .   { R = new Ast(type_specifier, Variant::stNull,   String(A)); }
+type(R) ::= BOOL(A) .   { R = new Ast(type_specifier, Variant::stBool,      String(A)); }
+type(R) ::= INT(A) .    { R = new Ast(type_specifier, Variant::stInt,       String(A)); }
+type(R) ::= STRING(A) . { R = new Ast(type_specifier, Variant::stString,    String(A)); }
+type(R) ::= TYPE(A) .   { R = new Ast(type_specifier, Variant::stInstance,  String(A)); }
 
 //////////////////////////////////////////////////////////////////////////
 //
