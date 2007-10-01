@@ -40,10 +40,6 @@ public:
   {
     m_instance = instance;
   }
-  void SetInstance(VariantRef const& instance)
-  {
-    m_instance = instance->GetTypedRes<Instance>();
-  }
 
   //
   // Parameters

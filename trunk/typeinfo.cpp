@@ -32,11 +32,7 @@ TypeInfo::GetTypeName(Variant const& value)
   case Variant::stInt:      return "int";
   case Variant::stString:   return "string";
   case Variant::stAssoc:    return "assoc";
-  case Variant::stResource:
-    if(Instance* inst = dynamic_cast<Instance*>(value.GetResource()))
-    {
-      return inst->GetClass()->GetName();
-    }
+  case Variant::stInstance: return value.GetInstance()->GetClass()->GetName();
   }
   throw std::runtime_error("Unknown type");
 }

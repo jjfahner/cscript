@@ -112,11 +112,6 @@ protected:
   VariantRef EvalScriptCall(ScriptFunction* fun, Arguments& args);
 
   //
-  // Evaluate expression expecting an instance
-  //
-  Instance* EvalInstance(Ast* node);
-
-  //
   // Convert a value in-place
   //
   VariantRef PerformConversion(VariantRef value, TypeInfo const& newType);

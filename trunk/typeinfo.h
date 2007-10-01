@@ -104,7 +104,7 @@ operator == (TypeInfo const& lhs, TypeInfo const& rhs)
   {
     return false;
   }
-  if(lhs.GetType() != Variant::stResource)
+  if(lhs.GetType() != Variant::stInstance)
   {
     return true;
   }

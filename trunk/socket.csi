@@ -77,10 +77,12 @@ class Socket
     {
       throw "socket not connected";
     }
-    if(recv(m_socket, length, timeout) === false)
+    var result = recv(m_socket, length, timeout);
+    if(result === false)
     {
       throw "failed to receive data";
     }
+    return result;
   }
 
 };

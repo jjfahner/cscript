@@ -25,6 +25,7 @@
 #include "ref.h"
 
 class Variant;
+class Instance;
 
 typedef Ref<Variant> VariantRef;
 
@@ -46,6 +47,7 @@ public:
     stReal,
     stString,
     stAssoc,
+    stInstance,
     stResource,
   };
 
@@ -195,6 +197,11 @@ public:
   }
 
   //
+  // Instance construction
+  //
+  Variant(Instance* inst);
+
+  //
   // Resource construction
   //
   Variant(ResType* value) :
@@ -250,7 +257,7 @@ public:
   {
     if(m_type != stBool)
     {
-      throw std::runtime_error("Invalid subtype");
+      throw std::runtime_error("Variant is not of type 'stBool'");
     }
     return m_bln;
   }
@@ -258,7 +265,7 @@ public:
   {
     if(m_type != stBool)
     {
-      throw std::runtime_error("Invalid subtype");
+      throw std::runtime_error("Variant is not of type 'stBool'");
     }
     return m_bln;
   }
@@ -266,7 +273,7 @@ public:
   {
     if(m_type != stInt)
     {
-      throw std::runtime_error("Invalid subtype");
+      throw std::runtime_error("Variant is not of type 'stInt'");
     }
     return m_int;
   }
@@ -274,7 +281,7 @@ public:
   {
     if(m_type != stInt)
     {
-      throw std::runtime_error("Invalid subtype");
+      throw std::runtime_error("Variant is not of type 'stInt'");
     }
     return m_int;
   }
@@ -282,7 +289,7 @@ public:
   {
     if(m_type != stString)
     {
-      throw std::runtime_error("Invalid subtype");
+      throw std::runtime_error("Variant is not of type 'stString'");
     }
     return *m_str;
   }
@@ -290,7 +297,7 @@ public:
   {
     if(m_type != stString)
     {
-      throw std::runtime_error("Invalid subtype");
+      throw std::runtime_error("Variant is not of type 'stString'");
     }
     return *m_str;
   }
@@ -298,7 +305,7 @@ public:
   {
     if(m_type != stAssoc)
     {
-      throw std::runtime_error("Invalid subtype");
+      throw std::runtime_error("Variant is not of type 'stAssoc'");
     }
     return *m_map;
   }
@@ -306,15 +313,31 @@ public:
   {
     if(m_type != stAssoc)
     {
-      throw std::runtime_error("Invalid subtype");
+      throw std::runtime_error("Variant is not of type 'stAssoc'");
     }
     return *m_map;
+  }
+  Instance* GetInstance()
+  {
+    if(m_type != stInstance)
+    {
+      throw std::runtime_error("Variant is not of type 'stInstance'");
+    }
+    return m_inst;
+  }
+  Instance const* GetInstance() const
+  {
+    if(m_type != stInstance)
+    {
+      throw std::runtime_error("Variant is not of type 'stInstance'");
+    }
+    return m_inst;
   }
   ResType* GetResource() const
   {
     if(m_type != stResource)
     {
-      throw std::runtime_error("Invalid subtype");
+      throw std::runtime_error("Variant is not of type 'stInstance'");
     }
     return m_res;
   }
@@ -324,7 +347,7 @@ public:
     T* ptr;
     if(m_type != stResource || (ptr = dynamic_cast<T*>(m_res)) == 0)
     {
-      throw std::runtime_error("Invalid subtype");
+      throw std::runtime_error("Variant is not of type 'stInstance'");
     }
     return ptr;
   }
@@ -436,6 +459,7 @@ private:
     IntType     m_int;
     AssocType*  m_map;
     StringType* m_str;
+    Instance*   m_inst;
     ResType*    m_res;
   };  
 
