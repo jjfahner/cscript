@@ -260,6 +260,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\typeinfo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\typeinfo.h"
+				>
+			</File>
+			<File
 				RelativePath=".\var.cpp"
 				>
 			</File>

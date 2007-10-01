@@ -29,7 +29,11 @@
 #include "ast.h"
 #include "function.h"
 #include "parser.h"
+#include "typeinfo.h"
 
+//
+// Evaluator
+//
 class Evaluator
 {
 public:
@@ -115,7 +119,7 @@ protected:
   //
   // Convert a value in-place
   //
-  VariantRef PerformConversion(VariantRef value, Ast* type);
+  VariantRef PerformConversion(VariantRef value, TypeInfo const& newType);
 
   //
   // Evaluate argument list

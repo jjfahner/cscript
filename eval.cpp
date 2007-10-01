@@ -138,23 +138,23 @@ Evaluator::Eval(String text)
   // Reset reporter
   g_reporter.Reset();
 
-  // Parse code
-  m_parser.ParseText(text.c_str());
-
-  // Check error count
-  if(g_reporter.GetErrorCount())
-  {
-    std::cout << "Aborted.\n";
-    return Variant::Null;
-  }
-
-  // Retrieve code root
-  Ast* root = m_parser.GetRoot();
-  m_parser.SetRoot(0);
-
-  // Evaluate code
   try
   {
+    // Parse code
+    m_parser.ParseText(text.c_str());
+
+    // Check error count
+    if(g_reporter.GetErrorCount())
+    {
+      std::cout << "Aborted.\n";
+      return Variant::Null;
+    }
+
+    // Retrieve code root
+    Ast* root = m_parser.GetRoot();
+    m_parser.SetRoot(0);
+
+    // Evaluate code
     AutoScope gs(this, m_global);
     EvalStatement(root);
   }
@@ -630,7 +630,7 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
     if((*pi)->m_a3)
     {
       // TODO 
-      value = PerformConversion(value, (*pi)->m_a3);
+      value = PerformConversion(value, (*pi)->m_a3.GetNode());
     }
 
     // Add to argument list
@@ -1064,18 +1064,20 @@ Evaluator::EvalConversion(Ast* node)
   VariantRef value = *EvalExpression(node->m_a2);
 
   // Perform the conversion
-  return PerformConversion(value, node->m_a1);
+  return PerformConversion(value, node->m_a1.GetNode());
 }
 
 VariantRef 
-Evaluator::PerformConversion(VariantRef value, Ast* typeNode)
+Evaluator::PerformConversion(VariantRef value, TypeInfo const& newType)
 {
-  // Retrieve target type
-  Variant::SubTypes newType = (Variant::SubTypes)
-                typeNode->m_a1.GetNumber();
+  // Determine old type
+  TypeInfo oldType(value);
 
-  // Determine source type
-  Variant::SubTypes oldType = value->GetType();
+  // Ignore when equal
+  if(oldType == newType)
+  {
+    return value;
+  }
 
   // Conversion from class type to any type
   if(oldType == Variant::stResource)
@@ -1085,7 +1087,7 @@ Evaluator::PerformConversion(VariantRef value, Ast* typeNode)
     
     // Try to find a conversion operator
     ConversionOperator* conv;
-    if(inst->GetClass()->FindConversion(typeNode->m_a2, conv))
+    if(inst->GetClass()->FindConversion(newType, conv))
     {
       // Create arguments
       Arguments args;

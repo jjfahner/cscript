@@ -310,7 +310,7 @@ public:
     }
     return *m_map;
   }
-  ResType* GetResource()
+  ResType* GetResource() const
   {
     if(m_type != stResource)
     {
