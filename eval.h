@@ -28,8 +28,9 @@
 #include "args.h"
 #include "ast.h"
 #include "function.h"
-#include "parser.h"
 #include "typeinfo.h"
+
+class Lexer;
 
 //
 // Evaluator
@@ -63,6 +64,45 @@ public:
   // Reset the evaluator
   //
   void Reset();
+
+
+  //
+  // Parse a string
+  //
+  void ParseText(char const* text);
+
+  //
+  // Parse a file
+  //
+  void Parse(File& file);
+  void Parse(String const& filename);
+
+  //
+  // Root node
+  //
+  Ast* GetRoot() const;
+  void SetRoot(Ast* root);
+
+  //
+  // Allocate node
+  //
+  Ast* AllocAst(AstTypes type, 
+    AstData const& a1 = AstData(), 
+    AstData const& a2 = AstData(), 
+    AstData const& a3 = AstData(), 
+    AstData const& a4 = AstData());
+
+  //
+  // Error handlers
+  //
+  void OnParseFailure();
+  void OnSyntaxError();
+
+  Ast*                    m_root;
+  Reporter                m_reporter;
+  File*                   m_file;
+  Lexer*                  m_lexer;
+  std::map<String, Ast*>  m_types;
 
 protected:
 
@@ -125,7 +165,6 @@ protected:
   //
   // Members
   //
-  Parser        m_parser;
   GlobalScope*  m_global;
   Scope*        m_scope;
 

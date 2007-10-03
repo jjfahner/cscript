@@ -21,7 +21,7 @@
 #include "lexer.h"
 #include "tokens.h"
 #include "lexer.gen"
-#include "parser.h"
+#include "eval.h"
 
 #include <fstream>
 
@@ -30,8 +30,8 @@
 // Lexer implementation
 //
 
-Lexer::Lexer(Parser& parser) :
-m_parser  (parser),
+Lexer::Lexer(Evaluator& evaluator) :
+m_evaluator (evaluator),
 m_strptr  (0),
 m_line    (0),
 m_string  (0)
@@ -117,8 +117,8 @@ Lexer::Lex(Token& token)
 
     // Type detection
     std::map<String, Ast*>::const_iterator it;
-    it = m_parser.m_types.find(String(token));
-    if(it != m_parser.m_types.end())
+    it = m_evaluator.m_types.find(String(token));
+    if(it != m_evaluator.m_types.end())
     {
       token.m_type = TOK_TYPE;
     }

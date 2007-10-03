@@ -20,7 +20,6 @@
 //////////////////////////////////////////////////////////////////////////
 #include "function.h"
 #include "eval.h"
-#include "parser.h"
 #include "astlist.h"
 
 AstList const* 
@@ -47,22 +46,17 @@ Function  (""),
 m_call    (call)
 {
   // Create parser
-  Reporter rep;
-  Parser p(rep);
+  Evaluator eval;
 
   // Parse declaration
-  p.ParseText((decl + ";").c_str());
-  if(rep.GetErrorCount())
-  {
-    throw std::logic_error("Invalid native function declaration");
-  }
+  eval.ParseText((decl + ";").c_str());
 
   // Extract name and parameter list
-  m_name = p.GetRoot()->m_a1->m_a1.GetString();
-  m_pars = p.GetRoot()->m_a1->m_a2.GetList();
+  m_name = eval.GetRoot()->m_a1->m_a1.GetString();
+  m_pars = eval.GetRoot()->m_a1->m_a2.GetList();
 
   // Make sure the tree isn't deleted
-  p.SetRoot(0);
+  eval.SetRoot(0);
 }
 
 VariantRef
