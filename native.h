@@ -35,8 +35,18 @@ typedef VariantRef (*NativeCall)(Evaluator* evaluator, Arguments const& args);
 //
 // Registrar for native calls
 //
-struct NativeCallRegistrar
+class NativeCallRegistrar
 {
+public:
+
+  //
+  // Execute prior to creating evaluators
+  //
+  static void RegisterCalls();
+
+  //
+  // Invoked automatically by NATIVE_CALL macro
+  //
   NativeCallRegistrar(String const& decl, NativeCall call);
 };
 

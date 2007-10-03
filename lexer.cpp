@@ -22,6 +22,7 @@
 #include "tokens.h"
 #include "lexer.gen"
 #include "eval.h"
+#include "cscript.c"
 
 #include <fstream>
 
@@ -116,9 +117,7 @@ Lexer::Lex(Token& token)
     }
 
     // Type detection
-    std::map<String, Ast*>::const_iterator it;
-    it = m_evaluator.m_types.find(String(token));
-    if(it != m_evaluator.m_types.end())
+    if(token.m_type == TOK_IDENTIFIER && m_evaluator.FindType(token))
     {
       token.m_type = TOK_TYPE;
     }

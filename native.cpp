@@ -29,12 +29,45 @@
 #include <stdlib.h>
 #endif
 
+struct CallInfo
+{
+  String      m_decl;
+  NativeCall  m_call;
+
+  CallInfo(String const& decl = String(), NativeCall call = 0) :
+  m_decl (decl),
+  m_call (call)
+  {
+  }
+};
+
+typedef std::list<CallInfo> CallInfoList;
+
+CallInfoList& GetCallInfoList()
+{
+  static CallInfoList list;
+  return list;
+}
+
 //
 // Register a native call
 //
 NativeCallRegistrar::NativeCallRegistrar(String const& decl, NativeCall call)
 {
-  Evaluator::GetGlobalScope().AddFun(new NativeFunction(decl, call));
+  GetCallInfoList().push_back(CallInfo(decl, call));
+}
+
+/*static*/ void 
+NativeCallRegistrar::RegisterCalls()
+{
+  std::list<CallInfo>::iterator it, ie;
+  it = GetCallInfoList().begin();
+  ie = GetCallInfoList().end();
+  for(; it != ie; ++it)
+  {
+    Evaluator::GetGlobalScope().AddFun(
+      new NativeFunction(it->m_decl, it->m_call));
+  }
 }
 
 //
@@ -85,13 +118,13 @@ void PrintVariant(VariantRef const& ref)
   std::cout << "]";
 }
 
-NATIVE_CALL("function print(string value)")
+NATIVE_CALL("__native print(string value)")
 {
   PrintVariant(args[0]);
   return args[0];
 }
 
-NATIVE_CALL("function exit(int exitcode = 0)")
+NATIVE_CALL("__native exit(int exitcode = 0)")
 {
   // Exit with specified exit code
   exit((int) args[0]->AsInt());
@@ -100,7 +133,7 @@ NATIVE_CALL("function exit(int exitcode = 0)")
   throw std::runtime_error("exit() failed");
 }
 
-NATIVE_CALL("function quit(int exitcode = 0)")
+NATIVE_CALL("__native quit(int exitcode = 0)")
 {
   // Exit with specified exit code
   exit((int) args[0]->AsInt());
@@ -109,14 +142,14 @@ NATIVE_CALL("function quit(int exitcode = 0)")
   throw std::runtime_error("exit() failed");
 }
 
-NATIVE_CALL("function read()")
+NATIVE_CALL("__native read()")
 {
   String line;
   std::cin >> line;
   return Variant(line);
 }
 
-NATIVE_CALL("function count(arg)")
+NATIVE_CALL("__native count(arg)")
 {
   if(args[0]->GetType() != Variant::stAssoc)
   {
@@ -125,7 +158,7 @@ NATIVE_CALL("function count(arg)")
   return Variant(args[0]->GetMap().size());
 }
 
-NATIVE_CALL("function exec(string command)")
+NATIVE_CALL("__native exec(string command)")
 {
   // Pass to system
   return Variant(system(args[0]->GetString().c_str()));
@@ -136,13 +169,13 @@ NATIVE_CALL("function exec(string command)")
 // String functions
 //
 
-NATIVE_CALL("function strlen(string value)")
+NATIVE_CALL("__native strlen(string value)")
 {
   ASSERT_TYPE(0, stString);
   return Variant(args[0]->GetString().length());
 }
 
-NATIVE_CALL("function substr(string data, int start, int len = 0)")
+NATIVE_CALL("__native substr(string data, int start, int len = 0)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stInt);
@@ -153,7 +186,7 @@ NATIVE_CALL("function substr(string data, int start, int len = 0)")
   return Variant(args[0]->GetString().substr(off, len));
 }
 
-NATIVE_CALL("function strstr(string data, string what, int start = 0)")
+NATIVE_CALL("__native strstr(string data, string what, int start = 0)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
@@ -173,7 +206,7 @@ NATIVE_CALL("function strstr(string data, string what, int start = 0)")
   return Variant(res);
 }
 
-NATIVE_CALL("function strchr(string data, string char, int start = 0)")
+NATIVE_CALL("__native strchr(string data, string char, int start = 0)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
@@ -193,12 +226,12 @@ NATIVE_CALL("function strchr(string data, string char, int start = 0)")
   return Variant(res);
 }
 
-NATIVE_CALL("function eval(string code)")
+NATIVE_CALL("__native eval(string code)")
 {
   return evaluator->Eval(args[0]->AsString());
 }
 
-NATIVE_CALL("function reset()")
+NATIVE_CALL("__native reset()")
 {
   throw reset_exception();
 }
@@ -208,7 +241,7 @@ NATIVE_CALL("function reset()")
 
 #include <windows.h>
 
-NATIVE_CALL("function native(string libname, string fun, arglist...)")
+NATIVE_CALL("__native native(string libname, string fun, arglist...)")
 {
   // Load library
   HMODULE hModule = LoadLibrary(args[0]->GetString().c_str());
