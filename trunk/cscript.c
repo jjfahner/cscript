@@ -7,9 +7,9 @@
 #line 30 "cscript.in"
 
 
-#include "tokens.h"
-#include "parser.h"
 #include "ast.h"
+#include "eval.h"
+#include "tokens.h"
 #include "astlist.h"
 #include "convert.h"
 
@@ -79,9 +79,9 @@ typedef union {
 #ifndef YYSTACKDEPTH
 #define YYSTACKDEPTH 100
 #endif
-#define CScriptParseARG_SDECL  Parser* p ;
-#define CScriptParseARG_PDECL , Parser* p 
-#define CScriptParseARG_FETCH  Parser* p  = yypParser->p 
+#define CScriptParseARG_SDECL  Evaluator* p ;
+#define CScriptParseARG_PDECL , Evaluator* p 
+#define CScriptParseARG_FETCH  Evaluator* p  = yypParser->p 
 #define CScriptParseARG_STORE yypParser->p  = p 
 #define YYNSTATE 311
 #define YYNRULE 173

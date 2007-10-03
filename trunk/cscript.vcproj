@@ -398,14 +398,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\parser.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\parser.h"
-				>
-			</File>
-			<File
 				RelativePath=".\report.h"
 				>
 			</File>

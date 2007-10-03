@@ -21,7 +21,6 @@
 #include "file.h"
 #include "cmdargs.h"
 #include "report.h"
-#include "parser.h"
 #include "eval.h"
 #include "ast.h"
 
