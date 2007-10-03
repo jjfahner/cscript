@@ -72,10 +72,35 @@
 %right ASSIGN ASSADD ASSSUB ASSMUL ASSDIV ASSMOD .
 
 // Start symbol
-main ::= translation_unit(A) . { p->SetRoot(A); }
+main ::= translation_unit .
 
-// Translation unit
-translation_unit(R) ::= statement_sequence_opt(A) . { R = p->AllocAst(translation_unit, A); }
+// Empty file
+translation_unit ::= .
+
+// Native declaration
+translation_unit ::= native_declaration .
+
+// Statement sequence
+translation_unit ::= top_statement_sequence .
+
+// Top-level statement sequence
+top_statement_sequence ::= top_statement(A) .                        { if(A) p->EvalStatement(A); }
+top_statement_sequence ::= top_statement_sequence top_statement(A) . { if(A) p->EvalStatement(A); }
+
+// Top-level statements
+top_statement(R) ::= include_statement(A) .     { R = A; }
+top_statement(R) ::= expression_statement(A) .  { R = A; }
+top_statement(R) ::= declaration_statement(A) . { R = A; }
+top_statement(R) ::= for_statement(A) .         { R = A; }
+top_statement(R) ::= compound_statement(A) .    { R = A; }
+top_statement(R) ::= if_statement(A) .          { R = A; }
+top_statement(R) ::= while_statement(A) .       { R = A; }
+top_statement(R) ::= foreach_statement(A) .     { R = A; }
+top_statement(R) ::= return_statement(A) .      { R = A; }
+top_statement(R) ::= switch_statement(A) .      { R = A; }
+top_statement(R) ::= extern_declaration(A) .    { R = A; }
+top_statement(R) ::= try_statement(A) .         { R = A; }
+top_statement(R) ::= error .                    { R = 0; }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
@@ -90,15 +115,9 @@ statement_sequence(R) ::= statement_sequence(A) statement(B) . {
   R->m_a1.GetList()->push_back(B);
 }
 
-
-// Optional statement sequence
-statement_sequence_opt(R) ::= . { R = 0; }
-statement_sequence_opt(R) ::= statement_sequence(A) . { R = A; }
-
 // Statement
-statement(R) ::= include_statement(A) .     { R = A; }
 statement(R) ::= expression_statement(A) .  { R = A; }
-statement(R) ::= declaration_statement(A) . { R = A; }
+statement(R) ::= vardecl_statement(A) .     { R = A; }
 statement(R) ::= for_statement(A) .         { R = A; }
 statement(R) ::= compound_statement(A) .    { R = A; }
 statement(R) ::= if_statement(A) .          { R = A; }
@@ -108,12 +127,9 @@ statement(R) ::= return_statement(A) .      { R = A; }
 statement(R) ::= switch_statement(A) .      { R = A; }
 statement(R) ::= break_statement(A) .       { R = A; }
 statement(R) ::= continue_statement(A) .    { R = A; }
-statement(R) ::= extern_declaration(A) .    { R = A; }
 statement(R) ::= try_statement(A) .         { R = A; }
 statement(R) ::= throw_statement(A) .       { R = A; }
-
-// Error recovery
-statement(R) ::= error .                    { R = p->AllocAst(empty_statement); }
+statement(R) ::= error .                    { R = 0; }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -268,7 +284,7 @@ compound_statement(R) ::= LBRACE RBRACE .                       { R = p->AllocAs
 compound_statement(R) ::= LBRACE statement_sequence(A) RBRACE . { R = p->AllocAst(compound_statement, A); }
 
 // Include statement
-include_statement(R) ::= INCLUDE LIT_STRING(A) SEMICOLON . { p->Parse(A); R = p->GetRoot(); }
+include_statement(R) ::= INCLUDE LIT_STRING(A) SEMICOLON . { p->Parse(A); R = 0; }
 
 // Return statement - leaves return expression on the stack
 return_statement(R) ::= RETURN expression(A) SEMICOLON . { R = p->AllocAst(return_statement, A); }
@@ -284,9 +300,11 @@ continue_statement(R) ::= CONTINUE SEMICOLON . { R = p->AllocAst(continue_statem
 //
 
 // Declaration starting point
-declaration_statement(R) ::= function_declaration(A) .            { R = A; }
-declaration_statement(R) ::= class_declaration(A)  SEMICOLON .    { R = A; }
-declaration_statement(R) ::= variable_declaration(A) SEMICOLON .  { R = A; }
+declaration_statement(R) ::= function_declaration(A) . { R = A; }
+declaration_statement(R) ::= class_declaration(A)  .   { R = A; }
+declaration_statement(R) ::= vardecl_statement(A) .    { R = A; }
+
+vardecl_statement(R) ::= variable_declaration(A) SEMICOLON .      { R = A; }
 
 variable_declaration(R) ::= VAR declarator_sequence(A) . { R = A; }
 
@@ -306,7 +324,8 @@ class_declaration(R) ::= class_start(A) LBRACE                  RBRACE . { R = A
 class_declaration(R) ::= class_start(A) LBRACE class_members(B) RBRACE . { R = A; A->m_a2 = B; }
 
 // Class start
-class_start(R) ::= CLASS IDENTIFIER(A) . { R = p->AllocAst(class_declaration, String(A)); }
+class_start(R) ::= CLASS IDENTIFIER(A) .  { R = p->AllocAst(class_declaration, String(A)); }
+class_start    ::= CLASS TYPE .           { throw std::runtime_error("Class already declared"); }
 
 // Class members
 class_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
@@ -335,6 +354,9 @@ class_members(R) ::= class_members(A) class_member(B) . {
 //
 // Function declaration
 //
+
+// Native declaration
+native_declaration ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { p->m_native = p->AllocAst(function_declaration, String(A), B); }
 
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(function_declaration, String(A), B, C); }

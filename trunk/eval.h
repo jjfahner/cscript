@@ -59,12 +59,12 @@ public:
   // Evaluation of an expression
   //
   VariantRef EvalExpression(Ast* node);
+  void EvalStatement(Ast* node);
 
   //
   // Reset the evaluator
   //
   void Reset();
-
 
   //
   // Parse a string
@@ -78,10 +78,14 @@ public:
   void Parse(String const& filename);
 
   //
-  // Root node
+  // Parse native call
   //
-  Ast* GetRoot() const;
-  void SetRoot(Ast* root);
+  Ast* ParseNativeCall(String const& declaration);
+
+  //
+  // Find a declared type
+  //
+  Class* FindType(String const& name);
 
   //
   // Allocate node
@@ -98,11 +102,10 @@ public:
   void OnParseFailure();
   void OnSyntaxError();
 
-  Ast*                    m_root;
-  Reporter                m_reporter;
-  File*                   m_file;
-  Lexer*                  m_lexer;
-  std::map<String, Ast*>  m_types;
+  Reporter  m_reporter;
+  File*     m_file;
+  Lexer*    m_lexer;
+  Ast*      m_native;
 
 protected:
 
@@ -114,7 +117,6 @@ protected:
   //
   // Statement handlers
   //
-  void EvalStatement(Ast* node);
   void EvalStatementSeq(Ast* node);
   void EvalVarDecl(Ast* node);
   void EvalFunDecl(Ast* node);

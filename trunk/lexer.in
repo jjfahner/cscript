@@ -47,6 +47,7 @@ int parseNextToken(Char*& start, Char*& end)
   "/*"                      { return TOK_COMMENT; }
 
   /* Keywords */
+  "__native"                { return TOK_NATIVE; }
   "bool"                    { return TOK_BOOL; }
   "break"                   { return TOK_BREAK; }
   "case"                    { return TOK_CASE; }

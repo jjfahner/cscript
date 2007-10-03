@@ -280,6 +280,10 @@
 			Name="test"
 			>
 			<File
+				RelativePath=".\class.csc"
+				>
+			</File>
+			<File
 				RelativePath=".\eval.csc"
 				>
 			</File>
@@ -530,10 +534,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\class.csc"
-			>
-		</File>
 		<File
 			RelativePath=".\TODO"
 			>

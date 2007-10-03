@@ -27,11 +27,14 @@
 #include "class.h"
 #include "file.h"
 #include "lexer.h"
+#include "tokens.h"
 
 //
-// Include the parse
+// Parser functions
 //
-#include "cscript.c"
+void *CScriptParseAlloc(void *(*mallocProc)(size_t));
+void CScriptParseFree(void *p, void (*freeProc)(void*));
+void CScriptParse(void*, int,Token, Evaluator*);
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -99,31 +102,6 @@ private:
 // Evaluator implementation
 //
 
-/*static*/ GlobalScope&
-Evaluator::GetGlobalScope()
-{
-  static GlobalScope scope;
-  return scope;
-}
-
-Evaluator::Evaluator() :
-m_scope (0),
-m_file  (0)
-{
-  m_global = new GlobalScope(&GetGlobalScope());
-}
-
-void 
-Evaluator::Reset()
-{
-  // Create new global scope
-  delete m_global;
-  m_global = new GlobalScope(&GetGlobalScope());
-
-  // Reset the parser
-  m_types.clear();
-}
-
 inline void 
 PrintLineInfo(script_exception const& e)
 {
@@ -135,6 +113,43 @@ PrintLineInfo(script_exception const& e)
       << e.m_node->m_pos.m_line
       << ") : ";
   }
+}
+
+/*static*/ GlobalScope&
+Evaluator::GetGlobalScope()
+{
+  static GlobalScope scope;
+  return scope;
+}
+
+Evaluator::Evaluator() :
+m_scope (0),
+m_file  (0)
+{
+  static bool nativeCallsRegistered = false;
+  if(!nativeCallsRegistered)
+  {
+    nativeCallsRegistered = true;
+    NativeCallRegistrar::RegisterCalls();
+  }
+
+  m_global = new GlobalScope(&GetGlobalScope());
+}
+
+void 
+Evaluator::Reset()
+{
+  // Create new global scope
+  delete m_global;
+  m_global = new GlobalScope(&GetGlobalScope());
+}
+
+Class* 
+Evaluator::FindType(String const& name)
+{
+  Class* cl = 0;
+  m_scope->FindClass(name, cl);
+  return cl;
 }
 
 void
@@ -176,6 +191,13 @@ Evaluator::Parse(File& file)
 void 
 Evaluator::ParseText(char const* text)
 {
+  // Create scope
+  AutoScope as(this);
+  if(m_scope == 0)
+  {
+    as.Set(&GetGlobalScope());
+  }
+
   // Create lexer for file
   Lexer lexer(*this);
   lexer.SetText((char*)text);
@@ -237,18 +259,6 @@ Evaluator::OnSyntaxError()
   m_reporter.ReportError(E0013, &pos);
 }
 
-Ast*
-Evaluator::GetRoot() const
-{
-  return m_root;
-}
-
-void 
-Evaluator::SetRoot(Ast* root)
-{
-  m_root = root;
-}
-
 Ast* 
 Evaluator::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4)
 {
@@ -264,11 +274,41 @@ Evaluator::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData
   // Register new types
   if(type == class_declaration)
   {
-    m_types[a1] = node;
+    m_scope->AddClass(new Class(a1));
   }
   
   // Return the new node
   return node;
+}
+
+Ast* 
+Evaluator::ParseNativeCall(String const& declaration)
+{
+  // Reset reporter
+  m_reporter.Reset();
+
+  // Reset native call pointer
+  m_native = 0;
+
+  // Parse the call
+  try
+  {
+    // Parse code
+    ParseText(declaration.c_str());
+
+    // Check error count
+    if(m_reporter.GetErrorCount())
+    {
+      std::cout << "Aborted.\n";
+      return 0;
+    }
+
+    return m_native;
+  }
+  catch(...)
+  {
+    return 0;
+  }
 }
 
 VariantRef 
@@ -276,6 +316,9 @@ Evaluator::Eval(String text)
 {
   // Reset reporter
   m_reporter.Reset();
+
+  // Create top-level scope
+  AutoScope gs(this, m_global);
 
   try
   {
@@ -288,14 +331,6 @@ Evaluator::Eval(String text)
       std::cout << "Aborted.\n";
       return Variant::Null;
     }
-
-    // Retrieve code root
-    Ast* root = GetRoot();
-    SetRoot(0);
-
-    // Evaluate code
-    AutoScope gs(this, m_global);
-    EvalStatement(root);
   }
   // Return statement
   catch(return_exception const& e)
@@ -339,7 +374,7 @@ Evaluator::Eval(String text)
   // Unknown exception type
   catch(...)
   {
-    std::cout << "Unexpected exceptino\n";
+    std::cout << "Unexpected exception\n";
   }
   return Variant::Null;
 }
@@ -555,14 +590,12 @@ Evaluator::EvalExternDecl(Ast* node)
 void 
 Evaluator::EvalClassDecl(Ast* node)
 {
-  // TODO memory management
-
-  // Create new class
-  Class* cl = new Class(node->m_a1);
-  
-  // Insert into scope - this fails 
-  // outside of global/class scopes
-  m_scope->AddClass(cl);
+  // Find the class declaration
+  Class* cl = FindType(node->m_a1);
+  if(cl == 0)
+  {
+    cl = new Class(node->m_a1);
+  }
 
   // Enumerate members
   AstList* list = node->m_a2;

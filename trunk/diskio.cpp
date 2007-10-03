@@ -129,7 +129,7 @@ private:
 // Native calls
 //
 
-NATIVE_CALL("function fopen(string file, string mode)")
+NATIVE_CALL("__native fopen(string file, string mode)")
 {
   ASSERT_TYPE(0, stString);
   ASSERT_TYPE(1, stString);
@@ -146,7 +146,7 @@ NATIVE_CALL("function fopen(string file, string mode)")
   return Variant(f);
 }
 
-NATIVE_CALL("function fread(file, int length)")
+NATIVE_CALL("__native fread(file, int length)")
 {
   ASSERT_TYPE(1, stInt);
 
@@ -161,7 +161,7 @@ NATIVE_CALL("function fread(file, int length)")
   return f->Read(*args[1]);
 }
 
-NATIVE_CALL("function fwrite(file, string buffer, int length = 0)")
+NATIVE_CALL("__native fwrite(file, string buffer, int length = 0)")
 {
   // Extract file
   NativeFile* f = dynamic_cast<NativeFile*>(args[0]->GetResource());
@@ -174,7 +174,7 @@ NATIVE_CALL("function fwrite(file, string buffer, int length = 0)")
   return f->Write(*args[1], *args[2]);
 }
 
-NATIVE_CALL("function fclose(file)")
+NATIVE_CALL("__native fclose(file)")
 {
   // Extract file
   NativeFile* f = dynamic_cast<NativeFile*>(args[0]->GetResource());

@@ -43,20 +43,22 @@ ConversionOperator::GetParameters() const
 
 NativeFunction::NativeFunction(String decl, NativeCall call) :
 Function  (""),
-m_call    (call)
+m_call    (call),
+m_pars    (0)
 {
   // Create parser
   Evaluator eval;
 
   // Parse declaration
-  eval.ParseText((decl + ";").c_str());
+  Ast* node = eval.ParseNativeCall(decl);
+  if(node == 0)
+  {
+    throw std::runtime_error("Failed to register native call '" + decl + "'");
+  }
 
   // Extract name and parameter list
-  m_name = eval.GetRoot()->m_a1->m_a1.GetString();
-  m_pars = eval.GetRoot()->m_a1->m_a2.GetList();
-
-  // Make sure the tree isn't deleted
-  eval.SetRoot(0);
+  m_name = node->m_a1.GetString();
+  m_pars = node->m_a2.GetList();
 }
 
 VariantRef
