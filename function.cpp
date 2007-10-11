@@ -35,6 +35,13 @@ ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
 }
 
 AstList const* 
+Destructor::GetParameters() const
+{
+  static AstList list;
+  return &list;
+}
+
+AstList const* 
 ConversionOperator::GetParameters() const
 {
   static AstList list;

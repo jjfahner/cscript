@@ -180,6 +180,30 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Constructor
+//
+
+class Destructor : public MemberFunction
+{
+public:
+
+  //
+  // Construction
+  //
+  Destructor(Class* cl, Ast* node) :
+  MemberFunction("", cl, node)
+  {
+  }
+
+  //
+  // Parameter list
+  //
+  virtual AstList const* GetParameters() const;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Conversion operator
 //
 

@@ -131,6 +131,7 @@ int parseNextToken(Char*& start, Char*& end)
   "{"     { return TOK_LBRACE; }
   "}"     { return TOK_RBRACE; }
   "!"     { return TOK_NOT; }
+  "~"     { return TOK_TILDE; }
   
   */
 }

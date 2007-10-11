@@ -45,43 +45,37 @@ Class::FindConversion(TypeInfo const& type, ConversionOperator*& node) const
   return true;
 }
 
-Instance* 
-Class::CreateInstance(Evaluator* eval) const
+void
+Class::ConstructInstance(Instance* inst) const
 {
-  // Create new instance
-  Instance* inst = new Instance(this);
-
   // Enumerate variable definitions
-  try
+  NamedNodeMap::const_iterator it, ie;
+  it = m_vars.begin();
+  ie = m_vars.end();
+  for(; it != ie; ++it)
   {
-    NamedNodeMap::const_iterator it, ie;
-    it = m_vars.begin();
-    ie = m_vars.end();
-    for(; it != ie; ++it)
+    // Evaluate initial value
+    VariantRef value;
+    if(it->second->m_a2.Empty())
     {
-      // Evaluate initial value
-      VariantRef value;
-      if(it->second->m_a2.Empty())
-      {
-        value = Variant::Null;
-      }
-      else
-      {
-        value = eval->EvalExpression(it->second->m_a2);
-      }
-
-      // Instantiate member variable
-      inst->m_vars[it->first] = value;
+      value = Variant::Null;
+    }
+    else
+    {
+      value = inst->m_eval->EvalExpression(it->second->m_a2);
     }
 
-    // Return new instance
-    return inst;
-  }
-  catch(...)
-  {
-    // Do cleanup
-    delete inst;
-    throw;
+    // Instantiate member variable
+    inst->m_vars[it->first] = value;
   }
 }
 
+void 
+Class::DestructInstance(Instance* inst) const
+{
+  // Evaluate destructor
+  if(m_destructor)
+  {
+    // TODO
+  }
+}

@@ -228,7 +228,7 @@ list_content(R) ::= list_entry(A) COMMA list_content(B) . { R = p->AllocAst(list
 list_entry(R)   ::= expression(A) . { R = p->AllocAst(list_entry, A); }
 
 // New expression
-new_expression(R) ::= NEW type(A) .                                { R = p->AllocAst(new_expression, A, new AstList); }
+new_expression(R) ::= NEW type(A) .                                { R = p->AllocAst(new_expression, A, p->AllocAst(positional_arguments, new AstList)); }
 new_expression(R) ::= NEW type(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(new_expression, A, B); }
 
 //////////////////////////////////////////////////////////////////////////
@@ -332,9 +332,13 @@ class_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
 class_member(R) ::= function_declaration(A) .           { R = A; }
 class_member(R) ::= conversion_operator(A) .            { R = A; }
 class_member(R) ::= constructor(A) .                    { R = A; }
+class_member(R) ::= destructor(A) .                     { R = A; }
 
 // Constructor
 constructor(R) ::= type(A) LPAREN parameter_list(B) RPAREN compound_statement(C) . { R = p->AllocAst(constructor, A, B, C); }
+
+// Destructor
+destructor(R) ::= TILDE type(A) LPAREN RPAREN compound_statement(B) . { R = p->AllocAst(destructor, A, new AstList, B); }
 
 // Conversion operator - make sure to have approx. the same layout as for regular functions
 conversion_operator(R) ::= OPERATOR type(A) LPAREN RPAREN compound_statement(B) . { R = p->AllocAst(conversion_operator, A, new AstList, B); }

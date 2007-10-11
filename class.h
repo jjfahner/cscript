@@ -29,6 +29,8 @@ class Evaluator;
 class MemberFunction;
 class ConversionOperator;
 class Constructor;
+class Destructor;
+class Instance;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -44,7 +46,8 @@ public:
   //
   Class(String const& name) : 
   m_name (name),
-  m_constructor (0)
+  m_constructor (0),
+  m_destructor (0)
   {
   }
 
@@ -74,6 +77,26 @@ public:
       throw std::runtime_error("Class already has a constructor");
     }
     m_constructor = constructor;
+  }
+
+  //
+  // Fetch the destructor
+  //
+  virtual Destructor* GetDestructor() const
+  {
+    return m_destructor;
+  }
+
+  //
+  // Set the destructor
+  //
+  virtual void SetDestructor(Destructor* destructor)
+  {
+    if(m_destructor)
+    {
+      throw std::runtime_error("Class already has a destructor");
+    }
+    m_destructor = destructor;
   }
   
   //
@@ -124,12 +147,14 @@ public:
   //
   virtual bool FindConversion(TypeInfo const& type, ConversionOperator*& node) const;
 
-  //
-  // Construct an instance
-  //
-  class Instance* CreateInstance(Evaluator* eval) const;
-
 protected:
+
+  //
+  // Instance construction
+  //
+  friend class Instance;
+  void ConstructInstance(Instance* inst) const;
+  void DestructInstance(Instance* inst) const;  
 
   //
   // Types
@@ -143,6 +168,7 @@ protected:
   //
   String        m_name;
   Constructor*  m_constructor;
+  Destructor*   m_destructor;
   NamedNodeMap  m_vars;
   FunctionMap   m_funs;
   ConversionMap m_conv;
@@ -161,8 +187,21 @@ public:
   //
   // Construction
   //
-  Instance(Class const* c) : m_class (c)
+  Instance(Evaluator* eval, Class const* c) : 
+  m_eval (eval), 
+  m_class (c)
   {
+    // Delegate to class
+    m_class->ConstructInstance(this);
+  }
+
+  //
+  // Destruction
+  //
+  virtual ~Instance()
+  {
+    // Delegate to class
+    m_class->DestructInstance(this);
   }
 
   //
@@ -213,6 +252,7 @@ protected:
   //
   // Members
   //
+  Evaluator*    m_eval;
   Class const*  m_class;
   Variables     m_vars;
 
