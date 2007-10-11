@@ -90,6 +90,7 @@ enum AstTypes
   conversion_expression,
   conversion_operator,
   constructor,
+  destructor,
 };
 
 enum AccessTypes

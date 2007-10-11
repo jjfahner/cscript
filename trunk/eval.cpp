@@ -611,6 +611,10 @@ Evaluator::EvalClassDecl(Ast* node)
       cl->SetConstructor(new Constructor(cl, node));
       break;
 
+    case destructor:
+      cl->SetDestructor(new Destructor(cl, node));
+      break;
+
     case variable_declaration:
       cl->AddVariable(node->m_a1, node);
       break;
@@ -1109,8 +1113,8 @@ Evaluator::EvalNewExpression(Ast* node)
               node->m_a1->m_a2.GetString() + "'");
   }
 
-  // Instantiate
-  Instance* inst = c->CreateInstance(this);
+  // Instantiate class
+  Instance* inst = new Instance(this, c);
 
   // Execute constructor
   if(Constructor* fun = inst->GetClass()->GetConstructor())
