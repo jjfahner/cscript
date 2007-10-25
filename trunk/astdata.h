@@ -22,7 +22,7 @@
 #define CSCRIPT_ASTDATA_H
 
 #include "types.h"
-#include "var.h"
+#include "value.h"
 
 class AstData
 {
@@ -33,7 +33,7 @@ public:
     Node,
     Text,
     List,
-    Value,
+    Val,
     Number
   };
 
@@ -59,9 +59,9 @@ public:
   {
   }
 
-  AstData(Variant const& value) :
-  m_type    (Value),
-  m_value   (new Variant(value))
+  AstData(Value const& value) :
+  m_type    (Val),
+  m_value   (new Value(value))
   {
   }
 
@@ -130,9 +130,9 @@ public:
     return m_list;
   }
 
-  Variant const& GetValue() const
+  Value const& GetValue() const
   {
-    AssertType(Value);
+    AssertType(Val);
     return *m_value;
   }
 
@@ -157,7 +157,7 @@ public:
     return GetString();
   }
 
-  operator Variant const& () const
+  operator Value const& () const
   {
     return GetValue();
   }
@@ -182,8 +182,8 @@ private:
     Ast*      m_node;
     String*   m_string;
     AstList*  m_list;
-    Variant*  m_value;
-    int32      m_number;
+    Value*    m_value;
+    int32     m_number;
   };
 
 };

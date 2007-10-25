@@ -207,15 +207,15 @@ primary_expression(R) ::= THIS .                        { R = p->AllocAst(this_e
 primary_expression(R) ::= type(A) LPAREN expression(B) RPAREN . { R = p->AllocAst(conversion_expression, A, B); }
 
 // Literals
-literal(R) ::= LIT_INTEGER(A) . { R = p->AllocAst(literal_value, Variant(String(A), Variant::stInt)); }
-literal(R) ::= LIT_HEX(A) .     { R = p->AllocAst(literal_value, Variant(hex2dec(String(A).c_str()))); }
-literal(R) ::= LIT_BIN(A) .     { R = p->AllocAst(literal_value, Variant(bin2dec(String(A).c_str()))); }
-literal(R) ::= LIT_ROM(A) .     { R = p->AllocAst(literal_value, Variant(rom2dec(String(A).c_str()))); }
-literal(R) ::= LIT_REAL(A) .    { R = p->AllocAst(literal_value, Variant(String(A), Variant::stReal)); } 
-literal(R) ::= LIT_STRING(A) .  { R = p->AllocAst(literal_value, Variant(String(A), Variant::stString)); }
-literal(R) ::= TRUE .           { R = p->AllocAst(literal_value, Variant(true));    }
-literal(R) ::= FALSE .          { R = p->AllocAst(literal_value, Variant(false));   }
-literal(R) ::= NULL .           { R = p->AllocAst(literal_value, Variant());        }
+literal(R) ::= LIT_INTEGER(A) . { R = p->AllocAst(literal_value, Value(String(A)/*, Value::tInt*/)); }
+literal(R) ::= LIT_HEX(A) .     { R = p->AllocAst(literal_value, Value(hex2dec(String(A).c_str()))); }
+literal(R) ::= LIT_BIN(A) .     { R = p->AllocAst(literal_value, Value(bin2dec(String(A).c_str()))); }
+literal(R) ::= LIT_ROM(A) .     { R = p->AllocAst(literal_value, Value(rom2dec(String(A).c_str()))); }
+literal(R) ::= LIT_REAL(A) .    { R = p->AllocAst(literal_value, Value(String(A)/*, Value::tReal*/)); } 
+literal(R) ::= LIT_STRING(A) .  { R = p->AllocAst(literal_value, Value(String(A)/*, Value::tString*/)); }
+literal(R) ::= TRUE .           { R = p->AllocAst(literal_value, Value(true));    }
+literal(R) ::= FALSE .          { R = p->AllocAst(literal_value, Value(false));   }
+literal(R) ::= NULL .           { R = p->AllocAst(literal_value, Value());        }
 
 // Id expression
 id_expression(R) ::= IDENTIFIER(A) . { R = p->AllocAst(lvalue, String(A)); }
@@ -236,10 +236,10 @@ new_expression(R) ::= NEW type(A) LPAREN argument_list(B) RPAREN . { R = p->Allo
 // Types
 //
 
-type(R) ::= BOOL(A) .   { R = new Ast(type_specifier, Variant::stBool,      String(A)); }
-type(R) ::= INT(A) .    { R = new Ast(type_specifier, Variant::stInt,       String(A)); }
-type(R) ::= STRING(A) . { R = new Ast(type_specifier, Variant::stString,    String(A)); }
-type(R) ::= TYPE(A) .   { R = new Ast(type_specifier, Variant::stInstance,  String(A)); }
+type(R) ::= BOOL(A) .   { R = new Ast(type_specifier, Value::tBool,   String(A)); }
+type(R) ::= INT(A) .    { R = new Ast(type_specifier, Value::tInt,    String(A)); }
+type(R) ::= STRING(A) . { R = new Ast(type_specifier, Value::tString, String(A)); }
+type(R) ::= TYPE(A) .   { R = new Ast(type_specifier, Value::tObject, String(A)); }
 
 //////////////////////////////////////////////////////////////////////////
 //

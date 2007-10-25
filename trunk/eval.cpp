@@ -311,7 +311,7 @@ Evaluator::ParseNativeCall(String const& declaration)
   }
 }
 
-VariantRef 
+Value 
 Evaluator::Eval(String text)
 {
   // Reset reporter
@@ -329,7 +329,7 @@ Evaluator::Eval(String text)
     if(m_reporter.GetErrorCount())
     {
       std::cout << "Aborted.\n";
-      return Variant::Null;
+      return Value();
     }
   }
   // Return statement
@@ -346,7 +346,7 @@ Evaluator::Eval(String text)
   catch(user_exception const& e)
   {
     PrintLineInfo(e);
-    std::cout << "Uncaught exception '" << e.m_value->AsString() << "'\n";
+    std::cout << "Uncaught exception '" << e.m_value.GetString() << "'\n";
   }
   // Invalid break statement
   catch(break_exception const& e)
@@ -376,7 +376,7 @@ Evaluator::Eval(String text)
   {
     std::cout << "Unexpected exception\n";
   }
-  return Variant::Null;
+  return Value();
 }
 
 void 
@@ -423,7 +423,7 @@ Evaluator::EvalStatement(Ast* node)
   }
 }
 
-VariantRef
+Value
 Evaluator::EvalExpression(Ast* node)
 {
   switch(node->m_type)
@@ -446,51 +446,62 @@ Evaluator::EvalExpression(Ast* node)
   throw std::out_of_range("Invalid expression type");
 }
 
-VariantRef 
+Value 
 Evaluator::EvalAssignment(Ast* node)
 {
+  // Evaluate expression parts
+  Value lhs = EvalExpression(node->m_a2);
+  Value rhs = EvalExpression(node->m_a3);
+
+  // Check lvalue
+  if(!lhs.IsReference())
+  {
+    throw std::runtime_error("Expressies does not yield an lvalue");
+  }
+
+  // Perform assignment
   switch(node->m_a1.GetNumber())
   {
-  case op_assign: return *EvalExpression(node->m_a2)  = *EvalExpression(node->m_a3);
-  case op_assadd: return *EvalExpression(node->m_a2) += *EvalExpression(node->m_a3);
-  case op_asssub: return *EvalExpression(node->m_a2) -= *EvalExpression(node->m_a3);
-  case op_assmul: return *EvalExpression(node->m_a2) *= *EvalExpression(node->m_a3);
-  case op_assdiv: return *EvalExpression(node->m_a2) /= *EvalExpression(node->m_a3);
-  case op_assmod: return *EvalExpression(node->m_a2) %= *EvalExpression(node->m_a3);
+  case op_assign: return lhs = rhs;
+//   case op_assadd: return *EvalExpression(node->m_a2) += *EvalExpression(node->m_a3);
+//   case op_asssub: return *EvalExpression(node->m_a2) -= *EvalExpression(node->m_a3);
+//   case op_assmul: return *EvalExpression(node->m_a2) *= *EvalExpression(node->m_a3);
+//   case op_assdiv: return *EvalExpression(node->m_a2) /= *EvalExpression(node->m_a3);
+//   case op_assmod: return *EvalExpression(node->m_a2) %= *EvalExpression(node->m_a3);
   }
   throw std::out_of_range("Invalid assignment operator");
 }
 
-VariantRef 
+Value 
 Evaluator::EvalBinary(Ast* node)
 {
-  switch(node->m_a1.GetNumber())
-  {
-  case op_add:    return *EvalExpression(node->m_a2) +  *EvalExpression(node->m_a3);
-  case op_sub:    return *EvalExpression(node->m_a2) -  *EvalExpression(node->m_a3);
-  case op_mul:    return *EvalExpression(node->m_a2) *  *EvalExpression(node->m_a3);
-  case op_div:    return *EvalExpression(node->m_a2) /  *EvalExpression(node->m_a3);
-  case op_mod:    return *EvalExpression(node->m_a2) %  *EvalExpression(node->m_a3);
-  case op_eq:     return *EvalExpression(node->m_a2) == *EvalExpression(node->m_a3);
-  case op_ne:     return *EvalExpression(node->m_a2) != *EvalExpression(node->m_a3);
-  case op_lt:     return *EvalExpression(node->m_a2) <  *EvalExpression(node->m_a3);
-  case op_le:     return *EvalExpression(node->m_a2) <= *EvalExpression(node->m_a3);
-  case op_gt:     return *EvalExpression(node->m_a2) >  *EvalExpression(node->m_a3);
-  case op_ge:     return *EvalExpression(node->m_a2) >= *EvalExpression(node->m_a3);  
-  case op_logor:  return (bool)*EvalExpression(node->m_a2) || 
-                         (bool)*EvalExpression(node->m_a3) ;
-  case op_logand: return (bool)*EvalExpression(node->m_a2) && 
-                         (bool)*EvalExpression(node->m_a3) ;
-  case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) == 0;
-  case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) != 0;
-  }  
+//   switch(node->m_a1.GetNumber())
+//   {
+//   case op_add:    return *EvalExpression(node->m_a2) +  *EvalExpression(node->m_a3);
+//   case op_sub:    return *EvalExpression(node->m_a2) -  *EvalExpression(node->m_a3);
+//   case op_mul:    return *EvalExpression(node->m_a2) *  *EvalExpression(node->m_a3);
+//   case op_div:    return *EvalExpression(node->m_a2) /  *EvalExpression(node->m_a3);
+//   case op_mod:    return *EvalExpression(node->m_a2) %  *EvalExpression(node->m_a3);
+//   case op_eq:     return *EvalExpression(node->m_a2) == *EvalExpression(node->m_a3);
+//   case op_ne:     return *EvalExpression(node->m_a2) != *EvalExpression(node->m_a3);
+//   case op_lt:     return *EvalExpression(node->m_a2) <  *EvalExpression(node->m_a3);
+//   case op_le:     return *EvalExpression(node->m_a2) <= *EvalExpression(node->m_a3);
+//   case op_gt:     return *EvalExpression(node->m_a2) >  *EvalExpression(node->m_a3);
+//   case op_ge:     return *EvalExpression(node->m_a2) >= *EvalExpression(node->m_a3);  
+//   case op_logor:  return (bool)*EvalExpression(node->m_a2) || 
+//                          (bool)*EvalExpression(node->m_a3) ;
+//   case op_logand: return (bool)*EvalExpression(node->m_a2) && 
+//                          (bool)*EvalExpression(node->m_a3) ;
+//   case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) == 0;
+//   case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) != 0;
+//   }  
   throw std::out_of_range("Invalid binary operator");
 }
 
-VariantRef 
+Value 
 Evaluator::EvalTernary(Ast* node)
 {
-  if(EvalExpression(node->m_a1)->AsBool())
+  if(EvalExpression(node->m_a1).GetBool())
   {
     return EvalExpression(node->m_a2);
   }
@@ -509,45 +520,46 @@ Evaluator::EvalStatementSeq(Ast* node)
   }
 }
 
-VariantRef 
+Value 
 Evaluator::EvalPrefix(Ast* node)
 {
-  switch(node->m_a1.GetNumber())
-  {
-  case op_preinc: 
-    {
-      VariantRef value = EvalExpression(node->m_a2);
-      ++*value;
-      return value;
-    }
-  case op_predec: return --*EvalExpression(node->m_a2);
-  case op_negate: return  -*EvalExpression(node->m_a2);
-  case op_not:    return  !*EvalExpression(node->m_a2);
-  }
+//   switch(node->m_a1.GetNumber())
+//   {
+//   case op_preinc: 
+//     {
+//       Value value = EvalExpression(node->m_a2);
+//       ++*value;
+//       return value;
+//     }
+//   case op_predec: return --*EvalExpression(node->m_a2);
+//   case op_negate: return  -*EvalExpression(node->m_a2);
+//   case op_not:    return  !*EvalExpression(node->m_a2);
+//   }
   throw std::out_of_range("Invalid prefix operator");
 }
 
-VariantRef 
+Value 
 Evaluator::EvalPostfix(Ast* node)
 {
-  switch(node->m_a1.GetNumber())
-  {
-  case op_postinc: return (*EvalExpression(node->m_a2))++;
-  case op_postdec: return (*EvalExpression(node->m_a2))--;
-  }
+//   switch(node->m_a1.GetNumber())
+//   {
+//   case op_postinc: return (*EvalExpression(node->m_a2))++;
+//   case op_postdec: return (*EvalExpression(node->m_a2))--;
+//   }
   throw std::out_of_range("Invalid postfix operator");
 }
 
-VariantRef
+Value
 Evaluator::EvalIndex(Ast* node)
 {
-  return (*EvalExpression(node->m_a1))[*EvalExpression(node->m_a2)];
+//  return (*EvalExpression(node->m_a1))[*EvalExpression(node->m_a2)];
+  throw std::out_of_range("Invalid index operator");
 }
 
-VariantRef  
+Value  
 Evaluator::EvalLValue(Ast* node)
 {
-  VariantRef ref;
+  Value ref;
   if(m_scope->FindVar(node->m_a1, ref))
   {
     return ref;
@@ -560,15 +572,15 @@ void
 Evaluator::EvalVarDecl(Ast* node)
 {
   // Determine right-hand value
-  VariantRef value;
+  Value value;
   if(node->m_a2.Empty())
   {
-    value = Variant();
+    value = Value();
   }
   else
   {
     // Assign value-of rhs
-    value = *EvalExpression(node->m_a2);
+    value = EvalExpression(node->m_a2);
   }
 
   // Create variable
@@ -633,7 +645,7 @@ Evaluator::EvalClassDecl(Ast* node)
   }
 }
 
-VariantRef  
+Value  
 Evaluator::EvalFunctionCall(Ast* node)
 {
   Function* fun = 0;
@@ -642,16 +654,16 @@ Evaluator::EvalFunctionCall(Ast* node)
   // Resolve function pointer
   if(node->m_a3)
   {
-    // Evaluate instance expression
-    args.SetInstance(EvalExpression(node->m_a3)->GetInstance());
-
-    // Resolve function on object
-    MemberFunction* memfun;
-    if(!args.GetInstance()->FindFun(node->m_a1, memfun))
-    {
-      throw std::runtime_error("Object doesn't support this method");
-    }
-    fun = memfun;
+//     // Evaluate instance expression
+//     args.SetInstance(EvalExpression(node->m_a3)->GetInstance());
+// 
+//     // Resolve function on object
+//     MemberFunction* memfun;
+//     if(!args.GetInstance()->FindFun(node->m_a1, memfun))
+//     {
+//       throw std::runtime_error("Object doesn't support this method");
+//     }
+//     fun = memfun;
   }
   else
   {
@@ -661,11 +673,11 @@ Evaluator::EvalFunctionCall(Ast* node)
       throw std::runtime_error("Unknown method");
     }
 
-    // In case of member function, prepend instance
-    if(dynamic_cast<MemberFunction*>(fun))
-    {
-      args.SetInstance(EvalThisExpression()->GetInstance());
-    }
+//     // In case of member function, prepend instance
+//     if(dynamic_cast<MemberFunction*>(fun))
+//     {
+//       args.SetInstance(EvalThisExpression()->GetInstance());
+//     }
   }
 
   // Add parameters to arguments
@@ -692,7 +704,7 @@ Evaluator::EvalFunctionCall(Ast* node)
   }
 }
 
-VariantRef 
+Value 
 Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 {
   // Class scope
@@ -728,7 +740,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   try
   {
     EvalStatement(fun->GetNode()->m_a3);
-    return Variant();
+    return Value();
   }
   catch(return_exception const& e)
   {
@@ -764,24 +776,24 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
     // Variadic parameter
     if((*pi)->m_a2.GetNumber() == ptVariadic)
     {
-      // Insert assoc
-      args.push_back(Variant::stAssoc);
-
-      // Insert remaining arguments
-      for(; ai != ae; ++ai)
-      {
-        // Evaluate argument and append on list
-        // Note: arguments in variadic argument list
-        // are always by value - note the dereference.
-        args[args.size() - 1]->Append(*EvalExpression(*ai));
-      }
+//       // Insert assoc
+//       args.push_back(Value::stAssoc);
+// 
+//       // Insert remaining arguments
+//       for(; ai != ae; ++ai)
+//       {
+//         // Evaluate argument and append on list
+//         // Note: arguments in variadic argument list
+//         // are always by value - note the dereference.
+//         args[args.size() - 1]->Append(*EvalExpression(*ai));
+//       }
 
       // Done
       break;
     }
 
     // End of arguments
-    VariantRef value;
+    Value value;
     if(ai == ae)
     {
       // Must have default value
@@ -803,7 +815,7 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
     if((*pi)->m_a2.GetNumber() == ptByVal)
     {
       // Dereference the value
-      value = *value;
+//       value = *value;
     }
 
     // Apply type conversion to value
@@ -845,7 +857,7 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
     if((*pi)->m_a2.GetNumber() == ptVariadic)
     {
       // Variadic is always last in list - add empty list and stop
-      args.push_back(Variant::stAssoc);
+//      args.push_back(Value::stAssoc);
       break;
     }
 
@@ -862,7 +874,7 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
     }
 
     // Evaluate argument
-    VariantRef value;
+    Value value;
     if(ai != ae)
     {
       // Fill in positional argument
@@ -888,41 +900,42 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
     else
     {
       // TODO execute conversion to type
-      args.push_back(*value);
+      //args.push_back(*value);
     }
   }
 }
 
-VariantRef 
+Value 
 Evaluator::EvalListLiteral(Ast* node)
 {
-  // Create empty map
-  VariantRef v(Variant::stAssoc);
-  
-  // Recurse into map values
-  Ast* child = node->m_a1;
-  while(child)
-  {
-    v->Append(EvalExpression(child->m_a1->m_a1));
-    if(child->m_a2.Empty()) 
-    {
-      break;
-    }
-    child = child->m_a2;
-  }
-
-  // Done
-  return v;
+//   // Create empty map
+//   Value v(Value::stAssoc);
+//   
+//   // Recurse into map values
+//   Ast* child = node->m_a1;
+//   while(child)
+//   {
+//     v->Append(EvalExpression(child->m_a1->m_a1));
+//     if(child->m_a2.Empty()) 
+//     {
+//       break;
+//     }
+//     child = child->m_a2;
+//   }
+// 
+//   // Done
+//   return v;
+  return Value();
 }
 
 void 
 Evaluator::EvalReturnStatement(Ast* node)
 {
   // Determine return value
-  VariantRef value;
+  Value value;
   if(node->m_a1.Empty())
   {
-    value = Variant::Null;
+    value = Value();
   }
   else
   {
@@ -946,7 +959,7 @@ Evaluator::EvalForStatement(Ast* node)
   for(;;)
   {
     // Evaluate condition
-    if(!*EvalExpression(node->m_a2))
+    if(!EvalExpression(node->m_a2).GetBool())
     {
       break;
     }
@@ -990,45 +1003,45 @@ Evaluator::EvalForeachStatement(Ast* node)
   }
 
   // Fetch variable
-  VariantRef var;
+  Value var;
   if(!m_scope->FindVar(varName, var))
   {
     throw std::runtime_error("Failed to find iterator variable");
   }
 
   // Evaluate expression
-  VariantRef rhs = EvalExpression(node->m_a2);
+  Value rhs = EvalExpression(node->m_a2);
 
-  // Fetch iterator
-  Variant::AssocType::iterator it = rhs->GetMap().begin();
-  Variant::AssocType::iterator ie = rhs->GetMap().end();
-
-  // Enumerate members
-  for(; it != ie; ++it)
-  {
-    // Assign value to iterator variable
-    *var = *it->second;
-
-    // Evaluate expression
-    try
-    {
-      AutoScope scope(this, new Scope(m_scope));
-      EvalStatement(node->m_a3);
-    }
-    catch(break_exception const&)
-    {
-      break;
-    }
-    catch(continue_exception const&)
-    {
-    }
-  }
+//   // Fetch iterator
+//   Value::AssocType::iterator it = rhs->GetMap().begin();
+//   Value::AssocType::iterator ie = rhs->GetMap().end();
+// 
+//   // Enumerate members
+//   for(; it != ie; ++it)
+//   {
+//     // Assign value to iterator variable
+//     *var = *it->second;
+// 
+//     // Evaluate expression
+//     try
+//     {
+//       AutoScope scope(this, new Scope(m_scope));
+//       EvalStatement(node->m_a3);
+//     }
+//     catch(break_exception const&)
+//     {
+//       break;
+//     }
+//     catch(continue_exception const&)
+//     {
+//     }
+//   }
 }
 
 void
 Evaluator::EvalIfStatement(Ast* node)
 {
-  if(*EvalExpression(node->m_a1))
+  if(EvalExpression(node->m_a1).GetBool())
   {
     EvalStatement(node->m_a2);
   }
@@ -1041,7 +1054,7 @@ Evaluator::EvalIfStatement(Ast* node)
 void        
 Evaluator::EvalWhileStatement(Ast* node)
 {
-  while(*EvalExpression(node->m_a1))
+  while(EvalExpression(node->m_a1).GetBool())
   {
     try
     {
@@ -1062,7 +1075,7 @@ void
 Evaluator::EvalSwitchStatement(Ast* node)
 {
   // Switch value
-  VariantRef value = EvalExpression(node->m_a1);
+  Value value = EvalExpression(node->m_a1);
 
   // Create iterators
   AstList* cases = node->m_a2;
@@ -1081,7 +1094,7 @@ Evaluator::EvalSwitchStatement(Ast* node)
       }
       statement = (*it)->m_a1;
     }
-    else if(*EvalExpression((*it)->m_a1) == *value)
+    else if(EvalExpression((*it)->m_a1) == value)
     {
       statement = (*it)->m_a2;
       break;
@@ -1102,7 +1115,7 @@ Evaluator::EvalSwitchStatement(Ast* node)
   }
 }
 
-VariantRef 
+Value 
 Evaluator::EvalNewExpression(Ast* node)
 {
   // Find class type
@@ -1153,22 +1166,23 @@ Evaluator::EvalNewExpression(Ast* node)
   return inst;
 }
 
-VariantRef 
+Value 
 Evaluator::EvalMemberExpression(Ast* node)
 {
-  // Evaluate left side
-  Instance* instPtr = EvalExpression(node->m_a1)->GetInstance();
-
-  // Retrieve value
-  VariantRef ref;
-  if(!instPtr->FindVar(node->m_a2, ref))
-  {
-    throw std::runtime_error("Class has no member '" + node->m_a2.GetString() + "'");
-  }
-  return ref;
+//   // Evaluate left side
+//   Instance* instPtr = EvalExpression(node->m_a1)->GetInstance();
+// 
+//   // Retrieve value
+//   Value ref;
+//   if(!instPtr->FindVar(node->m_a2, ref))
+//   {
+//     throw std::runtime_error("Class has no member '" + node->m_a2.GetString() + "'");
+//   }
+//   return ref;
+  throw std::runtime_error("Not implemented");
 }
 
-VariantRef 
+Value 
 Evaluator::EvalThisExpression()
 {
   Scope* scope = m_scope;
@@ -1233,13 +1247,13 @@ Evaluator::EvalTryStatement(Ast* node)
   }
 }
 
-VariantRef 
+Value 
 Evaluator::EvalConversion(Ast* node)
 {
   // Evaluate expression
   // Note: value is derefenced, so conversion
   // does not happen in-place
-  VariantRef value = *EvalExpression(node->m_a2);
+  Value value = EvalExpression(node->m_a2);
 
   // Perform the conversion
   PerformConversion(value, node->m_a1.GetNode());
@@ -1247,7 +1261,7 @@ Evaluator::EvalConversion(Ast* node)
 }
 
 void 
-Evaluator::PerformConversion(VariantRef& value, TypeInfo const& newType)
+Evaluator::PerformConversion(Value& value, TypeInfo const& newType)
 {
   // Determine old type
   TypeInfo oldType(value);
@@ -1258,39 +1272,39 @@ Evaluator::PerformConversion(VariantRef& value, TypeInfo const& newType)
     return;
   }
 
-  // Conversion from class type via conversion operator
-  if(oldType == Variant::stInstance)
-  {
-    // Extract instance
-    Instance* inst = value->GetInstance();
-    
-    // Try to find a conversion operator
-    ConversionOperator* conv;
-    if(inst->GetClass()->FindConversion(newType, conv))
-    {
-      // Create arguments
-      Arguments args;
-      args.SetInstance(inst);
-
-      // Execute conversion
-      value = conv->Execute(this, args);
-      return;
-    }
-  }
-
-  // Conversion to class type via constructor
-  if(newType == Variant::stInstance)
-  {
-    // TODO
-  }
-
-  // No way to convert from/to instance
-  if(oldType == Variant::stInstance || newType == Variant::stInstance)
-  {
-    throw std::runtime_error("Cannot convert from '" + oldType.GetName() + 
-                                            "' to '" + newType.GetName() + "'");
-  }
-
-  // Attempt to perform scalar conversion
-  value->SetType(newType);
+//   // Conversion from class type via conversion operator
+//   if(oldType == Value::stInstance)
+//   {
+//     // Extract instance
+//     Instance* inst = value->GetInstance();
+//     
+//     // Try to find a conversion operator
+//     ConversionOperator* conv;
+//     if(inst->GetClass()->FindConversion(newType, conv))
+//     {
+//       // Create arguments
+//       Arguments args;
+//       args.SetInstance(inst);
+// 
+//       // Execute conversion
+//       value = conv->Execute(this, args);
+//       return;
+//     }
+//   }
+// 
+//   // Conversion to class type via constructor
+//   if(newType == Value::stInstance)
+//   {
+//     // TODO
+//   }
+// 
+//   // No way to convert from/to instance
+//   if(oldType == Value::stInstance || newType == Value::stInstance)
+//   {
+//     throw std::runtime_error("Cannot convert from '" + oldType.GetName() + 
+//                                             "' to '" + newType.GetName() + "'");
+//   }
+// 
+//   // Attempt to perform scalar conversion
+//   value->SetType(newType);
 }

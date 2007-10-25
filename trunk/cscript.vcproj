@@ -252,6 +252,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\object.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\object.h"
+				>
+			</File>
+			<File
 				RelativePath=".\scope.cpp"
 				>
 			</File>
@@ -268,11 +276,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\var.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\var.h"
+				RelativePath=".\value.h"
 				>
 			</File>
 		</Filter>

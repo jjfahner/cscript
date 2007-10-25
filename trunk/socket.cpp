@@ -27,6 +27,7 @@
 #	include <winsock2.h>
 #	include <ws2tcpip.h>
 #	pragma comment(lib, "ws2_32.lib")
+# undef GetObject
 #else
 #	include <netdb.h>
 #	define INVALID_SOCKET (-1)
@@ -74,8 +75,8 @@ Socket::~Socket()
   SocketDelete();
 }
 
-Variant
-Socket::Connect(Variant const& host, Variant const& port)
+Value
+Socket::Connect(Value const& host, Value const& port)
 {
   // Disconnect previous connection
   if(m_socket != INVALID_SOCKET)
@@ -92,35 +93,35 @@ Socket::Connect(Variant const& host, Variant const& port)
 
   // Retrieve info
   addrinfo* ai;
-  if(getaddrinfo(host.AsString().c_str(), 
-                 port.AsString().c_str(), 
+  if(getaddrinfo(host.GetString().c_str(), 
+                 port.GetString().c_str(), 
                  &hint, &ai))
   {
-    return Variant::False;
+    return false;
   }
 
   // Create a socket
   unsigned int s = (unsigned int)socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
   if(s == INVALID_SOCKET)
   {
-    return Variant::False;
+    return false;
   }
 
   // Establish connection
   if(connect(s, (sockaddr*)ai->ai_addr, sizeof(sockaddr)))
   {
     closesocket(s);
-    return Variant::False;
+    return false;
   }
 
   // Store socket handle
   m_socket = s;
 
   // Succeeded
-  return Variant::True;
+  return true;
 }
 
-Variant 
+Value 
 Socket::Disconnect()
 {
   if(m_socket != INVALID_SOCKET)
@@ -129,43 +130,43 @@ Socket::Disconnect()
     closesocket(m_socket);
     m_socket = INVALID_SOCKET;
   }
-  return Variant::True;
+  return true;
 }
 
-Variant
-Socket::Send(Variant const& data, Variant const& len)
+Value
+Socket::Send(Value const& data, Value const& len)
 {
   // Check connection
   if(m_socket == INVALID_SOCKET)
   {
-    return Variant::False;
+    return false;
   }
 
   // Determine length
-  int expected = (int)len.AsInt();
+  int expected = (int)len.GetInt();
   if(expected == 0)
   {
-    expected = (int)data.AsString().length();
+    expected = (int)data.GetString().length();
   }
 
   // Write data
-  int actual = send(m_socket, data.AsString().c_str(), expected, 0);
+  int actual = send(m_socket, data.GetString().c_str(), expected, 0);
   if(actual == SOCKET_ERROR)
   {
-    return Variant::False;
+    return false;
   }
 
   // Return result
-  return actual == expected ? Variant::True : Variant::False;
+  return actual == expected ? true : false;
 }
 
-Variant 
-Socket::Receive(Variant const& length, Variant const& timeout)
+Value 
+Socket::Receive(Value const& length, Value const& timeout)
 {
   // Check connection
   if(m_socket == INVALID_SOCKET)
   {
-    return Variant::False;
+    return false;
   }
 
   // Determine timeout
@@ -185,11 +186,11 @@ Socket::Receive(Variant const& length, Variant const& timeout)
   // Check for readability
   if(select(FD_SETSIZE, &fd, 0, 0, ptv) != 1)
   {
-    return Variant::False;
+    return false;
   }
 
   // Allocate buffer
-  int len = int(length.AsInt());
+  int len = int(length.GetInt());
   char* buf = new char[len + 1];
 
   // Read requested bytes
@@ -197,7 +198,7 @@ Socket::Receive(Variant const& length, Variant const& timeout)
   if(read == SOCKET_ERROR)
   {
     delete [] buf;
-    return Variant::False;
+    return false;
   }
 
   // Copy to string
@@ -218,35 +219,32 @@ Socket::Receive(Variant const& length, Variant const& timeout)
 
 NATIVE_CALL("__native socket(string name, int port)")
 {
-  ASSERT_TYPE(0, stString);
-  ASSERT_TYPE(1, stInt);
-
   Socket* s = new Socket();
-  if(!s->Connect(*args[0], *args[1]))
+  if(!s->Connect(args[0], args[1]).GetBool())
   {
     delete s;
-    return Variant::False;
+    return false;
   }
 
-  return Variant(s);
+  return Value(s);
 }
 
 NATIVE_CALL("__native closesocket(s)")
 {
-  Socket* s = args[0]->GetTypedRes<Socket>();
+  Socket* s = dynamic_cast<Socket*>(args[0].GetObject());
   s->Disconnect();
-  return Variant::True;
+  return true;
 }
 
 NATIVE_CALL("__native send(socket, string data, int len = 0)")
 {
-  Socket* s = args[0]->GetTypedRes<Socket>();
-  return s->Send(*args[1], *args[2]);
+  Socket* s = dynamic_cast<Socket*>(args[0].GetObject());
+  return s->Send(args[1], args[2]);
 }
 
 NATIVE_CALL("__native recv(socket, int len, int timeout = 0)")
 {
-  Socket* s = args[0]->GetTypedRes<Socket>();
-  return s->Receive(*args[1], *args[2]);  
+  Socket* s = dynamic_cast<Socket*>(args[0].GetObject());
+  return s->Receive(args[1], args[2]);  
 }
 

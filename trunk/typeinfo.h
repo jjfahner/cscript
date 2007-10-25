@@ -21,7 +21,8 @@
 #ifndef CSCRIPT_TYPEINFO_H
 #define CSCRIPT_TYPEINFO_H
 
-#include "var.h"
+#include "types.h"
+#include "value.h"
 
 //
 // Type information
@@ -33,12 +34,12 @@ public:
   //
   // Retrieve string name from variant
   //
-  static String GetTypeName(Variant const& value);
+  static String GetTypeName(Value const& value);
 
   //
   // Construct explicitly
   //
-  TypeInfo(Variant::SubTypes type, String const& name);
+  TypeInfo(Value::Types type, String const& name);
 
   //
   // Construct from node
@@ -48,17 +49,12 @@ public:
   //
   // Construct from variant
   //
-  TypeInfo(Variant const& value);
-
-  //
-  // Construct from variant ref
-  //
-  TypeInfo(VariantRef const& value);
+  TypeInfo(Value const& value);
 
   //
   // Retrieve subtype
   //
-  Variant::SubTypes GetType() const
+  Value::Types GetType() const
   {
     return m_type;
   }
@@ -74,7 +70,7 @@ public:
   //
   // Automatic conversion to type
   //
-  operator Variant::SubTypes () const
+  operator Value::Types () const
   {
     return m_type;
   }
@@ -92,8 +88,8 @@ protected:
   //
   // Members
   //
-  Variant::SubTypes m_type;
-  String            m_name;
+  Value::Types m_type;
+  String       m_name;
 
 };
 
@@ -104,7 +100,7 @@ operator == (TypeInfo const& lhs, TypeInfo const& rhs)
   {
     return false;
   }
-  if(lhs.GetType() != Variant::stInstance)
+  if(lhs.GetType() != Value::tObject)
   {
     return true;
   }

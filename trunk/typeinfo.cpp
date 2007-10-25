@@ -23,40 +23,34 @@
 #include "ast.h"
 
 /*static*/ String 
-TypeInfo::GetTypeName(Variant const& value)
+TypeInfo::GetTypeName(Value const& value)
 {
-  switch(value.GetType())
+  switch(value.Type())
   {
-  case Variant::stNull:     return "null";
-  case Variant::stBool:     return "bool";
-  case Variant::stInt:      return "int";
-  case Variant::stString:   return "string";
-  case Variant::stAssoc:    return "assoc";
-  case Variant::stInstance: return value.GetInstance()->GetClass()->GetName();
+  case Value::tNull:     return "null";
+  case Value::tBool:     return "bool";
+  case Value::tInt:      return "int";
+  case Value::tString:   return "string";
+//  case Value::tAssoc:    return "assoc";
+//  case Value::tInstance: return value.GetInstance()->GetClass()->GetName();
   }
   throw std::runtime_error("Unknown type");
 }
 
-TypeInfo::TypeInfo(Variant::SubTypes type, String const& name) :
+TypeInfo::TypeInfo(Value::Types type, String const& name) :
 m_type (type),
 m_name (name)
 {
 }
 
 TypeInfo::TypeInfo(Ast* node) :
-m_type ((Variant::SubTypes)node->m_a1.GetNumber()),
+m_type ((Value::Types)node->m_a1.GetNumber()),
 m_name (node->m_a2.GetString())
 {
 }
 
-TypeInfo::TypeInfo(Variant const& value) :
-m_type (value.GetType()),
+TypeInfo::TypeInfo(Value const& value) :
+m_type (value.Type()),
 m_name (GetTypeName(value))
-{
-}
-
-TypeInfo::TypeInfo(VariantRef const& value) :
-m_type (value->GetType()),
-m_name (GetTypeName(*value))
 {
 }

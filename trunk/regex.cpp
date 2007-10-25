@@ -942,23 +942,18 @@ Regex::MatchTypeString(MatchTypes type)
 // Native call interface
 //
 #include "native.h"
-#include "var.h"
+#include "value.h"
 #include "types.h"
 
 NATIVE_CALL("__native match(string pattern, string data, int offset = 0)")
 {
-  // Check types
-  ASSERT_TYPE(0, stString);
-  ASSERT_TYPE(1, stString);
-  ASSERT_TYPE(2, stInt);
-  
   // Fetch string pointers
-  char const* pat = args[0]->GetString().c_str();
-  char const* src = args[1]->GetString().c_str();
+  char const* pat = args[0].GetString().c_str();
+  char const* src = args[1].GetString().c_str();
 
   // Retrieve offset
-  int length = (int)args[1]->GetString().length();
-  int offset = (int) args[2]->GetInt();
+  int length = (int)args[1].GetString().length();
+  int offset = (int) args[2].GetInt();
   offset = std::min(offset, length);
 
   // Compile pattern
@@ -968,5 +963,5 @@ NATIVE_CALL("__native match(string pattern, string data, int offset = 0)")
   Regex::MatchResults mr = r.Match(src + offset);
 
   // Return matched result
-  return Variant(mr.m_complete);
+  return Value(mr.m_complete);
 }

@@ -22,10 +22,10 @@
 #define CSCRIPT_ARGS_H
 
 #include "types.h"
-#include "var.h"
+#include "value.h"
 #include "class.h"
 
-class Arguments : public std::vector<VariantRef>
+class Arguments : public std::vector<Value>
 {
 public:
 
@@ -56,8 +56,8 @@ public:
   //
   // Retrieve argument by name
   //
-  using std::vector<VariantRef>::operator[];
-  VariantRef const& operator [] (String const& name) const
+  using std::vector<Value>::operator[];
+  Value const& operator [] (String const& name) const
   {
     return at(name);
   }
@@ -65,8 +65,8 @@ public:
   //
   // Overload at using name
   //
-  using std::vector<VariantRef>::at;
-  VariantRef const& at(String const& name) const;
+  using std::vector<Value>::at;
+  Value const& at(String const& name) const;
 
 protected:
 
