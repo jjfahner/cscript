@@ -55,10 +55,10 @@ Class::ConstructInstance(Instance* inst) const
   for(; it != ie; ++it)
   {
     // Evaluate initial value
-    VariantRef value;
+    Value value;
     if(it->second->m_a2.Empty())
     {
-      value = Variant::Null;
+      value = Value();
     }
     else
     {
@@ -66,7 +66,7 @@ Class::ConstructInstance(Instance* inst) const
     }
 
     // Instantiate member variable
-    inst->m_vars[it->first] = value;
+    inst->m_members[it->first] = value;
   }
 }
 

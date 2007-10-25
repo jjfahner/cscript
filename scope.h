@@ -22,7 +22,7 @@
 #define CSCRIPT_SCOPE_H
 
 #include "types.h"
-#include "var.h"
+#include "value.h"
 
 class Instance;
 class Function;
@@ -40,7 +40,7 @@ public:
   //
   // Types
   //
-  typedef std::map<String, VariantRef> Variables;
+  typedef std::map<String, Value> Variables;
   typedef std::map<String, Function* > Functions;
   typedef std::map<String, Class*    > Classes;
 
@@ -79,7 +79,7 @@ public:
   //
   // Add a variable
   //
-  virtual void AddVar(String const& name, VariantRef const& value)
+  virtual void AddVar(String const& name, Value const& value)
   {
     if(m_vars.count(name))
     {
@@ -91,7 +91,7 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool FindVar(String const& name, VariantRef& ref) const
+  virtual bool FindVar(String const& name, Value& ref) const
   {
     if(FindVarLocal(name, ref))
     {
@@ -193,7 +193,7 @@ protected:
   //
   // Retrieve a variable from local scope
   //
-  virtual bool FindVarLocal(String const& name, VariantRef& ref) const
+  virtual bool FindVarLocal(String const& name, Value& ref) const
   {
     Variables::const_iterator it = m_vars.find(name);
     if(it == m_vars.end())
@@ -336,7 +336,7 @@ public:
   //
   // Variables may not be added to class scopes
   //
-  virtual void AddVar(String const& name, VariantRef const& value)
+  virtual void AddVar(String const& name, Value const& value)
   {
     throw std::runtime_error("Cannot add variables to class scope");
   }
@@ -346,7 +346,7 @@ protected:
   //
   // Retrieve a local variable
   //
-  virtual bool FindVarLocal(String const& name, VariantRef& ref) const;
+  virtual bool FindVarLocal(String const& name, Value& ref) const;
 
   //
   // Retrieve a local function

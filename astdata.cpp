@@ -66,7 +66,7 @@ AstData::Clear()
     }
     break;
 
-  case Value: 
+  case Val: 
     delete m_value;   
     break;
   }
@@ -94,8 +94,8 @@ AstData::operator = (AstData const& rhs)
       m_list = rhs.m_list;
       ++m_list->m_refs;
       break;
-    case Value:
-      m_value = new Variant(*rhs.m_value);
+    case Val:
+      m_value = new Value(*rhs.m_value);
       break;
     case Number:
       m_number = rhs.m_number;

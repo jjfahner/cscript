@@ -21,9 +21,10 @@
 #ifndef CSCRIPT_SOCKET_H
 #define CSCRIPT_SOCKET_H
 
-#include "var.h"
+#include "value.h"
+#include "object.h"
 
-class Socket : public Variant::Resource 
+class Socket : public Object
 {
 public:
 
@@ -40,22 +41,22 @@ public:
   //
   // Connect to peer
   //
-  Variant Connect(Variant const& host, Variant const& port);
+  Value Connect(Value const& host, Value const& port);
 
   //
   // Close connection
   //
-  Variant Disconnect();
+  Value Disconnect();
 
   //
   // Send data
   //
-  Variant Send(Variant const& data, Variant const& len = 0);
+  Value Send(Value const& data, Value const& len = 0);
 
   //
   // Receive data
   //
-  Variant Receive(Variant const& len, Variant const& timeout = Variant::Null);
+  Value Receive(Value const& len, Value const& timeout = Value());
 
 
 private:

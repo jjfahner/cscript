@@ -22,7 +22,7 @@
 #define CSCRIPT_FUNCTION_H
 
 #include "types.h"
-#include "var.h"
+#include "value.h"
 #include "args.h"
 #include "native.h"
 
@@ -68,7 +68,7 @@ public:
   //
   // Execute function 
   //
-  virtual VariantRef Execute(Evaluator* evaluator, Arguments& args) = 0;
+  virtual Value Execute(Evaluator* evaluator, Arguments& args) = 0;
 
 protected:
 
@@ -113,7 +113,7 @@ public:
   //
   // Execution
   //
-  virtual VariantRef Execute(Evaluator* evaluator, Arguments& args);
+  virtual Value Execute(Evaluator* evaluator, Arguments& args);
 
 protected:
 
@@ -267,7 +267,7 @@ public:
   //
   // Execution
   //
-  virtual VariantRef Execute(Evaluator* evaluator, Arguments& args);
+  virtual Value Execute(Evaluator* evaluator, Arguments& args);
 
 protected:
 
@@ -305,7 +305,7 @@ public:
   //
   // Execution
   //
-  virtual VariantRef Execute(Evaluator* evaluator, Arguments& args);
+  virtual Value Execute(Evaluator* evaluator, Arguments& args);
 
 protected:
 

@@ -1703,47 +1703,47 @@ static void yy_reduce(
         break;
       case 86:
 #line 210 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Variant(String(yymsp[0].minor.yy0), Variant::stInt)); }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(String(yymsp[0].minor.yy0)/*, Value::tInt*/)); }
 #line 1709 "cscript.c"
         break;
       case 87:
 #line 211 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Variant(hex2dec(String(yymsp[0].minor.yy0).c_str()))); }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(hex2dec(String(yymsp[0].minor.yy0).c_str()))); }
 #line 1714 "cscript.c"
         break;
       case 88:
 #line 212 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Variant(bin2dec(String(yymsp[0].minor.yy0).c_str()))); }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(bin2dec(String(yymsp[0].minor.yy0).c_str()))); }
 #line 1719 "cscript.c"
         break;
       case 89:
 #line 213 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Variant(rom2dec(String(yymsp[0].minor.yy0).c_str()))); }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(rom2dec(String(yymsp[0].minor.yy0).c_str()))); }
 #line 1724 "cscript.c"
         break;
       case 90:
 #line 214 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Variant(String(yymsp[0].minor.yy0), Variant::stReal)); }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(String(yymsp[0].minor.yy0)/*, Value::tReal*/)); }
 #line 1729 "cscript.c"
         break;
       case 91:
 #line 215 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Variant(String(yymsp[0].minor.yy0), Variant::stString)); }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(String(yymsp[0].minor.yy0)/*, Value::tString*/)); }
 #line 1734 "cscript.c"
         break;
       case 92:
 #line 216 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Variant(true));    }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(true));    }
 #line 1739 "cscript.c"
         break;
       case 93:
 #line 217 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Variant(false));   }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(false));   }
 #line 1744 "cscript.c"
         break;
       case 94:
 #line 218 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Variant());        }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value());        }
 #line 1749 "cscript.c"
         break;
       case 95:
@@ -1783,22 +1783,22 @@ static void yy_reduce(
         break;
       case 102:
 #line 239 "cscript.in"
-{ yygotominor.yy71 = new Ast(type_specifier, Variant::stBool,      String(yymsp[0].minor.yy0)); }
+{ yygotominor.yy71 = new Ast(type_specifier, Value::tBool,   String(yymsp[0].minor.yy0)); }
 #line 1789 "cscript.c"
         break;
       case 103:
 #line 240 "cscript.in"
-{ yygotominor.yy71 = new Ast(type_specifier, Variant::stInt,       String(yymsp[0].minor.yy0)); }
+{ yygotominor.yy71 = new Ast(type_specifier, Value::tInt,    String(yymsp[0].minor.yy0)); }
 #line 1794 "cscript.c"
         break;
       case 104:
 #line 241 "cscript.in"
-{ yygotominor.yy71 = new Ast(type_specifier, Variant::stString,    String(yymsp[0].minor.yy0)); }
+{ yygotominor.yy71 = new Ast(type_specifier, Value::tString, String(yymsp[0].minor.yy0)); }
 #line 1799 "cscript.c"
         break;
       case 105:
 #line 242 "cscript.in"
-{ yygotominor.yy71 = new Ast(type_specifier, Variant::stInstance,  String(yymsp[0].minor.yy0)); }
+{ yygotominor.yy71 = new Ast(type_specifier, Value::tObject, String(yymsp[0].minor.yy0)); }
 #line 1804 "cscript.c"
         break;
       case 106:

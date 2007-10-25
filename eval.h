@@ -22,13 +22,14 @@
 #define CSCRIPT_EVAL_H
 
 #include "types.h"
-#include "var.h"
 #include "report.h"
 #include "scope.h"
 #include "args.h"
 #include "ast.h"
 #include "function.h"
 #include "typeinfo.h"
+#include "value.h"
+#include "object.h"
 
 class Lexer;
 
@@ -53,13 +54,13 @@ public:
   //
   // Evaluation of single code line
   //
-  VariantRef Eval(String code);
+  Value Eval(String code);
 
   //
   // Evaluation of an expression
   //
-  VariantRef EvalExpression(Ast* node);
-  void EvalStatement(Ast* node);
+  Value EvalExpression(Ast* node);
+  void  EvalStatement(Ast* node);
 
   //
   // Reset the evaluator
@@ -133,30 +134,30 @@ protected:
   //
   // Expression handlers
   //
-  VariantRef EvalLValue(Ast* node);
-  VariantRef EvalListLiteral(Ast* node);
-  VariantRef EvalNewExpression(Ast* node);
-  VariantRef EvalMemberExpression(Ast* node);
-  VariantRef EvalThisExpression();
-  VariantRef EvalAssignment(Ast* node);
-  VariantRef EvalBinary(Ast* node);
-  VariantRef EvalTernary(Ast* node);
-  VariantRef EvalPrefix(Ast* node);
-  VariantRef EvalPostfix(Ast* node);
-  VariantRef EvalIndex(Ast* node);
-  VariantRef EvalConversion(Ast* node);
+  Value EvalLValue(Ast* node);
+  Value EvalListLiteral(Ast* node);
+  Value EvalNewExpression(Ast* node);
+  Value EvalMemberExpression(Ast* node);
+  Value EvalThisExpression();
+  Value EvalAssignment(Ast* node);
+  Value EvalBinary(Ast* node);
+  Value EvalTernary(Ast* node);
+  Value EvalPrefix(Ast* node);
+  Value EvalPostfix(Ast* node);
+  Value EvalIndex(Ast* node);
+  Value EvalConversion(Ast* node);
 
   //
   // Function handlers
   //
-  VariantRef EvalFunctionCall(Ast* node);
+  Value EvalFunctionCall(Ast* node);
   friend class ScriptFunction;
-  VariantRef EvalScriptCall(ScriptFunction* fun, Arguments& args);
+  Value EvalScriptCall(ScriptFunction* fun, Arguments& args);
 
   //
   // Convert a value in-place
   //
-  void PerformConversion(VariantRef& value, TypeInfo const& newType);
+  void PerformConversion(Value& value, TypeInfo const& newType);
 
   //
   // Evaluate argument list
@@ -207,17 +208,17 @@ struct reset_exception : public script_exception
 
 struct return_exception : public script_exception
 {
-  VariantRef m_value;
+  Value m_value;
   return_exception(Ast* node) : script_exception (node) {}
-  return_exception(Ast* node, VariantRef const& value) : script_exception (node), m_value (value) {}
+  return_exception(Ast* node, Value const& value) : script_exception (node), m_value (value) {}
   ~return_exception() throw() {}
 };
 
 struct user_exception : public script_exception
 {
-  VariantRef m_value;
+  Value m_value;
   user_exception(Ast* node) : script_exception (node) {}
-  user_exception(Ast* node, VariantRef const& value) : script_exception (node), m_value (value) {}
+  user_exception(Ast* node, Value const& value) : script_exception (node), m_value (value) {}
   ~user_exception() throw() {}
 };
 

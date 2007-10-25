@@ -22,8 +22,9 @@
 #define CSCRIPT_CLASS_H
 
 #include "types.h"
-#include "var.h"
+#include "value.h"
 #include "typeinfo.h"
+#include "object.h"
 
 class Evaluator;
 class MemberFunction;
@@ -180,7 +181,7 @@ protected:
 // Runtime class instance
 //
 
-class Instance : public Variant::Resource
+class Instance : public Object
 {
 public:
 
@@ -223,7 +224,7 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool FindVar(String const& name, VariantRef& ref) const
+  virtual bool FindVar(String const& name, Value& ref) const
   {
     Variables::const_iterator it = m_vars.find(name);
     if(it == m_vars.end())
@@ -247,7 +248,7 @@ protected:
   //
   // Types
   //
-  typedef std::map<String, VariantRef> Variables;
+  typedef std::map<String, Value> Variables;
 
   //
   // Members

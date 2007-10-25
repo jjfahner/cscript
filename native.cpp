@@ -70,52 +70,36 @@ NativeCallRegistrar::RegisterCalls()
   }
 }
 
-//
-// Check argument type for a native call
-//
-void 
-AssertType(Arguments const& args, size_t index, Variant::SubTypes type, char const* function)
-{
-  if(index >= args.size())
-  {
-    throw std::runtime_error("Invalid number of arguments passed to " + String(function));
-  }
-  if(args[index].Empty() || args[index]->GetType() != type)
-  {
-    throw std::runtime_error("Invalid argument passed to " + String(function));
-  }
-}
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Native call implementations
 //
 
-void PrintVariant(VariantRef const& ref)
+void PrintVariant(Value const& ref)
 {
-  switch(ref->GetType())
+  switch(ref.Type())
   {
-  case Variant::stNull:       std::cout << "null"; return;
-  case Variant::stBool:       std::cout << (ref->GetBool() ? "true" : "false"); return;
-  case Variant::stInt:        std::cout << ref->GetInt(); return;
-  case Variant::stString:     std::cout << ref->GetString(); return;
-  case Variant::stAssoc:      break;
-  case Variant::stResource:   std::cout << "resource"; return;
+  case Value::tNull:       std::cout << "null"; return;
+  case Value::tBool:       std::cout << (ref.GetBool() ? "true" : "false"); return;
+  case Value::tInt:        std::cout << ref.GetInt(); return;
+  case Value::tString:     std::cout << ref.GetString(); return;
+//   case Value::stAssoc:      break;
+//   case Value::stResource:   std::cout << "resource"; return;
   default: throw std::runtime_error("Invalid subtype");
   }
 
-  Variant::AssocType::const_iterator it, ie;
-  it = ref->GetMap().begin();
-  ie = ref->GetMap().end();
-  std::cout << "[";
-  String sep;
-  for(; it != ie; ++it)
-  {
-    std::cout << sep;
-    sep = ",";
-    PrintVariant(it->second);
-  }
-  std::cout << "]";
+//   Value::AssocType::const_iterator it, ie;
+//   it = ref->GetMap().begin();
+//   ie = ref->GetMap().end();
+//   std::cout << "[";
+//   String sep;
+//   for(; it != ie; ++it)
+//   {
+//     std::cout << sep;
+//     sep = ",";
+//     PrintVariant(it->second);
+//   }
+//   std::cout << "]";
 }
 
 NATIVE_CALL("__native print(string value)")
@@ -127,7 +111,7 @@ NATIVE_CALL("__native print(string value)")
 NATIVE_CALL("__native exit(int exitcode = 0)")
 {
   // Exit with specified exit code
-  exit((int) args[0]->AsInt());
+  exit((int) args[0].GetInt());
 
   // Never executed
   throw std::runtime_error("exit() failed");
@@ -136,7 +120,7 @@ NATIVE_CALL("__native exit(int exitcode = 0)")
 NATIVE_CALL("__native quit(int exitcode = 0)")
 {
   // Exit with specified exit code
-  exit((int) args[0]->AsInt());
+  exit((int) args[0].GetInt());
 
   // Never executed
   throw std::runtime_error("exit() failed");
@@ -146,22 +130,22 @@ NATIVE_CALL("__native read()")
 {
   String line;
   std::cin >> line;
-  return Variant(line);
+  return Value(line);
 }
 
-NATIVE_CALL("__native count(arg)")
-{
-  if(args[0]->GetType() != Variant::stAssoc)
-  {
-    throw std::runtime_error("Invalid type for count");
-  }
-  return Variant(args[0]->GetMap().size());
-}
+// NATIVE_CALL("__native count(arg)")
+// {
+//   if(args[0].GetType() != Value::stAssoc)
+//   {
+//     throw std::runtime_error("Invalid type for count");
+//   }
+//   return Value(args[0].GetMap().size());
+// }
 
 NATIVE_CALL("__native exec(string command)")
 {
   // Pass to system
-  return Variant(system(args[0]->GetString().c_str()));
+  return Value(system(args[0].GetString().c_str()));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -171,29 +155,22 @@ NATIVE_CALL("__native exec(string command)")
 
 NATIVE_CALL("__native strlen(string value)")
 {
-  ASSERT_TYPE(0, stString);
-  return Variant(args[0]->GetString().length());
+  return Value((Value::Int)args[0].GetString().length());
 }
 
 NATIVE_CALL("__native substr(string data, int start, int len = 0)")
 {
-  ASSERT_TYPE(0, stString);
-  ASSERT_TYPE(1, stInt);
-  ASSERT_TYPE(2, stInt);
-  String::size_type off = (String::size_type)args[1]->GetInt();
-  String::size_type len = (String::size_type)args[2]->GetInt();
+  String::size_type off = (String::size_type)args[1].GetInt();
+  String::size_type len = (String::size_type)args[2].GetInt();
   if(len == 0) len = String::npos;
-  return Variant(args[0]->GetString().substr(off, len));
+  return Value(args[0].GetString().substr(off, len));
 }
 
 NATIVE_CALL("__native strstr(string data, string what, int start = 0)")
 {
-  ASSERT_TYPE(0, stString);
-  ASSERT_TYPE(1, stString);
-  ASSERT_TYPE(2, stInt);
-  String const& src = args[0]->GetString();
-  String const& str = args[1]->GetString();
-  int32 offset = (int32)args[2]->GetInt();
+  String const& src = args[0].GetString();
+  String const& str = args[1].GetString();
+  int32 offset = (int32)args[2].GetInt();
   if(str.length() < 1)
   {
     throw std::runtime_error("Empty string in call to strstr");
@@ -201,19 +178,16 @@ NATIVE_CALL("__native strstr(string data, string what, int start = 0)")
   size_t res = src.find(str, offset);
   if(res == String::npos)
   {
-    return Variant(-1);
+    return Value(-1);
   }
-  return Variant(res);
+  return Value((Value::Int)res);
 }
 
 NATIVE_CALL("__native strchr(string data, string char, int start = 0)")
 {
-  ASSERT_TYPE(0, stString);
-  ASSERT_TYPE(1, stString);
-  ASSERT_TYPE(2, stInt);
-  String const& src = args["data"]->GetString();
-  String const& chr = args["char"]->GetString();
-  int32 offset = (int32)args["start"]->GetInt();
+  String const& src = args["data"].GetString();
+  String const& chr = args["char"].GetString();
+  int32 offset = (int32)args["start"].GetInt();
   if(chr.length() < 1)
   {
     throw std::runtime_error("Empty string in call to strchr");
@@ -221,14 +195,14 @@ NATIVE_CALL("__native strchr(string data, string char, int start = 0)")
   size_t res = src.find(chr[0], offset);
   if(res == String::npos)
   {
-    return Variant(-1);
+    return Value(-1);
   }
-  return Variant(res);
+  return Value((Value::Int)res);
 }
 
 NATIVE_CALL("__native eval(string code)")
 {
-  return evaluator->Eval(args[0]->AsString());
+  return evaluator->Eval(args[0].GetString());
 }
 
 NATIVE_CALL("__native reset()")
@@ -244,68 +218,68 @@ NATIVE_CALL("__native reset()")
 NATIVE_CALL("__native native(string libname, string fun, arglist...)")
 {
   // Load library
-  HMODULE hModule = LoadLibrary(args[0]->GetString().c_str());
+  HMODULE hModule = LoadLibrary(args[0].GetString().c_str());
   if(hModule == 0)
   {
     throw std::runtime_error("Failed to load library");
   }
 
   // Find function address
-  FARPROC proc = GetProcAddress(hModule, args[1]->GetString().c_str());
+  FARPROC proc = GetProcAddress(hModule, args[1].GetString().c_str());
   if(proc == 0)
   {
     throw std::runtime_error("Failed to retrieve function pointer");
   }
 
-  // Retrieve map
-  Variant::AssocType& map = args[2]->GetMap();
+//   // Retrieve map
+//   Value::AssocType& map = args[2].GetMap();
+// 
+//   // Allocate memory for arguments
+//   size_t argbytes = map.size() * sizeof(int);
+//   intptr_t * stack = new intptr_t[map.size()];
+// 
+//   // Copy arguments into buffer stack
+//   for(size_t index = 0; index < map.size(); ++index)
+//   {
+//     VariantRef& arg = map[Value(index)];
+//     switch(arg->GetType())
+//     {
+//     case Value::stInt:   // int
+//       stack[index] = (int)arg->GetInt();
+//       break;
+// 
+//     case Value::stString:   // string
+//       stack[index] = (intptr_t)arg->GetString().c_str();
+//       break;
+// 
+//     default:
+//       delete [] stack;
+//       throw std::runtime_error("Invalid argument type");
+//     }
+//   }
 
-  // Allocate memory for arguments
-  size_t argbytes = map.size() * sizeof(int);
-  intptr_t * stack = new intptr_t[map.size()];
-
-  // Copy arguments into buffer stack
-  for(size_t index = 0; index < map.size(); ++index)
-  {
-    VariantRef& arg = map[Variant(index)];
-    switch(arg->GetType())
-    {
-    case Variant::stInt:   // int
-      stack[index] = (int)arg->GetInt();
-      break;
-
-    case Variant::stString:   // string
-      stack[index] = (intptr_t)arg->GetString().c_str();
-      break;
-
-    default:
-      delete [] stack;
-      throw std::runtime_error("Invalid argument type");
-    }
-  }
-
-  intptr_t dst;
+//   intptr_t dst;
   intptr_t res;
-
-  // Make space on stack and copy address
-   __asm sub esp, argbytes;
-   __asm mov dst, esp
-
-  // Copy and delete arguments
-  memmove((void*)dst, stack, argbytes);
-  delete [] stack;
-
-	// Invoke native function
-  __asm call proc;
-
-  // Copy return value
-  __asm mov res, eax;
+// 
+//   // Make space on stack and copy address
+//    __asm sub esp, argbytes;
+//    __asm mov dst, esp
+// 
+//   // Copy and delete arguments
+//   memmove((void*)dst, stack, argbytes);
+//   delete [] stack;
+// 
+// 	// Invoke native function
+//   __asm call proc;
+// 
+//   // Copy return value
+//   __asm mov res, eax;
 
   // Free the library
   FreeLibrary(hModule);
 
   // Done
-  return VariantRef((Variant::IntType)res);
+  return Value((Value::Int)res);
 }
 
 #endif

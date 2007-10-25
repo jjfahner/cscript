@@ -22,7 +22,7 @@
 #include "native.h"
 #include "args.h"
 
-class NativeFile : public Variant::Resource
+class NativeFile : public Object
 {
 public:
 
@@ -36,17 +36,17 @@ public:
     Close();
   }
 
-  Variant Close()
+  Value Close()
   {
     if(m_file)
     {
       fclose(m_file);
       m_file = 0;
     }
-    return Variant::True;
+    return true;
   }
 
-  bool Open(Variant const& name, Variant const& mode)
+  bool Open(Value const& name, Value const& mode)
   {
     // Close current file
     if(m_file)
@@ -62,12 +62,12 @@ public:
     return m_file != 0;
   }
 
-  Variant Read(Variant const& length)
+  Value Read(Value const& length)
   {
     // Check input
     if(m_file == 0)
     {
-      return Variant::False;
+      return false;
     }
 
     // Allocate buffer
@@ -79,25 +79,25 @@ public:
     if(res != 1)
     {
       delete [] buf;
-      return Variant::False;
+      return false;
     }
 
     // Copy to string
-    Variant::StringType str(buf, len);
+    String str(buf, len);
 
     // Free buffer
     delete [] buf;
 
     // Return string
-    return Variant(str);
+    return Value(str);
   }
 
-  Variant Write(Variant const& buf, Variant const& bytes = 0)
+  Value Write(Value const& buf, Value const& bytes = 0)
   {
     // Check file
     if(m_file == 0)
     {
-      return Variant::False;
+      return false;
     }
 
     // Determine write length
@@ -111,11 +111,11 @@ public:
     size_t res = fwrite(buf.GetString().c_str(), len, 1, m_file);
     if(res != 1)
     {
-      return Variant::False;
+      return false;
     }
 
     // Succeeded
-    return Variant::True;
+    return true;
   }
 
 private:
@@ -131,61 +131,56 @@ private:
 
 NATIVE_CALL("__native fopen(string file, string mode)")
 {
-  ASSERT_TYPE(0, stString);
-  ASSERT_TYPE(1, stString);
-
   // Create file
   NativeFile* f = new NativeFile;
-  if(!f->Open(*args[0], *args[1]))
+  if(!f->Open(args[0], args[1]))
   {
     delete f;
-    return Variant::False;
+    return false;
   }
 
   // Return new file
-  return Variant(f);
+  return Value(f);
 }
 
 NATIVE_CALL("__native fread(file, int length)")
 {
-  ASSERT_TYPE(1, stInt);
-
   // Extract file
-  NativeFile* f = dynamic_cast<NativeFile*>(args[0]->GetResource());
+  NativeFile* f = dynamic_cast<NativeFile*>(args[0].GetObject());
   if(f == 0)
   {
-    return Variant::False;
+    return false;
   }
 
   // Read from file
-  return f->Read(*args[1]);
+  return f->Read(args[1]);
 }
 
 NATIVE_CALL("__native fwrite(file, string buffer, int length = 0)")
 {
   // Extract file
-  NativeFile* f = dynamic_cast<NativeFile*>(args[0]->GetResource());
+  NativeFile* f = dynamic_cast<NativeFile*>(args[0].GetObject());
   if(f == 0)
   {
-    return Variant::False;
+    return false;
   }
 
   // Write to file
-  return f->Write(*args[1], *args[2]);
+  return f->Write(args[1], args[2]);
 }
 
 NATIVE_CALL("__native fclose(file)")
 {
   // Extract file
-  NativeFile* f = dynamic_cast<NativeFile*>(args[0]->GetResource());
+  NativeFile* f = dynamic_cast<NativeFile*>(args[0].GetObject());
   if(f == 0)
   {
-    return Variant::False;
+    return false;
   }
 
   // Close the file
   f->Close();
 
   // Done
-  return Variant::True;
+  return true;
 }

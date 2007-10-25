@@ -28,7 +28,7 @@ ScriptFunction::GetParameters() const
   return m_node->m_a2;
 }
 
-VariantRef 
+Value 
 ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
   return evaluator->EvalScriptCall(this, args);
@@ -68,7 +68,7 @@ m_pars    (0)
   m_pars = node->m_a2.GetList();
 }
 
-VariantRef
+Value
 NativeFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
   return m_call(evaluator, args);
@@ -84,7 +84,7 @@ ExternFunction::GetParameters() const
 
 #include <windows.h>
 
-VariantRef
+Value
 ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
   // Load library
@@ -116,12 +116,12 @@ ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
     Ast* typ = par->m_a2;
     switch(typ->m_a1.GetNumber())
     {
-    case Variant::stInt:   // int
-      stack[index] = (int)args[index]->GetInt();
+    case Value::tInt:   // int
+      stack[index] = (int)args[index].GetInt();
       break;
 
-    case Variant::stString:   // string
-      stack[index] = (intptr_t)args[index]->GetString().c_str();
+    case Value::tString:   // string
+      stack[index] = (intptr_t)args[index].GetString().c_str();
       break;
 
     default:
@@ -148,12 +148,12 @@ ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
   __asm mov res, eax;
 
   // Done
-  return VariantRef((Variant::IntType)res);
+  return Value((Value::Int)res);
 }
 
 #else
 
-VariantRef
+Value
 ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
   throw std::runtime_error("Extern calls not implemented on this platform");
