@@ -317,7 +317,7 @@ function main()
   assert("strstr", strstr(a, "wo"),    6);
   assert("strstr", strstr(a, "wa"),   -1);
   assert("strstr", strstr(a, "wo", 2), 6);
-  
+ 
   // Logical or
   assert("Logical or", true  || false, true);
   assert("Logical or", false || true,  true);
