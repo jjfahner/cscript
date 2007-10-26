@@ -23,6 +23,7 @@
 
 #include "types.h"
 #include "value.h"
+#include "object.h"
 
 class Instance;
 class Function;
@@ -110,6 +111,27 @@ public:
   Variables const& GetVariables() const
   {
     return m_vars;
+  }
+
+  //
+  // Add variables to list
+  //
+  void AddObjects(Objects& objects) const
+  {
+    Variables::const_iterator it, ie;
+    it = m_vars.begin();
+    ie = m_vars.end();
+    for(; it != ie; ++it)
+    {
+      if(it->second.Type() == Value::tObject)
+      {
+        objects.insert(&it->second.GetObject());
+      }
+    }
+    if(m_parent)
+    {
+      m_parent->AddObjects(objects);
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////

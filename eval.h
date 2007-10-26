@@ -103,6 +103,16 @@ public:
   void OnParseFailure();
   void OnSyntaxError();
 
+  //
+  // Run garbage collector
+  //
+  void Collect();
+
+  //
+  // Public members
+  //
+  // TODO move to protected
+  //
   Reporter  m_reporter;
   File*     m_file;
   Lexer*    m_lexer;
