@@ -26,7 +26,7 @@ public:
   Value() : m_pdata(&m_ldata)
   {
     m_pdata->m_type = tNull;
-    m_pdata->m_data.m_int = 0;
+    m_pdata->m_int = 0;
   }
 
   Value(Value const& rhs) : m_pdata(&m_ldata)
@@ -41,34 +41,38 @@ public:
     }
   }
 
+  Value(Value* v) : m_pdata(v->m_pdata)
+  {
+  }
+
   Value(Bool val) : m_pdata(&m_ldata)
   {
     m_pdata->m_type = tBool;
-    m_pdata->m_data.m_bool = val;
+    m_pdata->m_bool = val;
   }
 
   Value(Int val) : m_pdata(&m_ldata)
   {
     m_pdata->m_type = tInt;
-    m_pdata->m_data.m_int = val;
+    m_pdata->m_int = val;
   }
 
   Value(String val) : m_pdata(&m_ldata)
   {
     m_pdata->m_type = tString;
-    m_pdata->m_data.m_string = new String(val);
+    m_pdata->m_string = new String(val);
   }
 
   Value(char const* val) : m_pdata(&m_ldata)
   {
     m_pdata->m_type = tString;
-    m_pdata->m_data.m_string = new String(val);
+    m_pdata->m_string = new String(val);
   }
 
   Value(Object* obj) : m_pdata(&m_ldata)
   {
     m_pdata->m_type = tObject;
-    m_pdata->m_data.m_object = obj;
+    m_pdata->m_object = obj;
   }
 
   ~Value()
@@ -76,9 +80,9 @@ public:
     Clear();
   }
 
-  void Clear()
+  void Clear(bool deep = false)
   {
-    if(IsReference())
+    if(!deep && IsReference())
     {
       m_pdata = &m_ldata;
     }
@@ -86,11 +90,11 @@ public:
     {
       switch(m_pdata->m_type)
       {
-      case tString: delete m_pdata->m_data.m_string; break;
+      case tString: delete m_pdata->m_string; break;
       }
     }
     m_pdata->m_type = tNull;
-    m_pdata->m_data.m_int  = 0;
+    m_pdata->m_int  = 0;
   }
 
   Types Type() const
@@ -111,46 +115,65 @@ public:
   Bool GetBool() const
   {
     AssertType(tBool);
-    return m_pdata->m_data.m_bool;
+    return m_pdata->m_bool;
   }
 
   Int GetInt() const
   {
     AssertType(tInt);
-    return m_pdata->m_data.m_int;
+    return m_pdata->m_int;
   }
 
   String const& GetString() const
   {
     AssertType(tString);
-    return *m_pdata->m_data.m_string;
+    return *m_pdata->m_string;
   }
 
   Object* GetObject() const
   {
     AssertType(tObject);
-    return m_pdata->m_data.m_object;
+    return m_pdata->m_object;
+  }
+
+  //
+  // Set value
+  //
+  void SetValue(Value const& rhs)
+  {
+    if(m_pdata != rhs.m_pdata)
+    {
+      Clear(true);
+      switch(rhs.m_pdata->m_type)
+      {
+      case tBool:   m_pdata->m_bool   = rhs.m_pdata->m_bool; break;
+      case tInt:    m_pdata->m_int    = rhs.m_pdata->m_int; break;
+      case tString: m_pdata->m_string = new String(*rhs.m_pdata->m_string); break;
+      case tObject: m_pdata->m_object = rhs.m_pdata->m_object; break;
+      }
+      m_pdata->m_type = rhs.m_pdata->m_type;
+    }
   }
 
   Value const& operator = (Value const& rhs)
   {
-    if(&rhs != this)
-    {
-      Clear();
-      switch(rhs.m_pdata->m_type)
-      {
-      case tBool:   m_pdata->m_data.m_bool = rhs.m_pdata->m_data.m_bool; break;
-      case tInt:    m_pdata->m_data.m_int = rhs.m_pdata->m_data.m_int; break;
-      case tString: m_pdata->m_data.m_string = new String(*rhs.m_pdata->m_data.m_string); break;
-      case tObject: m_pdata->m_data.m_object = rhs.m_pdata->m_data.m_object; break;
-      }
-      m_pdata->m_type = rhs.m_pdata->m_type;
-    }
+    SetValue(rhs);
     return *this;
+  }
+
+  //
+  // Set reference
+  //
+  void SetRef(Value const& rhs)
+  {
+    m_pdata = rhs.m_pdata;
   }
 
 private:
 
+  //
+  // Type check
+  //
   void AssertType(Types type) const
   {
     if(m_pdata->m_type != type)
@@ -159,21 +182,18 @@ private:
     }
   }
 
-  // Possible subtypes
-  union SubTypes
-  {
-    Bool    m_bool;
-    Int     m_int;
-    String* m_string;
-    Object* m_object;
-    Value*  m_value;
-  };
-
   // Member data
   struct Data
   {
     Types     m_type;
-    SubTypes  m_data;
+    union 
+    {
+      Bool    m_bool;
+      Int     m_int;
+      String* m_string;
+      Object* m_object;
+      Value*  m_value;
+    };
   };
 
   //

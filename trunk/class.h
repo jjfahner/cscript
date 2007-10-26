@@ -231,7 +231,7 @@ public:
     {
       return false;
     }
-    ref = it->second;
+    ref.SetRef(it->second);
     return true;
   }
 

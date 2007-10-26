@@ -1703,7 +1703,7 @@ static void yy_reduce(
         break;
       case 86:
 #line 210 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Value(String(yymsp[0].minor.yy0)/*, Value::tInt*/)); }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(str2dec(String(yymsp[0].minor.yy0).c_str()))); }
 #line 1709 "cscript.c"
         break;
       case 87:
@@ -1723,12 +1723,12 @@ static void yy_reduce(
         break;
       case 90:
 #line 214 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Value(String(yymsp[0].minor.yy0)/*, Value::tReal*/)); }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(str2flt(String(yymsp[0].minor.yy0).c_str()))); }
 #line 1729 "cscript.c"
         break;
       case 91:
 #line 215 "cscript.in"
-{ yygotominor.yy71 = p->AllocAst(literal_value, Value(String(yymsp[0].minor.yy0)/*, Value::tString*/)); }
+{ yygotominor.yy71 = p->AllocAst(literal_value, Value(String(yymsp[0].minor.yy0))); }
 #line 1734 "cscript.c"
         break;
       case 92:

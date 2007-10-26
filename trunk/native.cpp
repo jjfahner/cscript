@@ -75,7 +75,7 @@ NativeCallRegistrar::RegisterCalls()
 // Native call implementations
 //
 
-void PrintVariant(Value const& ref)
+void PrintValue(Value const& ref)
 {
   switch(ref.Type())
   {
@@ -104,7 +104,7 @@ void PrintVariant(Value const& ref)
 
 NATIVE_CALL("__native print(string value)")
 {
-  PrintVariant(args[0]);
+  PrintValue(args[0]);
   return args[0];
 }
 
@@ -259,7 +259,7 @@ NATIVE_CALL("__native native(string libname, string fun, arglist...)")
 //   }
 
 //   intptr_t dst;
-  intptr_t res;
+  intptr_t res = 0;
 // 
 //   // Make space on stack and copy address
 //    __asm sub esp, argbytes;
