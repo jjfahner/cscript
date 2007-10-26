@@ -24,6 +24,18 @@
 #include "types.h"
 
 //
+// Convert decimal string to decimal
+//
+int32 str2dec(char const* src);
+
+//
+// Convert string to floating point
+//
+// TODO: this is a dummy function
+//
+int str2flt(char const* src);
+
+//
 // Convert hexadecimal string to integer value
 //
 int32 hex2dec(char const* src);

@@ -58,15 +58,15 @@ Class::ConstructInstance(Instance* inst) const
     Value value;
     if(it->second->m_a2.Empty())
     {
-      value = Value();
+      value.Clear();
     }
     else
     {
-      value = inst->m_eval->EvalExpression(it->second->m_a2);
+      value.SetValue(inst->m_eval->EvalExpression(it->second->m_a2));
     }
 
     // Instantiate member variable
-    inst->m_members[it->first] = value;
+    inst->m_members[it->first].SetValue(value);
   }
 }
 

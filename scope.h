@@ -85,7 +85,7 @@ public:
     {
       throw std::runtime_error("Variable already declared");
     }
-    m_vars[name] = value;
+    m_vars[name].SetValue(value);
   }
 
   //
@@ -200,7 +200,7 @@ protected:
     {
       return false;
     }
-    ref = it->second;
+    ref.SetRef(const_cast<Value*>(&it->second));
     return true;
   }
 

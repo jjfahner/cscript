@@ -21,6 +21,42 @@
 #include "convert.h"
 
 int32 
+str2dec(char const* src)
+{
+  int32 value = 0;
+
+  // Negative number
+  bool neg = false;
+  if(*src == '-')
+  {
+    neg = true;
+    ++src;
+  }
+
+  // No digits. Error?
+  if(!isdigit(*src))
+  {
+    return 0;
+  }
+
+  // Calculate value
+  while(isdigit(*src))
+  {
+    value *= 10;
+    value += *src++ - '0';
+  }
+
+  // Done
+  return value;
+}
+
+int
+str2flt(char const* src)
+{
+  throw 0;
+}
+
+int32 
 hex2dec(char const* src)
 {
   int32 value = 0;
