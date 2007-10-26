@@ -1,14 +1,11 @@
 #ifndef CSCRIPT_OBJECT_H
 #define CSCRIPT_OBJECT_H
 
-#include "value.h"
 #include <map>
 #include <set>
 
-//
-// Map from value to value
-//
-typedef std::map<Value, Value> ValueMap;
+#include "value.h"
+#include "valuemap.h"
 
 //
 // List of root objects
@@ -26,7 +23,7 @@ public:
   // Object factory. Forces heap
   // creation of Object instances.
   //
-  static Object* Create();
+  static Object* Create(Evaluator* eval);
 
   //
   // Invoke garbage collection.
@@ -41,9 +38,20 @@ public:
   }
 
   //
+  // Finalize instance
+  //
+  virtual void Finalize()
+  {
+  }
+
+  //
   // Members
   //
   ValueMap& GetMembers()
+  {
+    return m_members;
+  }
+  ValueMap const& GetMembers() const
   {
     return m_members;
   }
@@ -53,12 +61,13 @@ protected:
   //
   // Protected construction
   //
-  Object();
+  Object(Evaluator* eval);
 
   //
   // Object members
   //
-  ValueMap m_members;
+  Evaluator*  m_evaluator;
+  ValueMap    m_members;
 
 };
 

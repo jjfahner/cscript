@@ -66,7 +66,7 @@ Class::ConstructInstance(Instance* inst) const
     }
 
     // Instantiate member variable
-    inst->m_members[it->first].SetValue(value);
+    inst->GetMembers()[it->first].SetValue(value);
   }
 }
 

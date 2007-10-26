@@ -38,6 +38,23 @@ void CScriptParse(void*, int,Token, Evaluator*);
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Comparator implementation
+//
+
+ValueComparatorLess::ValueComparatorLess(Evaluator* evaluator) :
+m_evaluator (evaluator)
+{
+}
+
+bool 
+ValueComparatorLess::operator () (Value const& lhs, Value const& rhs)
+{
+  return m_evaluator->Compare(lhs, rhs) < 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Autoscoping implementation
 //
 
@@ -123,8 +140,9 @@ Evaluator::GetGlobalScope()
 }
 
 Evaluator::Evaluator() :
-m_scope (0),
-m_file  (0)
+m_scope   (0),
+m_file    (0),
+m_allocs  (0)
 {
   static bool nativeCallsRegistered = false;
   if(!nativeCallsRegistered)
@@ -321,6 +339,40 @@ Evaluator::Collect()
 
   // Collect invalid objects
   Object::Collect(valid);
+}
+
+int 
+Evaluator::Compare(Value const& lhs, Value const& rhs)
+{
+  // Comparing different types
+  if(lhs.Type() != rhs.Type())
+  {
+    // TODO this must be improved
+    return (char*)lhs.GetIdentity() - (char*)rhs.GetIdentity();
+  }
+
+  // Type-based compare
+  switch(lhs.Type())
+  {
+  case Value::tNull:   
+    return 0;
+
+  case Value::tBool:   
+    return int(lhs.GetBool()) - int(rhs.GetBool());
+
+  case Value::tInt:    
+    return lhs.GetInt() - rhs.GetInt();
+
+  case Value::tString: 
+    return strcmp(lhs.GetString().c_str(), 
+                  rhs.GetString().c_str());
+  
+  case Value::tObject: 
+    return &lhs.GetObject() - &rhs.GetObject();
+  }
+
+  // Invalid type
+  throw std::runtime_error("Unsupported value type for comparison");
 }
 
 Value 
@@ -944,7 +996,7 @@ Value
 Evaluator::EvalListLiteral(Ast* node)
 {
   // Create empty map
-  Value v(Object::Create());
+  Value v(Object::Create(this));
   
   // Recurse into map values
   Ast* child = node->m_a1;
@@ -1130,7 +1182,7 @@ Evaluator::EvalSwitchStatement(Ast* node)
       }
       statement = (*it)->m_a1;
     }
-    else if(EvalExpression((*it)->m_a1) == value)
+    else if(Compare(EvalExpression((*it)->m_a1), value) == 0)
     {
       statement = (*it)->m_a2;
       break;
@@ -1198,6 +1250,9 @@ Evaluator::EvalNewExpression(Ast* node)
     }
   }
 
+  // Update new count
+  ++m_allocs;
+
   // Done
   return inst;
 }
@@ -1230,7 +1285,7 @@ Evaluator::EvalThisExpression()
     }
     scope = scope->GetParent();
   }
-  throw std::runtime_error("Invalid context for this");
+  throw std::runtime_error("Invalid context for 'this'");
 }
 
 void 

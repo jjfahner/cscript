@@ -25,6 +25,7 @@
 #include "value.h"
 #include "typeinfo.h"
 #include "object.h"
+#include "valuemap.h"
 
 class Evaluator;
 class MemberFunction;
@@ -195,7 +196,13 @@ public:
   //
   virtual ~Instance()
   {
-    // Delegate to class
+  }
+
+  //
+  // Finalization
+  //
+  virtual void Finalize()
+  {
     m_class->DestructInstance(this);
   }
 
@@ -212,7 +219,7 @@ public:
   //
   virtual size_t GetVarCount() const
   {
-    return m_members.size();
+    return GetMembers().size();
   }
 
   //
@@ -220,8 +227,8 @@ public:
   //
   virtual bool FindVar(String const& name, Value& ref) const
   {
-    ValueMap::const_iterator it = m_members.find(name);
-    if(it == m_members.end())
+    ValueMap::const_iterator it = GetMembers().find(name);
+    if(it == GetMembers().end())
     {
       return false;
     }
@@ -243,6 +250,7 @@ protected:
   // Construction
   //
   Instance(Evaluator* eval, Class const* c) : 
+  Object (eval),
   m_eval (eval), 
   m_class (c)
   {
