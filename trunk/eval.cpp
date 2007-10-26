@@ -375,6 +375,134 @@ Evaluator::Compare(Value const& lhs, Value const& rhs)
   throw std::runtime_error("Unsupported value type for comparison");
 }
 
+Value::Bool   
+Evaluator::ValBool(Value const& val)
+{
+  switch(val.Type())
+  {
+  case Value::tNull:    return false;
+  case Value::tBool:    return val.GetBool();
+  case Value::tInt:     return val.GetInt() != 0;
+  case Value::tString:  return val.GetString().length() != 0;
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Cannot convert between types");
+}
+
+Value::Int    
+Evaluator::ValInt(Value const& val)
+{
+  switch(val.Type())
+  {
+  case Value::tNull:    return 0;
+  case Value::tBool:    return val.GetBool() ? 1 : 0;
+  case Value::tInt:     return val.GetInt();
+  case Value::tString:  return atoi(val.GetString().c_str());
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Cannot convert between types");
+}
+
+inline Value::String ToString(Value::Int val)
+{
+  char buf[25];
+  _itoa(val, buf, 10);
+  return buf;
+}
+
+Value::String 
+Evaluator::ValString(Value const& val)
+{
+  switch(val.Type())
+  {
+  case Value::tNull:    return Value::String();
+  case Value::tBool:    return val.GetBool() ? "true" : "false";
+  case Value::tInt:     return ToString(val.GetInt());
+  case Value::tString:  return val.GetString();
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Cannot convert between types");
+}
+
+Value 
+Evaluator::ValAdd(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return lhs.GetInt() + ValInt(rhs);
+  case Value::tString:  return lhs.GetString() + ValString(rhs);
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for addition operator");
+}
+
+Value 
+Evaluator::ValSub(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return lhs.GetInt() - ValInt(rhs);
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for subtraction operator");
+}
+
+Value 
+Evaluator::ValMul(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return lhs.GetInt() * ValInt(rhs);
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for multiplication operator");
+}
+
+Value 
+Evaluator::ValDiv(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return lhs.GetInt() / ValInt(rhs);
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for division operator");
+}
+
+Value 
+Evaluator::ValMod(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return lhs.GetInt() % ValInt(rhs);
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for modulo operator");
+}
+
+Value 
+Evaluator::ValNeg(Value const& lhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return -lhs.GetInt();
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for negation operator");
+}
+
+Value 
+Evaluator::ValNot(Value const& lhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tBool:    return lhs.GetBool() == false;
+  case Value::tInt:     return lhs.GetInt()  == 0;
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for negation operator");
+}
+
 Value 
 Evaluator::Eval(String text)
 {
@@ -520,18 +648,18 @@ Evaluator::EvalAssignment(Ast* node)
   // Check lvalue
   if(!lhs.IsReference())
   {
-    throw std::runtime_error("Expressies does not yield an lvalue");
+    throw std::runtime_error("Expression does not yield an lvalue");
   }
 
   // Perform assignment
   switch(node->m_a1.GetNumber())
   {
   case op_assign: return lhs = rhs;
-//   case op_assadd: return *EvalExpression(node->m_a2) += *EvalExpression(node->m_a3);
-//   case op_asssub: return *EvalExpression(node->m_a2) -= *EvalExpression(node->m_a3);
-//   case op_assmul: return *EvalExpression(node->m_a2) *= *EvalExpression(node->m_a3);
-//   case op_assdiv: return *EvalExpression(node->m_a2) /= *EvalExpression(node->m_a3);
-//   case op_assmod: return *EvalExpression(node->m_a2) %= *EvalExpression(node->m_a3);
+  case op_assadd: return lhs = ValAdd(lhs, rhs);
+  case op_asssub: return lhs = ValSub(lhs, rhs);
+  case op_assmul: return lhs = ValMul(lhs, rhs);
+  case op_assdiv: return lhs = ValDiv(lhs, rhs); 
+  case op_assmod: return lhs = ValMod(lhs, rhs);
   }
   throw std::out_of_range("Invalid assignment operator");
 }
@@ -539,26 +667,28 @@ Evaluator::EvalAssignment(Ast* node)
 Value 
 Evaluator::EvalBinary(Ast* node)
 {
-//   switch(node->m_a1.GetNumber())
-//   {
-//   case op_add:    return *EvalExpression(node->m_a2) +  *EvalExpression(node->m_a3);
-//   case op_sub:    return *EvalExpression(node->m_a2) -  *EvalExpression(node->m_a3);
-//   case op_mul:    return *EvalExpression(node->m_a2) *  *EvalExpression(node->m_a3);
-//   case op_div:    return *EvalExpression(node->m_a2) /  *EvalExpression(node->m_a3);
-//   case op_mod:    return *EvalExpression(node->m_a2) %  *EvalExpression(node->m_a3);
-//   case op_eq:     return *EvalExpression(node->m_a2) == *EvalExpression(node->m_a3);
-//   case op_ne:     return *EvalExpression(node->m_a2) != *EvalExpression(node->m_a3);
-//   case op_lt:     return *EvalExpression(node->m_a2) <  *EvalExpression(node->m_a3);
-//   case op_le:     return *EvalExpression(node->m_a2) <= *EvalExpression(node->m_a3);
-//   case op_gt:     return *EvalExpression(node->m_a2) >  *EvalExpression(node->m_a3);
-//   case op_ge:     return *EvalExpression(node->m_a2) >= *EvalExpression(node->m_a3);  
-//   case op_logor:  return (bool)*EvalExpression(node->m_a2) || 
-//                          (bool)*EvalExpression(node->m_a3) ;
-//   case op_logand: return (bool)*EvalExpression(node->m_a2) && 
-//                          (bool)*EvalExpression(node->m_a3) ;
+  switch(node->m_a1.GetNumber())
+  {
+  case op_add:    return ValAdd (EvalExpression(node->m_a2), EvalExpression(node->m_a3));
+  case op_sub:    return ValSub (EvalExpression(node->m_a2), EvalExpression(node->m_a3));
+  case op_mul:    return ValMul (EvalExpression(node->m_a2), EvalExpression(node->m_a3));
+  case op_div:    return ValDiv (EvalExpression(node->m_a2), EvalExpression(node->m_a3));
+  case op_mod:    return ValMod (EvalExpression(node->m_a2), EvalExpression(node->m_a3));
+  case op_eq:     return Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) == 0;
+  case op_ne:     return Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) != 0;
+  case op_lt:     return Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) <  0;
+  case op_le:     return Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) <= 0;
+  case op_gt:     return Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) >  0;
+  case op_ge:     return Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) >= 0;
+
+  case op_logor:  return ValBool(EvalExpression(node->m_a2)) || 
+                         ValBool(EvalExpression(node->m_a3)) ;
+  case op_logand: return ValBool(EvalExpression(node->m_a2)) && 
+                         ValBool(EvalExpression(node->m_a3)) ;
+
 //   case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) == 0;
 //   case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) != 0;
-//   }  
+  }  
   throw std::out_of_range("Invalid binary operator");
 }
 
@@ -587,29 +717,45 @@ Evaluator::EvalStatementSeq(Ast* node)
 Value 
 Evaluator::EvalPrefix(Ast* node)
 {
-//   switch(node->m_a1.GetNumber())
-//   {
-//   case op_preinc: 
-//     {
-//       Value value = EvalExpression(node->m_a2);
-//       ++*value;
-//       return value;
-//     }
-//   case op_predec: return --*EvalExpression(node->m_a2);
-//   case op_negate: return  -*EvalExpression(node->m_a2);
-//   case op_not:    return  !*EvalExpression(node->m_a2);
-//   }
+  Value lhs = EvalExpression(node->m_a2);
+  switch(node->m_a1.GetNumber())
+  {
+  case op_preinc: 
+    if(!lhs.IsReference())
+    {
+      throw std::runtime_error("Expression does not yield an lvalue");
+    }
+    lhs = ValAdd(lhs, 1); 
+    return lhs;
+  case op_predec: 
+    if(!lhs.IsReference())
+    {
+      throw std::runtime_error("Expression does not yield an lvalue");
+    }
+    lhs = ValSub(lhs, 1); 
+    return lhs;
+  case op_negate: 
+    return ValNeg(lhs);
+  case op_not:    
+    return ValNot(lhs);
+  }
   throw std::out_of_range("Invalid prefix operator");
 }
 
 Value 
 Evaluator::EvalPostfix(Ast* node)
 {
-//   switch(node->m_a1.GetNumber())
-//   {
-//   case op_postinc: return (*EvalExpression(node->m_a2))++;
-//   case op_postdec: return (*EvalExpression(node->m_a2))--;
-//   }
+  Value lhs = EvalExpression(node->m_a2);
+
+  // Two-step init, else prv *is* lhs, instead of equals lhs
+  Value prv;
+  prv = lhs;
+
+  switch(node->m_a1.GetNumber())
+  {
+  case op_postinc: lhs = ValAdd(lhs, 1); return prv;
+  case op_postdec: lhs = ValSub(lhs, 1); return prv;
+  }
   throw std::out_of_range("Invalid postfix operator");
 }
 
@@ -1341,12 +1487,15 @@ Value
 Evaluator::EvalConversion(Ast* node)
 {
   // Evaluate expression
-  // Note: value is derefenced, so conversion
-  // does not happen in-place
   Value value = EvalExpression(node->m_a2);
+
+  // Dereference, so conversion is not applied to lvalue
+  value.Dereference();
 
   // Perform the conversion
   PerformConversion(value, node->m_a1.GetNode());
+  
+  // Return converted value
   return value;
 }
 
@@ -1360,6 +1509,16 @@ Evaluator::PerformConversion(Value& value, TypeInfo const& newType)
   if(oldType == newType)
   {
     return;
+  }
+
+  // Convert to basic types
+  switch(newType.GetType())
+  {
+  case Value::tNull:    value.Clear(true);        break;
+  case Value::tBool:    value = ValBool(value);   break;
+  case Value::tInt:     value = ValInt(value);    break;
+  case Value::tString:  value = ValString(value); break;
+  default:              throw std::runtime_error("Invalid conversion");
   }
 
 //   // Conversion from class type via conversion operator
