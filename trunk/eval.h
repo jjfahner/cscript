@@ -109,6 +109,11 @@ public:
   void Collect();
 
   //
+  // Compare two values
+  //
+  int Compare(Value const& lhs, Value const& rhs);
+
+  //
   // Public members
   //
   // TODO move to protected
@@ -160,8 +165,8 @@ protected:
   //
   // Function handlers
   //
-  Value EvalFunctionCall(Ast* node);
   friend class ScriptFunction;
+  Value EvalFunctionCall(Ast* node);
   Value EvalScriptCall(ScriptFunction* fun, Arguments& args);
 
   //
@@ -180,6 +185,7 @@ protected:
   //
   GlobalScope*  m_global;
   Scope*        m_scope;
+  size_t        m_allocs;
 
 };
 

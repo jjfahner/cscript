@@ -9,23 +9,33 @@ static Objects g_objects;
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ Object*
-Object::Create()
+Object::Create(Evaluator* evaluator)
 {
-  return new Object;
+  return new Object(evaluator);
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Functor that deletes argument while protecting against exceptions.
+// Helpers for garbage collector
 //
 
-template <typename T>
-struct safe_deleter
-{
-  void operator () (T* ptr) const
+struct safe_deleter {
+  void operator () (Object* ptr) const
   {
     try {
       delete ptr;
+    }
+    catch(...) {
+    }
+  }
+};
+
+struct safe_finalizer
+{
+  void operator () (Object* ptr) const
+  {
+    try {
+      ptr->Finalize();
     }
     catch(...) {
     }
@@ -65,8 +75,8 @@ Object::Collect(Objects valid)
 
     // Walk object members
     ValueMap::const_iterator it, ie;
-    it = obj->m_members.begin();
-    ie = obj->m_members.end();
+    it = obj->GetMembers().begin();
+    ie = obj->GetMembers().end();
     for(; it != ie; ++it)
     {
       if(it->first.Type() == Value::tObject)
@@ -83,14 +93,20 @@ Object::Collect(Objects valid)
   // Swap valid and invalid lists
   g_objects.swap(valid);
 
+  // Finalize all objects to be deleted
+  std::for_each(valid.begin(), valid.end(), 
+                        safe_finalizer());
+
   // Delete invalid objects
   std::for_each(valid.begin(), valid.end(), 
-                   safe_deleter<Object>());
+                          safe_deleter());
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-Object::Object()
+Object::Object(Evaluator* eval) :
+m_evaluator (eval),
+m_members   (eval)
 {
   g_objects.insert(this);
 }

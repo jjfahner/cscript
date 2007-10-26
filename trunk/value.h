@@ -112,6 +112,11 @@ public:
     return m_pdata != &m_ldata;
   }
 
+  void* GetIdentity() const
+  {
+    return m_pdata;
+  }
+
   Bool GetBool() const
   {
     AssertType(tBool);
@@ -172,12 +177,12 @@ public:
     m_pdata = rhs.m_pdata;
   }
 
-  //
-  // Comparison
-  //
-  int Compare(Value const& rhs) const;
-
 private:
+
+  //
+  // Not allowed
+  //
+  bool operator == (Value const& rhs);
 
   //
   // Type check
@@ -211,17 +216,5 @@ private:
   Data* m_pdata;
 
 };
-
-inline bool 
-operator < (Value const& lhs, Value const& rhs)
-{
-  return lhs.Compare(rhs) < 0;
-}
-
-inline bool 
-operator == (Value const& lhs, Value const& rhs)
-{
-  return lhs.Compare(rhs) == 0;
-}
 
 #endif // CSCRIPT_VALUE_H

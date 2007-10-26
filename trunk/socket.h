@@ -31,7 +31,7 @@ public:
   //
   // Construction
   //
-  Socket();
+  Socket(Evaluator*);
 
   //
   // Destruction
