@@ -47,7 +47,7 @@ m_evaluator (evaluator)
 }
 
 bool 
-ValueComparatorLess::operator () (Value const& lhs, Value const& rhs)
+ValueComparatorLess::operator () (Value const& lhs, Value const& rhs) const
 {
   return m_evaluator->Compare(lhs, rhs) < 0;
 }
@@ -407,7 +407,7 @@ Evaluator::ValInt(Value const& val)
 inline Value::String ToString(Value::Int val)
 {
   char buf[25];
-  _itoa(val, buf, 10);
+  sprintf(buf, "%d", val);
   return buf;
 }
 

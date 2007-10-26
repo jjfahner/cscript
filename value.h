@@ -2,6 +2,7 @@
 #define CSCRIPT_VALUE_H
 
 #include <string>
+#include <stdexcept>
 
 class Object;
 

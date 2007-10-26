@@ -51,9 +51,9 @@ am_cscript_OBJECTS = args.$(OBJEXT) ast.$(OBJEXT) astdata.$(OBJEXT) \
 	class.$(OBJEXT) cmdargs.$(OBJEXT) convert.$(OBJEXT) \
 	diskio.$(OBJEXT) error.$(OBJEXT) eval.$(OBJEXT) file.$(OBJEXT) \
 	function.$(OBJEXT) lexer.$(OBJEXT) main.$(OBJEXT) \
-	native.$(OBJEXT) parser.$(OBJEXT) regex.$(OBJEXT) \
-	report.$(OBJEXT) scope.$(OBJEXT) socket.$(OBJEXT) \
-	var.$(OBJEXT)
+	native.$(OBJEXT) regex.$(OBJEXT) report.$(OBJEXT) \
+	scope.$(OBJEXT) socket.$(OBJEXT) object.$(OBJEXT) \
+	typeinfo.$(OBJEXT)
 cscript_OBJECTS = $(am_cscript_OBJECTS)
 cscript_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -164,7 +164,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-cscript_SOURCES = args.cpp ast.cpp astdata.cpp class.cpp cmdargs.cpp convert.cpp diskio.cpp error.cpp eval.cpp file.cpp function.cpp lexer.cpp main.cpp native.cpp parser.cpp regex.cpp report.cpp scope.cpp socket.cpp var.cpp 
+cscript_SOURCES = args.cpp ast.cpp astdata.cpp class.cpp cmdargs.cpp convert.cpp diskio.cpp error.cpp eval.cpp file.cpp function.cpp lexer.cpp main.cpp native.cpp regex.cpp report.cpp scope.cpp socket.cpp object.cpp typeinfo.cpp
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -267,12 +267,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/native.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/object.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/report.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scope.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/socket.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/var.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/typeinfo.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
