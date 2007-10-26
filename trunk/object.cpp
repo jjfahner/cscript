@@ -71,11 +71,11 @@ Object::Collect(Objects valid)
     {
       if(it->first.Type() == Value::tObject)
       {
-        stack.push_back(it->first.GetObject());
+        stack.push_back(&it->first.GetObject());
       }
       if(it->second.Type() == Value::tObject)
       {
-        stack.push_back(it->second.GetObject());
+        stack.push_back(&it->second.GetObject());
       }
     }
   }

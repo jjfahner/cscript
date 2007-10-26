@@ -75,31 +75,30 @@ NativeCallRegistrar::RegisterCalls()
 // Native call implementations
 //
 
-void PrintValue(Value const& ref)
+void PrintValue(Value const& val)
 {
-  switch(ref.Type())
+  switch(val.Type())
   {
-  case Value::tNull:       std::cout << "null"; return;
-  case Value::tBool:       std::cout << (ref.GetBool() ? "true" : "false"); return;
-  case Value::tInt:        std::cout << ref.GetInt(); return;
-  case Value::tString:     std::cout << ref.GetString(); return;
-//   case Value::stAssoc:      break;
-//   case Value::stResource:   std::cout << "resource"; return;
+  case Value::tNull:      std::cout << "null"; return;
+  case Value::tBool:      std::cout << (val.GetBool() ? "true" : "false"); return;
+  case Value::tInt:       std::cout << val.GetInt(); return;
+  case Value::tString:    std::cout << val.GetString(); return;
+  case Value::tObject:    break;
   default: throw std::runtime_error("Invalid subtype");
   }
 
-//   Value::AssocType::const_iterator it, ie;
-//   it = ref->GetMap().begin();
-//   ie = ref->GetMap().end();
-//   std::cout << "[";
-//   String sep;
-//   for(; it != ie; ++it)
-//   {
-//     std::cout << sep;
-//     sep = ",";
-//     PrintVariant(it->second);
-//   }
-//   std::cout << "]";
+  ValueMap::const_iterator it, ie;
+  it = val.GetObject().GetMembers().begin();
+  ie = val.GetObject().GetMembers().end();
+  std::cout << "[";
+  String sep;
+  for(; it != ie; ++it)
+  {
+    std::cout << sep;
+    sep = ",";
+    PrintValue(it->second);
+  }
+  std::cout << "]";
 }
 
 NATIVE_CALL("__native print(string value)")
