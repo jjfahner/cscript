@@ -101,7 +101,7 @@ void PrintValue(Value const& val)
   std::cout << "]";
 }
 
-NATIVE_CALL("__native print(string value)")
+NATIVE_CALL("__native print(value)")
 {
   PrintValue(args[0]);
   return args[0];
@@ -132,14 +132,14 @@ NATIVE_CALL("__native read()")
   return Value(line);
 }
 
-// NATIVE_CALL("__native count(arg)")
-// {
-//   if(args[0].GetType() != Value::stAssoc)
-//   {
-//     throw std::runtime_error("Invalid type for count");
-//   }
-//   return Value(args[0].GetMap().size());
-// }
+NATIVE_CALL("__native count(arg)")
+{
+  if(args[0].Type() != Value::tObject)
+  {
+    throw std::runtime_error("Invalid type for count");
+  }
+  return Value(args[0].GetObject().GetMembers().size());
+}
 
 NATIVE_CALL("__native exec(string command)")
 {

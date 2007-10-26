@@ -203,6 +203,7 @@ Evaluator::Parse(File& file)
   catch(...)
   {
     m_file = prevfile;
+    throw;
   }
 }
 
@@ -538,35 +539,35 @@ Evaluator::Eval(String text)
   catch(user_exception const& e)
   {
     PrintLineInfo(e);
-    std::cout << "Uncaught exception '" << e.m_value.GetString() << "'\n";
+    std::cout << "Error: Uncaught exception '" << e.m_value.GetString() << "'\n";
   }
   // Invalid break statement
   catch(break_exception const& e)
   {
     PrintLineInfo(e);
-    std::cout << "Invalid break statement\n";
+    std::cout << "Error: Invalid break statement\n";
   }
   // Invalid continue statement
   catch(continue_exception const& e)
   {
     PrintLineInfo(e);
-    std::cout << "Invalid continue statement\n";
+    std::cout << "Error: Invalid continue statement\n";
   }
   // Unexpected exception in script
   catch(script_exception const& e)
   {
     PrintLineInfo(e);
-    std::cout << "Uncaught exception '" << typeid(e).name() << "'\n";
+    std::cout << "Error: Uncaught exception '" << typeid(e).name() << "'\n";
   }
   // System exception
   catch(std::exception const& e)
   {
-    std::cout << e.what() << "\n";
+    std::cout << "Error: " << e.what() << "\n";
   }
   // Unknown exception type
   catch(...)
   {
-    std::cout << "Unexpected exception\n";
+    std::cout << "Error: Unexpected exception\n";
   }
   return Value();
 }
@@ -686,8 +687,11 @@ Evaluator::EvalBinary(Ast* node)
   case op_logand: return ValBool(EvalExpression(node->m_a2)) && 
                          ValBool(EvalExpression(node->m_a3)) ;
 
-//   case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) == 0;
-//   case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) != 0;
+  case op_seq:    return Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) == 0;
+  case op_sne:    return Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) != 0;
+
+  //   case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) == 0;
+  //   case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) != 0;
   }  
   throw std::out_of_range("Invalid binary operator");
 }
@@ -1009,17 +1013,22 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
     // Variadic parameter
     if((*pi)->m_a2.GetNumber() == ptVariadic)
     {
-//       // Insert assoc
-//       args.push_back(Value::stAssoc);
-// 
-//       // Insert remaining arguments
-//       for(; ai != ae; ++ai)
-//       {
-//         // Evaluate argument and append on list
-//         // Note: arguments in variadic argument list
-//         // are always by value - note the dereference.
-//         args[args.size() - 1]->Append(*EvalExpression(*ai));
-//       }
+      // Insert map
+      Object* va = Object::Create(this);
+      args.push_back(va);
+
+      // Insert remaining arguments
+      for(; ai != ae; ++ai)
+      {
+        // Evaluate argument value
+        Value val = EvalExpression(*ai);
+
+        // Variadic args are always by value
+        val.Dereference();
+
+        // Append to list
+        va->GetMembers()[va->GetMembers().size() - 1] = val;
+      }
 
       // Done
       break;
