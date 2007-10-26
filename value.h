@@ -1,8 +1,7 @@
 #ifndef CSCRIPT_VALUE_H
 #define CSCRIPT_VALUE_H
 
-#include <string>
-#include <stdexcept>
+#include "types.h"
 
 class Object;
 
@@ -21,7 +20,7 @@ public:
   };
 
   typedef bool          Bool;
-  typedef int           Int;
+  typedef int64         Int;
   typedef std::string   String;
 
   Value() : m_pdata(&m_ldata)
@@ -57,11 +56,17 @@ public:
     m_pdata->m_type = tInt;
     m_pdata->m_int = val;
   }
-
-  Value(unsigned int val) : m_pdata(&m_ldata)
+  
+  Value(int val) : m_pdata(&m_ldata)
   {
     m_pdata->m_type = tInt;
     m_pdata->m_int = val;
+  }
+
+  Value(size_t val) : m_pdata(&m_ldata)
+  {
+    m_pdata->m_type = tInt;
+    m_pdata->m_int  = (Int) val;
   }
 
   Value(String val) : m_pdata(&m_ldata)

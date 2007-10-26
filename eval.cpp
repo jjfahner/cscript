@@ -349,7 +349,7 @@ Evaluator::Compare(Value const& lhs, Value const& rhs)
   if(lhs.Type() != rhs.Type())
   {
     // TODO this must be improved
-    return (char*)lhs.GetIdentity() - (char*)rhs.GetIdentity();
+    return int((char*)lhs.GetIdentity() - (char*)rhs.GetIdentity());
   }
 
   // Type-based compare
@@ -362,14 +362,14 @@ Evaluator::Compare(Value const& lhs, Value const& rhs)
     return int(lhs.GetBool()) - int(rhs.GetBool());
 
   case Value::tInt:    
-    return lhs.GetInt() - rhs.GetInt();
+    return int(lhs.GetInt() - rhs.GetInt());
 
   case Value::tString: 
     return strcmp(lhs.GetString().c_str(), 
                   rhs.GetString().c_str());
   
   case Value::tObject: 
-    return &lhs.GetObject() - &rhs.GetObject();
+    return int(&lhs.GetObject() - &rhs.GetObject());
   }
 
   // Invalid type
