@@ -31,6 +31,8 @@ public:
 
   Value(Value const& rhs) : m_pdata(&m_ldata)
   {
+    m_ldata.m_type = tNull;
+    m_ldata.m_int  = 0;
     if(rhs.IsReference())
     {
       m_pdata = rhs.m_pdata;
@@ -43,6 +45,8 @@ public:
 
   Value(Value* v) : m_pdata(v->m_pdata)
   {
+    m_ldata.m_type = tNull;
+    m_ldata.m_int  = 0;
   }
 
   Value(Bool val) : m_pdata(&m_ldata)
