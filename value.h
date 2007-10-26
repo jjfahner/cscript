@@ -117,6 +117,16 @@ public:
     return m_pdata;
   }
 
+  void Dereference()
+  {
+    if(IsReference())
+    {
+      Value v(this);
+      Clear(false);
+      SetValue(v);
+    }
+  }
+
   Bool GetBool() const
   {
     AssertType(tBool);

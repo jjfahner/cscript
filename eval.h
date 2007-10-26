@@ -109,9 +109,23 @@ public:
   void Collect();
 
   //
-  // Compare two values
+  // Value conversions
   //
-  int Compare(Value const& lhs, Value const& rhs);
+  Value::Bool   ValBool  (Value const& val);
+  Value::Int    ValInt   (Value const& val);
+  Value::String ValString(Value const& val);
+
+  //
+  // Value operations
+  //
+  int  Compare(Value const& lhs, Value const& rhs);
+  Value ValAdd(Value const& lhs, Value const& rhs);
+  Value ValSub(Value const& lhs, Value const& rhs);
+  Value ValMul(Value const& lhs, Value const& rhs);
+  Value ValDiv(Value const& lhs, Value const& rhs);
+  Value ValMod(Value const& lhs, Value const& rhs);
+  Value ValNeg(Value const& lhs);
+  Value ValNot(Value const& lhs);
 
   //
   // Public members

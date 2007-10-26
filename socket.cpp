@@ -218,7 +218,7 @@ Socket::Receive(Value const& length, Value const& timeout)
 // Native call interface to socket class
 //
 
-NATIVE_CALL("__native socket(string name, int port)")
+NATIVE_CALL("__native socket(string name, string port)")
 {
   Socket* s = new Socket(evaluator);
   if(!s->Connect(args[0], args[1]).GetBool())
