@@ -279,6 +279,10 @@
 				RelativePath=".\value.h"
 				>
 			</File>
+			<File
+				RelativePath=".\valuemap.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="test"
@@ -540,10 +544,6 @@
 		</Filter>
 		<File
 			RelativePath=".\TODO"
-			>
-		</File>
-		<File
-			RelativePath=".\valuemap.h"
 			>
 		</File>
 	</Files>
