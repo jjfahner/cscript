@@ -123,8 +123,13 @@ int interactive(CmdArgs const& args)
 // Execute file
 //
 
-int execute(CmdArgs const&)
+int execute(String const& file)
 {
+  // Execute code in file
+  Evaluator eval;
+  eval.Eval(file, true);
+
+  // Exit
   return 0;
 }
 
@@ -157,7 +162,7 @@ int cscript_main(int argc, Char** argv)
   }
 
   // Execute mode
-  return execute(args);
+  return execute(argv[1]);
 }
 
 //

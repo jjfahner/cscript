@@ -54,7 +54,7 @@ public:
   //
   // Evaluation of single code line
   //
-  Value Eval(String code);
+  Value Eval(String code, bool isFileName = false);
 
   //
   // Evaluation of an expression
@@ -75,8 +75,7 @@ public:
   //
   // Parse a file
   //
-  void Parse(File& file);
-  void Parse(String const& filename);
+  void ParseFile(String const& filename);
 
   //
   // Parse native call

@@ -284,7 +284,7 @@ compound_statement(R) ::= LBRACE RBRACE .                       { R = p->AllocAs
 compound_statement(R) ::= LBRACE statement_sequence(A) RBRACE . { R = p->AllocAst(compound_statement, A); }
 
 // Include statement
-include_statement(R) ::= INCLUDE LIT_STRING(A) SEMICOLON . { p->Parse(A); R = 0; }
+include_statement(R) ::= INCLUDE LIT_STRING(A) SEMICOLON . { p->ParseFile(A); R = 0; }
 
 // Return statement - leaves return expression on the stack
 return_statement(R) ::= RETURN expression(A) SEMICOLON . { R = p->AllocAst(return_statement, A); }

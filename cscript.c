@@ -1866,7 +1866,7 @@ static void yy_reduce(
         break;
       case 120:
 #line 287 "cscript.in"
-{ p->Parse(yymsp[-1].minor.yy0); yygotominor.yy71 = 0; }
+{ p->ParseFile(yymsp[-1].minor.yy0); yygotominor.yy71 = 0; }
 #line 1872 "cscript.c"
         break;
       case 121:

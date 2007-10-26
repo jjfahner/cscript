@@ -171,19 +171,12 @@ Evaluator::FindType(String const& name)
 }
 
 void
-Evaluator::Parse(String const& filename)
+Evaluator::ParseFile(String const& filename)
 {
   // Create file
   File file;
   file.Open(filename);
 
-  // Parse file
-  Parse(file);
-}
-
-void
-Evaluator::Parse(File& file)
-{
   // Check type
   if(file.GetType() != File::source)
   {
@@ -505,7 +498,7 @@ Evaluator::ValNot(Value const& lhs)
 }
 
 Value 
-Evaluator::Eval(String text)
+Evaluator::Eval(String text, bool isFileName)
 {
   // Reset reporter
   m_reporter.Reset();
@@ -516,7 +509,14 @@ Evaluator::Eval(String text)
   try
   {
     // Parse code
-    ParseText(text.c_str());
+    if(isFileName)
+    {
+      ParseFile(text);
+    }
+    else
+    {
+      ParseText(text.c_str());
+    }
 
     // Check error count
     if(m_reporter.GetErrorCount())
