@@ -57,6 +57,12 @@ public:
     m_pdata->m_int = val;
   }
 
+  Value(unsigned int val) : m_pdata(&m_ldata)
+  {
+    m_pdata->m_type = tInt;
+    m_pdata->m_int = val;
+  }
+
   Value(String val) : m_pdata(&m_ldata)
   {
     m_pdata->m_type = tString;

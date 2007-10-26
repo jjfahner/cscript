@@ -72,7 +72,7 @@ public:
     }
 
     // Allocate buffer
-    size_t len = (int)length.GetInt();
+    size_t len = (size_t)length.GetInt();
     char*  buf = new char[len];
 
     // Read from file
@@ -102,7 +102,7 @@ public:
     }
 
     // Determine write length
-    size_t len = (int) bytes.GetInt();
+    size_t len = (size_t) bytes.GetInt();
     if(len == 0)
     {
       len = buf.GetString().length();
