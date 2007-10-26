@@ -552,8 +552,16 @@ Evaluator::EvalPostfix(Ast* node)
 Value
 Evaluator::EvalIndex(Ast* node)
 {
-//  return (*EvalExpression(node->m_a1))[*EvalExpression(node->m_a2)];
-  throw std::out_of_range("Invalid index operator");
+  Value lhs = EvalExpression(node->m_a1);
+  Value rhs = EvalExpression(node->m_a2);
+
+  if(lhs.Type() != Value::tObject)
+  {
+    throw std::out_of_range("Invalid type for index operator");
+  }
+
+  // TODO check whether position is valid
+  return lhs.GetObject().GetMembers()[rhs];
 }
 
 Value  
@@ -908,23 +916,24 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
 Value 
 Evaluator::EvalListLiteral(Ast* node)
 {
-//   // Create empty map
-//   Value v(Value::stAssoc);
-//   
-//   // Recurse into map values
-//   Ast* child = node->m_a1;
-//   while(child)
-//   {
-//     v->Append(EvalExpression(child->m_a1->m_a1));
-//     if(child->m_a2.Empty()) 
-//     {
-//       break;
-//     }
-//     child = child->m_a2;
-//   }
-// 
-//   // Done
-//   return v;
+  // Create empty map
+  Value v(Object::Create());
+  
+  // Recurse into map values
+  Ast* child = node->m_a1;
+  int index = 0;
+  while(child)
+  {
+    v.GetObject().GetMembers()[index++] = EvalExpression(child->m_a1->m_a1);
+    if(child->m_a2.Empty()) 
+    {
+      break;
+    }
+    child = child->m_a2;
+  }
+
+  // Done
+  return v;
   return Value();
 }
 
@@ -1012,30 +1021,30 @@ Evaluator::EvalForeachStatement(Ast* node)
   // Evaluate expression
   Value rhs = EvalExpression(node->m_a2);
 
-//   // Fetch iterator
-//   Value::AssocType::iterator it = rhs->GetMap().begin();
-//   Value::AssocType::iterator ie = rhs->GetMap().end();
-// 
-//   // Enumerate members
-//   for(; it != ie; ++it)
-//   {
-//     // Assign value to iterator variable
-//     *var = *it->second;
-// 
-//     // Evaluate expression
-//     try
-//     {
-//       AutoScope scope(this, new Scope(m_scope));
-//       EvalStatement(node->m_a3);
-//     }
-//     catch(break_exception const&)
-//     {
-//       break;
-//     }
-//     catch(continue_exception const&)
-//     {
-//     }
-//   }
+  // Fetch iterator
+  ValueMap::iterator it = rhs.GetObject().GetMembers().begin();
+  ValueMap::iterator ie = rhs.GetObject().GetMembers().end();
+
+  // Enumerate members
+  for(; it != ie; ++it)
+  {
+    // Assign value to iterator variable
+    var = it->second;
+
+    // Evaluate expression
+    try
+    {
+      AutoScope scope(this, new Scope(m_scope));
+      EvalStatement(node->m_a3);
+    }
+    catch(break_exception const&)
+    {
+      break;
+    }
+    catch(continue_exception const&)
+    {
+    }
+  }
 }
 
 void

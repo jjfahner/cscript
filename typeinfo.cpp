@@ -27,12 +27,11 @@ TypeInfo::GetTypeName(Value const& value)
 {
   switch(value.Type())
   {
-  case Value::tNull:     return "null";
-  case Value::tBool:     return "bool";
-  case Value::tInt:      return "int";
-  case Value::tString:   return "string";
-//  case Value::tAssoc:    return "assoc";
-//  case Value::tInstance: return value.GetInstance()->GetClass()->GetName();
+  case Value::tNull:    return "null";
+  case Value::tBool:    return "bool";
+  case Value::tInt:     return "int";
+  case Value::tString:  return "string";
+  case Value::tObject:  return "object";
   }
   throw std::runtime_error("Unknown type");
 }

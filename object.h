@@ -34,6 +34,14 @@ public:
   {
   }
 
+  //
+  // Members
+  //
+  ValueMap& GetMembers()
+  {
+    return m_members;
+  }
+
 protected:
 
   //
@@ -44,7 +52,7 @@ protected:
   //
   // Object members
   //
-  std::map<Value, Value> m_members;
+  ValueMap m_members;
 
 };
 

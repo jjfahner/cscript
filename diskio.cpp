@@ -146,7 +146,7 @@ NATIVE_CALL("__native fopen(string file, string mode)")
 NATIVE_CALL("__native fread(file, int length)")
 {
   // Extract file
-  NativeFile* f = dynamic_cast<NativeFile*>(args[0].GetObject());
+  NativeFile* f = dynamic_cast<NativeFile*>(&args[0].GetObject());
   if(f == 0)
   {
     return false;
@@ -159,7 +159,7 @@ NATIVE_CALL("__native fread(file, int length)")
 NATIVE_CALL("__native fwrite(file, string buffer, int length = 0)")
 {
   // Extract file
-  NativeFile* f = dynamic_cast<NativeFile*>(args[0].GetObject());
+  NativeFile* f = dynamic_cast<NativeFile*>(&args[0].GetObject());
   if(f == 0)
   {
     return false;
@@ -172,7 +172,7 @@ NATIVE_CALL("__native fwrite(file, string buffer, int length = 0)")
 NATIVE_CALL("__native fclose(file)")
 {
   // Extract file
-  NativeFile* f = dynamic_cast<NativeFile*>(args[0].GetObject());
+  NativeFile* f = dynamic_cast<NativeFile*>(&args[0].GetObject());
   if(f == 0)
   {
     return false;

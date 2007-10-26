@@ -542,6 +542,10 @@
 			RelativePath=".\TODO"
 			>
 		</File>
+		<File
+			RelativePath=".\value.cpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

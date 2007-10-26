@@ -130,10 +130,10 @@ public:
     return *m_pdata->m_string;
   }
 
-  Object* GetObject() const
+  Object& GetObject() const
   {
     AssertType(tObject);
-    return m_pdata->m_object;
+    return *m_pdata->m_object;
   }
 
   //
@@ -155,6 +155,9 @@ public:
     }
   }
 
+  //
+  // Assignment
+  //
   Value const& operator = (Value const& rhs)
   {
     SetValue(rhs);
@@ -168,6 +171,11 @@ public:
   {
     m_pdata = rhs.m_pdata;
   }
+
+  //
+  // Comparison
+  //
+  int Compare(Value const& rhs) const;
 
 private:
 
@@ -207,13 +215,13 @@ private:
 inline bool 
 operator < (Value const& lhs, Value const& rhs)
 {
-  return false;
+  return lhs.Compare(rhs) < 0;
 }
 
 inline bool 
 operator == (Value const& lhs, Value const& rhs)
 {
-  return false;
+  return lhs.Compare(rhs) == 0;
 }
 
 #endif // CSCRIPT_VALUE_H
