@@ -186,15 +186,9 @@ class Instance : public Object
 public:
 
   //
-  // Construction
+  // Class factory
   //
-  Instance(Evaluator* eval, Class const* c) : 
-  m_eval (eval), 
-  m_class (c)
-  {
-    // Delegate to class
-    m_class->ConstructInstance(this);
-  }
+  static Instance* Create(Evaluator* eval, Class const* c);
 
   //
   // Destruction
@@ -218,7 +212,7 @@ public:
   //
   virtual size_t GetVarCount() const
   {
-    return m_vars.size();
+    return m_members.size();
   }
 
   //
@@ -226,8 +220,8 @@ public:
   //
   virtual bool FindVar(String const& name, Value& ref) const
   {
-    Variables::const_iterator it = m_vars.find(name);
-    if(it == m_vars.end())
+    ValueMap::const_iterator it = m_members.find(name);
+    if(it == m_members.end())
     {
       return false;
     }
@@ -246,6 +240,17 @@ public:
 protected:
 
   //
+  // Construction
+  //
+  Instance(Evaluator* eval, Class const* c) : 
+  m_eval (eval), 
+  m_class (c)
+  {
+    // Delegate to class
+    m_class->ConstructInstance(this);
+  }
+
+  //
   // Types
   //
   typedef std::map<String, Value> Variables;
@@ -255,7 +260,6 @@ protected:
   //
   Evaluator*    m_eval;
   Class const*  m_class;
-  Variables     m_vars;
 
   //
   // Class required access for instantiation

@@ -5,16 +5,22 @@
 #include <map>
 #include <set>
 
+//
+// Map from value to value
+//
 typedef std::map<Value, Value> ValueMap;
 
+//
+// List of root objects
+//
+typedef std::set<Object*> Objects;
+
+//
+// Object class
+//
 class Object 
 {
 public:
-
-  //
-  // List of root objects
-  //
-  typedef std::set<Object*> Objects;
 
   //
   // Object factory. Forces heap

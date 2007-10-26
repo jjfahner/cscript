@@ -4,7 +4,7 @@
 #include <algorithm>
 
 // Global object list
-static Object::Objects g_objects;
+static Objects g_objects;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -40,8 +40,8 @@ Object::Collect(Objects valid)
   std::deque<Object*> stack;
 
   // Copy valid objects onto stack
-  std::copy(stack.begin(), stack.end(),
-    std::inserter(valid, valid.end()));
+  std::copy(valid.begin(), valid.end(),
+    std::inserter(stack, stack.end()));
 
   // Clear list of valid objects
   valid.clear();

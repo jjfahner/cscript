@@ -311,6 +311,18 @@ Evaluator::ParseNativeCall(String const& declaration)
   }
 }
 
+void 
+Evaluator::Collect()
+{
+  Objects valid;
+
+  // Build list of valid objects
+  m_scope->AddObjects(valid);
+
+  // Collect invalid objects
+  Object::Collect(valid);
+}
+
 Value 
 Evaluator::Eval(String text)
 {
@@ -653,6 +665,21 @@ Evaluator::EvalClassDecl(Ast* node)
   }
 }
 
+inline Instance* 
+GetInstance(Value const& v)
+{
+  if(v.Type() != Value::tObject)
+  {
+    throw std::runtime_error("Expression does not yield an object");
+  }
+  Instance* inst = dynamic_cast<Instance*>(&v.GetObject());
+  if(inst == 0)
+  {
+    throw std::runtime_error("Expression does not yield an object");
+  }
+  return inst;
+}
+
 Value  
 Evaluator::EvalFunctionCall(Ast* node)
 {
@@ -662,16 +689,16 @@ Evaluator::EvalFunctionCall(Ast* node)
   // Resolve function pointer
   if(node->m_a3)
   {
-//     // Evaluate instance expression
-//     args.SetInstance(EvalExpression(node->m_a3)->GetInstance());
-// 
-//     // Resolve function on object
-//     MemberFunction* memfun;
-//     if(!args.GetInstance()->FindFun(node->m_a1, memfun))
-//     {
-//       throw std::runtime_error("Object doesn't support this method");
-//     }
-//     fun = memfun;
+    // Evaluate instance expression
+    args.SetInstance(GetInstance(EvalExpression(node->m_a3)));
+
+    // Resolve function on object
+    MemberFunction* memfun;
+    if(!args.GetInstance()->FindFun(node->m_a1, memfun))
+    {
+      throw std::runtime_error("Object doesn't support this method");
+    }
+    fun = memfun;
   }
   else
   {
@@ -681,11 +708,11 @@ Evaluator::EvalFunctionCall(Ast* node)
       throw std::runtime_error("Unknown method");
     }
 
-//     // In case of member function, prepend instance
-//     if(dynamic_cast<MemberFunction*>(fun))
-//     {
-//       args.SetInstance(EvalThisExpression()->GetInstance());
-//     }
+    // In case of member function, prepend instance
+    if(dynamic_cast<MemberFunction*>(fun))
+    {
+      args.SetInstance(GetInstance(EvalThisExpression()));
+    }
   }
 
   // Add parameters to arguments
@@ -1136,7 +1163,7 @@ Evaluator::EvalNewExpression(Ast* node)
   }
 
   // Instantiate class
-  Instance* inst = new Instance(this, c);
+  Instance* inst = Instance::Create(this, c);
 
   // Execute constructor
   if(Constructor* fun = inst->GetClass()->GetConstructor())
@@ -1178,17 +1205,16 @@ Evaluator::EvalNewExpression(Ast* node)
 Value 
 Evaluator::EvalMemberExpression(Ast* node)
 {
-//   // Evaluate left side
-//   Instance* instPtr = EvalExpression(node->m_a1)->GetInstance();
-// 
-//   // Retrieve value
-//   Value ref;
-//   if(!instPtr->FindVar(node->m_a2, ref))
-//   {
-//     throw std::runtime_error("Class has no member '" + node->m_a2.GetString() + "'");
-//   }
-//   return ref;
-  throw std::runtime_error("Not implemented");
+  // Evaluate left side
+  Instance* instPtr = GetInstance(EvalExpression(node->m_a1));
+
+  // Retrieve value
+  Value ref;
+  if(!instPtr->FindVar(node->m_a2, ref))
+  {
+    throw std::runtime_error("Class has no member '" + node->m_a2.GetString() + "'");
+  }
+  return ref;
 }
 
 Value 

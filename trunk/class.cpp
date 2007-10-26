@@ -79,3 +79,9 @@ Class::DestructInstance(Instance* inst) const
     // TODO
   }
 }
+
+/*static*/ Instance* 
+Instance::Create(Evaluator* eval, Class const* c)
+{
+  return new Instance(eval, c);
+}

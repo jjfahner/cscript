@@ -209,6 +209,11 @@ NATIVE_CALL("__native reset()")
   throw reset_exception();
 }
 
+NATIVE_CALL("__native collect()")
+{
+  evaluator->Collect();
+  return Value();
+}
 
 #ifdef WIN32
 
