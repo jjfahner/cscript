@@ -31,6 +31,15 @@ class Class;
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Variable implementation
+//
+
+class Variable : public Value
+{
+};
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Default scope implementation
 //
 
@@ -41,9 +50,9 @@ public:
   //
   // Types
   //
-  typedef std::map<String, Value> Variables;
-  typedef std::map<String, Function* > Functions;
-  typedef std::map<String, Class*    > Classes;
+  typedef std::map<String, Variable>   Variables;
+  typedef std::map<String, Function*> Functions;
+  typedef std::map<String, Class*>    Classes;
 
   //
   // Construction
@@ -222,7 +231,7 @@ protected:
     {
       return false;
     }
-    ref.SetRef(const_cast<Value*>(&it->second));
+    ref.SetRef(const_cast<Variable*>(&it->second));
     return true;
   }
 

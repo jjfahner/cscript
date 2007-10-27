@@ -199,6 +199,14 @@ public:
   }
 
   //
+  // Class type name
+  //
+  virtual String GetTypeName() const
+  {
+    return "ScriptClass " + m_class->GetName();
+  }
+
+  //
   // Finalization
   //
   virtual void Finalize()

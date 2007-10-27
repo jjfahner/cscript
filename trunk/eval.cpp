@@ -36,6 +36,11 @@ void *CScriptParseAlloc(void *(*mallocProc)(size_t));
 void CScriptParseFree(void *p, void (*freeProc)(void*));
 void CScriptParse(void*, int,Token, Evaluator*);
 
+//
+// Ratio between alloc and collect
+//
+static const size_t g_collect_threshold = 1000;
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Comparator implementation
@@ -115,6 +120,23 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+struct VecRestore
+{
+  T& m_vec;
+  size_t m_size;
+  VecRestore(T& vec) : m_vec (vec)
+  {
+    m_size = m_vec.size();
+  }
+  ~VecRestore()
+  {
+    m_vec.resize(m_size);
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////
 //
 // Evaluator implementation
 //
@@ -144,6 +166,7 @@ m_scope   (0),
 m_file    (0),
 m_allocs  (0)
 {
+  // Register native calls
   static bool nativeCallsRegistered = false;
   if(!nativeCallsRegistered)
   {
@@ -151,12 +174,16 @@ m_allocs  (0)
     NativeCallRegistrar::RegisterCalls();
   }
 
+  // Create global scope
   m_global = new GlobalScope(&GetGlobalScope());
 }
 
 void 
 Evaluator::Reset()
 {
+  // Collect all remaining objects
+  Collect();
+
   // Create new global scope
   delete m_global;
   m_global = new GlobalScope(&GetGlobalScope());
@@ -330,6 +357,11 @@ Evaluator::Collect()
 
   // Build list of valid objects
   m_scope->AddObjects(valid);
+
+  // Append temporaries
+  std::copy(m_temporaries.begin(), 
+            m_temporaries.end(), 
+            std::inserter(valid, valid.end()));
 
   // Collect invalid objects
   Object::Collect(valid);
@@ -508,7 +540,8 @@ Evaluator::Eval(String text, bool isFileName)
 
   try
   {
-    // Parse code
+    // Parse code - this evaluates 
+    // every statement in the code
     if(isFileName)
     {
       ParseFile(text);
@@ -517,6 +550,9 @@ Evaluator::Eval(String text, bool isFileName)
     {
       ParseText(text.c_str());
     }
+
+    // Collect remaining objects
+    Collect();
 
     // Check error count
     if(m_reporter.GetErrorCount())
@@ -575,13 +611,14 @@ Evaluator::Eval(String text, bool isFileName)
 void 
 Evaluator::EvalStatement(Ast* node)
 {
+  VecRestore<ObjectVec> vr(m_temporaries);
   switch(node->m_type)
   {
   case empty_statement:       break;
 
   case translation_unit:      EvalStatement(node->m_a1);  break;
   case statement_sequence:    EvalStatementSeq(node);     break;
-  case expression_statement:  EvalExpression(node->m_a1); break;
+  case expression_statement:  EvalExpStmt(node->m_a1);    break;
   case variable_declaration:  EvalVarDecl(node);          break;
   case function_declaration:  EvalFunDecl(node);          break;
   case extern_declaration:    EvalExternDecl(node);       break;
@@ -614,6 +651,12 @@ Evaluator::EvalStatement(Ast* node)
 
   default: throw std::out_of_range("Invalid node type");
   }
+}
+
+void 
+Evaluator::EvalExpStmt(Ast* node)
+{
+  EvalExpression(node);
 }
 
 Value
@@ -1372,6 +1415,9 @@ Evaluator::EvalNewExpression(Ast* node)
   // Instantiate class
   Instance* inst = Instance::Create(this, c);
 
+  // Add to temporaries
+  m_temporaries.push_back(inst);
+
   // Execute constructor
   if(Constructor* fun = inst->GetClass()->GetConstructor())
   {
@@ -1406,7 +1452,11 @@ Evaluator::EvalNewExpression(Ast* node)
   }
 
   // Update new count
-  ++m_allocs;
+  if(++m_allocs == g_collect_threshold)
+  {
+    Collect();
+    m_allocs = 0;
+  }
 
   // Done
   return inst;

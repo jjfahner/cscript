@@ -96,6 +96,8 @@ void PrintValue(Value const& val)
   {
     std::cout << sep;
     sep = ",";
+    PrintValue(it->first);
+    std::cout << ":";
     PrintValue(it->second);
   }
   std::cout << "]";
@@ -145,6 +147,22 @@ NATIVE_CALL("__native exec(string command)")
 {
   // Pass to system
   return Value(system(args[0].GetString().c_str()));
+}
+
+struct objprinter {
+  void operator () (Object const* obj) {
+    Value v(const_cast<Object*>(obj));
+    std::cout << obj->GetTypeName() << " ";
+    PrintValue(v); std::cout << std::endl;
+  }
+};
+
+NATIVE_CALL("__native dump()")
+{
+  std::for_each(Object::GetObjects().begin(), 
+                Object::GetObjects().end(), 
+                objprinter());
+  return Value();
 }
 
 //////////////////////////////////////////////////////////////////////////
