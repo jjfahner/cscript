@@ -149,6 +149,7 @@ protected:
   void EvalStatementSeq(Ast* node);
   void EvalVarDecl(Ast* node);
   void EvalFunDecl(Ast* node);
+  void EvalExpStmt(Ast* node);
   void EvalClassDecl(Ast* node);
   void EvalForStatement(Ast* node);
   void EvalForeachStatement(Ast* node);
@@ -199,6 +200,9 @@ protected:
   GlobalScope*  m_global;
   Scope*        m_scope;
   size_t        m_allocs;
+
+  typedef std::vector<Object*> ObjectVec;
+  ObjectVec     m_temporaries;
 
 };
 

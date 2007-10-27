@@ -14,6 +14,12 @@ Object::Create(Evaluator* evaluator)
   return new Object(evaluator);
 }
 
+/*static*/ Objects const& 
+Object::GetObjects()
+{
+  return g_objects;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Helpers for garbage collector
@@ -109,4 +115,10 @@ m_evaluator (eval),
 m_members   (eval)
 {
   g_objects.insert(this);
+}
+
+String 
+Object::GetTypeName() const
+{
+  return String("Native") + typeid(*this).name();
 }

@@ -19,9 +19,13 @@ class Object
 {
 public:
 
+  //////////////////////////////////////////////////////////////////////////
   //
-  // Object factory. Forces heap
-  // creation of Object instances.
+  // Static members
+  //
+
+  //
+  // Object factory
   //
   static Object* Create(Evaluator* eval);
 
@@ -31,6 +35,16 @@ public:
   static void Collect(Objects valid);
 
   //
+  // Retrieve list of all objects
+  //
+  static Objects const& GetObjects();
+
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Instance members
+  //
+
+  //
   // Virtual destruction
   //
   virtual ~Object()
@@ -38,14 +52,19 @@ public:
   }
 
   //
-  // Finalize instance
+  // Object type
+  //
+  virtual String GetTypeName() const;
+
+  //
+  // Instance finalization
   //
   virtual void Finalize()
   {
   }
 
   //
-  // Members
+  // Member values
   //
   ValueMap& GetMembers()
   {
