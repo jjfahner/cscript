@@ -343,10 +343,6 @@
 				RelativePath=".\props.h"
 				>
 			</File>
-			<File
-				RelativePath=".\ref.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="parser"
