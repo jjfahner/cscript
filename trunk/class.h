@@ -182,7 +182,7 @@ protected:
 // Runtime class instance
 //
 
-class Instance : public Object
+class Instance : public Object, public Finalized
 {
 public:
 

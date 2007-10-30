@@ -406,6 +406,13 @@ function main()
   {
     print("\n{errors} tests failed.\n");
   }
+
+  // Print objects
+  print("\n\nBefore collect():\n");
+  dump();
+  collect();
+  print("\n\nAfter collect():\n");
+  dump();
 }
 
 
