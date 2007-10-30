@@ -51,6 +51,7 @@ class File
     {
       fclose(m_file);
       m_file = null;
+      m_name = null;
     }
   }
 

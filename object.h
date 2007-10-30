@@ -77,13 +77,6 @@ public:
   virtual String GetTypeName() const;
 
   //
-  // Instance finalization
-  //
-  virtual void Finalize()
-  {
-  }
-
-  //
   // Member values
   //
   ValueMap& GetMembers()
@@ -107,6 +100,22 @@ protected:
   //
   Evaluator*  m_evaluator;
   ValueMap    m_members;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Finalize interface
+//
+
+class Finalized
+{
+public:
+
+  //
+  // Called by the garbage collector
+  //
+  virtual void Finalize() = 0;
 
 };
 
