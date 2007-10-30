@@ -21,8 +21,6 @@
 #ifndef CSCRIPT_TYPES_H
 #define CSCRIPT_TYPES_H
 
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
