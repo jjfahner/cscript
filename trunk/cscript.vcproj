@@ -539,14 +539,6 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\gc.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\gc.h"
-			>
-		</File>
-		<File
 			RelativePath=".\string.h"
 			>
 		</File>

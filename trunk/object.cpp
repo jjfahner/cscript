@@ -76,23 +76,11 @@ struct safe_deleter {
 struct safe_finalizer {
   void operator () (Object* ptr) const {
     try {
-      dynamic_cast<Finalized*>(ptr)->Finalize();
+      ptr->Finalize();
     }
     catch(...) {
       // TODO
     }
-  }
-};
-
-struct is_finalized {
-  bool operator () (Object* obj) const {
-    return dynamic_cast<Finalized*>(obj) != 0;
-  }
-};
-
-struct not_finalized {
-  bool operator () (Object* obj) const {
-    return dynamic_cast<Finalized*>(obj) == 0;
   }
 };
 
@@ -188,7 +176,8 @@ Object::Collect(Objects grey)
   // Copy finalizable objects into separate set
   std::remove_copy_if(white.begin(), white.end(), 
                std::inserter(final, final.end()), 
-                                not_finalized());
+                      std::not1(std::mem_fun(
+                        &Object::FinalizeRequired)));
 
   // Remove objects that were already finalized before
   erase_from(final, g_finalized.begin(), g_finalized.end());
@@ -217,4 +206,3 @@ Object::Collect(Objects grey)
     g_finalized.swap(final);
   }
 }
-
