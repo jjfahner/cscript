@@ -182,7 +182,7 @@ protected:
 // Runtime class instance
 //
 
-class Instance : public Object, public Finalized
+class Instance : public Object
 {
 public:
 
@@ -209,6 +209,10 @@ public:
   //
   // Finalization
   //
+  virtual bool FinalizeRequired() const
+  {
+    return m_class->GetDestructor() != 0;
+  }
   virtual void Finalize()
   {
     m_class->DestructInstance(this);

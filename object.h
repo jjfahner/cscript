@@ -88,6 +88,17 @@ public:
     return m_members;
   }
 
+  //
+  // Finalization
+  //
+  virtual bool FinalizeRequired() const
+  {
+    return false;
+  }
+  virtual void Finalize() 
+  {
+  }
+
 protected:
 
   //
@@ -100,22 +111,6 @@ protected:
   //
   Evaluator*  m_evaluator;
   ValueMap    m_members;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Finalize interface
-//
-
-class Finalized
-{
-public:
-
-  //
-  // Called by the garbage collector
-  //
-  virtual void Finalize() = 0;
 
 };
 
