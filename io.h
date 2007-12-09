@@ -18,73 +18,81 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "ast.h"
-#include "file.h"
-#include "lexer.h"
-#include "io.h"
+#ifndef CSCRIPT_IO_H
+#define CSCRIPT_IO_H
 
-size_t g_nodeCount = 0;
-
-struct NodeCountChecker
-{
-  ~NodeCountChecker()
-  {
-    if(g_nodeCount != 0)
-    {
-      cserr << "Node destruction incomplete (" << g_nodeCount << " nodes left)\n";
-    }
-  }
-} Checker;
+#include "types.h"
 
 //////////////////////////////////////////////////////////////////////////
-
-Ast::~Ast()
+//
+// Base class for input methods
+//
+class Input 
 {
-  --g_nodeCount;
+public:
+
+  //
+  // Read a string
+  //
+  virtual std::string Read() = 0;
+
+};
+
+inline Input&
+operator >> (Input& in, std::string& s)
+{
+  s = in.Read();
+  return in;
 }
 
-
-Ast::Ast(AstTypes type) :
-m_type(type),
-m_refs(0)
+//////////////////////////////////////////////////////////////////////////
+//
+// Base class for output methods
+//
+class Output 
 {
-  ++g_nodeCount;
+public:
+
+  //
+  // Write a number.
+  //
+  virtual void Write(int64);
+
+  //
+  // Write a string
+  //
+  virtual void Write(char const*) = 0;
+
+};
+
+inline Output& 
+operator << (Output& out, std::string const& s)
+{
+  out.Write(s.c_str());
+  return out;
 }
 
-Ast::Ast(AstTypes type, AstData const& a1) :
-m_type(type),
-m_a1(a1),
-m_refs(0)
+inline Output& 
+operator << (Output& out, char const* s)
 {
-  ++g_nodeCount;
+  out.Write(s);
+  return out;
 }
 
-Ast::Ast(AstTypes type, AstData const& a1, AstData const& a2) :
-m_type(type),
-m_a1(a1),
-m_a2(a2),
-m_refs(0)
+inline Output& 
+operator << (Output& out, int64 n)
 {
-  ++g_nodeCount;
+  out.Write(n);
+  return out;
 }
 
-Ast::Ast(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3) :
-m_type(type),
-m_a1(a1),
-m_a2(a2),
-m_a3(a3),
-m_refs(0)
-{
-  ++g_nodeCount;
-}
+//////////////////////////////////////////////////////////////////////////
+//
+// Global stream objects
+//
 
-Ast::Ast(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4) :
-m_type(type),
-m_a1(a1),
-m_a2(a2),
-m_a3(a3),
-m_a4(a4),
-m_refs(0)
-{
-  ++g_nodeCount;
-}
+extern Input&   csin;
+extern Output&  csout;
+extern Output&  cserr;
+
+#endif // CSCRIPT_IO_H

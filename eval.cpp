@@ -141,19 +141,6 @@ struct VecRestore
 // Evaluator implementation
 //
 
-inline void 
-PrintLineInfo(script_exception const& e)
-{
-  if(!e.m_node->m_pos.m_file.empty())
-  {
-    std::cout 
-      << e.m_node->m_pos.m_file 
-      << "("
-      << e.m_node->m_pos.m_line
-      << ") : ";
-  }
-}
-
 /*static*/ GlobalScope&
 Evaluator::GetGlobalScope()
 {
@@ -338,7 +325,7 @@ Evaluator::ParseNativeCall(String const& declaration)
     // Check error count
     if(m_reporter.GetErrorCount())
     {
-      std::cout << "Aborted.\n";
+      cserr << "Aborted.\n";
       return 0;
     }
 
@@ -529,6 +516,19 @@ Evaluator::ValNot(Value const& lhs)
   throw std::runtime_error("Invalid type(s) for negation operator");
 }
 
+inline void 
+PrintLineInfo(script_exception const& e)
+{
+  if(!e.m_node->m_pos.m_file.empty())
+  {
+    csout
+      << e.m_node->m_pos.m_file 
+      << "("
+      << e.m_node->m_pos.m_line
+      << ") : ";
+  }
+}
+
 Value 
 Evaluator::Eval(String text, bool isFileName)
 {
@@ -557,7 +557,7 @@ Evaluator::Eval(String text, bool isFileName)
     // Check error count
     if(m_reporter.GetErrorCount())
     {
-      std::cout << "Aborted.\n";
+      csout << "Aborted.\n";
       return Value();
     }
   }
@@ -575,35 +575,35 @@ Evaluator::Eval(String text, bool isFileName)
   catch(user_exception const& e)
   {
     PrintLineInfo(e);
-    std::cout << "Error: Uncaught exception '" << e.m_value.GetString() << "'\n";
+    cserr << "Error: Uncaught exception '" << e.m_value.GetString() << "'\n";
   }
   // Invalid break statement
   catch(break_exception const& e)
   {
     PrintLineInfo(e);
-    std::cout << "Error: Invalid break statement\n";
+    cserr << "Error: Invalid break statement\n";
   }
   // Invalid continue statement
   catch(continue_exception const& e)
   {
     PrintLineInfo(e);
-    std::cout << "Error: Invalid continue statement\n";
+    cserr << "Error: Invalid continue statement\n";
   }
   // Unexpected exception in script
   catch(script_exception const& e)
   {
     PrintLineInfo(e);
-    std::cout << "Error: Uncaught exception '" << typeid(e).name() << "'\n";
+    cserr << "Error: Uncaught exception '" << typeid(e).name() << "'\n";
   }
   // System exception
   catch(std::exception const& e)
   {
-    std::cout << "Error: " << e.what() << "\n";
+    cserr << "Error: " << e.what() << "\n";
   }
   // Unknown exception type
   catch(...)
   {
-    std::cout << "Error: Unexpected exception\n";
+    cserr << "Error: Unexpected exception\n";
   }
   return Value();
 }
@@ -1573,7 +1573,7 @@ Evaluator::PerformConversion(Value& value, TypeInfo const& newType)
   // Convert to basic types
   switch(newType.GetType())
   {
-  case Value::tNull:    value.Clear(true);        break;
+  case Value::tNull:    break;
   case Value::tBool:    value = ValBool(value);   break;
   case Value::tInt:     value = ValInt(value);    break;
   case Value::tString:  value = ValString(value); break;

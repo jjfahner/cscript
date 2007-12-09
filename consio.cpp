@@ -18,73 +18,56 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "ast.h"
-#include "file.h"
-#include "lexer.h"
-#include "io.h"
+#include "consio.h"
+#include <iostream>
 
-size_t g_nodeCount = 0;
-
-struct NodeCountChecker
-{
-  ~NodeCountChecker()
-  {
-    if(g_nodeCount != 0)
-    {
-      cserr << "Node destruction incomplete (" << g_nodeCount << " nodes left)\n";
-    }
-  }
-} Checker;
+//
+// Global streams
+//
+Input&   csin  = *new ConsoleInput;
+Output&  csout = *new ConsoleOutput;
+Output&  cserr = *new ConsoleOutput;
 
 //////////////////////////////////////////////////////////////////////////
+//
+// ConsoleInput implementation
+//
 
-Ast::~Ast()
+ConsoleInput::ConsoleInput() :
+m_is (std::cin)
 {
-  --g_nodeCount;
 }
 
-
-Ast::Ast(AstTypes type) :
-m_type(type),
-m_refs(0)
+ConsoleInput::ConsoleInput(std::istream& is) :
+m_is (is)
 {
-  ++g_nodeCount;
 }
 
-Ast::Ast(AstTypes type, AstData const& a1) :
-m_type(type),
-m_a1(a1),
-m_refs(0)
+std::string 
+ConsoleInput::Read()
 {
-  ++g_nodeCount;
+  std::string s;
+  m_is >> s;
+  return s;
 }
 
-Ast::Ast(AstTypes type, AstData const& a1, AstData const& a2) :
-m_type(type),
-m_a1(a1),
-m_a2(a2),
-m_refs(0)
+//////////////////////////////////////////////////////////////////////////
+//
+// ConsoleOutput implementation
+//
+
+ConsoleOutput::ConsoleOutput() :
+m_os (std::cout)
 {
-  ++g_nodeCount;
 }
 
-Ast::Ast(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3) :
-m_type(type),
-m_a1(a1),
-m_a2(a2),
-m_a3(a3),
-m_refs(0)
+ConsoleOutput::ConsoleOutput(std::ostream& os) :
+m_os (os)
 {
-  ++g_nodeCount;
 }
 
-Ast::Ast(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4) :
-m_type(type),
-m_a1(a1),
-m_a2(a2),
-m_a3(a3),
-m_a4(a4),
-m_refs(0)
+void 
+ConsoleOutput::Write(char const* data)
 {
-  ++g_nodeCount;
+  m_os << data;
 }

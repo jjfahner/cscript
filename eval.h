@@ -30,8 +30,10 @@
 #include "typeinfo.h"
 #include "value.h"
 #include "object.h"
+#include "io.h"
 
 class Lexer;
+struct script_exception;
 
 //
 // Evaluator
@@ -195,12 +197,19 @@ protected:
   void EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& args);
 
   //
-  // Members
+  // Scopes
   //
   GlobalScope*  m_global;
   Scope*        m_scope;
+
+  //
+  // Allocations
+  //
   size_t        m_allocs;
 
+  //
+  // Temporaries
+  //
   typedef std::vector<Object*> ObjectVec;
   ObjectVec     m_temporaries;
 

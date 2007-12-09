@@ -21,7 +21,7 @@
 #include "report.h"
 #include <stdio.h>
 #include <stdarg.h>
-
+#include "io.h"
 
 Reporter::Reporter() :
 m_errors  (0),
@@ -59,14 +59,14 @@ Reporter::ReportError(Notice const& notice, FilePos* pos, ...)
   vsprintf(buf2, buf1, args);
 
   // Write string
-  std::cout << buf2;
+  cserr << buf2;
 }
 
 void 
 Reporter::ReportWarning(FilePos& pos, String const& text)
 {
   ++m_warnings;
-  std::cout << pos.m_file << " (" << pos.m_line << ") : warning: " << text << std::endl;
+  cserr << pos.m_file << " (" << pos.m_line << ") : warning: " << text << "\n";
 }
 
 int 
