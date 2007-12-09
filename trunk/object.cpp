@@ -19,6 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "object.h"
+#include <typeinfo>
 #include <set>
 #include <deque>
 #include <algorithm>
