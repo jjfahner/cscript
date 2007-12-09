@@ -22,8 +22,7 @@
 #include "eval.h"
 #include "function.h"
 
-#ifdef _MSC_VER
-#include <process.h>
+#if defined(_MSC_VER)
 #define strdup _strdup
 #elif defined(__GNUC__)
 #include <stdlib.h>
@@ -79,28 +78,48 @@ void PrintValue(Value const& val)
 {
   switch(val.Type())
   {
-  case Value::tNull:      std::cout << "null"; return;
-  case Value::tBool:      std::cout << (val.GetBool() ? "true" : "false"); return;
-  case Value::tInt:       std::cout << val.GetInt(); return;
-  case Value::tString:    std::cout << val.GetString(); return;
-  case Value::tObject:    break;
-  default: throw std::runtime_error("Invalid subtype");
+  case Value::tNull:      
+    csout << "null"; 
+    return;
+
+  case Value::tBool:      
+    csout << (val.GetBool() ? "true" : "false");
+    return;
+
+  case Value::tInt:       
+  {
+    csout << val.GetInt();
+    return;
+  }
+
+  case Value::tString:    
+    csout << val.GetString();
+    return;
+
+  case Value::tObject:    
+    break;
+
+  default: 
+    throw std::runtime_error("Invalid subtype");
   }
 
   ValueMap::const_iterator it, ie;
   it = val.GetObject().GetMembers().begin();
   ie = val.GetObject().GetMembers().end();
-  std::cout << "[";
+
+  csout << "[";
+
   String sep;
   for(; it != ie; ++it)
   {
-    std::cout << sep;
+    csout << sep;
     sep = ",";
     PrintValue(it->first);
-    std::cout << ":";
+    csout << ":";
     PrintValue(it->second);
   }
-  std::cout << "]";
+
+  csout << "]";
 }
 
 NATIVE_CALL("__native print(value)")
@@ -130,7 +149,7 @@ NATIVE_CALL("__native quit(int exitcode = 0)")
 NATIVE_CALL("__native read()")
 {
   String line;
-  std::cin >> line;
+  csin >> line;
   return Value(line);
 }
 
@@ -143,17 +162,11 @@ NATIVE_CALL("__native count(arg)")
   return Value(args[0].GetObject().GetMembers().size());
 }
 
-NATIVE_CALL("__native exec(string command)")
-{
-  // Pass to system
-  return Value(system(args[0].GetString().c_str()));
-}
-
 struct objprinter {
   void operator () (Object const* obj) {
     Value v(const_cast<Object*>(obj));
-    std::cout << obj->GetTypeName() << " ";
-    PrintValue(v); std::cout << std::endl;
+    csout << obj->GetTypeName() << " ";
+    PrintValue(v); csout << "\n";
   }
 };
 
@@ -233,9 +246,19 @@ NATIVE_CALL("__native collect()")
   return Value();
 }
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(_WIN32_WCE)
 
 #include <windows.h>
+
+NATIVE_CALL("__native exec(string command)")
+{
+  // Pass to system
+# if defined(_WIN32_WCE)
+  return Value();
+# else
+  return Value(system(args[0].GetString().c_str()));
+# endif
+}
 
 NATIVE_CALL("__native native(string libname, string fun, arglist...)")
 {

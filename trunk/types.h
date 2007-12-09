@@ -21,8 +21,6 @@
 #ifndef CSCRIPT_TYPES_H
 #define CSCRIPT_TYPES_H
 
-#include <iostream>
-#include <fstream>
 #include <stdexcept>
 #include <algorithm>
 #include <string>
@@ -112,7 +110,5 @@ struct FilePos
   String  m_file;
   int32   m_line;
 };
-
-
 
 #endif // #ifndef CSCRIPT_TYPES_H

@@ -240,6 +240,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\io.h"
+				>
+			</File>
+			<File
 				RelativePath=".\main.cpp"
 				>
 				<FileConfiguration
@@ -538,6 +542,18 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\consio.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\consio.h"
+			>
+		</File>
+		<File
+			RelativePath=".\io.cpp"
+			>
+		</File>
 		<File
 			RelativePath=".\string.h"
 			>

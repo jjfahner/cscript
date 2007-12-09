@@ -23,6 +23,8 @@
 #include "report.h"
 #include "eval.h"
 #include "ast.h"
+#include "io.h"
+#include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -30,7 +32,7 @@
 //
 void banner()
 {
-  std::cout << "CScript 0.6  Copyright (C) 2007  Jan-Jaap Fahner.\n\n";
+  csout << "CScript 0.6  Copyright (C) 2007  Jan-Jaap Fahner.\n\n";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,7 +43,7 @@ void banner()
 int usage()
 {
   banner();
-  std::cout << 
+  csout << 
     "Usage: cscript [options] [file]\n\n"
     "Options:\n\n"
     "-q --quiet           Don't display banner"
@@ -81,7 +83,7 @@ int interactive(CmdArgs const& args)
   for(;;)
   {
     // Prompt for line
-    std::cout << "> ";
+    csout << "> ";
     std::cin.getline(line, 4096);
 
     // Empty lines. TODO: trim line
@@ -111,7 +113,7 @@ int interactive(CmdArgs const& args)
     code.clear();
 
     // Ensure new line
-    std::cout << "\n";
+    csout << "\n";
   }
 
   // Never reached
@@ -176,6 +178,7 @@ int cscript_main(int argc, Char** argv)
 //
 // CScript entry point. Exception handling root.
 //
+#ifndef _WIN32_WCE
 int main(int argc, Char** argv)
 {
   int result = EXIT_FAILURE;
@@ -185,21 +188,22 @@ int main(int argc, Char** argv)
   }
   catch(std::exception const& e)
   {
-    std::cout << "\nException: " << e.what() << "\n";
+    csout << "\nException: " << e.what() << "\n";
   }
   catch(...)
   {
-    std::cout << "\nUnexpected exception\n";
+    csout << "\nUnexpected exception\n";
   }
 
   // Keep console running under MSC devenv
 #if defined(_MSC_VER) && defined(_DEBUG)
   if(IsDebuggerPresent())
   {
-    std::cout << "\n\nPress enter to quit";
+    csout << "\n\nPress enter to quit";
     std::cin.get();
   }
 #endif
 
 	return result;
 }
+#endif
