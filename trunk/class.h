@@ -34,11 +34,6 @@ class Constructor;
 class Destructor;
 class Instance;
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Runtime class
-//
-
 class Class
 {
 public:
@@ -174,117 +169,6 @@ protected:
   NamedNodeMap  m_vars;
   FunctionMap   m_funs;
   ConversionMap m_conv;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Runtime class instance
-//
-
-class Instance : public Object
-{
-public:
-
-  //
-  // Class factory
-  //
-  static Instance* Create(Evaluator* eval, Class const* c);
-
-  //
-  // Destruction
-  //
-  virtual ~Instance()
-  {
-  }
-
-  //
-  // Class type name
-  //
-  virtual String GetTypeName() const
-  {
-    return "ScriptClass " + m_class->GetName();
-  }
-
-  //
-  // Finalization
-  //
-  virtual bool FinalizeRequired() const
-  {
-    return m_class->GetDestructor() != 0;
-  }
-  virtual void Finalize()
-  {
-    m_class->DestructInstance(this);
-  }
-
-  //
-  // Class
-  //
-  Class const* GetClass() const
-  {
-    return m_class;
-  }
-
-  //
-  // Number of instance variables
-  //
-  virtual size_t GetVarCount() const
-  {
-    return GetMembers().size();
-  }
-
-  //
-  // Retrieve a variable
-  //
-  virtual bool FindVar(String const& name, Value& ref) const
-  {
-    ValueMap::const_iterator it = GetMembers().find(name);
-    if(it == GetMembers().end())
-    {
-      return false;
-    }
-    ref.SetRef(it->second);
-    return true;
-  }
-
-  //
-  // Retrieve a function
-  //
-  virtual bool FindFun(String const& name, MemberFunction*& fun) const 
-  {
-    return m_class->FindFun(name, fun);
-  }
-
-protected:
-
-  //
-  // Construction
-  //
-  Instance(Evaluator* eval, Class const* c) : 
-  Object (eval),
-  m_eval (eval), 
-  m_class (c)
-  {
-    // Delegate to class
-    m_class->ConstructInstance(this);
-  }
-
-  //
-  // Types
-  //
-  typedef std::map<String, Value> Variables;
-
-  //
-  // Members
-  //
-  Evaluator*    m_eval;
-  Class const*  m_class;
-
-  //
-  // Class required access for instantiation
-  //
-  friend class Class;
 
 };
 

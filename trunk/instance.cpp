@@ -18,46 +18,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "scope.h"
-#include "eval.h"
-#include "ast.h"
-#include "function.h"
 #include "instance.h"
 
-void 
-GlobalScope::AddFun(Function* fun)
+/*static*/ Instance* 
+Instance::Create(Evaluator* eval, Class const* c)
 {
-  if(m_funs.count(fun->GetName()))
-  {
-    throw std::runtime_error("Function already declared");
-  }
-  m_funs[fun->GetName()] = fun;
-}
-
-void 
-GlobalScope::AddClass(Class* c)
-{
-  if(m_classes.count(c->GetName()))
-  {
-    throw std::runtime_error("Class already declared");
-  }
-  m_classes[c->GetName()] = c;
-}
-
-bool 
-ClassScope::FindVarLocal(String const& name, Value& ref) const
-{
-  return m_inst->FindVar(name, ref);
-}
-
-bool 
-ClassScope::FindFunLocal(String const& name, Function*& fun) const
-{
-  MemberFunction* memfun;
-  if(m_inst->FindFun(name, memfun))
-  {
-    fun = memfun;
-    return true;
-  }
-  return false;
+  return new Instance(eval, c);
 }
