@@ -31,7 +31,7 @@ struct NodeCountChecker
   {
     if(g_nodeCount != 0)
     {
-      cserr << "Node destruction incomplete (" << g_nodeCount << " nodes left)\n";
+      //cserr << "Node destruction incomplete (" << g_nodeCount << " nodes left)\n";
     }
   }
 } Checker;

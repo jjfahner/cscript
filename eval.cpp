@@ -24,10 +24,10 @@
 #include "native.h"
 #include "scope.h"
 #include "function.h"
-#include "class.h"
 #include "file.h"
 #include "lexer.h"
 #include "tokens.h"
+#include "instance.h"
 
 //
 // Parser functions

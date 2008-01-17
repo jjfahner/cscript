@@ -240,6 +240,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\io.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\io.h"
 				>
 			</File>
@@ -336,6 +340,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\consio.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\consio.h"
+				>
+			</File>
+			<File
 				RelativePath=".\convert.cpp"
 				>
 			</File>
@@ -345,6 +357,10 @@
 			</File>
 			<File
 				RelativePath=".\props.h"
+				>
+			</File>
+			<File
+				RelativePath=".\string.h"
 				>
 			</File>
 		</Filter>
@@ -543,19 +559,11 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\consio.cpp"
+			RelativePath=".\instance.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\consio.h"
-			>
-		</File>
-		<File
-			RelativePath=".\io.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\string.h"
+			RelativePath=".\instance.h"
 			>
 		</File>
 		<File

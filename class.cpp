@@ -22,6 +22,7 @@
 #include "ast.h"
 #include "eval.h"
 #include "function.h"
+#include "instance.h"
 
 void 
 Class::AddConversion(ConversionOperator* node)
@@ -79,10 +80,3 @@ Class::DestructInstance(Instance* inst) const
     // TODO
   }
 }
-
-/*static*/ Instance* 
-Instance::Create(Evaluator* eval, Class const* c)
-{
-  return new Instance(eval, c);
-}
-
