@@ -54,7 +54,7 @@ bool
 ClassScope::FindFunLocal(String const& name, Function*& fun) const
 {
   MemberFunction* memfun;
-  if(m_inst->FindFun(name, memfun))
+  if(m_inst->FindMethod(name, memfun))
   {
     fun = memfun;
     return true;

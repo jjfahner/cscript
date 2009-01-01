@@ -159,7 +159,7 @@ public:
   //
   // Retrieve a function
   //
-  virtual bool FindFun(String const& name, Function*& fun) const 
+  virtual bool FindMethod(String const& name, Function*& fun) const 
   {
     if(FindFunLocal(name, fun))
     {
@@ -167,7 +167,7 @@ public:
     }
     if(m_parent)
     {
-      return m_parent->FindFun(name, fun);
+      return m_parent->FindMethod(name, fun);
     }
     return false;
   }

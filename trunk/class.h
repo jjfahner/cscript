@@ -34,6 +34,11 @@ class Constructor;
 class Destructor;
 class Instance;
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Runtime class
+//
+
 class Class
 {
 public:
@@ -111,7 +116,7 @@ public:
   //
   // Add a member function
   //
-  virtual void AddFunction(String const& name, MemberFunction* node)
+  virtual void AddMethod(String const& name, MemberFunction* node)
   {
     if(m_funs.count(name))
     {
@@ -123,7 +128,7 @@ public:
   //
   // Find a member function
   //
-  virtual bool FindFun(String const& name, MemberFunction*& fun) const 
+  virtual bool FindMethod(String const& name, MemberFunction*& fun) const 
   {
     FunctionMap::const_iterator it = m_funs.find(name);
     if(it == m_funs.end())
@@ -140,7 +145,7 @@ public:
   virtual void AddConversion(ConversionOperator* node);
 
   //
-  // Finc a conversion operator
+  // Find a conversion operator
   //
   virtual bool FindConversion(TypeInfo const& type, ConversionOperator*& node) const;
 
@@ -150,8 +155,8 @@ protected:
   // Instance construction
   //
   friend class Instance;
-  void ConstructInstance(Instance* inst) const;
-  void DestructInstance(Instance* inst) const;  
+  virtual void ConstructInstance(Instance* inst) const;
+  virtual void DestructInstance(Instance* inst) const;  
 
   //
   // Types

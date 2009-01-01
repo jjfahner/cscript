@@ -136,7 +136,7 @@ public:
   //
   // Construction
   // 
-  MemberFunction(String name, Class* cl, Ast* node) :
+  MemberFunction(String name, Class const* cl, Ast* node) :
   ScriptFunction(name, node),
   m_class(cl)
   {
@@ -145,7 +145,7 @@ public:
   //
   // Retrieve class
   //
-  Class* GetClass() const
+  Class const* GetClass() const
   {
     return m_class;
   }
@@ -155,7 +155,7 @@ protected:
   //
   // Members
   //
-  Class*  m_class;
+  Class const* m_class;
 
 };
 
@@ -171,7 +171,7 @@ public:
   //
   // Construction
   //
-  Constructor(Class* cl, Ast* node) :
+  Constructor(Class const* cl, Ast* node) :
   MemberFunction("", cl, node)
   {
   }
@@ -190,7 +190,7 @@ public:
   //
   // Construction
   //
-  Destructor(Class* cl, Ast* node) :
+  Destructor(Class const* cl, Ast* node) :
   MemberFunction("", cl, node)
   {
   }
@@ -214,7 +214,7 @@ public:
   //
   // Construction
   // 
-  ConversionOperator(Class* cl, TypeInfo const& ti, Ast* node) :
+  ConversionOperator(Class const* cl, TypeInfo const& ti, Ast* node) :
   MemberFunction(ti.GetName(), cl, node),
   m_ti (ti)
   {
