@@ -92,9 +92,9 @@ public:
   //
   // Retrieve a function
   //
-  virtual bool FindFun(String const& name, MemberFunction*& fun) const 
+  virtual bool FindMethod(String const& name, MemberFunction*& fun) const 
   {
-    return m_class->FindFun(name, fun);
+    return m_class->FindMethod(name, fun);
   }
 
 protected:

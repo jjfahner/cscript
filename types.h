@@ -111,4 +111,10 @@ struct FilePos
   int32   m_line;
 };
 
+struct NCC {
+  bool operator () (String const& l, String const& r) const {
+    return _stricmp(l.c_str(), r.c_str()) < 0;
+  }
+};
+
 #endif // #ifndef CSCRIPT_TYPES_H

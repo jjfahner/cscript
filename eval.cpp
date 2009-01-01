@@ -897,7 +897,7 @@ Evaluator::EvalClassDecl(Ast* node)
       break;
 
     case function_declaration:
-      cl->AddFunction(node->m_a1, new MemberFunction(node->m_a1, cl, node));
+      cl->AddMethod(node->m_a1, new MemberFunction(node->m_a1, cl, node));
       break;
 
     case conversion_operator:
@@ -939,7 +939,7 @@ Evaluator::EvalFunctionCall(Ast* node)
 
     // Resolve function on object
     MemberFunction* memfun;
-    if(!args.GetInstance()->FindFun(node->m_a1, memfun))
+    if(!args.GetInstance()->FindMethod(node->m_a1, memfun))
     {
       throw std::runtime_error("Object doesn't support this method");
     }
@@ -948,7 +948,7 @@ Evaluator::EvalFunctionCall(Ast* node)
   else
   {
     // Resolve function in scope stack
-    if(!m_scope->FindFun(node->m_a1, fun))
+    if(!m_scope->FindMethod(node->m_a1, fun))
     {
       throw std::runtime_error("Unknown method");
     }
@@ -1031,7 +1031,22 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 void 
 Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Arguments& args)
 {
+  // Retrieve formal parameters
   AstList const* parlist = fun->GetParameters();
+
+  // No formal parameter list
+  if(parlist == 0)
+  {
+    // Evaluate arguments
+    AstList::const_iterator ai = arglist->begin();
+    for(; ai != arglist->end(); ++ai)
+    {
+      args.push_back(EvalExpression(*ai));
+    }
+
+    // Done
+    return;
+  }
 
   // Enumerate parameters
   AstList::const_iterator pi, pe, ai, ae;
