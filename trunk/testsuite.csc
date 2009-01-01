@@ -397,10 +397,6 @@ function main()
   assert("Try/finally", try_finally(), true);
   assert("Try/catch/finally", try_catch_finally(), true);
   
-  // COM object
-  var co = cocreate("Word.Application");
-  co = null;
-
   // Print result
   if(errors == 0)
   {
