@@ -361,7 +361,7 @@ Evaluator::Compare(Value const& lhs, Value const& rhs)
   if(lhs.Type() != rhs.Type())
   {
     // TODO this must be improved
-    return int((char*)lhs.GetIdentity() - (char*)rhs.GetIdentity());
+    return int((char*)&lhs - (char*)&rhs);
   }
 
   // Type-based compare
@@ -1079,11 +1079,9 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
       // Insert remaining arguments
       for(; ai != ae; ++ai)
       {
-        // Evaluate argument value
+        // Evaluate argument value. ATTN: this dereference
+        // is intentional; variadic arguments are by value.
         Value val = EvalExpression(*ai);
-
-        // Variadic args are always by value
-        val.Dereference();
 
         // Append to list
         va->GetVariables()[va->GetVariables().size() - 1] = new RWMemberVariable(val);
