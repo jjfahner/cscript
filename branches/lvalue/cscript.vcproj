@@ -333,6 +333,10 @@
 				RelativePath=".\valuemap.h"
 				>
 			</File>
+			<File
+				RelativePath=".\variable.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="test"

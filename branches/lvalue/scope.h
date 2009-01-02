@@ -57,6 +57,11 @@ public:
   //
   virtual ~Scope()
   {
+    Variables::iterator it = m_vars.begin();
+    for(; it != m_vars.end(); ++it)
+    {
+      delete it->second;
+    }
   }
 
   //
@@ -80,13 +85,13 @@ public:
   //
   // Add a variable
   //
-  virtual void AddVar(String const& name, RValue& value)
+  virtual void AddVar(String const& name, Value const& value)
   {
     if(m_vars.count(name))
     {
       throw std::runtime_error("Variable already declared");
     }
-    m_vars[name] = &value;
+    m_vars[name] = new RWVariable(value);
   }
 
   //

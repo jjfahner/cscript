@@ -24,7 +24,7 @@
 #include <map>
 #include <set>
 
-#include "value.h"
+#include "variable.h"
 #include "valuemap.h"
 
 //
@@ -82,15 +82,19 @@ public:
   virtual String GetTypeName() const;
 
   //
-  // Member values
+  // Retrieve variables
   //
   virtual Variables& GetVariables()
   {
     return m_variables;
   }
-  virtual Variables const& GetVariables() const
+
+  //
+  // Retrieve const variables
+  //
+  Variables const& GetVariables() const
   {
-    return m_variables;
+    return const_cast<Object*>(this)->GetVariables();
   }
 
   //

@@ -850,7 +850,7 @@ Evaluator::EvalVarDecl(Ast* node)
 
   // Create variable
   // TODO deletion of newed variable
-  m_scope->AddVar(node->m_a1, *new Variable(value));
+  m_scope->AddVar(node->m_a1, value);
 }
 
 void        
@@ -1011,7 +1011,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   pe = fun->GetParameters()->end();
   for(size_t index = 0; pi != pe; ++pi, ++index)
   {
-    m_scope->AddVar((*pi)->m_a1, *new Variable(args[index]));
+    m_scope->AddVar((*pi)->m_a1, args[index]);
   }
 
   // Create function execution scope
