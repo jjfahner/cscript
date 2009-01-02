@@ -1305,11 +1305,14 @@ Evaluator::EvalForeachStatement(Ast* node)
   }
 
   // Fetch variable
-  RValue* var;
-  if(!m_scope->FindVar(varName, var))
+  RValue* rval;
+  if(!m_scope->FindVar(varName, rval))
   {
     throw std::runtime_error("Failed to find iterator variable");
   }
+
+  // Convert to lvalue
+  LValue& var = rval->LVal();
 
   // Evaluate expression
   RValue& rhs = EvalExpression(node->m_a2);
@@ -1322,7 +1325,7 @@ Evaluator::EvalForeachStatement(Ast* node)
   for(; it != ie; ++it)
   {
     // Assign value to iterator variable
-    *var = *it->second;
+    var = *it->second;
 
     // Evaluate expression
     try

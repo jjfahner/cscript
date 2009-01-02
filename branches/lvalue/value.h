@@ -277,6 +277,13 @@ public:
   virtual Value const& GetValue() const = 0;
 
   class LValue& LVal();
+
+protected:
+
+  RValue() {}
+  RValue(RValue const&);
+  RValue const& operator = (RValue const&);
+
 };
 
 class LValue : public RValue
