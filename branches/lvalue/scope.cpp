@@ -45,9 +45,9 @@ GlobalScope::AddClass(Class* c)
 }
 
 bool 
-ClassScope::FindVarLocal(String const& name, Value& ref) const
+ClassScope::FindVarLocal(String const& name, RValue*& ptr) const
 {
-  return m_inst->FindVar(name, ref);
+  return m_inst->FindVar(name, ptr);
 }
 
 bool 

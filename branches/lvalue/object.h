@@ -28,14 +28,14 @@
 #include "valuemap.h"
 
 //
+// Member map
+//
+typedef std::map<Value, RValue*, ValueComparatorLess> Variables;
+
+//
 // List of root objects
 //
 typedef std::set<Object*> Objects;
-
-//
-// Member map
-//
-typedef std::map<Value, RValue*, ValueComparatorLess> MemberVariables;
 
 //
 // Object class
@@ -84,10 +84,13 @@ public:
   //
   // Member values
   //
-  virtual MemberVariables& GetMemberVariables() = 0;
-  virtual MemberVariables const& GetMemberVariables() const
+  virtual Variables& GetVariables()
   {
-    return const_cast<Object*>(this)->GetMemberVariables();
+    return m_variables;
+  }
+  virtual Variables const& GetVariables() const
+  {
+    return m_variables;
   }
 
   //
@@ -111,7 +114,8 @@ protected:
   //
   // Object members
   //
-  Evaluator*      m_evaluator;
+  Evaluator* m_evaluator;
+  Variables  m_variables;
 
 };
 

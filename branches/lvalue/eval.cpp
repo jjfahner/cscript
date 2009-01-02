@@ -670,8 +670,8 @@ Evaluator::EvalExpression(Ast* node)
   case prefix_expression:     return EvalPrefix(node);
   case postfix_expression:    return EvalPostfix(node);
   case index_expression:      return EvalIndex(node);
-  case function_call:         return EvalFunctionCall(node);
-  case literal_value:         return *new Temporary(this, node->m_a1.GetValue());
+  case function_call:         return MakeTemp(EvalFunctionCall(node));
+  case literal_value:         return MakeTemp(node->m_a1.GetValue());
   case lvalue:                return EvalLValue(node);
   case list_literal:          return EvalListLiteral(node);
   case new_expression:        return EvalNewExpression(node);
@@ -740,7 +740,7 @@ Evaluator::EvalBinary(Ast* node)
   default: throw std::out_of_range("Invalid binary operator");
   }  
   
-  return *new Temporary(this, result);
+  return MakeTemp(result);
 }
 
 RValue&
@@ -778,9 +778,9 @@ Evaluator::EvalPrefix(Ast* node)
     lhs.LVal() = ValSub(lhs, 1); 
     return lhs;
   case op_negate: 
-    return *new Temporary(this, ValNeg(lhs));
+    return MakeTemp(ValNeg(lhs));
   case op_not:    
-    return *new Temporary(this, ValNot(lhs));
+    return MakeTemp(ValNot(lhs));
   }
   throw std::out_of_range("Invalid prefix operator");
 }
@@ -792,7 +792,7 @@ Evaluator::EvalPostfix(Ast* node)
   LValue& lhs = EvalExpression(node->m_a2).LVal();
 
   // Create temporary with result value
-  RValue& result = *new Temporary(this, lhs);
+  RValue& result = MakeTemp(lhs);
 
   // Perform postfix operation
   switch(node->m_a1.GetNumber())
@@ -818,21 +818,21 @@ Evaluator::EvalIndex(Ast* node)
   }
 
   // TODO check whether position is valid
-  return *lhs.GetValue().GetObject().GetMemberVariables()[rhs];
+  return *lhs.GetValue().GetObject().GetVariables()[rhs];
 }
 
-// RValue&
-// Evaluator::EvalLValue(Ast* node)
-// {
-//   Value ref;
-//   if(m_scope->FindVar(node->m_a1, ref))
-//   {
-//     return ref;
-//   }
-//   throw std::runtime_error("Undeclared variable '" + 
-//                       node->m_a1.GetString() + "'");
-// }
-// 
+RValue&
+Evaluator::EvalLValue(Ast* node)
+{
+  RValue* ptr;
+  if(m_scope->FindVar(node->m_a1, ptr))
+  {
+    return *ptr;
+  }
+  throw std::runtime_error("Undeclared variable '" + 
+                      node->m_a1.GetString() + "'");
+}
+
 void
 Evaluator::EvalVarDecl(Ast* node)
 {
@@ -849,7 +849,8 @@ Evaluator::EvalVarDecl(Ast* node)
   }
 
   // Create variable
-  m_scope->AddVar(node->m_a1, value);
+  // TODO deletion of newed variable
+  m_scope->AddVar(node->m_a1, *new Variable(value));
 }
 
 void        
@@ -925,7 +926,7 @@ GetInstance(Value const& v)
   return inst;
 }
 
-Value  
+Value
 Evaluator::EvalFunctionCall(Ast* node)
 {
   Function* fun = 0;
@@ -1010,7 +1011,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   pe = fun->GetParameters()->end();
   for(size_t index = 0; pi != pe; ++pi, ++index)
   {
-    m_scope->AddVar((*pi)->m_a1, args[index]);
+    m_scope->AddVar((*pi)->m_a1, *new Variable(args[index]));
   }
 
   // Create function execution scope
@@ -1085,7 +1086,7 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
         val.Dereference();
 
         // Append to list
-        va->GetMemberVariables()[va->GetMemberVariables().size() - 1] = new RWMemberVariable(val);
+        va->GetVariables()[va->GetVariables().size() - 1] = new RWMemberVariable(val);
       }
 
       // Done
@@ -1205,7 +1206,7 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
   }
 }
 
-Value 
+RValue&
 Evaluator::EvalListLiteral(Ast* node)
 {
   // Create empty map
@@ -1216,7 +1217,8 @@ Evaluator::EvalListLiteral(Ast* node)
   int index = 0;
   while(child)
   {
-    v.GetObject().GetMemberVariables()[index++] = new RWMemberVariable(EvalExpression(child->m_a1->m_a1));
+    RValue& element = EvalExpression(child->m_a1->m_a1);
+    v.GetObject().GetVariables()[index++] = new RWMemberVariable(element);
     if(child->m_a2.Empty()) 
     {
       break;
@@ -1225,8 +1227,7 @@ Evaluator::EvalListLiteral(Ast* node)
   }
 
   // Done
-  return v;
-  return Value();
+  return MakeTemp(v);
 }
 
 void 
@@ -1260,7 +1261,7 @@ Evaluator::EvalForStatement(Ast* node)
   for(;;)
   {
     // Evaluate condition
-    if(!EvalExpression(node->m_a2).GetBool())
+    if(!EvalExpression(node->m_a2).GetValue().GetBool())
     {
       break;
     }
@@ -1304,24 +1305,24 @@ Evaluator::EvalForeachStatement(Ast* node)
   }
 
   // Fetch variable
-  Value var;
+  RValue* var;
   if(!m_scope->FindVar(varName, var))
   {
     throw std::runtime_error("Failed to find iterator variable");
   }
 
   // Evaluate expression
-  Value rhs = EvalExpression(node->m_a2);
+  RValue& rhs = EvalExpression(node->m_a2);
 
   // Fetch iterator
-  ValueMap::iterator it = rhs.GetObject().GetMemberVariables().begin();
-  ValueMap::iterator ie = rhs.GetObject().GetMemberVariables().end();
+  Variables::iterator it = rhs.GetValue().GetObject().GetVariables().begin();
+  Variables::iterator ie = rhs.GetValue().GetObject().GetVariables().end();
 
   // Enumerate members
   for(; it != ie; ++it)
   {
     // Assign value to iterator variable
-    var = it->second;
+    *var = *it->second;
 
     // Evaluate expression
     try
@@ -1342,7 +1343,7 @@ Evaluator::EvalForeachStatement(Ast* node)
 void
 Evaluator::EvalIfStatement(Ast* node)
 {
-  if(EvalExpression(node->m_a1).GetBool())
+  if(EvalExpression(node->m_a1).GetValue().GetBool())
   {
     EvalStatement(node->m_a2);
   }
@@ -1355,7 +1356,7 @@ Evaluator::EvalIfStatement(Ast* node)
 void        
 Evaluator::EvalWhileStatement(Ast* node)
 {
-  while(EvalExpression(node->m_a1).GetBool())
+  while(EvalExpression(node->m_a1).GetValue().GetBool())
   {
     try
     {
@@ -1416,7 +1417,7 @@ Evaluator::EvalSwitchStatement(Ast* node)
   }
 }
 
-Value 
+RValue&
 Evaluator::EvalNewExpression(Ast* node)
 {
   // Find class type
@@ -1474,25 +1475,27 @@ Evaluator::EvalNewExpression(Ast* node)
   }
 
   // Done
-  return inst;
+  return MakeTemp(inst);
 }
 
-Value 
+RValue&
 Evaluator::EvalMemberExpression(Ast* node)
 {
   // Evaluate left side
   Instance* instPtr = GetInstance(EvalExpression(node->m_a1));
 
   // Retrieve value
-  Value ref;
-  if(!instPtr->FindVar(node->m_a2, ref))
+  RValue* ptr;
+  if(!instPtr->FindVar(node->m_a2, ptr))
   {
     throw std::runtime_error("Class has no member '" + node->m_a2.GetString() + "'");
   }
-  return ref;
+
+  // Done
+  return *ptr;
 }
 
-Value 
+RValue&
 Evaluator::EvalThisExpression()
 {
   Scope* scope = m_scope;
@@ -1501,7 +1504,7 @@ Evaluator::EvalThisExpression()
     ClassScope* cs = dynamic_cast<ClassScope*>(scope);
     if(cs)
     {
-      return cs->GetInstance();
+      return MakeTemp(cs->GetInstance());
     }
     scope = scope->GetParent();
   }
@@ -1524,8 +1527,9 @@ Evaluator::EvalTryStatement(Ast* node)
       if(node->m_a2)
       {
         // Insert exception into scope
+        // TODO this maketemp might crash horribly during exception cleanup!!!
         AutoScope scope(this, new Scope(m_scope));
-        m_scope->AddVar(node->m_a2->m_a1, e.m_value);
+        m_scope->AddVar(node->m_a2->m_a1, MakeTemp(e.m_value));
 
         // Evaluate catch block
         EvalStatement(node->m_a2->m_a2);
@@ -1557,20 +1561,20 @@ Evaluator::EvalTryStatement(Ast* node)
   }
 }
 
-Value 
+RValue&
 Evaluator::EvalConversion(Ast* node)
 {
   // Evaluate expression
+  // ATTN: the implicit conversion from RValue& to Value
+  // is intended: the conversion must not be applied to 
+  // the source for the conversion!!!
   Value value = EvalExpression(node->m_a2);
-
-  // Dereference, so conversion is not applied to lvalue
-  value.Dereference();
 
   // Perform the conversion
   PerformConversion(value, node->m_a1.GetNode());
   
   // Return converted value
-  return value;
+  return MakeTemp(value);
 }
 
 void 

@@ -293,7 +293,8 @@ public:
 
 };
 
-LValue& RValue::LVal()
+inline LValue& 
+RValue::LVal()
 {
   LValue* lval = dynamic_cast<LValue*>(this);
   if(lval == 0)
@@ -302,5 +303,28 @@ LValue& RValue::LVal()
   }
   return *lval;
 }
+
+class Variable : public LValue
+{
+  Value m_value;
+
+public:
+
+  Variable(Value const& value) :
+  m_value (value)
+  {
+  }
+
+  virtual Value const& GetValue() const
+  {
+    return m_value;
+  }
+
+  virtual void SetValue(Value const& rhs)
+  {
+    m_value = rhs;
+  }
+
+};
 
 #endif // CSCRIPT_VALUE_H

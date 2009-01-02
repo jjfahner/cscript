@@ -46,7 +46,7 @@ Object::GetObjects()
 
 Object::Object(Evaluator* eval) :
 m_evaluator (eval),
-m_members   (eval)
+m_variables (eval)
 {
   g_objects.insert(this);
 }
@@ -144,18 +144,18 @@ MarkObjects(Objects& white, Objects& grey, Objects& black)
     black.insert(obj);
 
     // Walk object members
-    ValueMap::const_iterator it, ie;
-    it = obj->GetMembers().begin();
-    ie = obj->GetMembers().end();
+    Variables::const_iterator it, ie;
+    it = obj->GetVariables().begin();
+    ie = obj->GetVariables().end();
     for(; it != ie; ++it)
     {
       if(it->first.Type() == Value::tObject)
       {
         grey.insert(&it->first.GetObject());
       }
-      if(it->second.Type() == Value::tObject)
+      if(it->second->GetValue().Type() == Value::tObject)
       {
-        grey.insert(&it->second.GetObject());
+        grey.insert(&it->second->GetValue().GetObject());
       }
     }
   }

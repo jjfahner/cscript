@@ -182,8 +182,8 @@ protected:
   // Function handlers
   //
   friend class ScriptFunction;
-  RValue& EvalFunctionCall(Ast* node);
-  RValue& EvalScriptCall(ScriptFunction* fun, Arguments& args);
+  Value EvalFunctionCall(Ast* node);
+  Value EvalScriptCall(ScriptFunction* fun, Arguments& args);
 
   //
   // Convert a value in-place
@@ -195,6 +195,11 @@ protected:
   //
   void EvalPositionalArguments(Function* fun, AstList const* arglist, Arguments& args);
   void EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& args);
+
+  //
+  // Create a temporary
+  //
+  RValue& MakeTemp(Value const& value);
 
   //
   // Scopes
@@ -284,5 +289,11 @@ public:
   }
 
 };
+
+inline RValue& 
+Evaluator::MakeTemp(Value const& value)
+{
+  return *new Temporary(this, value);
+}
 
 #endif // CSCRIPT_EVAL_H

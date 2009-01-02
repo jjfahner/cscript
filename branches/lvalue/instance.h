@@ -68,14 +68,6 @@ public:
   }
 
   //
-  // Retrieve member variables
-  //
-  virtual MemberVariables& GetMemberVariables()
-  {
-    return m_variables;
-  }
-
-  //
   // Number of instance variables
   //
   virtual size_t GetVarCount() const
@@ -86,14 +78,14 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool FindVar(String const& name, RValue& ref) const
+  virtual bool FindVar(String const& name, RValue*& ptr) const
   {
-    MemberVariables::const_iterator it = m_variables.find(name);
+    Variables::const_iterator it = GetVariables().find(name);
     if(it == m_variables.end())
     {
       return false;
     }
-    ref = *it->second;
+    ptr = it->second;
     return true;
   }
 
@@ -113,8 +105,7 @@ protected:
   Instance(Evaluator* eval, Class const* c) : 
   Object      (eval),
   m_eval      (eval), 
-  m_class     (c),
-  m_variables (eval)
+  m_class     (c)
   {
     // Delegate to class
     m_class->ConstructInstance(this);
@@ -125,7 +116,6 @@ protected:
   //
   Evaluator*      m_eval;
   Class const*    m_class;
-  MemberVariables m_variables;
 
   //
   // Class required access for instantiation

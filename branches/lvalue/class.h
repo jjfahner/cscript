@@ -202,11 +202,11 @@ public:
 
 class RWMemberVariable : public LValue
 {
-  Value& m_value;
+  Value m_value;
 
 public:
 
-  RWMemberVariable(Value& value) : 
+  RWMemberVariable(Value const& value) : 
   m_value (value)
   {
   }
