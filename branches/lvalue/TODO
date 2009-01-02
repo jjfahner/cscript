@@ -1,0 +1,7 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// TODO file for cscript
+//
+
+Make VariantRef a specialized type so we can implement lots of shiny
+automatic type conversions.
