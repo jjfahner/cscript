@@ -33,13 +33,6 @@ public:
   static Instance* Create(Evaluator* eval, Class const* c);
 
   //
-  // Destruction
-  //
-  virtual ~Instance()
-  {
-  }
-
-  //
   // Class type name
   //
   virtual String GetTypeName() const

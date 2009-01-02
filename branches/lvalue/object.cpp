@@ -51,6 +51,15 @@ m_variables (eval)
   g_objects.insert(this);
 }
 
+Object::~Object()
+{
+  Variables::iterator it = m_variables.begin();
+  for(; it != m_variables.end(); ++it)
+  {
+    delete it->second;
+  }
+}
+
 String 
 Object::GetTypeName() const
 {

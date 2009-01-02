@@ -72,9 +72,7 @@ public:
   //
   // Virtual destruction
   //
-  virtual ~Object()
-  {
-  }
+  virtual ~Object();
 
   //
   // Object type
