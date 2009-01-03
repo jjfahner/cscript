@@ -19,9 +19,37 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "instance.h"
+#include "eval.h"
 
 /*static*/ Instance* 
 Instance::Create(Evaluator* eval, Class const* c)
 {
   return new Instance(eval, c);
+}
+
+Instance::Instance(Evaluator* eval, Class const* c) :
+Object      (eval),
+m_eval      (eval), 
+m_class     (c)
+{
+  // Enumerate variable definitions
+  Class::NamedNodeMap::const_iterator it, ie;
+  it = m_class->GetVariables().begin();
+  ie = m_class->GetVariables().end();
+  for(; it != ie; ++it)
+  {
+    // Evaluate initial value
+    Value value;
+    if(it->second->m_a2.Empty())
+    {
+      value.Clear();
+    }
+    else
+    {
+      value.SetValue(m_eval->EvalExpression(it->second->m_a2));
+    }
+
+    // Instantiate member variable
+    m_variables[it->first] = new RWMemberVariable(value);
+  }
 }

@@ -37,7 +37,14 @@ ComTypeInfo::ComTypeInfo(IDispatch* pDispatch) :
   if(SUCCEEDED(m_typeinfo->GetDocumentation(MEMBERID_NIL, &bstrName, 0, 0, 0)))
   {
     m_typename = W2T(bstrName);
-    SysFreeString(bstrName);    
+    SysFreeString(bstrName);
+  }
+
+  // Retrieve CLSID
+  CLSID clsid;
+  if(SUCCEEDED(CLSIDFromProgID(T2W(m_typename.c_str()), &clsid)))
+  {
+    m_clsid = clsid;
   }
 }
 
@@ -56,6 +63,13 @@ ComTypeInfo::ComTypeInfo(ITypeInfo* pTypeInfo) :
     m_typename = W2T(bstrName);
     SysFreeString(bstrName);    
   }
+
+  // Retrieve CLSID
+  CLSID clsid;
+  if(SUCCEEDED(CLSIDFromProgID(T2W(m_typename.c_str()), &clsid)))
+  {
+    m_clsid = clsid;
+  }
 }
 
 ITypeInfoPtr const&
@@ -66,6 +80,18 @@ ComTypeInfo::GetTypeInfo() const
 
 String
 ComTypeInfo::GetTypeName() const
+{
+  return m_typename;
+}
+
+CLSID 
+ComTypeInfo::GetCLSID() const
+{
+  return m_clsid;
+}
+
+String 
+ComTypeInfo::GetProgID() const
 {
   return m_typename;
 }

@@ -36,7 +36,7 @@ struct CoInit
     CoInitialize(0);
   }
   ~CoInit() {
-    CoUninitialize();
+    //CoUninitialize();
   }
 };
 
@@ -88,7 +88,7 @@ ValueToVariant(Value const& value, VARIANT& variant)
 //////////////////////////////////////////////////////////////////////////
 
 void
-VariantToValue(VARIANT const& variant, Value& value)
+VariantToValue(Evaluator* eval, VARIANT const& variant, Value& value)
 {
   USES_CONVERSION;
 
@@ -138,7 +138,7 @@ VariantToValue(VARIANT const& variant, Value& value)
     // Change to destination type
     if(SUCCEEDED(VariantChangeType(&vt, &variant, 0, vtDst)))
     {
-      return VariantToValue(vt, value);
+      return VariantToValue(eval, vt, value);
     }
 
     // Failed conversion
@@ -148,11 +148,38 @@ VariantToValue(VARIANT const& variant, Value& value)
   // Create value
   switch(vtSrc)
   {
-  case VT_EMPTY:  value.Clear(); break;
-  case VT_BOOL:   value = variant.boolVal != 0; break;
-  case VT_I8:     value = variant.llVal; break;
-  case VT_BSTR:   value = W2T(variant.bstrVal); break;
-  default: throw std::runtime_error("Failed to convert OLE VARIANT to native type");
+  case VT_EMPTY:    
+    value.Clear(); 
+    break;
+
+  case VT_BOOL:     
+    value = variant.boolVal != 0; 
+    break;
+  
+  case VT_I8:       
+    value = variant.llVal; 
+    break;
+  
+  case VT_BSTR:     
+    if(variant.bstrVal)
+    {
+      value = W2T(variant.bstrVal);
+    }
+    else
+    {
+      value = "";
+    }
+    break;
+
+  case VT_DISPATCH: 
+    if(variant.pdispVal)
+    {
+      value = ComInstance::Create(eval, variant.pdispVal);
+    }
+    break;
+        
+  default: 
+    throw std::runtime_error("Failed to convert OLE VARIANT to native type");
   }
 }
 
@@ -175,11 +202,18 @@ ComClass::FromProgID(String progID)
   return nc;
 }
 
+/*static*/ ComClass* 
+ComClass::FromDispatch(IDispatch* pdisp)
+{
+  ComTypeInfo* pTypeInfo = new ComTypeInfo(pdisp);
+  return new ComClass(pTypeInfo);
+}
+
 ComClass::ComClass(String progID) :
 Class     (progID),
 m_progID  (progID),
 m_clsid   (CLSID_NULL),
-m_info    (0)
+m_typeInfo    (0)
 {
   USES_CONVERSION;
 
@@ -190,23 +224,64 @@ m_info    (0)
   }
 }
 
+ComClass::ComClass(ComTypeInfo* pTypeInfo) :
+Class     (pTypeInfo->GetProgID()),
+m_progID  (pTypeInfo->GetProgID()),
+m_clsid   (pTypeInfo->GetCLSID()),
+m_typeInfo    (pTypeInfo)
+{
+
+}
+
 ComClass::~ComClass()
 {
-  delete m_info;
+  delete m_typeInfo;
+}
+
+IDispatch*
+ComClass::CreateInstance() const
+{
+  IDispatch* pDispatch;
+
+  // Create the instance
+  if(FAILED(CoCreateInstance(m_clsid, NULL, CLSCTX_ALL, 
+                  IID_IDispatch, (void**)&pDispatch)))
+  {
+    if(FAILED(CoCreateInstance(m_clsid, NULL, CLSCTX_LOCAL_SERVER, 
+                               IID_IDispatch,(void**)&pDispatch)))
+    {
+      throw std::runtime_error("Failed to instantiate COM object");
+    }
+  }
+
+  // Load the type library
+  if(m_typeInfo == 0)
+  {
+    m_typeInfo = new ComTypeInfo(pDispatch);
+  }
+
+  // Done
+  return pDispatch;
+}
+
+ComTypeInfo* 
+ComClass::GetTypeInfo() const
+{
+  return m_typeInfo;
 }
 
 bool 
 ComClass::FindMethod(String const& name, MemberFunction*& fun) const
 {
   // No typelib loaded yet
-  if(m_info == 0)
+  if(m_typeInfo == 0)
   {
     return false;
   }
 
   // Find method info
   DISPID dispid;
-  if(!m_info->GetDispIdOfName(name, dispid))
+  if(!m_typeInfo->GetDispIdOfName(name, dispid))
   {
     return false;
   }
@@ -220,14 +295,14 @@ ComClass::FindMethod(String const& name, MemberFunction*& fun) const
 
   // Retrieve proper name
   String properName;
-  if(!m_info->GetNameOfDispId(dispid, properName))
+  if(!m_typeInfo->GetNameOfDispId(dispid, properName))
   {
     return false;
   }
 
   // Retrieve function info
   FUNCDESC* pfd;
-  if(!m_info->GetFuncDescOfDispId(dispid, &pfd))
+  if(!m_typeInfo->GetFuncDescOfDispId(dispid, &pfd))
   {
     return false;
   }
@@ -255,48 +330,6 @@ ComClass::FindConversion(TypeInfo const& type, ConversionOperator*& node) const
   return false;
 }
 
-void 
-ComClass::ConstructInstance(ComInstance* inst) const
-{
-  IDispatch* pDispatch;
-
-  // Create the instance
-  if(SUCCEEDED(CoCreateInstance(m_clsid, NULL,
-    CLSCTX_ALL, IID_IDispatch, (void**)&pDispatch)))
-  {
-    inst->m_dispatch = pDispatch;
-  }
-  else if(SUCCEEDED(CoCreateInstance(m_clsid, NULL,
-    CLSCTX_LOCAL_SERVER, IID_IDispatch,(void**)&pDispatch)))
-  {
-    inst->m_dispatch = pDispatch;
-  }
-  else
-  {
-    throw std::runtime_error("Failed to instantiate COM object");
-  }
-
-  // Load the type library (if required)
-  if(m_info == 0)
-  {
-    m_info = new ComTypeInfo(inst->m_dispatch);
-  }
-}
-
-void 
-ComClass::DestructInstance(ComInstance* inst) const
-{
-  // Remove pointer from instance
-  IDispatch* pDispatch = inst->m_dispatch;
-  inst->m_dispatch = 0;
-
-  // Release the object
-  if(pDispatch)
-  {
-    pDispatch->Release();
-  }
-}
-
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ Instance* 
@@ -305,66 +338,114 @@ ComInstance::Create(Evaluator* eval, ComClass const* c)
   return new ComInstance(eval, c);
 }
 
-ComInstance::ComInstance(Evaluator* eval, ComClass const* c) : 
+/*static*/ Instance* 
+ComInstance::Create(Evaluator* eval, IDispatch* pdisp)
+{
+  ComClass* c = ComClass::FromDispatch(pdisp); 
+  return new ComInstance(eval, c, pdisp);
+}
+
+ComInstance::ComInstance(Evaluator* eval, ComClass const* c, IDispatch* pdisp) : 
 Instance    (eval, c),
 m_class     (c),
-m_dispatch  (0)
+m_dispatch  (pdisp)
 {
-  // Delegate to class
-  m_class->ConstructInstance(this);
+  // Delegate to class for construction
+  if(m_dispatch == 0)
+  {
+    m_dispatch = m_class->CreateInstance();
+  }
+  else
+  {
+    m_dispatch->AddRef();
+  }
+}
+
+ComInstance::~ComInstance()
+{
+  // Remove pointer from instance
+  IDispatch* pDispatch = m_dispatch;
+  m_dispatch = 0;
+
+  // Release the object
+  if(pDispatch)
+  {
+    pDispatch->Release();
+  }
 }
 
 bool 
-ComInstance::FindVar(String const& name, Value& ref) const
+ComInstance::FindVar(String const& name, RValue*& ptr) const
 {
   // No typelib loaded yet
-  if(m_class->m_info == 0)
+  if(m_class->GetTypeInfo() == 0)
   {
     return false;
   }
 
   // Find method info
   DISPID dispid;
-  if(!m_class->m_info->GetDispIdOfName(name, dispid))
+  if(!m_class->GetTypeInfo()->GetDispIdOfName(name, dispid))
   {
     return false;
   }
 
   // Retrieve proper name
   String properName;
-  if(!m_class->m_info->GetNameOfDispId(dispid, properName))
+  if(!m_class->GetTypeInfo()->GetNameOfDispId(dispid, properName))
   {
     return false;
   }
 
+  // Retrieve non-const variables list
+  Variables& vars = const_cast<ComInstance*>(this)->GetVariables();
+
+  // Lookup the variable
+  if(vars.count(properName))
+  {
+    ptr = vars[properName];
+    return true;
+  }
+
   // Retrieve function info
   FUNCDESC* pfd;
-  if(!m_class->m_info->GetFuncDescOfDispId(dispid, &pfd))
+  if(!m_class->GetTypeInfo()->GetFuncDescOfDispId(dispid, &pfd))
   {
     return false;
   }
 
   // Property accessors are not returned as functions
-  if(pfd->invkind == INVOKE_PROPERTYGET    ||
-     pfd->invkind == INVOKE_PROPERTYPUT    ||
-     pfd->invkind == INVOKE_PROPERTYPUTREF )
+  if(pfd->invkind == INVOKE_FUNC)
   {
     return false;
   }
 
-  // TODO
+  // Create a variable instance
+  ptr = new ComMemberVariable(properName, dispid, this);
 
-  return false;
+  // Add to member variables
+  vars[properName] = ptr;
+
+  // Done
+  return true;
 }
 
-Value 
-ComInstance::Invoke(Evaluator* evaluator, DISPID dispid, Arguments& args)
+void
+ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIANT& vResult) const
 {
   USES_CONVERSION;
 
+  // Check dispatch pointer
+  if(!m_dispatch)
+  {
+    //throw std::runtime_error("Invoke on released COM object");
+    VariantInit(&vResult);
+    return;
+  }
+
   // Retrieve function info for the dispid
   FUNCDESC* pfd;
-  if(FAILED(m_class->m_info->GetFuncDescOfDispId(dispid, &pfd)))
+  if(FAILED(m_class->GetTypeInfo()->GetFuncDescOfDispId(dispid, &pfd)))
   {
     throw std::runtime_error("Object doesn't support this property or method");
   }
@@ -396,15 +477,11 @@ ComInstance::Invoke(Evaluator* evaluator, DISPID dispid, Arguments& args)
 
   // Property put invocations require an additional flag
   DISPID disp = DISPID_PROPERTYPUT;
-  if(pfd->invkind == DISPATCH_PROPERTYPUT)
+  if(invokeKind == DISPATCH_PROPERTYPUT)
   {
     dispparams.cNamedArgs = 1;
     dispparams.rgdispidNamedArgs = &disp;
   }
-
-  // Initialize result value
-  VARIANT vtResult;
-  VariantInit(&vtResult);
 
   // Initialize error info
   EXCEPINFO excepInfo;
@@ -416,7 +493,7 @@ ComInstance::Invoke(Evaluator* evaluator, DISPID dispid, Arguments& args)
   // Invoke the method
   HRESULT hr;
   hr = m_dispatch->Invoke(pfd->memid, IID_NULL, LOCALE_USER_DEFAULT, 
-        pfd->invkind, &dispparams, &vtResult, &excepInfo, &nArgErr);
+           invokeKind, &dispparams, &vResult, &excepInfo, &nArgErr);
 
   // Cleanup argument list
   for(unsigned int i = 0; i < dispparams.cArgs; ++i)
@@ -425,23 +502,163 @@ ComInstance::Invoke(Evaluator* evaluator, DISPID dispid, Arguments& args)
   }
   delete [] dispparams.rgvarg;
 
-  // Throw error
-  if(FAILED(hr)) 
+  // Check result
+  if(FAILED(hr))
   {
     String name;
-    m_class->m_info->GetNameOfDispId(pfd->memid, name);
+    m_class->GetTypeInfo()->GetNameOfDispId(pfd->memid, name);
     String err = W2T(excepInfo.bstrDescription);
     err = "COM method '" + name + "' failed: " + err;
     throw std::runtime_error(err);
   }
+}
 
-  // Determine result
+Value
+ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const
+{
+  // Initialize result
+  VARIANT vResult;
+  VariantInit(&vResult);
+
+  // Invoke the method
+  Invoke(dispid, invokeKind, args, vResult);
+  
+  // Convert result value
   Value result;
-  VariantToValue(vtResult, result);
-  VariantClear(&vtResult);
+  VariantToValue(m_eval, vResult, result);
+  VariantClear(&vResult);
 
-  // Klaar
+  // Done
   return result;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+ComEnumerator::ComEnumerator(Evaluator* eval, IEnumVARIANTPtr const& pEnum) :
+m_eval  (eval),
+m_pEnum (pEnum)
+{
+}
+
+void ComEnumerator::Reset()
+{
+  if(m_pEnum)
+  {
+    m_pEnum->Reset();
+  }
+}
+
+bool 
+ComEnumerator::GetNext(Value& value)
+{
+  // Check enumerator
+  if(!m_pEnum)
+  {
+    return false;
+  }
+
+  // Prepare variant
+  VARIANT vElem;
+  VariantInit(&vElem);
+
+  // Move to next item
+  ULONG fetched = 0;
+  if(FAILED(m_pEnum->Next(1, &vElem, &fetched)) || fetched != 1)
+  {
+    return false;
+  }
+
+  // Convert value
+  VariantToValue(0, vElem, value);
+  VariantClear(&vElem);
+
+  // Done
+  return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+ComMemberVariable::ComMemberVariable(String name, DISPID dispid, ComInstance const* inst) :
+m_name    (name),
+m_dispid  (dispid),
+m_inst    (inst)
+{
+}
+
+Value const& 
+ComMemberVariable::GetValue() const
+{
+  // Setup empty argument list
+  Arguments args;
+
+  // Invoke property getter
+  m_value = m_inst->Invoke(m_dispid, INVOKE_PROPERTYGET, args);
+
+  // Return stored value
+  return m_value;
+}
+
+void 
+ComMemberVariable::SetValue(Value const& rhs)
+{
+  // Setup argument list
+  Arguments args;
+  args.push_back(rhs);
+
+  // Invoke property setter
+  m_inst->Invoke(m_dispid, INVOKE_PROPERTYPUT, args);
+}
+
+ComEnumerator* 
+ComMemberVariable::GetEnumerator() const
+{
+  // Retrieve property value
+  Value const& value = GetValue();
+
+  // Check that it's a dispatch pointer
+  if(value.Type() != Value::tObject)
+  {
+    throw std::runtime_error("Member cannot be enumerated");
+  }
+
+  // Convert the object to a ComInstance
+  ComInstance* ci = dynamic_cast<ComInstance*>(&value.GetObject());
+  if(ci == 0)
+  {
+    throw std::runtime_error("Member cannot be enumerated");
+  }
+
+  // Retrieve the DISPID_NEWENUM object
+  IUnknownPtr pUnk;
+  try
+  {
+    // Prepare result variant
+    VARIANT vResult;
+    VariantInit(&vResult);
+
+    // Invoke NEWENUM
+    ci->Invoke(DISPID_NEWENUM, INVOKE_PROPERTYGET, Arguments(), vResult);
+
+    // Copy pEnum
+    pUnk = vResult.punkVal;
+
+    // Cleanup
+    VariantClear(&vResult);
+  }
+  catch(std::runtime_error const&)
+  {
+    throw std::runtime_error("Member cannot be enumerated");
+  }
+
+  // Accept empty enumerator, but when filled, check conversion
+  IEnumVARIANTPtr pEnum(pUnk);
+  if(pUnk && !pEnum)
+  {
+    throw std::runtime_error("Member cannot be enumerated");
+  }
+
+  // Construct enumerator
+  return new ComEnumerator(m_inst->m_eval, pEnum);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -472,5 +689,5 @@ ComMemberFunction::Execute(Evaluator* evaluator, Arguments& args)
   }
 
   // Invoke on instance
-  return inst->Invoke(evaluator, m_dispid, args);
+  return inst->Invoke(m_dispid, INVOKE_FUNC, args);
 }

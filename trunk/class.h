@@ -24,11 +24,11 @@
 #include "types.h"
 #include "value.h"
 #include "typeinfo.h"
-#include "object.h"
-#include "valuemap.h"
+#include "variable.h"
 
 class Evaluator;
 class MemberFunction;
+class MemberVariable;
 class ConversionOperator;
 class Constructor;
 class Destructor;
@@ -42,6 +42,13 @@ class Instance;
 class Class
 {
 public:
+
+  //
+  // Types
+  //
+  typedef std::map<String,    Ast*>                NamedNodeMap;
+  typedef std::map<String,    MemberFunction*>     FunctionMap;
+  typedef std::map<TypeInfo,  ConversionOperator*> ConversionMap;
 
   //
   // Construction
@@ -100,6 +107,14 @@ public:
     }
     m_destructor = destructor;
   }
+
+  //
+  // Retrieve variables
+  //
+  NamedNodeMap const& GetVariables() const
+  {
+    return m_vars;
+  }
   
   //
   // Add a member variable
@@ -152,20 +167,6 @@ public:
 protected:
 
   //
-  // Instance construction
-  //
-  friend class Instance;
-  virtual void ConstructInstance(Instance* inst) const;
-  virtual void DestructInstance(Instance* inst) const;  
-
-  //
-  // Types
-  //
-  typedef std::map<String,    Ast*>                NamedNodeMap;
-  typedef std::map<String,    MemberFunction*>     FunctionMap;
-  typedef std::map<TypeInfo,  ConversionOperator*> ConversionMap;
-
-  //
   // Members
   //
   String        m_name;
@@ -174,6 +175,51 @@ protected:
   NamedNodeMap  m_vars;
   FunctionMap   m_funs;
   ConversionMap m_conv;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class ROMemberVariable : public RValue
+{
+  Value const& m_value;
+
+public:
+  
+  ROMemberVariable(Value const& value) :
+  m_value (value)
+  {
+  }
+
+  virtual Value const& GetValue() const
+  {
+    return m_value;
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class RWMemberVariable : public LValue
+{
+  Value m_value;
+
+public:
+
+  RWMemberVariable(Value const& value) : 
+  m_value (value)
+  {
+  }
+
+  virtual Value const& GetValue() const
+  {
+    return m_value;
+  }
+
+  virtual void SetValue(Value const& value)
+  {
+    m_value = value;
+  }
 
 };
 

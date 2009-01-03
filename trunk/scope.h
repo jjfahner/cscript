@@ -23,20 +23,11 @@
 
 #include "types.h"
 #include "value.h"
-#include "object.h"
+#include "variable.h"
 
 class Instance;
 class Function;
 class Class;
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Variable implementation
-//
-
-class Variable : public Value
-{
-};
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -50,7 +41,7 @@ public:
   //
   // Types
   //
-  typedef std::map<String, Variable>   Variables;
+  typedef std::map<String, RValue*>   Variables;
   typedef std::map<String, Function*> Functions;
   typedef std::map<String, Class*>    Classes;
 
@@ -66,6 +57,11 @@ public:
   //
   virtual ~Scope()
   {
+    Variables::iterator it = m_vars.begin();
+    for(; it != m_vars.end(); ++it)
+    {
+      delete it->second;
+    }
   }
 
   //
@@ -95,21 +91,22 @@ public:
     {
       throw std::runtime_error("Variable already declared");
     }
-    m_vars[name].SetValue(value);
+    m_vars[name] = new RWVariable(value);
   }
 
   //
   // Retrieve a variable
   //
-  virtual bool FindVar(String const& name, Value& ref) const
+  virtual bool FindVar(String const& name, RValue*& ptr) const
   {
-    if(FindVarLocal(name, ref))
+    ptr = 0;
+    if(FindVarLocal(name, ptr))
     {
       return true;
     }
     if(m_parent)
     {
-      return m_parent->FindVar(name, ref);
+      return m_parent->FindVar(name, ptr);
     }
     return false;
   }
@@ -132,9 +129,9 @@ public:
     ie = m_vars.end();
     for(; it != ie; ++it)
     {
-      if(it->second.Type() == Value::tObject)
+      if(it->second->GetValue().Type() == Value::tObject)
       {
-        objects.insert(&it->second.GetObject());
+        objects.insert(&it->second->GetValue().GetObject());
       }
     }
     if(m_parent)
@@ -224,14 +221,14 @@ protected:
   //
   // Retrieve a variable from local scope
   //
-  virtual bool FindVarLocal(String const& name, Value& ref) const
+  virtual bool FindVarLocal(String const& name, RValue*& ptr) const
   {
     Variables::const_iterator it = m_vars.find(name);
     if(it == m_vars.end())
     {
       return false;
     }
-    ref.SetRef(const_cast<Variable*>(&it->second));
+    ptr = it->second;
     return true;
   }
 
@@ -377,7 +374,7 @@ protected:
   //
   // Retrieve a local variable
   //
-  virtual bool FindVarLocal(String const& name, Value& ref) const;
+  virtual bool FindVarLocal(String const& name, RValue*& ref) const;
 
   //
   // Retrieve a local function

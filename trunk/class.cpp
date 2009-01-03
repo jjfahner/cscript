@@ -45,38 +45,3 @@ Class::FindConversion(TypeInfo const& type, ConversionOperator*& node) const
   node = it->second;
   return true;
 }
-
-void
-Class::ConstructInstance(Instance* inst) const
-{
-  // Enumerate variable definitions
-  NamedNodeMap::const_iterator it, ie;
-  it = m_vars.begin();
-  ie = m_vars.end();
-  for(; it != ie; ++it)
-  {
-    // Evaluate initial value
-    Value value;
-    if(it->second->m_a2.Empty())
-    {
-      value.Clear();
-    }
-    else
-    {
-      value.SetValue(inst->m_eval->EvalExpression(it->second->m_a2));
-    }
-
-    // Instantiate member variable
-    inst->GetMembers()[it->first].SetValue(value);
-  }
-}
-
-void 
-Class::DestructInstance(Instance* inst) const
-{
-  // Evaluate destructor
-  if(m_destructor)
-  {
-    // TODO
-  }
-}
