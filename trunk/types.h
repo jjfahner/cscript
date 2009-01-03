@@ -45,6 +45,8 @@ typedef unsigned __int64  uint64;
 
 typedef unsigned __int8   Byte;
 
+#define strcmp_nocase _stricmp
+
 #elif defined(__GNUC__)
 
 #include <stdint.h>
@@ -59,6 +61,8 @@ typedef uint32_t          uint32;
 typedef uint64_t          uint64;
 
 typedef uint8_t           Byte;
+
+#define strcmp_nocase strcasecmp
 
 #else
 
@@ -109,11 +113,12 @@ struct FilePos
 {
   String  m_file;
   int32   m_line;
-}; 
+};
+ 
 
 struct NCC {
   bool operator () (String const& l, String const& r) const {
-    return strcasecmp(l.c_str(), r.c_str()) < 0;
+    return strcmp_nocase(l.c_str(), r.c_str()) < 0;
   }
 };
 
