@@ -24,6 +24,15 @@
 #include "function.h"
 #include "instance.h"
 
+Scope::~Scope()
+{
+  Variables::iterator it = m_vars.begin();
+  for(; it != m_vars.end(); ++it)
+  {
+    delete it->second;
+  }
+}
+
 void 
 GlobalScope::AddFun(Function* fun)
 {

@@ -1,6 +1,6 @@
 include "test.csi";
 
-function foo1(a)
+function foo1(a);
 function foo2(a = null);
 function foo3(a, b);
 function foo4(a, b = null);
@@ -97,8 +97,8 @@ for(var q = 0; q < 10000; ++q)
 }
 print("\n");
 
-//for(var v in [1, 2, 3, [true, false], [1, [2, 3]]])
-for(var v in [1, 2, 3, true, false, "Blabla"])
+for(var v in [1, 2, 3, [true, false], [1, [2, 3]], "Blabla"])
+//for(var v in [1, 2, 3, true, false, "Blabla"])
 {
   print("{v}\n");
 }

@@ -50,7 +50,7 @@ m_class     (c)
     }
 
     // Instantiate member variable
-    m_variables[it->first] = new RWMemberVariable(value);
+    GetVariables()[it->first] = new RWMemberVariable(value);
   }
 }
 

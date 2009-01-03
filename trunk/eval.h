@@ -215,7 +215,7 @@ protected:
   //
   // Temporaries
   //
-  typedef std::vector<Temporary> ValueVec;
+  typedef std::vector<Temporary*> ValueVec;
   ValueVec m_temporaries;
 
 };
@@ -276,7 +276,7 @@ inline RValue&
 Evaluator::MakeTemp(Value const& value)
 {
   Temporary* temp = new Temporary(value);
-  m_temporaries.push_back(*temp);
+  m_temporaries.push_back(temp);
   return *temp;
 }
 

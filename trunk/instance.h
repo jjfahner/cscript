@@ -66,7 +66,7 @@ public:
   //
   virtual size_t GetVarCount() const
   {
-    return m_variables.size();
+    return GetVariables().size();
   }
 
   //
@@ -75,7 +75,7 @@ public:
   virtual bool FindVar(String const& name, RValue*& ptr) const
   {
     Variables::const_iterator it = GetVariables().find(name);
-    if(it == m_variables.end())
+    if(it == GetVariables().end())
     {
       return false;
     }
