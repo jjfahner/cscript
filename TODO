@@ -3,5 +3,11 @@
 // TODO file for cscript
 //
 
-Make VariantRef a specialized type so we can implement lots of shiny
-automatic type conversions.
+Fix ast line numbers. Currently they are determined when a node is finally
+allocated, but by then the lexer points to the last line that makes up the
+node, instead of the first line.
+
+Consider implicitly converting condition values to boolean for statements
+like if, while and for.
+
+Consider moving back to parsing input completely before evaluation.

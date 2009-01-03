@@ -33,13 +33,6 @@ public:
   static Instance* Create(Evaluator* eval, Class const* c);
 
   //
-  // Destruction
-  //
-  virtual ~Instance()
-  {
-  }
-
-  //
   // Class type name
   //
   virtual String GetTypeName() const
@@ -56,7 +49,8 @@ public:
   }
   virtual void Finalize()
   {
-    m_class->DestructInstance(this);
+    // TODO
+    // DestructInstance(this);
   }
 
   //
@@ -72,20 +66,20 @@ public:
   //
   virtual size_t GetVarCount() const
   {
-    return GetMembers().size();
+    return m_variables.size();
   }
 
   //
   // Retrieve a variable
   //
-  virtual bool FindVar(String const& name, Value& ref) const
+  virtual bool FindVar(String const& name, RValue*& ptr) const
   {
-    ValueMap::const_iterator it = GetMembers().find(name);
-    if(it == GetMembers().end())
+    Variables::const_iterator it = GetVariables().find(name);
+    if(it == m_variables.end())
     {
       return false;
     }
-    ref.SetRef(it->second);
+    ptr = it->second;
     return true;
   }
 
@@ -102,25 +96,13 @@ protected:
   //
   // Construction
   //
-  Instance(Evaluator* eval, Class const* c) : 
-  Object (eval),
-  m_eval (eval), 
-  m_class (c)
-  {
-    // Delegate to class
-    m_class->ConstructInstance(this);
-  }
-
-  //
-  // Types
-  //
-  typedef std::map<String, Value> Variables;
+  Instance(Evaluator* eval, Class const* c);
 
   //
   // Members
   //
-  Evaluator*    m_eval;
-  Class const*  m_class;
+  Evaluator*      m_eval;
+  Class const*    m_class;
 
   //
   // Class required access for instantiation

@@ -60,6 +60,16 @@ public:
   String GetTypeName() const;
 
   //
+  // Get CLSID for interface
+  //
+  CLSID GetCLSID() const;
+
+  //
+  // Get ProgID for interface
+  //
+  String GetProgID() const;
+
+  //
   // Retrieve names of DISPID
   //
   bool GetParameterNames(DISPID dispid, std::vector<String>& names);
@@ -92,6 +102,8 @@ private:
   // Members
   //
   ITypeInfoPtr        m_typeinfo;
+  CLSID               m_clsid;
+  String              m_progID;
   String              m_typename;
   mutable bool        m_initDone;
   mutable dispid_map  m_dispids;      // Cached dispids

@@ -61,8 +61,8 @@ public:
   //
   // Evaluation of an expression
   //
-  Value EvalExpression(Ast* node);
-  void  EvalStatement(Ast* node);
+  RValue& EvalExpression(Ast* node);
+  void    EvalStatement(Ast* node);
 
   //
   // Reset the evaluator
@@ -119,7 +119,7 @@ public:
   //
   // Value operations
   //
-  int   Compare(Value const& lhs, Value const& rhs);
+  int  Compare(Value const& lhs, Value const& rhs);
   Value ValAdd(Value const& lhs, Value const& rhs);
   Value ValSub(Value const& lhs, Value const& rhs);
   Value ValMul(Value const& lhs, Value const& rhs);
@@ -165,18 +165,18 @@ protected:
   //
   // Expression handlers
   //
-  Value EvalLValue(Ast* node);
-  Value EvalListLiteral(Ast* node);
-  Value EvalNewExpression(Ast* node);
-  Value EvalMemberExpression(Ast* node);
-  Value EvalThisExpression();
-  Value EvalAssignment(Ast* node);
-  Value EvalBinary(Ast* node);
-  Value EvalTernary(Ast* node);
-  Value EvalPrefix(Ast* node);
-  Value EvalPostfix(Ast* node);
-  Value EvalIndex(Ast* node);
-  Value EvalConversion(Ast* node);
+  RValue& EvalLValue(Ast* node);
+  RValue& EvalListLiteral(Ast* node);
+  RValue& EvalNewExpression(Ast* node);
+  RValue& EvalMemberExpression(Ast* node);
+  RValue& EvalThisExpression(Ast* node);
+  RValue& EvalAssignment(Ast* node);
+  RValue& EvalBinary(Ast* node);
+  RValue& EvalTernary(Ast* node);
+  RValue& EvalPrefix(Ast* node);
+  RValue& EvalPostfix(Ast* node);
+  RValue& EvalIndex(Ast* node);
+  RValue& EvalConversion(Ast* node);
 
   //
   // Function handlers
@@ -193,8 +193,13 @@ protected:
   //
   // Evaluate argument list
   //
-  void EvalPositionalArguments(Function* fun, AstList const* arglist, Arguments& args);
-  void EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& args);
+  void EvalPositionalArguments(Ast* node, Function* fun, AstList const* arglist, Arguments& args);
+  void EvalNamedArguments(Ast* node, Function* fun, AstList const* arglist, Arguments& args);
+
+  //
+  // Create a temporary
+  //
+  RValue& MakeTemp(Value const& value);
 
   //
   // Scopes
@@ -210,8 +215,8 @@ protected:
   //
   // Temporaries
   //
-  typedef std::vector<Object*> ObjectVec;
-  ObjectVec     m_temporaries;
+  typedef std::vector<Temporary> ValueVec;
+  ValueVec m_temporaries;
 
 };
 
@@ -226,7 +231,8 @@ protected:
 struct script_exception : public std::exception
 {
   Ast* m_node;
-  script_exception(Ast* node) : std::exception(), m_node (node) {}
+  script_exception(Ast* node, char const* message = "") : std::exception(message), m_node (node) {}
+  script_exception(Ast* node, String const& message) : std::exception(message.c_str()), m_node (node) {}
 };
 
 struct break_exception : public script_exception
@@ -263,5 +269,15 @@ struct user_exception : public script_exception
   user_exception(Ast* node, Value const& value) : script_exception (node), m_value (value) {}
   ~user_exception() throw() {}
 };
+
+//////////////////////////////////////////////////////////////////////////
+
+inline RValue& 
+Evaluator::MakeTemp(Value const& value)
+{
+  Temporary* temp = new Temporary(value);
+  m_temporaries.push_back(*temp);
+  return *temp;
+}
 
 #endif // CSCRIPT_EVAL_H

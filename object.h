@@ -25,12 +25,19 @@
 #include <set>
 
 #include "value.h"
-#include "valuemap.h"
+
+class Object;
+class RValue;
 
 //
 // List of root objects
 //
 typedef std::set<Object*> Objects;
+
+//
+// Member map
+//
+typedef std::map<Value, RValue*, ValueComparatorLess> Variables;
 
 //
 // Object class
@@ -67,9 +74,7 @@ public:
   //
   // Virtual destruction
   //
-  virtual ~Object()
-  {
-  }
+  virtual ~Object();
 
   //
   // Object type
@@ -77,15 +82,19 @@ public:
   virtual String GetTypeName() const;
 
   //
-  // Member values
+  // Retrieve variables
   //
-  ValueMap& GetMembers()
+  virtual Variables& GetVariables()
   {
-    return m_members;
+    return m_variables;
   }
-  ValueMap const& GetMembers() const
+
+  //
+  // Retrieve const variables
+  //
+  Variables const& GetVariables() const
   {
-    return m_members;
+    return const_cast<Object*>(this)->GetVariables();
   }
 
   //
@@ -109,8 +118,8 @@ protected:
   //
   // Object members
   //
-  Evaluator*  m_evaluator;
-  ValueMap    m_members;
+  Evaluator* m_evaluator;
+  Variables  m_variables;
 
 };
 

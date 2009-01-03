@@ -27,18 +27,34 @@
 
 #include <windows.h>
 #include <objbase.h>
+#include <comdef.h>
+
+// #$%@ Windows defines!!!
+#undef GetObject
 
 class ComTypeInfo;
 class ComMemberFunction;
+class ComEnumerator;
 
 class ComClass : public Class
 {
 public:
 
   //
-  // Factory
+  // Factories
   //
   static ComClass* FromProgID(String progID);
+  static ComClass* FromDispatch(IDispatch* pdisp);
+
+  //
+  // Create an instance
+  //
+  IDispatch* CreateInstance() const;
+
+  //
+  // Retrieve type info
+  //
+  ComTypeInfo* GetTypeInfo() const;
 
   //
   // Com objects have no constructors
@@ -104,18 +120,12 @@ protected:
   // Constructor
   //
   ComClass(String progID);
+  ComClass(ComTypeInfo* pTypeInfo);
 
   //
   // Destruction
   //
   ~ComClass();
-
-  //
-  // Instance construction
-  //
-  friend class ComInstance;
-  virtual void ConstructInstance(ComInstance* inst) const;
-  virtual void DestructInstance(ComInstance* inst) const;  
 
   //
   // Collection of methods
@@ -127,7 +137,7 @@ protected:
   //
   String        m_progID;
   CLSID         m_clsid;
-  mutable ComTypeInfo*  m_info;
+  mutable ComTypeInfo*  m_typeInfo;
   mutable Methods       m_methods;
   
 };
@@ -144,6 +154,11 @@ public:
   static Instance* Create(Evaluator* eval, ComClass const* c);
 
   //
+  // Class factory
+  //
+  static Instance* Create(Evaluator* eval, IDispatch* p);
+
+  //
   // Class type name
   //
   virtual String GetTypeName() const
@@ -156,15 +171,7 @@ public:
   //
   virtual bool FinalizeRequired() const
   {
-    return true;
-  }
-
-  //
-  // Finalization
-  //
-  virtual void Finalize()
-  {
-    m_class->DestructInstance(this);
+    return false;
   }
 
   //
@@ -187,7 +194,7 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool FindVar(String const& name, Value& ref) const;
+  virtual bool FindVar(String const& name, RValue*& ptr) const;
 
   //
   // Retrieve a function
@@ -198,24 +205,94 @@ public:
   }
 
   //
+  // Raw method invocation
+  //
+  void Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIANT& vResult) const;
+
+  //
   // Invoke a method or property
   //
-  Value Invoke(Evaluator* evaluator, DISPID dispid, Arguments& args);
+  Value Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const;
 
 protected:
 
   //
   // Construction
   //
-  ComInstance(Evaluator* eval, ComClass const* c);
+  ComInstance(Evaluator* eval, ComClass const* c, IDispatch* pdisp = 0);
+
+  //
+  // Destruction
+  //
+  ~ComInstance();
 
   //
   // Members
   //
   friend class ComClass;
   friend class ComMemberFunction;
+  friend class ComMemberVariable;
   ComClass const* m_class;
   IDispatch*      m_dispatch;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class ComEnumerator : public Enumerator
+{
+  Evaluator*      m_eval;
+  IEnumVARIANTPtr m_pEnum;
+
+public:
+
+  //
+  // Construction
+  //
+  ComEnumerator(Evaluator* eval, IEnumVARIANTPtr const& pEnum);
+
+  //
+  // Reset enumerator to first entry
+  //
+  virtual void Reset();
+
+  //
+  // Retrieve next value
+  //
+  virtual bool GetNext(Value& value);
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class ComMemberVariable : public LValue
+{
+  ComInstance const* m_inst;
+  mutable Value m_value;
+  String m_name;
+  DISPID m_dispid;
+
+public:
+
+  //
+  // Construction
+  //
+  ComMemberVariable(String name, DISPID dispid, ComInstance const* inst);
+
+  //
+  // Retrieve value
+  //
+  Value const& GetValue() const;
+
+  //
+  // Set value
+  //
+  void SetValue(Value const& rhs);
+
+  //
+  // Create an enumerator
+  //
+  virtual ComEnumerator* GetEnumerator() const;
+
 };
 
 //////////////////////////////////////////////////////////////////////////
