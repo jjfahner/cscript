@@ -361,8 +361,7 @@ m_dispatch  (pdisp)
   }
 }
 
-void 
-ComInstance::Finalize()
+ComInstance::~ComInstance()
 {
   // Remove pointer from instance
   IDispatch* pDispatch = m_dispatch;
@@ -439,7 +438,9 @@ ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIA
   // Check dispatch pointer
   if(!m_dispatch)
   {
-    throw std::runtime_error("Invoke on released COM object");
+    //throw std::runtime_error("Invoke on released COM object");
+    VariantInit(&vResult);
+    return;
   }
 
   // Retrieve function info for the dispid

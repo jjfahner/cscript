@@ -171,13 +171,8 @@ public:
   //
   virtual bool FinalizeRequired() const
   {
-    return true;
+    return false;
   }
-
-  //
-  // Finalization
-  //
-  virtual void Finalize();
 
   //
   // Retrieve class instance
@@ -225,6 +220,11 @@ protected:
   // Construction
   //
   ComInstance(Evaluator* eval, ComClass const* c, IDispatch* pdisp = 0);
+
+  //
+  // Destruction
+  //
+  ~ComInstance();
 
   //
   // Members

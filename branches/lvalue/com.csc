@@ -5,7 +5,7 @@ function enumNodes(node)
   {
 	  for(var att in node.attributes)
 	  {
-		  print(" " + att.nodeName + "=" + att.nodeValue);	
+		  //print(" " + att.nodeName + "=" + att.nodeValue);	
 	  }
   }
 
@@ -23,6 +23,8 @@ xmlDoc.preserveWhitespace = false;
 xmlDoc.load("D:\\pronto\\6.0\\Include\\Instellingen.xml");
 
 enumNodes(xmlDoc);
+
+xmlDoc = null;
 
 collect();
 dump();
