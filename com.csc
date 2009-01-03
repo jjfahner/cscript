@@ -1,6 +1,15 @@
+/////////////////////////////////////////////////////////////////////
+//
+// Test COM functionality
+//
+
+//
+// Recursive descent through XML tree
+//
 function enumNodes(node)
 {
   print(node.nodeName);
+  
   if(node.attributes != null)
   {
 	  for(var att in node.attributes)
@@ -17,14 +26,15 @@ function enumNodes(node)
   }
 }
 
+// Create document instance
 var xmlDoc = cocreate("Microsoft.XMLDOM");
+
+// Set properties
 xmlDoc.async = false;
 xmlDoc.preserveWhitespace = false;
+
+// Load XML data
 xmlDoc.load("sample.xml");
 
+// Enumerate tree
 enumNodes(xmlDoc);
-
-xmlDoc = null;
-
-collect();
-dump();
