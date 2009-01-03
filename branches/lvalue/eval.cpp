@@ -1263,6 +1263,13 @@ Evaluator::EvalForStatement(Ast* node)
   for(;;)
   {
     // Evaluate condition
+    RValue const& cond = EvalExpression(node->m_a2);
+    if(cond.GetValue().Type() != Value::tBool)
+    {
+      throw script_exception(node->m_a2, "Expression does not yield a boolean value");
+    }
+
+    // Check condition
     if(!EvalExpression(node->m_a2).GetValue().GetBool())
     {
       break;
@@ -1355,7 +1362,7 @@ Evaluator::EvalIfStatement(Ast* node)
   RValue const& cond = EvalExpression(node->m_a1);
   if(cond.GetValue().Type() != Value::tBool)
   {
-    throw script_exception(node, "Expression does not yield a boolean value");
+    throw script_exception(node->m_a1, "Expression does not yield a boolean value");
   }
 
   if(cond.GetValue().GetBool())
@@ -1376,7 +1383,7 @@ Evaluator::EvalWhileStatement(Ast* node)
     RValue const& cond = EvalExpression(node->m_a1);
     if(cond.GetValue().Type() != Value::tBool)
     {
-      throw script_exception(node, "Expression does not yield a boolean value");
+      throw script_exception(node->m_a1, "Expression does not yield a boolean value");
     }
 
     if(!cond.GetValue().GetBool())
