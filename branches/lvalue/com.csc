@@ -1,11 +1,11 @@
 function enumNodes(node)
 {
   print(node.nodeName);
-  if(node.attributes)
+  if(node.attributes != null)
   {
 	  for(var att in node.attributes)
 	  {
-		  //print(" " + att.nodeName + "=" + att.nodeValue);	
+		  print(" " + att.nodeName + "=" + att.nodeValue);	
 	  }
   }
 
@@ -20,7 +20,7 @@ function enumNodes(node)
 var xmlDoc = cocreate("Microsoft.XMLDOM");
 xmlDoc.async = false;
 xmlDoc.preserveWhitespace = false;
-xmlDoc.load("D:\\pronto\\6.0\\Include\\Instellingen.xml");
+xmlDoc.load("sample.xml");
 
 enumNodes(xmlDoc);
 
