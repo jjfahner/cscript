@@ -817,13 +817,24 @@ Evaluator::EvalIndex(Ast* node)
   RValue& lhs = EvalExpression(node->m_a1);
   RValue& rhs = EvalExpression(node->m_a2);
 
+  Value const& lval = lhs.GetValue();
   if(lhs.GetValue().Type() != Value::tObject)
   {
     throw script_exception(node, "Invalid type for index operator");
   }
 
-  // TODO check whether position is valid
-  return *lhs.GetValue().GetObject().GetVariables()[rhs];
+  // Retrieve value
+  Variables& vars = lhs.GetValue().GetObject().GetVariables();
+  RValue* val = vars[rhs];
+  if(val == 0)
+  {
+    // Create new variable
+    val = new RWMemberVariable(Value());
+    vars[rhs] = val;
+  }
+  
+  // Done
+  return *val;
 }
 
 RValue&
@@ -1215,17 +1226,20 @@ Evaluator::EvalListLiteral(Ast* node)
   Value v(Object::Create(this));
   
   // Recurse into map values
-  Ast* child = node->m_a1;
-  int index = 0;
-  while(child)
+  if(!node->m_a1.Empty())
   {
-    RValue& element = EvalExpression(child->m_a1->m_a1);
-    v.GetObject().GetVariables()[index++] = new RWMemberVariable(element);
-    if(child->m_a2.Empty()) 
+    Ast* child = node->m_a1;
+    int index = 0;
+    while(child)
     {
-      break;
+      RValue& element = EvalExpression(child->m_a1->m_a1);
+      v.GetObject().GetVariables()[index++] = new RWMemberVariable(element);
+      if(child->m_a2.Empty()) 
+      {
+        break;
+      }
+      child = child->m_a2;
     }
-    child = child->m_a2;
   }
 
   // Done
