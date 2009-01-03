@@ -27,18 +27,24 @@
 
 #include <windows.h>
 #include <objbase.h>
+#include <comdef.h>
+
+// #$%@ Windows defines!!!
+#undef GetObject
 
 class ComTypeInfo;
 class ComMemberFunction;
+class ComEnumerator;
 
 class ComClass : public Class
 {
 public:
 
   //
-  // Factory
+  // Factories
   //
   static ComClass* FromProgID(String progID);
+  static ComClass* FromDispatch(IDispatch* pdisp);
 
   //
   // Com objects have no constructors
@@ -104,6 +110,7 @@ protected:
   // Constructor
   //
   ComClass(String progID);
+  ComClass(ComTypeInfo* pTypeInfo);
 
   //
   // Destruction
@@ -142,6 +149,11 @@ public:
   // Class factory
   //
   static Instance* Create(Evaluator* eval, ComClass const* c);
+
+  //
+  // Class factory
+  //
+  static Instance* Create(Evaluator* eval, IDispatch* p);
 
   //
   // Class type name
@@ -198,6 +210,11 @@ public:
   }
 
   //
+  // Raw method invocation
+  //
+  void Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIANT& vResult) const;
+
+  //
   // Invoke a method or property
   //
   Value Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const;
@@ -207,15 +224,42 @@ protected:
   //
   // Construction
   //
-  ComInstance(Evaluator* eval, ComClass const* c);
+  ComInstance(Evaluator* eval, ComClass const* c, IDispatch* pdisp = 0);
 
   //
   // Members
   //
   friend class ComClass;
   friend class ComMemberFunction;
+  friend class ComMemberVariable;
   ComClass const* m_class;
   IDispatch*      m_dispatch;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class ComEnumerator : public Enumerator
+{
+  Evaluator*      m_eval;
+  IEnumVARIANTPtr m_pEnum;
+
+public:
+
+  //
+  // Construction
+  //
+  ComEnumerator(Evaluator* eval, IEnumVARIANTPtr const& pEnum);
+
+  //
+  // Reset enumerator to first entry
+  //
+  virtual void Reset();
+
+  //
+  // Retrieve next value
+  //
+  virtual bool GetNext(Value& value);
+
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -243,6 +287,11 @@ public:
   // Set value
   //
   void SetValue(Value const& rhs);
+
+  //
+  // Create an enumerator
+  //
+  virtual ComEnumerator* GetEnumerator() const;
 
 };
 

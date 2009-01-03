@@ -116,11 +116,6 @@ public:
   //
   virtual bool GetNext(Value& value) = 0;
 
-  //
-  // Enumerator at end
-  //
-  virtual bool AtEnd() const = 0;
-
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -150,7 +145,7 @@ public:
   virtual bool GetNext(Value& value)
   {
     // Check current position
-    if(AtEnd())
+    if(m_cur == m_obj.GetVariables().end())
     {
       return false;
     }
@@ -163,12 +158,6 @@ public:
 
     // Succeeded
     return true;
-  }
-
-  virtual bool AtEnd() const
-  {
-    // Compare iterator to end
-    return m_cur == m_obj.GetVariables().end();
   }
 
 };
