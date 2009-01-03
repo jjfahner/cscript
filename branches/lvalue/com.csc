@@ -1,7 +1,7 @@
 function enumNodes(node)
 {
   print(node.nodeName);
-  if(node.attributes != null)
+  if(node.attributes)
   {
 	  for(var att in node.attributes)
 	  {

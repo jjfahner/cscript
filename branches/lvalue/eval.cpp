@@ -523,9 +523,10 @@ Evaluator::ValNot(Value const& lhs)
 inline void 
 PrintLineInfo(script_exception const& e)
 {
-  if(!e.m_node->m_pos.m_file.empty())
+  if(e.m_node && !e.m_node->m_pos.m_file.empty())
   {
     csout
+      << "\n"
       << e.m_node->m_pos.m_file 
       << "("
       << e.m_node->m_pos.m_line
@@ -597,17 +598,17 @@ Evaluator::Eval(String text, bool isFileName)
   catch(script_exception const& e)
   {
     PrintLineInfo(e);
-    cserr << "Error: Uncaught exception '" << typeid(e).name() << "'\n";
+    cserr << "Runtime error: " << e.what() << "\n";
   }
   // System exception
   catch(std::exception const& e)
   {
-    cserr << "Error: " << e.what() << "\n";
+    cserr << "\nError: " << e.what() << "\n";
   }
   // Unknown exception type
   catch(...)
   {
-    cserr << "Error: Unexpected exception\n";
+    cserr << "\nError: Unexpected exception\n";
   }
   return Value();
 }
@@ -653,7 +654,7 @@ Evaluator::EvalStatement(Ast* node)
     }
     break;
 
-  default: throw std::out_of_range("Invalid node type");
+  default: throw script_exception(node, "Invalid node type");
   }
 }
 
@@ -679,11 +680,11 @@ Evaluator::EvalExpression(Ast* node)
   case lvalue:                return EvalLValue(node);
   case list_literal:          return EvalListLiteral(node);
   case new_expression:        return EvalNewExpression(node);
-  case this_expression:       return EvalThisExpression();
+  case this_expression:       return EvalThisExpression(node);
   case member_expression:     return EvalMemberExpression(node);  
   case conversion_expression: return EvalConversion(node);
   }
-  throw std::out_of_range("Invalid expression type");
+  throw script_exception(node, "Invalid expression type");
 }
 
 RValue&
@@ -709,7 +710,7 @@ Evaluator::EvalAssignment(Ast* node)
   case op_assdiv: return lhs = ValDiv(lhs, rhs); 
   case op_assmod: return lhs = ValMod(lhs, rhs);
   }
-  throw std::out_of_range("Invalid assignment operator");
+  throw script_exception(node, "Invalid assignment operator");
 }
 
 RValue&
@@ -741,7 +742,7 @@ Evaluator::EvalBinary(Ast* node)
   //   case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) == 0; break;
   //   case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) != 0; break;
 
-  default: throw std::out_of_range("Invalid binary operator");
+  default: throw script_exception(node, "Invalid binary operator");
   }  
   
   return MakeTemp(result);
@@ -786,7 +787,7 @@ Evaluator::EvalPrefix(Ast* node)
   case op_not:    
     return MakeTemp(ValNot(lhs));
   }
-  throw std::out_of_range("Invalid prefix operator");
+  throw script_exception(node, "Invalid prefix operator");
 }
 
 RValue&
@@ -803,7 +804,7 @@ Evaluator::EvalPostfix(Ast* node)
   {
   case op_postinc: lhs.SetValue(ValAdd(lhs, 1)); break;
   case op_postdec: lhs.SetValue(ValSub(lhs, 1)); break;
-  default: throw std::out_of_range("Invalid postfix operator");
+  default: script_exception(node, "Invalid postfix operator");
   }
   
   // Done
@@ -818,7 +819,7 @@ Evaluator::EvalIndex(Ast* node)
 
   if(lhs.GetValue().Type() != Value::tObject)
   {
-    throw std::out_of_range("Invalid type for index operator");
+    throw script_exception(node, "Invalid type for index operator");
   }
 
   // TODO check whether position is valid
@@ -833,8 +834,7 @@ Evaluator::EvalLValue(Ast* node)
   {
     return *ptr;
   }
-  throw std::runtime_error("Undeclared variable '" + 
-                      node->m_a1.GetString() + "'");
+  throw script_exception(node, "Undeclared variable '" + node->m_a1.GetString() + "'");
 }
 
 void
@@ -910,7 +910,7 @@ Evaluator::EvalClassDecl(Ast* node)
       break;
 
     default:
-      throw std::runtime_error("Invalid member type");
+      throw script_exception(node, "Invalid member type");
     }
   }
 }
@@ -946,7 +946,7 @@ Evaluator::EvalFunctionCall(Ast* node)
     MemberFunction* memfun;
     if(!args.GetInstance()->FindMethod(node->m_a1, memfun))
     {
-      throw std::runtime_error("Object doesn't support this method");
+      throw script_exception(node, "Object doesn't support this method");
     }
     fun = memfun;
   }
@@ -955,13 +955,13 @@ Evaluator::EvalFunctionCall(Ast* node)
     // Resolve function in scope stack
     if(!m_scope->FindMethod(node->m_a1, fun))
     {
-      throw std::runtime_error("Unknown method");
+      throw script_exception(node, "Function not found");
     }
 
     // In case of member function, prepend instance
     if(dynamic_cast<MemberFunction*>(fun))
     {
-      args.SetInstance(GetInstance(EvalThisExpression()));
+      args.SetInstance(GetInstance(EvalThisExpression(node)));
     }
   }
 
@@ -971,11 +971,11 @@ Evaluator::EvalFunctionCall(Ast* node)
   // Evaluate arguments
   if(node->m_a2->m_type == positional_arguments)
   {
-    EvalPositionalArguments(fun, node->m_a2->m_a1, args);
+    EvalPositionalArguments(node, fun, node->m_a2->m_a1, args);
   }
   else
   {
-    EvalNamedArguments(fun, node->m_a2->m_a1, args);
+    EvalNamedArguments(node, fun, node->m_a2->m_a1, args);
   }
 
   // Evaluate function
@@ -1034,7 +1034,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 }
 
 void 
-Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Arguments& args)
+Evaluator::EvalPositionalArguments(Ast* node, Function* fun, AstList const* arglist, Arguments& args)
 {
   // Retrieve formal parameters
   AstList const* parlist = fun->GetParameters();
@@ -1070,7 +1070,7 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
     // End of parameters
     if(pi == pe)
     {
-      throw std::runtime_error("Too many arguments in call to '" + fun->GetName() + "'");
+      throw script_exception(node, "Too many arguments in call to '" + fun->GetName() + "'");
     }
 
     // Variadic parameter
@@ -1102,7 +1102,7 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
       // Must have default value
       if(!(*pi)->m_a4)
       {
-        throw std::runtime_error("Not enough arguments in call to '" + fun->GetName() + "'");
+        throw script_exception(node, "Not enough arguments in call to '" + fun->GetName() + "'");
       }
 
       // Evaluate default value
@@ -1140,7 +1140,7 @@ Evaluator::EvalPositionalArguments(Function* fun, AstList const* arglist, Argume
 }
 
 void 
-Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& args)
+Evaluator::EvalNamedArguments(Ast* node, Function* fun, AstList const* arglist, Arguments& args)
 {
   // TODO: validate superfluous/duplicate arguments
   // TODO: implement type conversions
@@ -1191,7 +1191,7 @@ Evaluator::EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& 
     else
     {
       // Missing argument
-      throw std::runtime_error("No value specified for parameter '" + parname + "'");
+      throw script_exception(node, "No value specified for parameter '" + parname + "'");
     }
 
     // Assign by value/by ref
@@ -1310,7 +1310,7 @@ Evaluator::EvalForeachStatement(Ast* node)
   RValue* rval;
   if(!m_scope->FindVar(varName, rval))
   {
-    throw std::runtime_error("Failed to find iterator variable");
+    throw script_exception(node, "Failed to find iterator variable");
   }
 
   // Convert to lvalue
@@ -1323,7 +1323,7 @@ Evaluator::EvalForeachStatement(Ast* node)
   std::auto_ptr<Enumerator> pen(rhs.GetEnumerator());
   if(pen.get() == 0)
   {
-    throw std::runtime_error("Invalid type specified in foreach");
+    throw script_exception(node, "Invalid type specified in foreach");
   }
 
   // Enumerate members
@@ -1352,7 +1352,13 @@ Evaluator::EvalForeachStatement(Ast* node)
 void
 Evaluator::EvalIfStatement(Ast* node)
 {
-  if(EvalExpression(node->m_a1).GetValue().GetBool())
+  RValue const& cond = EvalExpression(node->m_a1);
+  if(cond.GetValue().Type() != Value::tBool)
+  {
+    throw script_exception(node, "Expression does not yield a boolean value");
+  }
+
+  if(cond.GetValue().GetBool())
   {
     EvalStatement(node->m_a2);
   }
@@ -1365,8 +1371,19 @@ Evaluator::EvalIfStatement(Ast* node)
 void        
 Evaluator::EvalWhileStatement(Ast* node)
 {
-  while(EvalExpression(node->m_a1).GetValue().GetBool())
+  for(;;)
   {
+    RValue const& cond = EvalExpression(node->m_a1);
+    if(cond.GetValue().Type() != Value::tBool)
+    {
+      throw script_exception(node, "Expression does not yield a boolean value");
+    }
+
+    if(!cond.GetValue().GetBool())
+    {
+      break;
+    }
+
     try
     {
       AutoScope scope(this, new Scope(m_scope));
@@ -1401,7 +1418,7 @@ Evaluator::EvalSwitchStatement(Ast* node)
     {
       if(statement)
       {
-        throw std::runtime_error("More than one default case in switch statement");
+        throw script_exception(node, "More than one default case in switch statement");
       }
       statement = (*it)->m_a1;
     }
@@ -1433,8 +1450,8 @@ Evaluator::EvalNewExpression(Ast* node)
   Class* c = 0;
   if(!m_scope->FindClass(node->m_a1->m_a2, c))
   {
-    throw std::runtime_error("Undefined class '" + 
-              node->m_a1->m_a2.GetString() + "'");
+    throw script_exception(node, "Undefined class '" + 
+                  node->m_a1->m_a2.GetString() + "'");
   }
 
   // Instantiate class
@@ -1454,11 +1471,11 @@ Evaluator::EvalNewExpression(Ast* node)
     // Evaluate arguments
     if(node->m_a2->m_type == positional_arguments)
     {
-      EvalPositionalArguments(fun, node->m_a2->m_a1, args);
+      EvalPositionalArguments(node, fun, node->m_a2->m_a1, args);
     }
     else
     {
-      EvalNamedArguments(fun, node->m_a2->m_a1, args);
+      EvalNamedArguments(node, fun, node->m_a2->m_a1, args);
     }
     
     // Execute constructor
@@ -1497,7 +1514,7 @@ Evaluator::EvalMemberExpression(Ast* node)
   RValue* ptr;
   if(!instPtr->FindVar(node->m_a2, ptr))
   {
-    throw std::runtime_error("Class has no member '" + node->m_a2.GetString() + "'");
+    throw script_exception(node, "Class has no member '" + node->m_a2.GetString() + "'");
   }
 
   // Done
@@ -1505,7 +1522,7 @@ Evaluator::EvalMemberExpression(Ast* node)
 }
 
 RValue&
-Evaluator::EvalThisExpression()
+Evaluator::EvalThisExpression(Ast* node)
 {
   Scope* scope = m_scope;
   while(scope)
@@ -1517,7 +1534,7 @@ Evaluator::EvalThisExpression()
     }
     scope = scope->GetParent();
   }
-  throw std::runtime_error("Invalid context for 'this'");
+  throw script_exception(node, "Invalid context for 'this'");
 }
 
 void 

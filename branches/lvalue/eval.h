@@ -169,7 +169,7 @@ protected:
   RValue& EvalListLiteral(Ast* node);
   RValue& EvalNewExpression(Ast* node);
   RValue& EvalMemberExpression(Ast* node);
-  RValue& EvalThisExpression();
+  RValue& EvalThisExpression(Ast* node);
   RValue& EvalAssignment(Ast* node);
   RValue& EvalBinary(Ast* node);
   RValue& EvalTernary(Ast* node);
@@ -193,8 +193,8 @@ protected:
   //
   // Evaluate argument list
   //
-  void EvalPositionalArguments(Function* fun, AstList const* arglist, Arguments& args);
-  void EvalNamedArguments(Function* fun, AstList const* arglist, Arguments& args);
+  void EvalPositionalArguments(Ast* node, Function* fun, AstList const* arglist, Arguments& args);
+  void EvalNamedArguments(Ast* node, Function* fun, AstList const* arglist, Arguments& args);
 
   //
   // Create a temporary
@@ -231,7 +231,8 @@ protected:
 struct script_exception : public std::exception
 {
   Ast* m_node;
-  script_exception(Ast* node) : std::exception(), m_node (node) {}
+  script_exception(Ast* node, char const* message = "") : std::exception(message), m_node (node) {}
+  script_exception(Ast* node, String const& message) : std::exception(message.c_str()), m_node (node) {}
 };
 
 struct break_exception : public script_exception
