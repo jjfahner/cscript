@@ -817,9 +817,15 @@ Evaluator::EvalIndex(Ast* node)
   RValue& lhs = EvalExpression(node->m_a1);
   RValue& rhs = EvalExpression(node->m_a2);
 
-  Value const& lval = lhs.GetValue();
-  if(lhs.GetValue().Type() != Value::tObject)
+  switch(lhs.GetValue().Type())
   {
+  case Value::tNull:
+    lhs.LVal() = Object::Create(this);
+    break;
+  case Value::tObject:
+    // Fine
+    break;
+  default:  
     throw script_exception(node, "Invalid type for index operator");
   }
 
