@@ -62,12 +62,13 @@ a = 8 >= 7;
 a = 8 > 7;
 
 // Test array functionality
-a = [];
+a = null;
 a[1] = "Cool";
 a[2] = "Stuff!\n";
 print(a[1] + " " + a[2]);
 
 // Test nested array functionality
+a = [];
 a[1]["a"] = "Even ";
 a[2]["b"] = "cooler ";
 a[3]["c"] = "stuff\n";
@@ -94,8 +95,10 @@ for(var q = 0; q < 10000; ++q)
     print(".");
   }
 }
+print("\n");
 
-foreach(var v in [1, 2, 3, [true, false], [1, [2, 3]])
+//for(var v in [1, 2, 3, [true, false], [1, [2, 3]]])
+for(var v in [1, 2, 3, true, false, "Blabla"])
 {
   print("{v}\n");
 }
