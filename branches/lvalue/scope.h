@@ -23,7 +23,7 @@
 
 #include "types.h"
 #include "value.h"
-#include "object.h"
+#include "variable.h"
 
 class Instance;
 class Function;

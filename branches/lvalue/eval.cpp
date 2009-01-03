@@ -1319,15 +1319,19 @@ Evaluator::EvalForeachStatement(Ast* node)
   // Evaluate expression
   RValue& rhs = EvalExpression(node->m_a2);
 
-  // Fetch iterator
-  Variables::iterator it = rhs.GetValue().GetObject().GetVariables().begin();
-  Variables::iterator ie = rhs.GetValue().GetObject().GetVariables().end();
+  // Retrieve enumerator
+  std::auto_ptr<Enumerator> pen(rhs.GetEnumerator());
+  if(pen.get() == 0)
+  {
+    throw std::runtime_error("Invalid type specified in foreach");
+  }
 
   // Enumerate members
-  for(; it != ie; ++it)
+  Value itVal;
+  while(pen->GetNext(itVal))
   {
     // Assign value to iterator variable
-    var = *it->second;
+    var = itVal;
 
     // Evaluate expression
     try

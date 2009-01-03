@@ -24,8 +24,7 @@
 #include "types.h"
 #include "value.h"
 #include "typeinfo.h"
-#include "object.h"
-#include "valuemap.h"
+#include "variable.h"
 
 class Evaluator;
 class MemberFunction;

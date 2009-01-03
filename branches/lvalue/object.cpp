@@ -19,6 +19,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "object.h"
+#include "variable.h"
+
 #include <typeinfo>
 #include <set>
 #include <deque>

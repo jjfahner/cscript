@@ -36,7 +36,7 @@ struct CoInit
     CoInitialize(0);
   }
   ~CoInit() {
-    CoUninitialize();
+    //CoUninitialize();
   }
 };
 

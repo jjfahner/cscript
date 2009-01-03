@@ -24,18 +24,20 @@
 #include <map>
 #include <set>
 
-#include "variable.h"
-#include "valuemap.h"
+#include "value.h"
 
-//
-// Member map
-//
-typedef std::map<Value, RValue*, ValueComparatorLess> Variables;
+class Object;
+class RValue;
 
 //
 // List of root objects
 //
 typedef std::set<Object*> Objects;
+
+//
+// Member map
+//
+typedef std::map<Value, RValue*, ValueComparatorLess> Variables;
 
 //
 // Object class

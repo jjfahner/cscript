@@ -24,6 +24,7 @@
 #include "types.h"
 
 class Object;
+class Evaluator;
 
 class Value
 {
@@ -45,57 +46,57 @@ public:
 
   Value()
   {
-    m_ldata.m_type = tNull;
-    m_ldata.m_int = 0;
+    m_type = tNull;
+    m_int = 0;
   }
 
   Value(Value const& rhs)
   {
-    m_ldata.m_type = tNull;
-    m_ldata.m_int  = 0;
+    m_type = tNull;
+    m_int  = 0;
     *this = rhs;
   }
 
   Value(Bool val)
   {
-    m_ldata.m_type = tBool;
-    m_ldata.m_bool = val;
+    m_type = tBool;
+    m_bool = val;
   }
 
   Value(Int val)
   {
-    m_ldata.m_type = tInt;
-    m_ldata.m_int = val;
+    m_type = tInt;
+    m_int = val;
   }
   
   Value(int val)
   {
-    m_ldata.m_type = tInt;
-    m_ldata.m_int = val;
+    m_type = tInt;
+    m_int = val;
   }
 
   Value(size_t val)
   {
-    m_ldata.m_type = tInt;
-    m_ldata.m_int  = (Int) val;
+    m_type = tInt;
+    m_int  = (Int) val;
   }
 
   Value(String val)
   {
-    m_ldata.m_type = tString;
-    m_ldata.m_string = new String(val);
+    m_type = tString;
+    m_string = new String(val);
   }
 
   Value(char const* val)
   {
-    m_ldata.m_type = tString;
-    m_ldata.m_string = new String(val);
+    m_type = tString;
+    m_string = new String(val);
   }
 
   Value(Object* obj)
   {
-    m_ldata.m_type = tObject;
-    m_ldata.m_object = obj;
+    m_type = tObject;
+    m_object = obj;
   }
 
   ~Value()
@@ -105,46 +106,46 @@ public:
 
   void Clear()
   {
-    if(m_ldata.m_type == tString)
+    if(m_type == tString)
     {
-      delete m_ldata.m_string;
+      delete m_string;
     }
-    m_ldata.m_type = tNull;
-    m_ldata.m_int  = 0;
+    m_type = tNull;
+    m_int  = 0;
   }
 
   Types Type() const
   {
-    return m_ldata.m_type;
+    return m_type;
   }
 
   bool Empty() const
   {
-    return m_ldata.m_type == tNull;
+    return m_type == tNull;
   }
 
   Bool GetBool() const
   {
     AssertType(tBool);
-    return m_ldata.m_bool;
+    return m_bool;
   }
 
   Int GetInt() const
   {
     AssertType(tInt);
-    return m_ldata.m_int;
+    return m_int;
   }
 
   String const& GetString() const
   {
     AssertType(tString);
-    return *m_ldata.m_string;
+    return *m_string;
   }
 
   Object& GetObject() const
   {
     AssertType(tObject);
-    return *m_ldata.m_object;
+    return *m_object;
   }
 
   //
@@ -153,14 +154,14 @@ public:
   void SetValue(Value const& rhs)
   {
     Clear();
-    switch(rhs.m_ldata.m_type)
+    switch(rhs.m_type)
     {
-    case tBool:   m_ldata.m_bool   = rhs.m_ldata.m_bool; break;
-    case tInt:    m_ldata.m_int    = rhs.m_ldata.m_int; break;
-    case tString: m_ldata.m_string = new String(*rhs.m_ldata.m_string); break;
-    case tObject: m_ldata.m_object = rhs.m_ldata.m_object; break;
+    case tBool:   m_bool   = rhs.m_bool; break;
+    case tInt:    m_int    = rhs.m_int; break;
+    case tString: m_string = new String(*rhs.m_string); break;
+    case tObject: m_object = rhs.m_object; break;
     }
-    m_ldata.m_type = rhs.m_ldata.m_type;
+    m_type = rhs.m_type;
   }
 
   //
@@ -190,30 +191,46 @@ private:
   //
   void AssertType(Types type) const
   {
-    if(m_ldata.m_type != type)
+    if(m_type != type)
     {
       throw std::runtime_error("Value is not of expected type");
     }
   }
 
   // Member data
-  struct Data
+  Types     m_type;
+  union 
   {
-    Types     m_type;
-    union 
-    {
-      Bool    m_bool;
-      Int     m_int;
-      String* m_string;
-      Object* m_object;
-      Value*  m_value;
-    };
+    Bool    m_bool;
+    Int     m_int;
+    String* m_string;
+    Object* m_object;
   };
 
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+//
+// Less-than comparator
+//
+class ValueComparatorLess
+{
+public:
+
   //
-  // Members
+  // Construction
   //
-  Data  m_ldata;
+  ValueComparatorLess(Evaluator* evaluator);
+
+  //
+  // Less-than operator
+  //
+  bool operator () (Value const& lhs, Value const& rhs) const;
+
+private:
+
+  Evaluator* m_evaluator;
 
 };
 
