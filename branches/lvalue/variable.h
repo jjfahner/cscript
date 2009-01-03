@@ -39,8 +39,8 @@ public:
 protected:
 
   RValue() {}
-  RValue(RValue const&);
-  RValue const& operator = (RValue const&);
+  RValue(RValue const&) {}
+  RValue const& operator = (RValue const&) { return *this; }
 
 };
 
@@ -121,6 +121,55 @@ public:
   virtual void SetValue(Value const& rhs)
   {
     m_value = rhs;
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class Temporary : public RValue 
+{
+  Value m_value;
+
+public:
+
+  Temporary()
+  {
+  }
+
+  Temporary(Temporary const& rhs) :
+  m_value (rhs.m_value)
+  {
+  }
+
+  Temporary(Value const& value) :
+  m_value (value)
+  {
+  }
+
+  Value const& GetValue() const
+  {
+    return m_value;
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class Constant : public RValue
+{
+  Value m_value;
+
+public:
+
+  Constant(Value const& value) :
+  m_value (value)
+  {
+  }
+
+  Value const& GetValue() const
+  {
+    return m_value;
   }
 
 };

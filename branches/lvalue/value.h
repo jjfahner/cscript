@@ -180,6 +180,12 @@ private:
   bool operator == (Value const& rhs);
 
   //
+  // Meant to prevent conversion to boolean when a Value 
+  // is constructed from an in valid pointer type
+  //
+  Value(void*);
+
+  //
   // Type check
   //
   void AssertType(Types type) const

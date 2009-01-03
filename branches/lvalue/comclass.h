@@ -187,7 +187,7 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool FindVar(String const& name, Value& ref) const;
+  virtual bool FindVar(String const& name, RValue*& ptr) const;
 
   //
   // Retrieve a function
@@ -200,7 +200,7 @@ public:
   //
   // Invoke a method or property
   //
-  Value Invoke(Evaluator* evaluator, DISPID dispid, Arguments& args);
+  Value Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const;
 
 protected:
 
@@ -216,6 +216,34 @@ protected:
   friend class ComMemberFunction;
   ComClass const* m_class;
   IDispatch*      m_dispatch;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class ComMemberVariable : public LValue
+{
+  ComInstance const* m_inst;
+  mutable Value m_value;
+  String m_name;
+  DISPID m_dispid;
+
+public:
+
+  //
+  // Construction
+  //
+  ComMemberVariable(String name, DISPID dispid, ComInstance const* inst);
+
+  //
+  // Retrieve value
+  //
+  Value const& GetValue() const;
+
+  //
+  // Set value
+  //
+  void SetValue(Value const& rhs);
+
 };
 
 //////////////////////////////////////////////////////////////////////////

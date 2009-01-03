@@ -346,9 +346,13 @@ Evaluator::Collect()
   m_scope->AddObjects(valid);
 
   // Append temporaries
-  std::copy(m_temporaries.begin(), 
-            m_temporaries.end(), 
-            std::inserter(valid, valid.end()));
+  for(size_t i = 0; i < m_temporaries.size(); ++i)
+  {
+    if(m_temporaries[i].GetValue().Type() == Value::tObject)
+    {
+      valid.insert(&m_temporaries[i].GetValue().GetObject());
+    }
+  }
 
   // Collect invalid objects
   Object::Collect(valid);
@@ -611,7 +615,7 @@ Evaluator::Eval(String text, bool isFileName)
 void 
 Evaluator::EvalStatement(Ast* node)
 {
-  VecRestore<ObjectVec> vr(m_temporaries);
+  VecRestore<ValueVec> vr(m_temporaries);
   switch(node->m_type)
   {
   case empty_statement:       break;
@@ -1433,7 +1437,7 @@ Evaluator::EvalNewExpression(Ast* node)
   Instance* inst = Instance::Create(this, c);
 
   // Add to temporaries
-  m_temporaries.push_back(inst);
+  m_temporaries.push_back(Value(inst));
 
   // Execute constructor
   if(Constructor* fun = inst->GetClass()->GetConstructor())

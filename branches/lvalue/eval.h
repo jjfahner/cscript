@@ -215,8 +215,8 @@ protected:
   //
   // Temporaries
   //
-  typedef std::vector<Object*> ObjectVec;
-  ObjectVec     m_temporaries;
+  typedef std::vector<Temporary> ValueVec;
+  ValueVec m_temporaries;
 
 };
 
@@ -271,29 +271,12 @@ struct user_exception : public script_exception
 
 //////////////////////////////////////////////////////////////////////////
 
-struct Temporary : public RValue 
-{
-  Value m_value;
-
-public:
-
-  Temporary(Evaluator* evaluator, Value const& value) :
-  m_value (value)
-  {
-    // TODO evaluator->AddTemporary();
-  }
-
-  Value const& GetValue() const
-  {
-    return m_value;
-  }
-
-};
-
 inline RValue& 
 Evaluator::MakeTemp(Value const& value)
 {
-  return *new Temporary(this, value);
+  Temporary* temp = new Temporary(value);
+  m_temporaries.push_back(*temp);
+  return *temp;
 }
 
 #endif // CSCRIPT_EVAL_H

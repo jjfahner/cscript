@@ -151,7 +151,7 @@ VariantToValue(VARIANT const& variant, Value& value)
   case VT_EMPTY:  value.Clear(); break;
   case VT_BOOL:   value = variant.boolVal != 0; break;
   case VT_I8:     value = variant.llVal; break;
-  case VT_BSTR:   value = W2T(variant.bstrVal); break;
+  case VT_BSTR:   value = variant.bstrVal ? W2T(variant.bstrVal) : ""; break;
   default: throw std::runtime_error("Failed to convert OLE VARIANT to native type");
   }
 }
@@ -315,7 +315,7 @@ m_dispatch  (0)
 }
 
 bool 
-ComInstance::FindVar(String const& name, Value& ref) const
+ComInstance::FindVar(String const& name, RValue*& ptr) const
 {
   // No typelib loaded yet
   if(m_class->m_info == 0)
@@ -337,6 +337,16 @@ ComInstance::FindVar(String const& name, Value& ref) const
     return false;
   }
 
+  // Retrieve non-const variables list
+  Variables& vars = const_cast<ComInstance*>(this)->GetVariables();
+
+  // Lookup the variable
+  if(vars.count(properName))
+  {
+    ptr = vars[properName];
+    return true;
+  }
+
   // Retrieve function info
   FUNCDESC* pfd;
   if(!m_class->m_info->GetFuncDescOfDispId(dispid, &pfd))
@@ -345,18 +355,23 @@ ComInstance::FindVar(String const& name, Value& ref) const
   }
 
   // Property accessors are not returned as functions
-  if(pfd->invkind != INVOKE_PROPERTYGET)
+  if(pfd->invkind == INVOKE_FUNC)
   {
     return false;
   }
 
-  // TODO
+  // Create a variable instance
+  ptr = new ComMemberVariable(properName, dispid, this);
 
-  return false;
+  // Add to member variables
+  vars[properName] = ptr;
+
+  // Done
+  return true;
 }
 
 Value 
-ComInstance::Invoke(Evaluator* evaluator, DISPID dispid, Arguments& args)
+ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const
 {
   USES_CONVERSION;
 
@@ -394,7 +409,7 @@ ComInstance::Invoke(Evaluator* evaluator, DISPID dispid, Arguments& args)
 
   // Property put invocations require an additional flag
   DISPID disp = DISPID_PROPERTYPUT;
-  if(pfd->invkind == DISPATCH_PROPERTYPUT)
+  if(invokeKind == DISPATCH_PROPERTYPUT)
   {
     dispparams.cNamedArgs = 1;
     dispparams.rgdispidNamedArgs = &disp;
@@ -414,7 +429,7 @@ ComInstance::Invoke(Evaluator* evaluator, DISPID dispid, Arguments& args)
   // Invoke the method
   HRESULT hr;
   hr = m_dispatch->Invoke(pfd->memid, IID_NULL, LOCALE_USER_DEFAULT, 
-        pfd->invkind, &dispparams, &vtResult, &excepInfo, &nArgErr);
+          invokeKind, &dispparams, &vtResult, &excepInfo, &nArgErr);
 
   // Cleanup argument list
   for(unsigned int i = 0; i < dispparams.cArgs; ++i)
@@ -440,6 +455,39 @@ ComInstance::Invoke(Evaluator* evaluator, DISPID dispid, Arguments& args)
 
   // Klaar
   return result;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+ComMemberVariable::ComMemberVariable(String name, DISPID dispid, ComInstance const* inst) :
+m_name    (name),
+m_dispid  (dispid),
+m_inst    (inst)
+{
+}
+
+Value const& 
+ComMemberVariable::GetValue() const
+{
+  // Setup empty argument list
+  Arguments args;
+
+  // Invoke property getter
+  m_value = m_inst->Invoke(m_dispid, INVOKE_PROPERTYGET, args);
+
+  // Return stored value
+  return m_value;
+}
+
+void 
+ComMemberVariable::SetValue(Value const& rhs)
+{
+  // Setup argument list
+  Arguments args;
+  args.push_back(rhs);
+
+  // Invoke property setter
+  m_inst->Invoke(m_dispid, INVOKE_PROPERTYPUT, args);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -470,5 +518,5 @@ ComMemberFunction::Execute(Evaluator* evaluator, Arguments& args)
   }
 
   // Invoke on instance
-  return inst->Invoke(evaluator, m_dispid, args);
+  return inst->Invoke(m_dispid, INVOKE_FUNC, args);
 }
