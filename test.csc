@@ -62,6 +62,7 @@ a = 8 >= 7;
 a = 8 > 7;
 
 // Test array functionality
+a = [];
 a[1] = "Cool";
 a[2] = "Stuff!\n";
 print(a[1] + " " + a[2]);
@@ -92,6 +93,11 @@ for(var q = 0; q < 10000; ++q)
   {
     print(".");
   }
+}
+
+foreach(var v in [1, 2, 3, [true, false], [1, [2, 3]])
+{
+  print("{v}\n");
 }
 
 print("\nDone\n\n");
