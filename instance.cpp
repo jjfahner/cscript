@@ -53,3 +53,4 @@ m_class     (c)
     m_variables[it->first] = new RWMemberVariable(value);
   }
 }
+
