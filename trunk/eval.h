@@ -228,11 +228,11 @@ protected:
 //
 // Base class for all script exceptions
 //
-struct script_exception : public std::exception
+struct script_exception : public std::runtime_error
 {
   Ast* m_node;
-  script_exception(Ast* node, char const* message = "") : std::exception(message), m_node (node) {}
-  script_exception(Ast* node, String const& message) : std::exception(message.c_str()), m_node (node) {}
+  script_exception(Ast* node, char const* message = "") : std::runtime_error(message), m_node (node) {}
+  script_exception(Ast* node, String const& message) : std::runtime_error(message.c_str()), m_node (node) {}
 };
 
 struct break_exception : public script_exception
