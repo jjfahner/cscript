@@ -44,6 +44,13 @@ class Class
 public:
 
   //
+  // Types
+  //
+  typedef std::map<String,    Ast*>                NamedNodeMap;
+  typedef std::map<String,    MemberFunction*>     FunctionMap;
+  typedef std::map<TypeInfo,  ConversionOperator*> ConversionMap;
+
+  //
   // Construction
   //
   Class(String const& name) : 
@@ -100,6 +107,14 @@ public:
     }
     m_destructor = destructor;
   }
+
+  //
+  // Retrieve variables
+  //
+  NamedNodeMap const& GetVariables() const
+  {
+    return m_vars;
+  }
   
   //
   // Add a member variable
@@ -150,20 +165,6 @@ public:
   virtual bool FindConversion(TypeInfo const& type, ConversionOperator*& node) const;
 
 protected:
-
-  //
-  // Instance construction
-  //
-  friend class Instance;
-  virtual void ConstructInstance(Instance* inst) const;
-  virtual void DestructInstance(Instance* inst) const;  
-
-  //
-  // Types
-  //
-  typedef std::map<String,    Ast*>                NamedNodeMap;
-  typedef std::map<String,    MemberFunction*>     FunctionMap;
-  typedef std::map<TypeInfo,  ConversionOperator*> ConversionMap;
 
   //
   // Members

@@ -213,7 +213,7 @@ ComClass::ComClass(String progID) :
 Class     (progID),
 m_progID  (progID),
 m_clsid   (CLSID_NULL),
-m_info    (0)
+m_typeInfo    (0)
 {
   USES_CONVERSION;
 
@@ -228,28 +228,60 @@ ComClass::ComClass(ComTypeInfo* pTypeInfo) :
 Class     (pTypeInfo->GetProgID()),
 m_progID  (pTypeInfo->GetProgID()),
 m_clsid   (pTypeInfo->GetCLSID()),
-m_info    (pTypeInfo)
+m_typeInfo    (pTypeInfo)
 {
 
 }
 
 ComClass::~ComClass()
 {
-  delete m_info;
+  delete m_typeInfo;
+}
+
+IDispatch*
+ComClass::CreateInstance() const
+{
+  IDispatch* pDispatch;
+
+  // Create the instance
+  if(FAILED(CoCreateInstance(m_clsid, NULL, CLSCTX_ALL, 
+                  IID_IDispatch, (void**)&pDispatch)))
+  {
+    if(FAILED(CoCreateInstance(m_clsid, NULL, CLSCTX_LOCAL_SERVER, 
+                               IID_IDispatch,(void**)&pDispatch)))
+    {
+      throw std::runtime_error("Failed to instantiate COM object");
+    }
+  }
+
+  // Load the type library
+  if(m_typeInfo == 0)
+  {
+    m_typeInfo = new ComTypeInfo(pDispatch);
+  }
+
+  // Done
+  return pDispatch;
+}
+
+ComTypeInfo* 
+ComClass::GetTypeInfo() const
+{
+  return m_typeInfo;
 }
 
 bool 
 ComClass::FindMethod(String const& name, MemberFunction*& fun) const
 {
   // No typelib loaded yet
-  if(m_info == 0)
+  if(m_typeInfo == 0)
   {
     return false;
   }
 
   // Find method info
   DISPID dispid;
-  if(!m_info->GetDispIdOfName(name, dispid))
+  if(!m_typeInfo->GetDispIdOfName(name, dispid))
   {
     return false;
   }
@@ -263,14 +295,14 @@ ComClass::FindMethod(String const& name, MemberFunction*& fun) const
 
   // Retrieve proper name
   String properName;
-  if(!m_info->GetNameOfDispId(dispid, properName))
+  if(!m_typeInfo->GetNameOfDispId(dispid, properName))
   {
     return false;
   }
 
   // Retrieve function info
   FUNCDESC* pfd;
-  if(!m_info->GetFuncDescOfDispId(dispid, &pfd))
+  if(!m_typeInfo->GetFuncDescOfDispId(dispid, &pfd))
   {
     return false;
   }
@@ -298,48 +330,6 @@ ComClass::FindConversion(TypeInfo const& type, ConversionOperator*& node) const
   return false;
 }
 
-void 
-ComClass::ConstructInstance(ComInstance* inst) const
-{
-  IDispatch* pDispatch;
-
-  // Create the instance
-  if(SUCCEEDED(CoCreateInstance(m_clsid, NULL,
-    CLSCTX_ALL, IID_IDispatch, (void**)&pDispatch)))
-  {
-    inst->m_dispatch = pDispatch;
-  }
-  else if(SUCCEEDED(CoCreateInstance(m_clsid, NULL,
-    CLSCTX_LOCAL_SERVER, IID_IDispatch,(void**)&pDispatch)))
-  {
-    inst->m_dispatch = pDispatch;
-  }
-  else
-  {
-    throw std::runtime_error("Failed to instantiate COM object");
-  }
-
-  // Load the type library (if required)
-  if(m_info == 0)
-  {
-    m_info = new ComTypeInfo(inst->m_dispatch);
-  }
-}
-
-void 
-ComClass::DestructInstance(ComInstance* inst) const
-{
-  // Remove pointer from instance
-  IDispatch* pDispatch = inst->m_dispatch;
-  inst->m_dispatch = 0;
-
-  // Release the object
-  if(pDispatch)
-  {
-    pDispatch->Release();
-  }
-}
-
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ Instance* 
@@ -363,7 +353,7 @@ m_dispatch  (pdisp)
   // Delegate to class for construction
   if(m_dispatch == 0)
   {
-    m_class->ConstructInstance(this);
+    m_dispatch = m_class->CreateInstance();
   }
   else
   {
@@ -371,25 +361,39 @@ m_dispatch  (pdisp)
   }
 }
 
+void 
+ComInstance::Finalize()
+{
+  // Remove pointer from instance
+  IDispatch* pDispatch = m_dispatch;
+  m_dispatch = 0;
+
+  // Release the object
+  if(pDispatch)
+  {
+    pDispatch->Release();
+  }
+}
+
 bool 
 ComInstance::FindVar(String const& name, RValue*& ptr) const
 {
   // No typelib loaded yet
-  if(m_class->m_info == 0)
+  if(m_class->GetTypeInfo() == 0)
   {
     return false;
   }
 
   // Find method info
   DISPID dispid;
-  if(!m_class->m_info->GetDispIdOfName(name, dispid))
+  if(!m_class->GetTypeInfo()->GetDispIdOfName(name, dispid))
   {
     return false;
   }
 
   // Retrieve proper name
   String properName;
-  if(!m_class->m_info->GetNameOfDispId(dispid, properName))
+  if(!m_class->GetTypeInfo()->GetNameOfDispId(dispid, properName))
   {
     return false;
   }
@@ -406,7 +410,7 @@ ComInstance::FindVar(String const& name, RValue*& ptr) const
 
   // Retrieve function info
   FUNCDESC* pfd;
-  if(!m_class->m_info->GetFuncDescOfDispId(dispid, &pfd))
+  if(!m_class->GetTypeInfo()->GetFuncDescOfDispId(dispid, &pfd))
   {
     return false;
   }
@@ -440,7 +444,7 @@ ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIA
 
   // Retrieve function info for the dispid
   FUNCDESC* pfd;
-  if(FAILED(m_class->m_info->GetFuncDescOfDispId(dispid, &pfd)))
+  if(FAILED(m_class->GetTypeInfo()->GetFuncDescOfDispId(dispid, &pfd)))
   {
     throw std::runtime_error("Object doesn't support this property or method");
   }
@@ -501,7 +505,7 @@ ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIA
   if(FAILED(hr))
   {
     String name;
-    m_class->m_info->GetNameOfDispId(pfd->memid, name);
+    m_class->GetTypeInfo()->GetNameOfDispId(pfd->memid, name);
     String err = W2T(excepInfo.bstrDescription);
     err = "COM method '" + name + "' failed: " + err;
     throw std::runtime_error(err);

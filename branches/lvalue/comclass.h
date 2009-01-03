@@ -47,6 +47,16 @@ public:
   static ComClass* FromDispatch(IDispatch* pdisp);
 
   //
+  // Create an instance
+  //
+  IDispatch* CreateInstance() const;
+
+  //
+  // Retrieve type info
+  //
+  ComTypeInfo* GetTypeInfo() const;
+
+  //
   // Com objects have no constructors
   //
   virtual Constructor* GetConstructor() const
@@ -118,13 +128,6 @@ protected:
   ~ComClass();
 
   //
-  // Instance construction
-  //
-  friend class ComInstance;
-  virtual void ConstructInstance(ComInstance* inst) const;
-  virtual void DestructInstance(ComInstance* inst) const;  
-
-  //
   // Collection of methods
   //
   typedef std::map<DISPID, ComMemberFunction*> Methods;
@@ -134,7 +137,7 @@ protected:
   //
   String        m_progID;
   CLSID         m_clsid;
-  mutable ComTypeInfo*  m_info;
+  mutable ComTypeInfo*  m_typeInfo;
   mutable Methods       m_methods;
   
 };
@@ -174,10 +177,7 @@ public:
   //
   // Finalization
   //
-  virtual void Finalize()
-  {
-    m_class->DestructInstance(this);
-  }
+  virtual void Finalize();
 
   //
   // Retrieve class instance

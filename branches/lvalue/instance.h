@@ -49,7 +49,8 @@ public:
   }
   virtual void Finalize()
   {
-    m_class->DestructInstance(this);
+    // TODO
+    // DestructInstance(this);
   }
 
   //
@@ -95,14 +96,7 @@ protected:
   //
   // Construction
   //
-  Instance(Evaluator* eval, Class const* c) : 
-  Object      (eval),
-  m_eval      (eval), 
-  m_class     (c)
-  {
-    // Delegate to class
-    m_class->ConstructInstance(this);
-  }
+  Instance(Evaluator* eval, Class const* c);
 
   //
   // Members
