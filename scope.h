@@ -55,14 +55,7 @@ public:
   //
   // Destruction
   //
-  virtual ~Scope()
-  {
-    Variables::iterator it = m_vars.begin();
-    for(; it != m_vars.end(); ++it)
-    {
-      delete it->second;
-    }
-  }
+  virtual ~Scope();
 
   //
   // Parent scope
@@ -75,7 +68,6 @@ public:
   {
     m_parent = parent;
   }
-
 
   //////////////////////////////////////////////////////////////////////////
   //

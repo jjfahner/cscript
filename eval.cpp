@@ -348,9 +348,9 @@ Evaluator::Collect()
   // Append temporaries
   for(size_t i = 0; i < m_temporaries.size(); ++i)
   {
-    if(m_temporaries[i].GetValue().Type() == Value::tObject)
+    if(m_temporaries[i]->GetValue().Type() == Value::tObject)
     {
-      valid.insert(&m_temporaries[i].GetValue().GetObject());
+      valid.insert(&m_temporaries[i]->GetValue().GetObject());
     }
   }
 
@@ -401,7 +401,7 @@ Evaluator::ValBool(Value const& val)
   case Value::tBool:    return val.GetBool();
   case Value::tInt:     return val.GetInt() != 0;
   case Value::tString:  return val.GetString().length() != 0;
-  case Value::tObject:  break; // TODO
+  case Value::tObject:  break;
   }
   throw std::runtime_error("Cannot convert between types");
 }
@@ -436,7 +436,7 @@ Evaluator::ValString(Value const& val)
   case Value::tBool:    return val.GetBool() ? "true" : "false";
   case Value::tInt:     return ToString(val.GetInt());
   case Value::tString:  return val.GetString();
-  case Value::tObject:  break; // TODO
+  case Value::tObject:  return "[object]";
   }
   throw std::runtime_error("Cannot convert between types");
 }
@@ -1230,6 +1230,7 @@ Evaluator::EvalListLiteral(Ast* node)
 {
   // Create empty map
   Value v(Object::Create(this));
+  Object& o = v.GetObject();
   
   // Recurse into map values
   if(!node->m_a1.Empty())
@@ -1238,12 +1239,19 @@ Evaluator::EvalListLiteral(Ast* node)
     int index = 0;
     while(child)
     {
-      RValue& element = EvalExpression(child->m_a1->m_a1);
-      v.GetObject().GetVariables()[index++] = new RWMemberVariable(element);
+      // Evaluate element
+      RValue const& element = EvalExpression(child->m_a1->m_a1);
+
+      // Insert into member variables
+      o.GetVariables()[index++] = new RWMemberVariable(element);
+
+      // Check for next element
       if(child->m_a2.Empty()) 
       {
         break;
       }
+
+      // Set next element
       child = child->m_a2;
     }
   }
@@ -1485,7 +1493,7 @@ Evaluator::EvalNewExpression(Ast* node)
   Instance* inst = Instance::Create(this, c);
 
   // Add to temporaries
-  m_temporaries.push_back(Value(inst));
+  MakeTemp(inst);
 
   // Execute constructor
   if(Constructor* fun = inst->GetClass()->GetConstructor())

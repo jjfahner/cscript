@@ -115,6 +115,8 @@ protected:
   //
   Object(Evaluator* eval);
 
+private:
+
   //
   // Object members
   //
