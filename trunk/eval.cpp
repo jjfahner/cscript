@@ -832,7 +832,7 @@ Evaluator::EvalIndex(Ast* node)
   if(val == 0)
   {
     // Create new variable
-    val = new RWMemberVariable(Value());
+    val = new RWVariable(Value());
     vars[rhs] = val;
   }
   
@@ -1109,7 +1109,7 @@ Evaluator::EvalPositionalArguments(Ast* node, Function* fun, AstList const* argl
         Value val = EvalExpression(*ai);
 
         // Append to list
-        va->GetVariables()[va->GetVariables().size() - 1] = new RWMemberVariable(val);
+        va->GetVariables()[va->GetVariables().size() - 1] = new RWVariable(val);
       }
 
       // Done
@@ -1247,7 +1247,7 @@ Evaluator::EvalListLiteral(Ast* node)
       RValue const& element = EvalExpression(child->m_a1->m_a1);
 
       // Insert into member variables
-      o.GetVariables()[index++] = new RWMemberVariable(element);
+      o.GetVariables()[index++] = new RWVariable(element);
 
       // Check for next element
       if(child->m_a2.Empty()) 
