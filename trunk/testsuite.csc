@@ -59,6 +59,8 @@ function sockets()
   {
     // Connect socket
     var sock = new Socket;
+    sock.m_socket = 1;
+
     sock.Connect("jan-jaap.net", 80);
 
     // Build request

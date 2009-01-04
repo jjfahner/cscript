@@ -91,6 +91,7 @@ enum AstTypes
   conversion_operator,
   constructor,
   destructor,
+  closure_declaration
 };
 
 enum AccessTypes

@@ -26,8 +26,7 @@ class NativeFile : public Object
 {
 public:
 
-  NativeFile(Evaluator* eval) :
-  Object (eval),
+  NativeFile() :
   m_file (0)
   {
   }
@@ -133,7 +132,7 @@ private:
 NATIVE_CALL("__native fopen(string file, string mode)")
 {
   // Create file
-  NativeFile* f = new NativeFile(evaluator);
+  NativeFile* f = new NativeFile();
   if(!f->Open(args[0], args[1]))
   {
     delete f;

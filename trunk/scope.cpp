@@ -40,7 +40,12 @@ GlobalScope::AddFun(Function* fun)
   {
     throw std::runtime_error("Function already declared");
   }
+
+  // Register function
   m_funs[fun->GetName()] = fun;
+
+  // Register in function list to prevent collection
+  m_vars["function::" + fun->GetName()] = new ROVariable(fun);
 }
 
 void 

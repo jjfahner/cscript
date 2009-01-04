@@ -59,8 +59,7 @@ void SocketDelete()
   }
 }
 
-Socket::Socket(Evaluator* evaluator) :
-Object   (evaluator),
+Socket::Socket() :
 m_socket (INVALID_SOCKET)
 {
   // Global initialization
@@ -220,7 +219,7 @@ Socket::Receive(Value const& length, Value const& timeout)
 
 NATIVE_CALL("__native socket(string name, string port)")
 {
-  Socket* s = new Socket(evaluator);
+  Socket* s = new Socket;
   if(!s->Connect(args[0], args[1]).GetBool())
   {
     delete s;

@@ -51,7 +51,7 @@ NATIVE_CALL("__native cocreate(string classname)")
   ComClass* cc = ComClass::FromProgID(args[0].GetString());
 
   // Create instance
-  return ComInstance::Create(evaluator, cc);
+  return ComInstance::Create(cc);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -88,7 +88,7 @@ ValueToVariant(Value const& value, VARIANT& variant)
 //////////////////////////////////////////////////////////////////////////
 
 void
-VariantToValue(Evaluator* eval, VARIANT const& variant, Value& value)
+VariantToValue(VARIANT const& variant, Value& value)
 {
   USES_CONVERSION;
 
@@ -138,7 +138,7 @@ VariantToValue(Evaluator* eval, VARIANT const& variant, Value& value)
     // Change to destination type
     if(SUCCEEDED(VariantChangeType(&vt, &variant, 0, vtDst)))
     {
-      return VariantToValue(eval, vt, value);
+      return VariantToValue(vt, value);
     }
 
     // Failed conversion
@@ -174,7 +174,7 @@ VariantToValue(Evaluator* eval, VARIANT const& variant, Value& value)
   case VT_DISPATCH: 
     if(variant.pdispVal)
     {
-      value = ComInstance::Create(eval, variant.pdispVal);
+      value = ComInstance::Create(variant.pdispVal);
     }
     break;
         
@@ -210,6 +210,7 @@ ComClass::FromDispatch(IDispatch* pdisp)
 }
 
 ComClass::ComClass(String progID) :
+
 Class     (progID),
 m_progID  (progID),
 m_clsid   (CLSID_NULL),
@@ -333,20 +334,20 @@ ComClass::FindConversion(TypeInfo const& type, ConversionOperator*& node) const
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ Instance* 
-ComInstance::Create(Evaluator* eval, ComClass const* c)
+ComInstance::Create(ComClass const* c)
 {
-  return new ComInstance(eval, c);
+  return new ComInstance(c);
 }
 
 /*static*/ Instance* 
-ComInstance::Create(Evaluator* eval, IDispatch* pdisp)
+ComInstance::Create(IDispatch* pdisp)
 {
   ComClass* c = ComClass::FromDispatch(pdisp); 
-  return new ComInstance(eval, c, pdisp);
+  return new ComInstance(c, pdisp);
 }
 
-ComInstance::ComInstance(Evaluator* eval, ComClass const* c, IDispatch* pdisp) : 
-Instance    (eval, c),
+ComInstance::ComInstance(ComClass const* c, IDispatch* pdisp) : 
+Instance    (0, c),
 m_class     (c),
 m_dispatch  (pdisp)
 {
@@ -525,7 +526,7 @@ ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const
   
   // Convert result value
   Value result;
-  VariantToValue(m_eval, vResult, result);
+  VariantToValue(vResult, result);
   VariantClear(&vResult);
 
   // Done
@@ -534,8 +535,7 @@ ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const
 
 //////////////////////////////////////////////////////////////////////////
 
-ComEnumerator::ComEnumerator(Evaluator* eval, IEnumVARIANTPtr const& pEnum) :
-m_eval  (eval),
+ComEnumerator::ComEnumerator(IEnumVARIANTPtr const& pEnum) :
 m_pEnum (pEnum)
 {
 }
@@ -569,7 +569,7 @@ ComEnumerator::GetNext(Value& value)
   }
 
   // Convert value
-  VariantToValue(0, vElem, value);
+  VariantToValue(vElem, value);
   VariantClear(&vElem);
 
   // Done
@@ -658,7 +658,7 @@ ComMemberVariable::GetEnumerator() const
   }
 
   // Construct enumerator
-  return new ComEnumerator(m_inst->m_eval, pEnum);
+  return new ComEnumerator(pEnum);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -677,7 +677,7 @@ ComMemberFunction::GetParameters() const
 }
 
 Value 
-ComMemberFunction::Execute(Evaluator* evaluator, Arguments& args)
+ComMemberFunction::Execute(Arguments& args)
 {
   USES_CONVERSION;
 

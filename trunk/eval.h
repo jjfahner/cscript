@@ -112,21 +112,21 @@ public:
   //
   // Value conversions
   //
-  Value::Bool   ValBool  (Value const& val);
-  Value::Int    ValInt   (Value const& val);
-  Value::String ValString(Value const& val);
+  static Value::Bool   ValBool  (Value const& val);
+  static Value::Int    ValInt   (Value const& val);
+  static Value::String ValString(Value const& val);
 
   //
   // Value operations
   //
-  int  Compare(Value const& lhs, Value const& rhs);
-  Value ValAdd(Value const& lhs, Value const& rhs);
-  Value ValSub(Value const& lhs, Value const& rhs);
-  Value ValMul(Value const& lhs, Value const& rhs);
-  Value ValDiv(Value const& lhs, Value const& rhs);
-  Value ValMod(Value const& lhs, Value const& rhs);
-  Value ValNeg(Value const& lhs);
-  Value ValNot(Value const& lhs);
+  static int Compare(Value const& lhs, Value const& rhs);
+  static Value ValAdd(Value const& lhs, Value const& rhs);
+  static Value ValSub(Value const& lhs, Value const& rhs);
+  static Value ValMul(Value const& lhs, Value const& rhs);
+  static Value ValDiv(Value const& lhs, Value const& rhs);
+  static Value ValMod(Value const& lhs, Value const& rhs);
+  static Value ValNeg(Value const& lhs);
+  static Value ValNot(Value const& lhs);
 
   //
   // Public members
@@ -177,6 +177,7 @@ protected:
   RValue& EvalPostfix(Ast* node);
   RValue& EvalIndex(Ast* node);
   RValue& EvalConversion(Ast* node);
+  RValue& EvalClosure(Ast* node);
 
   //
   // Function handlers

@@ -54,7 +54,7 @@ public:
   //
   // Object factory
   //
-  static Object* Create(Evaluator* eval);
+  static Object* Create();
 
   //
   // Invoke garbage collection.
@@ -113,14 +113,15 @@ protected:
   //
   // Protected construction
   //
-  Object(Evaluator* eval);
+  Object();
+  Object(Object const&);
+  Object& operator = (Object const&);
 
 private:
 
   //
   // Object members
   //
-  Evaluator* m_evaluator;
   Variables  m_variables;
 
 };

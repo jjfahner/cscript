@@ -46,15 +46,10 @@ static const size_t g_collect_threshold = 1000;
 // Comparator implementation
 //
 
-ValueComparatorLess::ValueComparatorLess(Evaluator* evaluator) :
-m_evaluator (evaluator)
-{
-}
-
 bool 
 ValueComparatorLess::operator () (Value const& lhs, Value const& rhs) const
 {
-  return m_evaluator->Compare(lhs, rhs) < 0;
+  return Evaluator::Compare(lhs, rhs) < 0;
 }
 
 
@@ -348,9 +343,9 @@ Evaluator::Collect()
   // Append temporaries
   for(size_t i = 0; i < m_temporaries.size(); ++i)
   {
-    if(m_temporaries[i]->GetValue().Type() == Value::tObject)
+    if(m_temporaries[i]->Type() == Value::tObject)
     {
-      valid.insert(&m_temporaries[i]->GetValue().GetObject());
+      valid.insert(&m_temporaries[i]->GetObject());
     }
   }
 
@@ -358,7 +353,7 @@ Evaluator::Collect()
   Object::Collect(valid);
 }
 
-int 
+/*static*/ int 
 Evaluator::Compare(Value const& lhs, Value const& rhs)
 {
   // Comparing different types
@@ -392,7 +387,7 @@ Evaluator::Compare(Value const& lhs, Value const& rhs)
   throw std::runtime_error("Unsupported value type for comparison");
 }
 
-Value::Bool   
+/*static*/ Value::Bool   
 Evaluator::ValBool(Value const& val)
 {
   switch(val.Type())
@@ -406,7 +401,7 @@ Evaluator::ValBool(Value const& val)
   throw std::runtime_error("Cannot convert between types");
 }
 
-Value::Int    
+/*static*/ Value::Int    
 Evaluator::ValInt(Value const& val)
 {
   switch(val.Type())
@@ -420,14 +415,15 @@ Evaluator::ValInt(Value const& val)
   throw std::runtime_error("Cannot convert between types");
 }
 
-inline Value::String ToString(Value::Int val)
+inline 
+Value::String ToString(Value::Int val)
 {
   char buf[25];
   sprintf(buf, "%d", val);
   return buf;
 }
 
-Value::String 
+/*static*/ Value::String 
 Evaluator::ValString(Value const& val)
 {
   switch(val.Type())
@@ -436,12 +432,12 @@ Evaluator::ValString(Value const& val)
   case Value::tBool:    return val.GetBool() ? "true" : "false";
   case Value::tInt:     return ToString(val.GetInt());
   case Value::tString:  return val.GetString();
-  case Value::tObject:  return "[object]";
+  case Value::tObject:  return typeid(val.GetObject()).name();
   }
   throw std::runtime_error("Cannot convert between types");
 }
 
-Value 
+/*static*/ Value 
 Evaluator::ValAdd(Value const& lhs, Value const& rhs)
 {
   switch(lhs.Type())
@@ -453,7 +449,7 @@ Evaluator::ValAdd(Value const& lhs, Value const& rhs)
   throw std::runtime_error("Invalid type(s) for addition operator");
 }
 
-Value 
+/*static*/ Value 
 Evaluator::ValSub(Value const& lhs, Value const& rhs)
 {
   switch(lhs.Type())
@@ -464,7 +460,7 @@ Evaluator::ValSub(Value const& lhs, Value const& rhs)
   throw std::runtime_error("Invalid type(s) for subtraction operator");
 }
 
-Value 
+/*static*/ Value 
 Evaluator::ValMul(Value const& lhs, Value const& rhs)
 {
   switch(lhs.Type())
@@ -475,7 +471,7 @@ Evaluator::ValMul(Value const& lhs, Value const& rhs)
   throw std::runtime_error("Invalid type(s) for multiplication operator");
 }
 
-Value 
+/*static*/ Value 
 Evaluator::ValDiv(Value const& lhs, Value const& rhs)
 {
   switch(lhs.Type())
@@ -486,7 +482,7 @@ Evaluator::ValDiv(Value const& lhs, Value const& rhs)
   throw std::runtime_error("Invalid type(s) for division operator");
 }
 
-Value 
+/*static*/ Value 
 Evaluator::ValMod(Value const& lhs, Value const& rhs)
 {
   switch(lhs.Type())
@@ -497,7 +493,7 @@ Evaluator::ValMod(Value const& lhs, Value const& rhs)
   throw std::runtime_error("Invalid type(s) for modulo operator");
 }
 
-Value 
+/*static*/ Value 
 Evaluator::ValNeg(Value const& lhs)
 {
   switch(lhs.Type())
@@ -508,7 +504,7 @@ Evaluator::ValNeg(Value const& lhs)
   throw std::runtime_error("Invalid type(s) for negation operator");
 }
 
-Value 
+/*static*/ Value 
 Evaluator::ValNot(Value const& lhs)
 {
   switch(lhs.Type())
@@ -683,6 +679,7 @@ Evaluator::EvalExpression(Ast* node)
   case this_expression:       return EvalThisExpression(node);
   case member_expression:     return EvalMemberExpression(node);  
   case conversion_expression: return EvalConversion(node);
+  case closure_declaration:   return EvalClosure(node);
   }
   throw script_exception(node, "Invalid expression type");
 }
@@ -751,7 +748,7 @@ Evaluator::EvalBinary(Ast* node)
 RValue&
 Evaluator::EvalTernary(Ast* node)
 {
-  if(EvalExpression(node->m_a1).GetValue().GetBool())
+  if(EvalExpression(node->m_a1).GetBool())
   {
     return EvalExpression(node->m_a2);
   }
@@ -817,10 +814,10 @@ Evaluator::EvalIndex(Ast* node)
   RValue& lhs = EvalExpression(node->m_a1);
   RValue& rhs = EvalExpression(node->m_a2);
 
-  switch(lhs.GetValue().Type())
+  switch(lhs.Type())
   {
   case Value::tNull:
-    lhs.LVal() = Object::Create(this);
+    lhs.LVal() = Object::Create();
     break;
   case Value::tObject:
     // Fine
@@ -830,7 +827,7 @@ Evaluator::EvalIndex(Ast* node)
   }
 
   // Retrieve value
-  Variables& vars = lhs.GetValue().GetObject().GetVariables();
+  Variables& vars = lhs.GetObject().GetVariables();
   RValue* val = vars[rhs];
   if(val == 0)
   {
@@ -874,10 +871,17 @@ Evaluator::EvalVarDecl(Ast* node)
   m_scope->AddVar(node->m_a1, value);
 }
 
-void        
+void
 Evaluator::EvalFunDecl(Ast* node)
 {
   m_scope->AddFun(new ScriptFunction(node->m_a1, node));
+}
+
+RValue& 
+Evaluator::EvalClosure(Ast* node)
+{
+  Function* fun = new ScriptFunction("<closure>", node);
+  return MakeTemp(fun);
 }
 
 void 
@@ -1094,7 +1098,7 @@ Evaluator::EvalPositionalArguments(Ast* node, Function* fun, AstList const* argl
     if((*pi)->m_a2.GetNumber() == ptVariadic)
     {
       // Insert map
-      Object* va = Object::Create(this);
+      Object* va = Object::Create();
       args.push_back(va);
 
       // Insert remaining arguments
@@ -1229,7 +1233,7 @@ RValue&
 Evaluator::EvalListLiteral(Ast* node)
 {
   // Create empty map
-  Value v(Object::Create(this));
+  Value v(Object::Create());
   Object& o = v.GetObject();
   
   // Recurse into map values
@@ -1292,13 +1296,13 @@ Evaluator::EvalForStatement(Ast* node)
   {
     // Evaluate condition
     RValue const& cond = EvalExpression(node->m_a2);
-    if(cond.GetValue().Type() != Value::tBool)
+    if(cond.Type() != Value::tBool)
     {
       throw script_exception(node->m_a2, "Expression does not yield a boolean value");
     }
 
     // Check condition
-    if(!EvalExpression(node->m_a2).GetValue().GetBool())
+    if(!EvalExpression(node->m_a2).GetBool())
     {
       break;
     }
@@ -1388,12 +1392,12 @@ void
 Evaluator::EvalIfStatement(Ast* node)
 {
   RValue const& cond = EvalExpression(node->m_a1);
-  if(cond.GetValue().Type() != Value::tBool)
+  if(cond.Type() != Value::tBool)
   {
     throw script_exception(node->m_a1, "Expression does not yield a boolean value");
   }
 
-  if(cond.GetValue().GetBool())
+  if(cond.GetBool())
   {
     EvalStatement(node->m_a2);
   }
@@ -1409,12 +1413,12 @@ Evaluator::EvalWhileStatement(Ast* node)
   for(;;)
   {
     RValue const& cond = EvalExpression(node->m_a1);
-    if(cond.GetValue().Type() != Value::tBool)
+    if(cond.Type() != Value::tBool)
     {
       throw script_exception(node->m_a1, "Expression does not yield a boolean value");
     }
 
-    if(!cond.GetValue().GetBool())
+    if(!cond.GetBool())
     {
       break;
     }

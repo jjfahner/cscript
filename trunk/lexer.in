@@ -60,7 +60,7 @@ int parseNextToken(Char*& start, Char*& end)
   "false"                   { return TOK_FALSE; }
   "finally"                 { return TOK_FINALLY; }
   "for"                     { return TOK_FOR; }
-  "function"				        { return TOK_FUNCTION; }
+  "function"				{ return TOK_FUNCTION; }
   "if"                      { return TOK_IF; }
   "in"                      { return TOK_IN; }
   "include"                 { return TOK_INCLUDE; }
