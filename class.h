@@ -27,6 +27,7 @@
 #include "variable.h"
 
 class Evaluator;
+class Function;
 class MemberFunction;
 class MemberVariable;
 class ConversionOperator;
@@ -143,16 +144,7 @@ public:
   //
   // Find a member function
   //
-  virtual bool FindMethod(String const& name, MemberFunction*& fun) const 
-  {
-    FunctionMap::const_iterator it = m_funs.find(name);
-    if(it == m_funs.end())
-    {
-      return false;
-    }
-    fun = it->second;
-    return true;
-  }
+  virtual bool FindMethod(String const& name, Function*& fun) const;
 
   //
   // Add a conversion operator

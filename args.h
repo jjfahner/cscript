@@ -32,13 +32,13 @@ public:
   //
   // Instance
   //
-  Instance* GetInstance() const
+  Object* GetObject() const
   {
-    return m_instance;
+    return m_object;
   }
-  void SetInstance(Instance* instance)
+  void SetObject(Object* instance)
   {
-    m_instance = instance;
+    m_object = instance;
   }
 
   //
@@ -73,7 +73,7 @@ protected:
   //
   // Members
   //
-  Instance*       m_instance;
+  Object*         m_object;
   AstList const*  m_parameters;
 
 };

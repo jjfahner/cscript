@@ -27,6 +27,7 @@
 #include "native.h"
 
 class Evaluator;
+class Class;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -153,10 +154,7 @@ public:
   //
   // Object type
   //
-  virtual String GetTypeName() const
-  {
-    return Object::GetTypeName() + "::" + m_class->GetName() + "::" + Function::GetName();
-  }
+  virtual String GetTypeName() const;
 
   //
   // Retrieve class

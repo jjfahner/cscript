@@ -228,6 +228,7 @@ list_content(R) ::= list_entry(A) . { R = p->AllocAst(list_content, A); }
 list_content(R) ::= list_entry(A) COMMA list_content(B) . { R = p->AllocAst(list_content, A, B); }
 
 list_entry(R)   ::= expression(A) . { R = p->AllocAst(list_entry, A); }
+list_entry(R)   ::= expression(A) COLON expression(B) . { R = p->AllocAst(list_entry, B, A); }
 
 // New expression
 new_expression(R) ::= NEW type(A) .                                { R = p->AllocAst(new_expression, A, p->AllocAst(positional_arguments, new AstList)); }
@@ -365,8 +366,8 @@ class_members(R) ::= class_members(A) class_member(B) . {
 native_declaration ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { p->m_native = p->AllocAst(function_declaration, String(A), B); }
 
 // Function declaration
-function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(function_declaration, String(A), B, C); }
-closure_declaration(R)  ::= FUNCTION LPAREN parameter_list(A) RPAREN function_body(B) . { R = p->AllocAst(closure_declaration,  A, B); }
+function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(function_declaration, String(A),  B, C); }
+closure_declaration(R)  ::= FUNCTION LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(closure_declaration, String("<closure>"), B, C); }
 
 // Single parameter
 parameter(R) ::= type(A) IDENTIFIER(B) .        { R = p->AllocAst(parameter, String(B), ptByVal, A); }

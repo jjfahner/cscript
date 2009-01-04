@@ -28,6 +28,7 @@
 
 class Object;
 class RValue;
+class Function;
 
 //
 // List of root objects
@@ -96,6 +97,16 @@ public:
   {
     return const_cast<Object*>(this)->GetVariables();
   }
+
+  //
+  // Retrieve a variable
+  //
+  virtual bool FindVar(String const& name, RValue*& ptr) const;
+
+  //
+  // Retrieve a function
+  //
+  virtual bool FindMethod(String const& name, Function*& fun) const;
 
   //
   // Finalization

@@ -272,7 +272,7 @@ ComClass::GetTypeInfo() const
 }
 
 bool 
-ComClass::FindMethod(String const& name, MemberFunction*& fun) const
+ComClass::FindMethod(String const& name, Function*& fun) const
 {
   // No typelib loaded yet
   if(m_typeInfo == 0)
@@ -682,7 +682,7 @@ ComMemberFunction::Execute(Arguments& args)
   USES_CONVERSION;
 
   // Fetch instance
-  ComInstance* inst = dynamic_cast<ComInstance*>(args.GetInstance());
+  ComInstance* inst = dynamic_cast<ComInstance*>(args.GetObject());
   if(inst == 0)
   {
     throw std::runtime_error("COM method invoked on invalid object type");
