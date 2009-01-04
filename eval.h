@@ -167,6 +167,7 @@ protected:
   //
   RValue& EvalLValue(Ast* node);
   RValue& EvalListLiteral(Ast* node);
+  RValue& EvalJsonLiteral(Ast* node);
   RValue& EvalNewExpression(Ast* node);
   RValue& EvalMemberExpression(Ast* node);
   RValue& EvalThisExpression(Ast* node);

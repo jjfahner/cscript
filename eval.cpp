@@ -675,6 +675,7 @@ Evaluator::EvalExpression(Ast* node)
   case literal_value:         return MakeTemp(node->m_a1.GetValue());
   case lvalue:                return EvalLValue(node);
   case list_literal:          return EvalListLiteral(node);
+  case json_literal:          return EvalJsonLiteral(node);
   case new_expression:        return EvalNewExpression(node);
   case this_expression:       return EvalThisExpression(node);
   case member_expression:     return EvalMemberExpression(node);  
@@ -1252,6 +1253,47 @@ Evaluator::EvalListLiteral(Ast* node)
       {
         key = EvalExpression(child->m_a1->m_a2);
       }
+
+      // Insert into member variables
+      o.GetVariables()[key] = new RWVariable(element);
+
+      // Check for next element
+      if(child->m_a2.Empty()) 
+      {
+        break;
+      }
+
+      // Set next element
+      child = child->m_a2;
+    }
+  }
+
+  // Done
+  return MakeTemp(v);
+}
+
+RValue&
+Evaluator::EvalJsonLiteral(Ast* node)
+{
+  // Create empty map
+  Value v(Object::Create());
+  Object& o = v.GetObject();
+
+  // Recurse into map values
+  if(!node->m_a1.Empty())
+  {
+    Ast* child = node->m_a1;
+    while(child)
+    {
+      // Retrieve and check key
+      String key = child->m_a1->m_a1;
+      if(o.GetVariables().count(key))
+      {
+        throw script_exception(node, "Duplicate key in JSON literal");
+      }
+
+      // Evaluate element
+      RValue const& element = EvalExpression(child->m_a1->m_a2);
 
       // Insert into member variables
       o.GetVariables()[key] = new RWVariable(element);
