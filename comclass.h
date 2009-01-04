@@ -97,11 +97,6 @@ public:
   }
 
   //
-  // Find a method
-  //
-  virtual bool FindMethod(String const& name, Function*& fun) const;
-
-  //
   // Com objects cannot have conversions added
   //
   virtual void AddConversion(ConversionOperator* node)
@@ -194,15 +189,7 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool Find(String const& name, RValue*& ptr) const;
-
-  //
-  // Retrieve a function
-  //
-  virtual bool FindMethod(String const& name, Function*& fun) const 
-  {
-    return m_class->FindMethod(name, fun);
-  }
+  virtual bool Find(Value const& name, RValue*& ptr) const;
 
   //
   // Raw method invocation
@@ -297,14 +284,14 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-class ComMemberFunction : public MemberFunction
+class ComMemberFunction : public Function
 {
 public:
 
   //
   // Construction
   //
-  ComMemberFunction(String name, ComClass const* cl, DISPID dispid);
+  ComMemberFunction(String name, DISPID dispid, ComInstance const* instance);
 
   //
   // Retrieve parameter list
@@ -314,15 +301,15 @@ public:
   //
   // Execution
   //
-  virtual Value Execute(Arguments& args);
+  virtual Value Execute(Evaluator* eval, Arguments& args);
 
 protected:
 
   //
   // Members
   //
-  ComClass const* m_class;
-  DISPID          m_dispid;
+  ComInstance const* m_inst;
+  DISPID       m_dispid;
 
 };
 

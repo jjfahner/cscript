@@ -128,8 +128,6 @@ protected:
   Object(Object const&);
   Object& operator = (Object const&);
 
-private:
-
   //
   // Object members
   //
