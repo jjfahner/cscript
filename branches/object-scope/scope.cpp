@@ -38,7 +38,6 @@ Scope::Attach()
   if(m_parent == 0)
   {
     return;
-    //throw std::runtime_error("Attaching scope without parent");
   }
 
   RValue*& ptr = m_parent->m_variables["scope::child"];
@@ -49,6 +48,21 @@ Scope::Attach()
   }
   
   ptr = new ROVariable(this);
+
+  Scope* p = this;
+  Scope* s = m_parent;
+  while(s)
+  {
+    if(s->m_variables.count("scope::child") == 0)
+    {
+      break;
+    }
+    if(&s->m_variables["scope::child"]->GetObject() != p)
+    {
+      break;
+    }
+    s = s->m_parent;
+  }
 }
 
 void 

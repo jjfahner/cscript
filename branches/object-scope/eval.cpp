@@ -63,6 +63,7 @@ class Evaluator::AutoScope
 public:
 
   AutoScope(Evaluator* eval, Scope* scope = 0) : 
+  m_reset(false),
   m_eval (eval), 
   m_prv  (0),
   m_cur  (0)
@@ -75,18 +76,14 @@ public:
 
   ~AutoScope()
   {
-    Reset();
-  }
-
-  void Reset()
-  {
-    if(m_prv)
+    if(m_reset)
     {
       m_eval->m_scope->Detach();
       m_eval->m_scope = m_prv;
-      m_eval->m_scope->Attach();
-      m_prv = 0;
-      m_cur = 0;
+      if(m_eval->m_scope)
+      {
+        m_eval->m_scope->Attach();
+      }
     }
   }
 
@@ -94,7 +91,7 @@ public:
   {
     if(m_prv)
     {
-      Reset();
+      throw std::runtime_error("Unexpected stack frame in autoscope");
     }
     
     if(m_eval->m_scope)
@@ -102,10 +99,17 @@ public:
       m_prv = m_eval->m_scope;
       m_eval->m_scope->Detach();
     }
+    else
+    {
+      __asm nop;
+    }
 
     m_cur = scope;
+
     m_eval->m_scope = m_cur;
     m_eval->m_scope->Attach();
+
+    m_reset = true;
   }
   
 private:
@@ -113,6 +117,7 @@ private:
   //
   // Members
   //
+  bool        m_reset;
   Evaluator*  m_eval;
   Scope*      m_prv;
   Scope*      m_cur;
@@ -167,8 +172,6 @@ m_allocs  (0)
 
 Evaluator::~Evaluator()
 {
-  // Release the global scope
-  m_global->Detach();
 }
 
 void 
@@ -223,7 +226,7 @@ Evaluator::ParseText(char const* text)
   AutoScope as(this);
   if(m_scope == 0)
   {
-    as.Set(GetGlobalScope());
+    as.Set(m_global);
   }
 
   // Create lexer for file
@@ -342,23 +345,6 @@ Evaluator::ParseNativeCall(String const& declaration)
 void 
 Evaluator::Collect()
 {
-  Scope* s = m_scope;
-  while(s->GetParent())
-  {
-    RValue* rhs = s->GetParent()->GetVariables()["scope::child"];
-    if(rhs == 0)
-    {
-      break;
-    }
-    Scope* c = dynamic_cast<Scope*>(&rhs->GetObject());
-    if(c != s)
-    {
-      break;
-    }
-    s = s->GetParent();
-  }
-
-
   Objects valid;
 
   // Use global scope as object root
