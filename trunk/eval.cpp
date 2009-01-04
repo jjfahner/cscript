@@ -269,6 +269,7 @@ Evaluator::OnParseFailure()
   pos.m_file = m_file ? m_file->GetPath() : "";
   pos.m_line = m_lexer->GetLine();
   m_reporter.ReportError(E0012, &pos);
+  throw std::runtime_error("Aborted");
 }
 
 void 
@@ -278,6 +279,7 @@ Evaluator::OnSyntaxError()
   pos.m_file = m_file ? m_file->GetPath() : "";
   pos.m_line = m_lexer->GetLine();
   m_reporter.ReportError(E0013, &pos);
+  throw std::runtime_error("Aborted");
 }
 
 Ast* 
@@ -974,10 +976,23 @@ Evaluator::EvalFunctionCall(Ast* node)
   }
   else
   {
-    // Resolve function in scope stack
-    if(!m_scope->FindMethod(node->m_a1, fun))
+    // Find first object with this name
+    RValue* var;
+    if(!m_scope->FindVar(node->m_a1, var))
     {
       throw script_exception(node, "Function not found");
+    }
+    
+    // Must be an object
+    if(var->Type() != Value::tObject)
+    {
+      throw script_exception(node, "Name doesn't refer to a function");
+    }
+
+    // Cast to function
+    if((fun = dynamic_cast<Function*>(&var->GetObject())) == 0)
+    {
+      throw script_exception(node, "Name doesn't refer to a function");
     }
 
     // In case of member function, prepend instance

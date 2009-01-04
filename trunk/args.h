@@ -30,6 +30,15 @@ class Arguments : public std::vector<Value>
 public:
 
   //
+  // Construction
+  //
+  Arguments() :
+  m_object     (0),
+  m_parameters (0)
+  {
+  }
+
+  //
   // Instance
   //
   Object* GetObject() const

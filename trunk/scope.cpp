@@ -67,10 +67,8 @@ ClassScope::FindVarLocal(String const& name, RValue*& ptr) const
 bool 
 ClassScope::FindFunLocal(String const& name, Function*& fun) const
 {
-  Function* memfun;
-  if(m_inst->FindMethod(name, memfun))
+  if(m_inst->FindMethod(name, fun))
   {
-    fun = memfun;
     return true;
   }
   return false;

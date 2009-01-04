@@ -50,5 +50,14 @@ m_class     (c)
     // Instantiate member variable
     GetVariables()[it->first] = new RWVariable(value);
   }
+
+  // Add functions
+  Class::FunctionMap::const_iterator fi, fe;
+  fi = m_class->GetMethods().begin();
+  fe = m_class->GetMethods().end();
+  for(; fi != fe; ++fi)
+  {
+    GetVariables()[fi->first] = new ROVariable(fi->second);
+  }
 }
 

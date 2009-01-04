@@ -128,6 +128,14 @@ public:
     }
     m_vars[name] = node;
   }
+  
+  //
+  // Retrieve methods
+  //
+  virtual FunctionMap const& GetMethods() const
+  {
+    return m_funs;
+  }
 
   //
   // Add a member function
