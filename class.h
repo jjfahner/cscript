@@ -178,49 +178,4 @@ protected:
 
 };
 
-//////////////////////////////////////////////////////////////////////////
-
-class ROMemberVariable : public RValue
-{
-  Value const& m_value;
-
-public:
-  
-  ROMemberVariable(Value const& value) :
-  m_value (value)
-  {
-  }
-
-  virtual Value const& GetValue() const
-  {
-    return m_value;
-  }
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
-class RWMemberVariable : public LValue
-{
-  Value m_value;
-
-public:
-
-  RWMemberVariable(Value const& value) : 
-  m_value (value)
-  {
-  }
-
-  virtual Value const& GetValue() const
-  {
-    return m_value;
-  }
-
-  virtual void SetValue(Value const& value)
-  {
-    m_value = value;
-  }
-
-};
-
 #endif // CSCRIPT_CLASS_H
