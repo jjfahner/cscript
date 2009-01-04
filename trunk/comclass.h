@@ -21,144 +21,45 @@
 #ifndef CSCRIPT_COMCLASS_H
 #define CSCRIPT_COMCLASS_H
 
-#include "class.h"
-#include "function.h"
-#include "instance.h"
-
 #include <windows.h>
 #include <objbase.h>
 #include <comdef.h>
+#include <atlconv.h>
 
 // #$%@ Windows defines!!!
 #undef GetObject
+
+#include "comtype.h"
+#include "args.h"
+#include "object.h"
+#include "function.h"
 
 class ComTypeInfo;
 class ComMemberFunction;
 class ComEnumerator;
 
-class ComClass : public Class
-{
-public:
-
-  //
-  // Factories
-  //
-  static ComClass* FromProgID(String progID);
-  static ComClass* FromDispatch(IDispatch* pdisp);
-
-  //
-  // Create an instance
-  //
-  IDispatch* CreateInstance() const;
-
-  //
-  // Retrieve type info
-  //
-  ComTypeInfo* GetTypeInfo() const;
-
-  //
-  // Com objects have no constructors
-  //
-  virtual Constructor* GetConstructor() const
-  {
-    return 0;
-  }
-  virtual void SetConstructor(Constructor*)
-  {
-    throw std::runtime_error("Cannot add constructor to COM object");
-  }
-
-  //
-  // Com objects have no destructors
-  //
-  virtual Destructor* GetDestructor() const
-  {
-    return 0;
-  }
-  virtual void SetDestructor(Destructor*)
-  {
-    throw std::runtime_error("Cannot add destructor to COM object");
-  }
-
-  //
-  // Com objects cannot have variables added
-  //
-  virtual void AddVariable(String const&, Ast*)
-  {
-    throw std::runtime_error("Cannot add variable to COM object");
-  }
-
-  //
-  // Com objects cannot have methods added
-  //
-  virtual void AddMethod(String const& name, MemberFunction* node)
-  {
-    throw std::runtime_error("Cannot add method to COM object");
-  }
-
-  //
-  // Com objects cannot have conversions added
-  //
-  virtual void AddConversion(ConversionOperator* node)
-  {
-    throw std::runtime_error("Cannot add conversion to COM object");
-  }
-
-  //
-  // Find a conversion operator
-  //
-  virtual bool FindConversion(TypeInfo const& type, ConversionOperator*& node) const;
-
-protected:
-
-  //
-  // Constructor
-  //
-  ComClass(String progID);
-  ComClass(ComTypeInfo* pTypeInfo);
-
-  //
-  // Destruction
-  //
-  ~ComClass();
-
-  //
-  // Collection of methods
-  //
-  typedef std::map<DISPID, ComMemberFunction*> Methods;
-
-  //
-  // Members
-  //
-  String        m_progID;
-  CLSID         m_clsid;
-  mutable ComTypeInfo*  m_typeInfo;
-  mutable Methods       m_methods;
-  
-};
-
 //////////////////////////////////////////////////////////////////////////
 
-class ComInstance : public Instance
+class ComObject : public Object
 {
 public:
 
   //
   // Class factory
   //
-  static Instance* Create(ComClass const* c);
+  static Object* Create(String progID);
 
   //
   // Class factory
   //
-  static Instance* Create(IDispatch* p);
+  static Object* Create(IDispatch* p);
 
   //
   // Class type name
   //
   virtual String GetTypeName() const
   {
-    return "ComClass " + m_class->GetName();
+    return "ComObject " + m_typeInfo->GetTypeName();
   }
 
   //
@@ -167,14 +68,6 @@ public:
   virtual bool FinalizeRequired() const
   {
     return false;
-  }
-
-  //
-  // Retrieve class instance
-  //
-  virtual ComClass const* GetClass() const
-  {
-    return m_class;
   }
 
   //
@@ -206,21 +99,20 @@ protected:
   //
   // Construction
   //
-  ComInstance(ComClass const* c, IDispatch* pdisp = 0);
+  ComObject(IDispatch* pdisp = 0);
 
   //
   // Destruction
   //
-  ~ComInstance();
+  ~ComObject();
 
   //
   // Members
   //
-  friend class ComClass;
   friend class ComMemberFunction;
   friend class ComMemberVariable;
-  ComClass const* m_class;
-  IDispatch*      m_dispatch;
+  IDispatch*    m_dispatch;
+  ComTypeInfo*  m_typeInfo;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -253,7 +145,7 @@ public:
 
 class ComMemberVariable : public LValue
 {
-  ComInstance const* m_inst;
+  ComObject const* m_inst;
   mutable Value m_value;
   String m_name;
   DISPID m_dispid;
@@ -263,7 +155,7 @@ public:
   //
   // Construction
   //
-  ComMemberVariable(String name, DISPID dispid, ComInstance const* inst);
+  ComMemberVariable(String name, DISPID dispid, ComObject const* inst);
 
   //
   // Retrieve value
@@ -291,7 +183,7 @@ public:
   //
   // Construction
   //
-  ComMemberFunction(String name, DISPID dispid, ComInstance const* instance);
+  ComMemberFunction(String name, DISPID dispid, ComObject const* instance);
 
   //
   // Retrieve parameter list
@@ -308,7 +200,7 @@ protected:
   //
   // Members
   //
-  ComInstance const* m_inst;
+  ComObject const* m_inst;
   DISPID       m_dispid;
 
 };
