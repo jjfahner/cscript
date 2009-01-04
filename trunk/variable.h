@@ -32,6 +32,11 @@ class RValue
 public:
 
   //
+  // Setup virtual destruction
+  //
+  virtual ~RValue() {}
+
+  //
   // Automatic conversion to Value
   //
   operator Value const& () const
@@ -105,6 +110,11 @@ RValue::LVal()
 class Enumerator 
 {
 public:
+
+  //
+  // Setup virtual destruction
+  //
+  virtual ~Enumerator() {}
 
   //
   // Reset enumerator to first entry
