@@ -44,8 +44,8 @@ GlobalScope::AddFun(Function* fun)
   // Register function
   m_funs[fun->GetName()] = fun;
 
-  // Register in function list to prevent collection
-  m_vars["function::" + fun->GetName()] = new ROVariable(fun);
+  // Register function in variable list to prevent collection
+  m_vars[fun->GetName()] = new RWVariable(fun);
 }
 
 void 
