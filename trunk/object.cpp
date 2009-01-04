@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include "object.h"
 #include "variable.h"
+#include "function.h"
 
 #include <typeinfo>
 #include <set>
@@ -64,6 +65,40 @@ String
 Object::GetTypeName() const
 {
   return typeid(*this).name();
+}
+
+bool 
+Object::FindVar(String const& name, RValue*& ptr) const
+{
+  Variables::const_iterator it = m_variables.find(name);
+  if(it == m_variables.end())
+  {
+    return false;
+  }
+  ptr = it->second;
+  return true;
+}
+
+//
+// Retrieve a function
+//
+bool 
+Object::FindMethod(String const& name, Function*& fun) const
+{
+  Variables::const_iterator it = m_variables.find(name);
+  if(it == m_variables.end())
+  {
+    return false;
+  }
+  
+  if(it->second->Type() != Value::tObject)
+  {
+    return false;
+  }
+
+  fun = dynamic_cast<Function*>(&it->second->GetObject());
+  
+  return fun != 0;
 }
 
 //////////////////////////////////////////////////////////////////////////

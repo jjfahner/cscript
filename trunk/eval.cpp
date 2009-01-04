@@ -961,11 +961,11 @@ Evaluator::EvalFunctionCall(Ast* node)
   if(node->m_a3)
   {
     // Evaluate instance expression
-    args.SetInstance(GetInstance(EvalExpression(node->m_a3)));
+    args.SetObject(&EvalExpression(node->m_a3).GetObject());
 
     // Resolve function on object
-    MemberFunction* memfun;
-    if(!args.GetInstance()->FindMethod(node->m_a1, memfun))
+    Function* memfun;
+    if(!args.GetObject()->FindMethod(node->m_a1, memfun))
     {
       throw script_exception(node, "Object doesn't support this method");
     }
@@ -982,7 +982,7 @@ Evaluator::EvalFunctionCall(Ast* node)
     // In case of member function, prepend instance
     if(dynamic_cast<MemberFunction*>(fun))
     {
-      args.SetInstance(GetInstance(EvalThisExpression(node)));
+      args.SetObject(&EvalThisExpression(node).GetObject());
     }
   }
 
@@ -1021,7 +1021,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   if(dynamic_cast<MemberFunction*>(fun))
   {
     // Create class scope
-    cs.Set(new ClassScope(parentScope, args.GetInstance()));
+    cs.Set(new ClassScope(parentScope, args.GetObject()));
 
     // Adjust parent scope
     parentScope = m_scope;
@@ -1246,8 +1246,15 @@ Evaluator::EvalListLiteral(Ast* node)
       // Evaluate element
       RValue const& element = EvalExpression(child->m_a1->m_a1);
 
+      // Evaluate key
+      Value key = index++;
+      if(child->m_a1->m_a2)
+      {
+        key = EvalExpression(child->m_a1->m_a2);
+      }
+
       // Insert into member variables
-      o.GetVariables()[index++] = new RWVariable(element);
+      o.GetVariables()[key] = new RWVariable(element);
 
       // Check for next element
       if(child->m_a2.Empty()) 
@@ -1504,7 +1511,7 @@ Evaluator::EvalNewExpression(Ast* node)
   {
     // Prep arguments
     Arguments args;
-    args.SetInstance(inst);
+    args.SetObject(inst);
     args.SetParameters(fun->GetParameters());
 
     // Evaluate arguments
@@ -1547,7 +1554,7 @@ RValue&
 Evaluator::EvalMemberExpression(Ast* node)
 {
   // Evaluate left side
-  Instance* instPtr = GetInstance(EvalExpression(node->m_a1));
+  Object* instPtr = &EvalExpression(node->m_a1).GetObject();
 
   // Retrieve value
   RValue* ptr;
@@ -1569,7 +1576,7 @@ Evaluator::EvalThisExpression(Ast* node)
     ClassScope* cs = dynamic_cast<ClassScope*>(scope);
     if(cs)
     {
-      return MakeTemp(cs->GetInstance());
+      return MakeTemp(cs->GetObject());
     }
     scope = scope->GetParent();
   }

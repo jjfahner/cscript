@@ -24,6 +24,7 @@
 #include "types.h"
 #include "value.h"
 #include "variable.h"
+#include "function.h"
 
 class Instance;
 class Function;
@@ -296,13 +297,26 @@ protected:
   //
   virtual bool FindFunLocal(String const& name, Function*& fun) const
   {
+    fun = 0;
+
     Functions::const_iterator it = m_funs.find(name);
-    if(it == m_funs.end())
+    if(it != m_funs.end())
     {
-      return false;
+      fun = it->second;
+      return true;
     }
-    fun = it->second;
-    return true;
+
+    Variables::const_iterator vi = m_vars.find(name);
+    if(vi != m_vars.end())
+    {
+      if(vi->second->Type() == Value::tObject)
+      {
+        fun = dynamic_cast<Function*>(&vi->second->GetObject());
+      }
+      return fun != 0;
+    }
+    
+    return false;
   }
 
   //
@@ -339,16 +353,16 @@ public:
   //
   // Construction
   //
-  ClassScope(Scope* parent, class Instance* inst) :
+  ClassScope(Scope* parent, Object* inst) :
   Scope  (parent),
   m_inst (inst)
   {
   }
 
   //
-  // Class instance
+  // Object instance
   //
-  Instance* GetInstance() const
+  Object* GetObject() const
   {
     return m_inst;
   }
@@ -376,7 +390,7 @@ protected:
   //
   // Members
   //
-  Instance* m_inst;
+  Object* m_inst;
 
 };
 

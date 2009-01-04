@@ -35,6 +35,18 @@ Class::AddConversion(ConversionOperator* node)
 }
 
 bool 
+Class::FindMethod(String const& name, Function*& fun) const 
+{
+  FunctionMap::const_iterator it = m_funs.find(name);
+  if(it == m_funs.end())
+  {
+    return false;
+  }
+  fun = it->second;
+  return true;
+}
+
+bool 
 Class::FindConversion(TypeInfo const& type, ConversionOperator*& node) const
 {
   ConversionMap::const_iterator it = m_conv.find(type);

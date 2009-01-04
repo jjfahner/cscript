@@ -80,6 +80,12 @@ ExternFunction::GetParameters() const
   return m_node->m_a2;
 }
 
+String 
+MemberFunction::GetTypeName() const
+{
+  return Object::GetTypeName() + "::" + m_class->GetName() + "::" + Function::GetName();
+}
+
 #ifdef WIN32
 
 #include <windows.h>

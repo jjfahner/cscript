@@ -86,7 +86,7 @@ public:
   //
   // Retrieve a function
   //
-  virtual bool FindMethod(String const& name, MemberFunction*& fun) const 
+  virtual bool FindMethod(String const& name, Function*& fun) const
   {
     return m_class->FindMethod(name, fun);
   }
