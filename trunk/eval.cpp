@@ -1018,7 +1018,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 
   // Determine parent scope
   Scope* parentScope = m_global;
-  if(dynamic_cast<MemberFunction*>(fun))
+  if(args.GetObject())
   {
     // Create class scope
     cs.Set(new ClassScope(parentScope, args.GetObject()));
