@@ -36,14 +36,6 @@ Scope::~Scope()
 void 
 GlobalScope::AddFun(Function* fun)
 {
-  if(m_funs.count(fun->GetName()))
-  {
-    throw std::runtime_error("Function already declared");
-  }
-
-  // Register function
-  m_funs[fun->GetName()] = fun;
-
   // Register function in variable list to prevent collection
   m_vars[fun->GetName()] = new RWVariable(fun);
 }
@@ -59,17 +51,8 @@ GlobalScope::AddClass(Class* c)
 }
 
 bool 
-ClassScope::FindVarLocal(String const& name, RValue*& ptr) const
+ClassScope::FindLocal(String const& name, RValue*& ptr) const
 {
-  return m_inst->FindVar(name, ptr);
+  return m_inst->Find(name, ptr);
 }
 
-bool 
-ClassScope::FindFunLocal(String const& name, Function*& fun) const
-{
-  if(m_inst->FindMethod(name, fun))
-  {
-    return true;
-  }
-  return false;
-}

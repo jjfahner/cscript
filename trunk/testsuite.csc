@@ -384,7 +384,7 @@ function main()
   assert("Files", files(), true);
   
   // Test sockets
-  assert("Socket", sockets(), true);
+  //assert("Socket", sockets(), true);
 
   // Test regular expressions
   assert("Regex", match("aa", "aaa"), "aa");
@@ -410,11 +410,11 @@ function main()
   }
 
   // Print objects
-  print("\n\nBefore collect():\n");
-  dump();
-  collect();
-  print("\n\nAfter collect():\n");
-  dump();
+  //print("\n\nBefore collect():\n");
+  //dump();
+  //collect();
+  //print("\n\nAfter collect():\n");
+  //dump();
 }
 
 
@@ -424,5 +424,10 @@ function main()
 //
 
 main();
+
+// Run garbage collector
+print("Collecting...");
+collect();
+print("Done\n");
 
 // EOF

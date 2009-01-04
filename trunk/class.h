@@ -112,7 +112,7 @@ public:
   //
   // Retrieve variables
   //
-  NamedNodeMap const& GetVariables() const
+  NamedNodeMap const& GetMembers() const
   {
     return m_vars;
   }
@@ -148,11 +148,6 @@ public:
     }
     m_funs[name] = node;
   }
-
-  //
-  // Find a member function
-  //
-  virtual bool FindMethod(String const& name, Function*& fun) const;
 
   //
   // Add a conversion operator

@@ -376,7 +376,7 @@ ComInstance::~ComInstance()
 }
 
 bool 
-ComInstance::FindVar(String const& name, RValue*& ptr) const
+ComInstance::Find(String const& name, RValue*& ptr) const
 {
   // No typelib loaded yet
   if(m_class->GetTypeInfo() == 0)
@@ -399,7 +399,7 @@ ComInstance::FindVar(String const& name, RValue*& ptr) const
   }
 
   // Retrieve non-const variables list
-  Variables& vars = const_cast<ComInstance*>(this)->GetVariables();
+  Members& vars = const_cast<ComInstance*>(this)->GetMembers();
 
   // Lookup the variable
   if(vars.count(properName))

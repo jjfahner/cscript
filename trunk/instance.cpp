@@ -32,8 +32,8 @@ m_class     (c)
 {
   // Enumerate variable definitions
   Class::NamedNodeMap::const_iterator it, ie;
-  it = m_class->GetVariables().begin();
-  ie = m_class->GetVariables().end();
+  it = m_class->GetMembers().begin();
+  ie = m_class->GetMembers().end();
   for(; it != ie; ++it)
   {
     // Evaluate initial value
@@ -48,7 +48,7 @@ m_class     (c)
     }
 
     // Instantiate member variable
-    GetVariables()[it->first] = new RWVariable(value);
+    GetMembers()[it->first] = new RWVariable(value);
   }
 
   // Add functions
@@ -57,7 +57,7 @@ m_class     (c)
   fe = m_class->GetMethods().end();
   for(; fi != fe; ++fi)
   {
-    GetVariables()[fi->first] = new ROVariable(fi->second);
+    GetMembers()[fi->first] = new ROVariable(fi->second);
   }
 }
 
