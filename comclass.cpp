@@ -20,13 +20,8 @@
 //////////////////////////////////////////////////////////////////////////
 #include "comclass.h"
 #include "native.h"
-#include "args.h"
-#include "comtype.h"
 
 #include <map>
-#include <atlconv.h>
-
-static std::map<String, ComClass*> g_comClasses;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -47,11 +42,8 @@ NATIVE_CALL("__native cocreate(string classname)")
   // Initialize COM
   static CoInit coInit;
 
-  // Find class
-  ComClass* cc = ComClass::FromProgID(args[0].GetString());
-
   // Create instance
-  return ComInstance::Create(cc);
+  return ComObject::Create(args[0].GetString());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -174,7 +166,7 @@ VariantToValue(VARIANT const& variant, Value& value)
   case VT_DISPATCH: 
     if(variant.pdispVal)
     {
-      value = ComInstance::Create(variant.pdispVal);
+      value = ComObject::Create(variant.pdispVal);
     }
     break;
         
@@ -185,130 +177,56 @@ VariantToValue(VARIANT const& variant, Value& value)
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ ComClass* 
-ComClass::FromProgID(String progID)
-{
-  // Find in static map
-  if(g_comClasses.count(progID))
-  {
-    return g_comClasses[progID];
-  }
-
-  // Create instance
-  ComClass* nc = new ComClass(progID);
-  g_comClasses[progID] = nc;
-
-  // Done
-  return nc;
-}
-
-/*static*/ ComClass* 
-ComClass::FromDispatch(IDispatch* pdisp)
-{
-  ComTypeInfo* pTypeInfo = new ComTypeInfo(pdisp);
-  return new ComClass(pTypeInfo);
-}
-
-ComClass::ComClass(String progID) :
-
-Class     (progID),
-m_progID  (progID),
-m_clsid   (CLSID_NULL),
-m_typeInfo    (0)
+/*static*/ Object* 
+ComObject::Create(String progID)
 {
   USES_CONVERSION;
 
   // Find classid from program id
-  if(FAILED(CLSIDFromProgID(T2W(progID.c_str()), &m_clsid)))
+  CLSID clsid;
+  if(FAILED(CLSIDFromProgID(T2W(progID.c_str()), &clsid)))
   {
     throw std::runtime_error("Invalid COM classname");
   }
-}
 
-ComClass::ComClass(ComTypeInfo* pTypeInfo) :
-Class     (pTypeInfo->GetProgID()),
-m_progID  (pTypeInfo->GetProgID()),
-m_clsid   (pTypeInfo->GetCLSID()),
-m_typeInfo    (pTypeInfo)
-{
+  IDispatchPtr pDispatch;
 
-}
-
-ComClass::~ComClass()
-{
-  delete m_typeInfo;
-}
-
-IDispatch*
-ComClass::CreateInstance() const
-{
-  IDispatch* pDispatch;
-
-  // Create the instance
-  if(FAILED(CoCreateInstance(m_clsid, NULL, CLSCTX_ALL, 
-                  IID_IDispatch, (void**)&pDispatch)))
+  // First attempt: use CLSCTX_ALL
+  if(SUCCEEDED(CoCreateInstance(clsid, NULL, CLSCTX_ALL, 
+    IID_IDispatch, (void**)&pDispatch)))
   {
-    if(FAILED(CoCreateInstance(m_clsid, NULL, CLSCTX_LOCAL_SERVER, 
-                               IID_IDispatch,(void**)&pDispatch)))
-    {
-      throw std::runtime_error("Failed to instantiate COM object");
-    }
+    return ComObject::Create(pDispatch);
   }
+
+  // Second attempt: use CLSCTX_LOCAL_SERVER
+  if(SUCCEEDED(CoCreateInstance(clsid, NULL, CLSCTX_LOCAL_SERVER, 
+    IID_IDispatch,(void**)&pDispatch)))
+  {
+    return ComObject::Create(pDispatch);
+  }
+
+  // Failed
+  throw std::runtime_error("Failed to instantiate COM object");
+}
+
+/*static*/ Object* 
+ComObject::Create(IDispatch* pdisp)
+{
+  return new ComObject(pdisp);
+}
+
+ComObject::ComObject(IDispatch* pdisp) : 
+m_dispatch  (pdisp),
+m_typeInfo  (0)
+{
+  // Take ref on object
+  m_dispatch->AddRef();
 
   // Load the type library
-  if(m_typeInfo == 0)
-  {
-    m_typeInfo = new ComTypeInfo(pDispatch);
-  }
-
-  // Done
-  return pDispatch;
+  m_typeInfo = new ComTypeInfo(m_dispatch);
 }
 
-ComTypeInfo* 
-ComClass::GetTypeInfo() const
-{
-  return m_typeInfo;
-}
-
-bool 
-ComClass::FindConversion(TypeInfo const& type, ConversionOperator*& node) const
-{
-  return false;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-/*static*/ Instance* 
-ComInstance::Create(ComClass const* c)
-{
-  return new ComInstance(c);
-}
-
-/*static*/ Instance* 
-ComInstance::Create(IDispatch* pdisp)
-{
-  ComClass* c = ComClass::FromDispatch(pdisp); 
-  return new ComInstance(c, pdisp);
-}
-
-ComInstance::ComInstance(ComClass const* c, IDispatch* pdisp) : 
-Instance    (0, c),
-m_class     (c),
-m_dispatch  (pdisp)
-{
-  // Delegate to class for construction
-  if(m_dispatch == 0)
-  {
-    m_dispatch = m_class->CreateInstance();
-  }
-  else
-  {
-    m_dispatch->AddRef();
-  }
-}
-
-ComInstance::~ComInstance()
+ComObject::~ComObject()
 {
   // Remove pointer from instance
   IDispatch* pDispatch = m_dispatch;
@@ -319,27 +237,24 @@ ComInstance::~ComInstance()
   {
     pDispatch->Release();
   }
+
+  // Free the type info
+  delete m_typeInfo;
 }
 
 bool 
-ComInstance::Find(Value const& name, RValue*& ptr) const
+ComObject::Find(Value const& name, RValue*& ptr) const
 {
-  // No typelib loaded yet
-  if(m_class->GetTypeInfo() == 0)
-  {
-    return false;
-  }
-
   // Find method info
   DISPID dispid;
-  if(!m_class->GetTypeInfo()->GetDispIdOfName(name.GetString(), dispid))
+  if(!m_typeInfo->GetDispIdOfName(name.GetString(), dispid))
   {
     return false;
   }
 
   // Retrieve proper name
   String properName;
-  if(!m_class->GetTypeInfo()->GetNameOfDispId(dispid, properName))
+  if(!m_typeInfo->GetNameOfDispId(dispid, properName))
   {
     return false;
   }
@@ -356,7 +271,7 @@ ComInstance::Find(Value const& name, RValue*& ptr) const
 
   // Retrieve function info
   FUNCDESC* pfd;
-  if(!m_class->GetTypeInfo()->GetFuncDescOfDispId(dispid, &pfd))
+  if(!m_typeInfo->GetFuncDescOfDispId(dispid, &pfd))
   {
     return false;
   }
@@ -379,7 +294,7 @@ ComInstance::Find(Value const& name, RValue*& ptr) const
 }
 
 void
-ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIANT& vResult) const
+ComObject::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIANT& vResult) const
 {
   USES_CONVERSION;
 
@@ -393,7 +308,7 @@ ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIA
 
   // Retrieve function info for the dispid
   FUNCDESC* pfd;
-  if(FAILED(m_class->GetTypeInfo()->GetFuncDescOfDispId(dispid, &pfd)))
+  if(FAILED(m_typeInfo->GetFuncDescOfDispId(dispid, &pfd)))
   {
     throw std::runtime_error("Object doesn't support this property or method");
   }
@@ -454,7 +369,7 @@ ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIA
   if(FAILED(hr))
   {
     String name;
-    m_class->GetTypeInfo()->GetNameOfDispId(pfd->memid, name);
+    m_typeInfo->GetNameOfDispId(pfd->memid, name);
     String err = W2T(excepInfo.bstrDescription);
     err = "COM method '" + name + "' failed: " + err;
     throw std::runtime_error(err);
@@ -462,7 +377,7 @@ ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIA
 }
 
 Value
-ComInstance::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const
+ComObject::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const
 {
   // Initialize result
   VARIANT vResult;
@@ -525,7 +440,7 @@ ComEnumerator::GetNext(Value& value)
 
 //////////////////////////////////////////////////////////////////////////
 
-ComMemberVariable::ComMemberVariable(String name, DISPID dispid, ComInstance const* inst) :
+ComMemberVariable::ComMemberVariable(String name, DISPID dispid, ComObject const* inst) :
 m_name    (name),
 m_dispid  (dispid),
 m_inst    (inst)
@@ -568,8 +483,8 @@ ComMemberVariable::GetEnumerator() const
     throw std::runtime_error("Member cannot be enumerated");
   }
 
-  // Convert the object to a ComInstance
-  ComInstance* ci = dynamic_cast<ComInstance*>(&value.GetObject());
+  // Convert the object to a ComObject
+  ComObject* ci = dynamic_cast<ComObject*>(&value.GetObject());
   if(ci == 0)
   {
     throw std::runtime_error("Member cannot be enumerated");
@@ -610,7 +525,7 @@ ComMemberVariable::GetEnumerator() const
 
 //////////////////////////////////////////////////////////////////////////
 
-ComMemberFunction::ComMemberFunction(String name, DISPID dispid, ComInstance const* instance) :
+ComMemberFunction::ComMemberFunction(String name, DISPID dispid, ComObject const* instance) :
 Function  (name),
 m_inst    (instance),
 m_dispid  (dispid)
