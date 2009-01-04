@@ -101,8 +101,7 @@ protected:
   //
   // Members
   //
-  Evaluator*      m_eval;
-  Class const*    m_class;
+  Class const* m_class;
 
   //
   // Class required access for instantiation

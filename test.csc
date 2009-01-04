@@ -1,10 +1,12 @@
 include "test.csi";
 
-function foo1(a);
+function foo1(a){}
 function foo2(a = null);
 function foo3(a, b);
 function foo4(a, b = null);
 function foo5(a = null, b = null);
+
+var f = function(a){ print("{a}\n"); };
 
 if(true)
 {
@@ -104,3 +106,5 @@ for(var v in [1, 2, 3, [true, false], [1, [2, 3]], "Blabla"])
 }
 
 print("\nDone\n\n");
+
+dump();

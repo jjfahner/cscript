@@ -121,9 +121,9 @@ public:
     ie = m_vars.end();
     for(; it != ie; ++it)
     {
-      if(it->second->GetValue().Type() == Value::tObject)
+      if(it->second->Type() == Value::tObject)
       {
-        objects.insert(&it->second->GetValue().GetObject());
+        objects.insert(&it->second->GetObject());
       }
     }
     if(m_parent)

@@ -151,12 +151,12 @@ public:
   //
   // Class factory
   //
-  static Instance* Create(Evaluator* eval, ComClass const* c);
+  static Instance* Create(ComClass const* c);
 
   //
   // Class factory
   //
-  static Instance* Create(Evaluator* eval, IDispatch* p);
+  static Instance* Create(IDispatch* p);
 
   //
   // Class type name
@@ -219,7 +219,7 @@ protected:
   //
   // Construction
   //
-  ComInstance(Evaluator* eval, ComClass const* c, IDispatch* pdisp = 0);
+  ComInstance(ComClass const* c, IDispatch* pdisp = 0);
 
   //
   // Destruction
@@ -248,7 +248,7 @@ public:
   //
   // Construction
   //
-  ComEnumerator(Evaluator* eval, IEnumVARIANTPtr const& pEnum);
+  ComEnumerator(IEnumVARIANTPtr const& pEnum);
 
   //
   // Reset enumerator to first entry
@@ -314,7 +314,7 @@ public:
   //
   // Execution
   //
-  virtual Value Execute(Evaluator* evaluator, Arguments& args);
+  virtual Value Execute(Arguments& args);
 
 protected:
 

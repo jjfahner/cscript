@@ -33,14 +33,14 @@ class Evaluator;
 // Base class for functions
 //
 
-class Function
+class Function : public Object
 {
 public:
 
   //
   // Construction
   //
-  Function (String name) :
+  Function(String name) :
   m_name (name)
   {
   }
@@ -50,6 +50,14 @@ public:
   //
   virtual ~Function()
   {
+  }
+
+  //
+  // Object type
+  //
+  virtual String GetTypeName() const
+  {
+    return Object::GetTypeName() + "::" + m_name;
   }
 
   //
@@ -143,6 +151,14 @@ public:
   }
 
   //
+  // Object type
+  //
+  virtual String GetTypeName() const
+  {
+    return Object::GetTypeName() + "::" + m_class->GetName() + "::" + Function::GetName();
+  }
+
+  //
   // Retrieve class
   //
   Class const* GetClass() const
@@ -172,7 +188,7 @@ public:
   // Construction
   //
   Constructor(Class const* cl, Ast* node) :
-  MemberFunction("", cl, node)
+  MemberFunction("Constructor", cl, node)
   {
   }
 
@@ -191,7 +207,7 @@ public:
   // Construction
   //
   Destructor(Class const* cl, Ast* node) :
-  MemberFunction("", cl, node)
+  MemberFunction("Destructor", cl, node)
   {
   }
 

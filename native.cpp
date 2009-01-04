@@ -96,7 +96,7 @@ void PrintValue(Value const& val)
     csout << val.GetString();
     return;
 
-  case Value::tObject:    
+  case Value::tObject:
     break;
 
   default: 

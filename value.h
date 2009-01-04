@@ -219,18 +219,9 @@ class ValueComparatorLess
 public:
 
   //
-  // Construction
-  //
-  ValueComparatorLess(Evaluator* evaluator);
-
-  //
   // Less-than operator
   //
   bool operator () (Value const& lhs, Value const& rhs) const;
-
-private:
-
-  Evaluator* m_evaluator;
 
 };
 

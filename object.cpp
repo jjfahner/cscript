@@ -33,9 +33,9 @@ static Objects g_finalized;
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ Object*
-Object::Create(Evaluator* evaluator)
+Object::Create()
 {
-  return new Object(evaluator);
+  return new Object();
 }
 
 /*static*/ Objects const& 
@@ -46,9 +46,7 @@ Object::GetObjects()
 
 //////////////////////////////////////////////////////////////////////////
 
-Object::Object(Evaluator* eval) :
-m_evaluator (eval),
-m_variables (eval)
+Object::Object() 
 {
   g_objects.insert(this);
 }
@@ -65,7 +63,7 @@ Object::~Object()
 String 
 Object::GetTypeName() const
 {
-  return String("Native") + typeid(*this).name();
+  return typeid(*this).name();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -164,9 +162,9 @@ MarkObjects(Objects& white, Objects& grey, Objects& black)
       {
         grey.insert(&it->first.GetObject());
       }
-      if(it->second->GetValue().Type() == Value::tObject)
+      if(it->second->Type() == Value::tObject)
       {
-        grey.insert(&it->second->GetValue().GetObject());
+        grey.insert(&it->second->GetObject());
       }
     }
   }

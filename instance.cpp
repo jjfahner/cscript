@@ -28,8 +28,6 @@ Instance::Create(Evaluator* eval, Class const* c)
 }
 
 Instance::Instance(Evaluator* eval, Class const* c) :
-Object      (eval),
-m_eval      (eval), 
 m_class     (c)
 {
   // Enumerate variable definitions
@@ -46,7 +44,7 @@ m_class     (c)
     }
     else
     {
-      value.SetValue(m_eval->EvalExpression(it->second->m_a2));
+      value.SetValue(eval->EvalExpression(it->second->m_a2));
     }
 
     // Instantiate member variable
