@@ -1,26 +1,36 @@
-var a = {
-  
-  foo : function() 
-  { 
-    print("In foo:{baz}\n");
-    ++baz;
-  },
 
-  bar : function() 
-  { 
-    print("In bar:{baz}\n"); 
-    ++baz;
-  },
+function main()
+{
+  /*
+  { Foo : function(h) { print("{h} {w}\n");}, w : "world" }.Foo("Hello");
 
-  baz : 10
+  var a = {
+    
+    foo : function() 
+    { 
+      print("In foo:{baz}\n");
+      ++baz;
+    },
 
-};
+    bar : function() 
+    { 
+      print("In bar:{baz}\n"); 
+      ++baz;
+    },
 
-var b = {};
+    baz : 10
 
-a.foo();
-a.bar();
+  };
 
-[ "yessir" : function() { print("yessir\n");} ].yessir();
+  var b = {};
 
-dump();
+  a.foo();
+  a.bar();
+
+  { Anonymous : function(arg) { print("Anonymous {arg}\n");} }.Anonymous("data");
+  */
+   var c = function(arg) { print(" -> {arg} <- \n"); };
+   c("Hello");
+}
+
+main();

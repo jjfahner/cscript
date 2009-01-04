@@ -232,7 +232,7 @@ list_entry(R)   ::= expression(A) COLON expression(B) . { R = p->AllocAst(list_e
 
 // JSON definition
 json_literal(R) ::= LBRACE json_content(A) RBRACE . { R = p->AllocAst(json_literal, A); }
-json_literal(R) ::= LBRACE RBRACE . { R = p->AllocAst(json_literal); }
+//json_literal(R) ::= LBRACE RBRACE . { R = p->AllocAst(json_literal); }
 json_content(R) ::= json_entry(A) . { R = p->AllocAst(json_content, A); }
 json_content(R) ::= json_entry(A) COMMA json_content(B) . { R = p->AllocAst(json_content, A, B); }
 json_entry(R)   ::= IDENTIFIER(A) COLON expression(B) .   { R = p->AllocAst(json_entry, String(A), B); }
@@ -291,11 +291,8 @@ expression_statement(R) ::= SEMICOLON .               { R = p->AllocAst(empty_st
 expression_statement(R) ::= expression(A) SEMICOLON . { R = p->AllocAst(expression_statement, A); }
 
 // Compound statement
+compound_statement(R) ::= LBRACE RBRACE .                       { R = p->AllocAst(compound_statement); }
 compound_statement(R) ::= LBRACE statement_sequence(A) RBRACE . { R = p->AllocAst(compound_statement, A); }
-
-// Compound statement
-compound_or_empty_statement(R) ::= LBRACE RBRACE .                       { R = p->AllocAst(compound_statement); }
-compound_or_empty_statement(R) ::= LBRACE statement_sequence(A) RBRACE . { R = p->AllocAst(compound_statement, A); }
 
 // Include statement
 include_statement(R) ::= INCLUDE LIT_STRING(A) SEMICOLON . { p->ParseFile(A); R = 0; }
@@ -349,13 +346,13 @@ class_member(R) ::= constructor(A) .                    { R = A; }
 class_member(R) ::= destructor(A) .                     { R = A; }
 
 // Constructor
-constructor(R) ::= type(A) LPAREN parameter_list(B) RPAREN compound_or_empty_statement(C) . { R = p->AllocAst(constructor, A, B, C); }
+constructor(R) ::= type(A) LPAREN parameter_list(B) RPAREN compound_statement(C) . { R = p->AllocAst(constructor, A, B, C); }
 
 // Destructor
-destructor(R) ::= TILDE type(A) LPAREN RPAREN compound_or_empty_statement(B) . { R = p->AllocAst(destructor, A, new AstList, B); }
+destructor(R) ::= TILDE type(A) LPAREN RPAREN compound_statement(B) . { R = p->AllocAst(destructor, A, new AstList, B); }
 
 // Conversion operator - make sure to have approx. the same layout as for regular functions
-conversion_operator(R) ::= OPERATOR type(A) LPAREN RPAREN compound_or_empty_statement(B) . { R = p->AllocAst(conversion_operator, A, new AstList, B); }
+conversion_operator(R) ::= OPERATOR type(A) LPAREN RPAREN compound_statement(B) . { R = p->AllocAst(conversion_operator, A, new AstList, B); }
 
 // Class members
 %type class_members { AstList* }
@@ -496,12 +493,12 @@ case_statements(R) ::= statement_sequence(A) . { R = A; }
 // Exception handling
 //
 
-try_statement(R) ::= TRY compound_or_empty_statement(A) catch_block(B) .                   { R = p->AllocAst(try_statement, A, B); }
-try_statement(R) ::= TRY compound_or_empty_statement(A) finally_block(B) .                 { R = p->AllocAst(try_statement, A, AstData(), B); }
-try_statement(R) ::= TRY compound_or_empty_statement(A) catch_block(B) finally_block(C) .  { R = p->AllocAst(try_statement, A, B, C); }
+try_statement(R) ::= TRY compound_statement(A) catch_block(B) .                   { R = p->AllocAst(try_statement, A, B); }
+try_statement(R) ::= TRY compound_statement(A) finally_block(B) .                 { R = p->AllocAst(try_statement, A, AstData(), B); }
+try_statement(R) ::= TRY compound_statement(A) catch_block(B) finally_block(C) .  { R = p->AllocAst(try_statement, A, B, C); }
 
-catch_block(R) ::= CATCH LPAREN IDENTIFIER(A) RPAREN compound_or_empty_statement(B) . { R = p->AllocAst(catch_block, String(A), B); }
+catch_block(R) ::= CATCH LPAREN IDENTIFIER(A) RPAREN compound_statement(B) . { R = p->AllocAst(catch_block, String(A), B); }
 
-finally_block(R) ::= FINALLY compound_or_empty_statement(A) . { R = p->AllocAst(finally_block, A); }
+finally_block(R) ::= FINALLY compound_statement(A) . { R = p->AllocAst(finally_block, A); }
 
 throw_statement(R) ::= THROW expression(A) SEMICOLON . { R = p->AllocAst(throw_statement, A); }
