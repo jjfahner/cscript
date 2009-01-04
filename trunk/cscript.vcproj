@@ -232,6 +232,14 @@
 						DisableLanguageExtensions="false"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\comtype.h"
