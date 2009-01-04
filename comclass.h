@@ -194,7 +194,7 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool FindVar(String const& name, RValue*& ptr) const;
+  virtual bool Find(String const& name, RValue*& ptr) const;
 
   //
   // Retrieve a function

@@ -54,8 +54,8 @@ Object::Object()
 
 Object::~Object()
 {
-  Variables::iterator it = m_variables.begin();
-  for(; it != m_variables.end(); ++it)
+  Members::iterator it = m_members.begin();
+  for(; it != m_members.end(); ++it)
   {
     delete it->second;
   }
@@ -68,37 +68,21 @@ Object::GetTypeName() const
 }
 
 bool 
-Object::FindVar(String const& name, RValue*& ptr) const
+Object::Contains(Value const& key) const
 {
-  Variables::const_iterator it = m_variables.find(name);
-  if(it == m_variables.end())
-  {
-    return false;
-  }
-  ptr = it->second;
-  return true;
+  return m_members.count(key) != 0;
 }
 
-//
-// Retrieve a function
-//
 bool 
-Object::FindMethod(String const& name, Function*& fun) const
+Object::Find(Value const& name, RValue*& pValue) const
 {
-  Variables::const_iterator it = m_variables.find(name);
-  if(it == m_variables.end())
+  Members::const_iterator it = m_members.find(name);
+  if(it == m_members.end())
   {
     return false;
   }
-  
-  if(it->second->Type() != Value::tObject)
-  {
-    return false;
-  }
-
-  fun = dynamic_cast<Function*>(&it->second->GetObject());
-  
-  return fun != 0;
+  pValue = it->second;
+  return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -188,9 +172,9 @@ MarkObjects(Objects& white, Objects& grey, Objects& black)
     black.insert(obj);
 
     // Walk object members
-    Variables::const_iterator it, ie;
-    it = obj->GetVariables().begin();
-    ie = obj->GetVariables().end();
+    Members::const_iterator it, ie;
+    it = obj->GetMembers().begin();
+    ie = obj->GetMembers().end();
     for(; it != ie; ++it)
     {
       if(it->first.Type() == Value::tObject)

@@ -90,16 +90,16 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool FindVar(String const& name, RValue*& ptr) const
+  virtual bool Find(String const& name, RValue*& ptr) const
   {
     ptr = 0;
-    if(FindVarLocal(name, ptr))
+    if(FindLocal(name, ptr))
     {
       return true;
     }
     if(m_parent)
     {
-      return m_parent->FindVar(name, ptr);
+      return m_parent->Find(name, ptr);
     }
     return false;
   }
@@ -107,7 +107,7 @@ public:
   //
   // Retrieve list of variables
   //
-  Variables const& GetVariables() const
+  Variables const& GetMembers() const
   {
     return m_vars;
   }
@@ -144,31 +144,6 @@ public:
   virtual void AddFun(Function* fun)
   {
     throw std::runtime_error("Invalid scope for function declaration");
-  }
-
-  //
-  // Retrieve a function
-  //
-  virtual bool FindMethod(String const& name, Function*& fun) const 
-  {
-    if(FindFunLocal(name, fun))
-    {
-      return true;
-    }
-    if(m_parent)
-    {
-      return m_parent->FindMethod(name, fun);
-    }
-    return false;
-  }
-
-  //
-  // Retrieve list of functions
-  //
-  virtual Functions const& GetFunctions() const
-  {
-    static Functions functions;
-    return functions;
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -214,7 +189,7 @@ protected:
   //
   // Retrieve a variable from local scope
   //
-  virtual bool FindVarLocal(String const& name, RValue*& ptr) const
+  virtual bool FindLocal(String const& name, RValue*& ptr) const
   {
     Variables::const_iterator it = m_vars.find(name);
     if(it == m_vars.end())
@@ -223,14 +198,6 @@ protected:
     }
     ptr = it->second;
     return true;
-  }
-
-  //
-  // Retrieve a function from local scope
-  //
-  virtual bool FindFunLocal(String const& name, Function*& node) const
-  {
-    return false;
   }
 
   //
@@ -278,46 +245,11 @@ public:
   virtual void AddFun(Function* fun);
 
   //
-  // Retrieve list of functions
-  //
-  virtual Functions const& GetFunctions() const
-  {
-    return m_funs;
-  }
-
-  //
   // Add class to this scope
   //
   virtual void AddClass(Class* c);
 
 protected:
-
-  //
-  // Retrieve a function
-  //
-  virtual bool FindFunLocal(String const& name, Function*& fun) const
-  {
-    fun = 0;
-
-    Functions::const_iterator it = m_funs.find(name);
-    if(it != m_funs.end())
-    {
-      fun = it->second;
-      return true;
-    }
-
-    Variables::const_iterator vi = m_vars.find(name);
-    if(vi != m_vars.end())
-    {
-      if(vi->second->Type() == Value::tObject)
-      {
-        fun = dynamic_cast<Function*>(&vi->second->GetObject());
-      }
-      return fun != 0;
-    }
-    
-    return false;
-  }
 
   //
   // Retrieve a class
@@ -337,7 +269,6 @@ protected:
   //
   // Members
   //
-  Functions m_funs;
   Classes   m_classes;
 
 };
@@ -380,12 +311,7 @@ protected:
   //
   // Retrieve a local variable
   //
-  virtual bool FindVarLocal(String const& name, RValue*& ref) const;
-
-  //
-  // Retrieve a local function
-  //
-  virtual bool FindFunLocal(String const& name, Function*& fun) const;
+  virtual bool FindLocal(String const& name, RValue*& ref) const;
 
   //
   // Members

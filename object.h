@@ -38,7 +38,7 @@ typedef std::set<Object*> Objects;
 //
 // Member map
 //
-typedef std::map<Value, RValue*, ValueComparatorLess> Variables;
+typedef std::map<Value, RValue*, ValueComparatorLess> Members;
 
 //
 // Object class
@@ -85,29 +85,29 @@ public:
   //
   // Retrieve variables
   //
-  virtual Variables& GetVariables()
+  virtual Members& GetMembers()
   {
-    return m_variables;
+    return m_members;
   }
 
   //
   // Retrieve const variables
   //
-  Variables const& GetVariables() const
+  Members const& GetMembers() const
   {
-    return const_cast<Object*>(this)->GetVariables();
+    return const_cast<Object*>(this)->GetMembers();
   }
 
   //
-  // Retrieve a variable
+  // Contains a member
   //
-  virtual bool FindVar(String const& name, RValue*& ptr) const;
+  virtual bool Contains(Value const& key) const;
 
   //
-  // Retrieve a function
+  // Find a member
   //
-  virtual bool FindMethod(String const& name, Function*& fun) const;
-
+  virtual bool Find(Value const& name, RValue*& pValue) const;
+  
   //
   // Finalization
   //
@@ -133,7 +133,7 @@ private:
   //
   // Object members
   //
-  Variables  m_variables;
+  Members m_members;
 
 };
 

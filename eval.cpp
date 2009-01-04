@@ -830,7 +830,7 @@ Evaluator::EvalIndex(Ast* node)
   }
 
   // Retrieve value
-  Variables& vars = lhs.GetObject().GetVariables();
+  Members& vars = lhs.GetObject().GetMembers();
   RValue* val = vars[rhs];
   if(val == 0)
   {
@@ -847,7 +847,7 @@ RValue&
 Evaluator::EvalLValue(Ast* node)
 {
   RValue* ptr;
-  if(m_scope->FindVar(node->m_a1, ptr))
+  if(m_scope->Find(node->m_a1, ptr))
   {
     return *ptr;
   }
@@ -957,49 +957,47 @@ GetInstance(Value const& v)
 Value
 Evaluator::EvalFunctionCall(Ast* node)
 {
-  Function* fun = 0;
   Arguments args;
 
   // Resolve function pointer
+  RValue* rval = 0;
   if(node->m_a3)
   {
     // Evaluate instance expression
     args.SetObject(&EvalExpression(node->m_a3).GetObject());
 
     // Resolve function on object
-    Function* memfun;
-    if(!args.GetObject()->FindMethod(node->m_a1, memfun))
+    if(!args.GetObject()->Find(String(node->m_a1), rval))
     {
       throw script_exception(node, "Object doesn't support this method");
     }
-    fun = memfun;
   }
   else
   {
     // Find first object with this name
-    RValue* var;
-    if(!m_scope->FindVar(node->m_a1, var))
+    if(!m_scope->Find(String(node->m_a1), rval))
     {
       throw script_exception(node, "Function not found");
     }
-    
-    // Must be an object
-    if(var->Type() != Value::tObject)
-    {
-      throw script_exception(node, "Name doesn't refer to a function");
-    }
+  }
 
-    // Cast to function
-    if((fun = dynamic_cast<Function*>(&var->GetObject())) == 0)
-    {
-      throw script_exception(node, "Name doesn't refer to a function");
-    }
+  // Must be an object
+  if(rval->Type() != Value::tObject)
+  {
+    throw script_exception(node, "Name doesn't refer to a function");
+  }
 
-    // In case of member function, prepend instance
-    if(dynamic_cast<MemberFunction*>(fun))
-    {
-      args.SetObject(&EvalThisExpression(node).GetObject());
-    }
+  // Cast to function
+  Function* fun;
+  if((fun = dynamic_cast<Function*>(&rval->GetObject())) == 0)
+  {
+    throw script_exception(node, "Name doesn't refer to a function");
+  }
+
+  // In case of member function, prepend instance
+  if(args.GetObject() == 0 && dynamic_cast<MemberFunction*>(fun))
+  {
+    args.SetObject(&EvalThisExpression(node).GetObject());
   }
 
   // Add parameters to arguments
@@ -1125,7 +1123,7 @@ Evaluator::EvalPositionalArguments(Ast* node, Function* fun, AstList const* argl
         Value val = EvalExpression(*ai);
 
         // Append to list
-        va->GetVariables()[va->GetVariables().size() - 1] = new RWVariable(val);
+        va->GetMembers()[va->GetMembers().size() - 1] = new RWVariable(val);
       }
 
       // Done
@@ -1270,7 +1268,7 @@ Evaluator::EvalListLiteral(Ast* node)
       }
 
       // Insert into member variables
-      o.GetVariables()[key] = new RWVariable(element);
+      o.GetMembers()[key] = new RWVariable(element);
 
       // Check for next element
       if(child->m_a2.Empty()) 
@@ -1302,7 +1300,7 @@ Evaluator::EvalJsonLiteral(Ast* node)
     {
       // Retrieve and check key
       String key = child->m_a1->m_a1;
-      if(o.GetVariables().count(key))
+      if(o.GetMembers().count(key))
       {
         throw script_exception(node, "Duplicate key in JSON literal");
       }
@@ -1311,7 +1309,7 @@ Evaluator::EvalJsonLiteral(Ast* node)
       RValue const& element = EvalExpression(child->m_a1->m_a2);
 
       // Insert into member variables
-      o.GetVariables()[key] = new RWVariable(element);
+      o.GetMembers()[key] = new RWVariable(element);
 
       // Check for next element
       if(child->m_a2.Empty()) 
@@ -1411,7 +1409,7 @@ Evaluator::EvalForeachStatement(Ast* node)
 
   // Fetch variable
   RValue* rval;
-  if(!m_scope->FindVar(varName, rval))
+  if(!m_scope->Find(varName, rval))
   {
     throw script_exception(node, "Failed to find iterator variable");
   }
@@ -1615,7 +1613,7 @@ Evaluator::EvalMemberExpression(Ast* node)
 
   // Retrieve value
   RValue* ptr;
-  if(!instPtr->FindVar(node->m_a2, ptr))
+  if(!instPtr->Find(String(node->m_a2), ptr))
   {
     throw script_exception(node, "Class has no member '" + node->m_a2.GetString() + "'");
   }

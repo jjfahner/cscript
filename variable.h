@@ -142,7 +142,7 @@ public:
 
 class ObjectEnumerator : public Enumerator
 {
-  typedef Variables::const_iterator Iterator;
+  typedef Members::const_iterator Iterator;
 
   Object&  m_obj;
   Iterator m_cur;
@@ -159,13 +159,13 @@ public:
   virtual void Reset()
   {
     // Set iterator to start
-    m_cur = m_obj.GetVariables().begin();
+    m_cur = m_obj.GetMembers().begin();
   }
 
   virtual bool GetNext(Value& value)
   {
     // Check current position
-    if(m_cur == m_obj.GetVariables().end())
+    if(m_cur == m_obj.GetMembers().end())
     {
       return false;
     }
@@ -195,7 +195,7 @@ RValue::GetEnumerator() const
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Variables
+// Members
 //
 
 class Variable

@@ -66,29 +66,21 @@ public:
   //
   virtual size_t GetVarCount() const
   {
-    return GetVariables().size();
+    return GetMembers().size();
   }
 
   //
   // Retrieve a variable
   //
-  virtual bool FindVar(String const& name, RValue*& ptr) const
+  virtual bool Find(String const& name, RValue*& ptr) const
   {
-    Variables::const_iterator it = GetVariables().find(name);
-    if(it == GetVariables().end())
+    Members::const_iterator it = GetMembers().find(name);
+    if(it == GetMembers().end())
     {
       return false;
     }
     ptr = it->second;
     return true;
-  }
-
-  //
-  // Retrieve a function
-  //
-  virtual bool FindMethod(String const& name, Function*& fun) const
-  {
-    return m_class->FindMethod(name, fun);
   }
 
 protected:
