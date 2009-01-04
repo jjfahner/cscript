@@ -272,60 +272,6 @@ ComClass::GetTypeInfo() const
 }
 
 bool 
-ComClass::FindMethod(String const& name, Function*& fun) const
-{
-  // No typelib loaded yet
-  if(m_typeInfo == 0)
-  {
-    return false;
-  }
-
-  // Find method info
-  DISPID dispid;
-  if(!m_typeInfo->GetDispIdOfName(name, dispid))
-  {
-    return false;
-  }
-
-  // Lookup in method list
-  if(m_methods.count(dispid))
-  {
-    fun = m_methods[dispid];
-    return true;
-  }
-
-  // Retrieve proper name
-  String properName;
-  if(!m_typeInfo->GetNameOfDispId(dispid, properName))
-  {
-    return false;
-  }
-
-  // Retrieve function info
-  FUNCDESC* pfd;
-  if(!m_typeInfo->GetFuncDescOfDispId(dispid, &pfd))
-  {
-    return false;
-  }
-
-  // Property accessors are not returned as functions
-  if(pfd->invkind == INVOKE_PROPERTYGET    ||
-     pfd->invkind == INVOKE_PROPERTYPUT    ||
-     pfd->invkind == INVOKE_PROPERTYPUTREF )
-  {
-    return false;
-  }
-
-  // Create and cache method
-  ComMemberFunction* method = new ComMemberFunction(properName, this, dispid);
-  m_methods[dispid] = method;
-
-  // Succeeded
-  fun = method;
-  return true;
-}
-
-bool 
 ComClass::FindConversion(TypeInfo const& type, ConversionOperator*& node) const
 {
   return false;
@@ -376,7 +322,7 @@ ComInstance::~ComInstance()
 }
 
 bool 
-ComInstance::Find(String const& name, RValue*& ptr) const
+ComInstance::Find(Value const& name, RValue*& ptr) const
 {
   // No typelib loaded yet
   if(m_class->GetTypeInfo() == 0)
@@ -386,7 +332,7 @@ ComInstance::Find(String const& name, RValue*& ptr) const
 
   // Find method info
   DISPID dispid;
-  if(!m_class->GetTypeInfo()->GetDispIdOfName(name, dispid))
+  if(!m_class->GetTypeInfo()->GetDispIdOfName(name.GetString(), dispid))
   {
     return false;
   }
@@ -398,13 +344,13 @@ ComInstance::Find(String const& name, RValue*& ptr) const
     return false;
   }
 
-  // Retrieve non-const variables list
-  Members& vars = const_cast<ComInstance*>(this)->GetMembers();
+  // We'll need a non-const version of the members array
+  Members& members = const_cast<Members&>(m_members);
 
   // Lookup the variable
-  if(vars.count(properName))
+  if(members.count(properName))
   {
-    ptr = vars[properName];
+    ptr = members[properName];
     return true;
   }
 
@@ -415,17 +361,18 @@ ComInstance::Find(String const& name, RValue*& ptr) const
     return false;
   }
 
-  // Property accessors are not returned as functions
+  // Create right sort of object
   if(pfd->invkind == INVOKE_FUNC)
   {
-    return false;
+    ptr = new ROVariable(new ComMemberFunction(properName, dispid, this));
+  }
+  else
+  {
+    ptr = new ComMemberVariable(properName, dispid, this);
   }
 
-  // Create a variable instance
-  ptr = new ComMemberVariable(properName, dispid, this);
-
   // Add to member variables
-  vars[properName] = ptr;
+  members[properName] = ptr;
 
   // Done
   return true;
@@ -663,10 +610,10 @@ ComMemberVariable::GetEnumerator() const
 
 //////////////////////////////////////////////////////////////////////////
 
-ComMemberFunction::ComMemberFunction(String name, ComClass const* cl, DISPID dispid) :
-MemberFunction  (name, cl, 0),
-m_class         (cl),
-m_dispid        (dispid)
+ComMemberFunction::ComMemberFunction(String name, DISPID dispid, ComInstance const* instance) :
+Function  (name),
+m_inst    (instance),
+m_dispid  (dispid)
 {
 }
 
@@ -677,17 +624,7 @@ ComMemberFunction::GetParameters() const
 }
 
 Value 
-ComMemberFunction::Execute(Arguments& args)
+ComMemberFunction::Execute(Evaluator*, Arguments& args)
 {
-  USES_CONVERSION;
-
-  // Fetch instance
-  ComInstance* inst = dynamic_cast<ComInstance*>(args.GetObject());
-  if(inst == 0)
-  {
-    throw std::runtime_error("COM method invoked on invalid object type");
-  }
-
-  // Invoke on instance
-  return inst->Invoke(m_dispid, INVOKE_FUNC, args);
+  return m_inst->Invoke(m_dispid, INVOKE_FUNC, args);
 }
