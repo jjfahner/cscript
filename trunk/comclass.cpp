@@ -283,7 +283,19 @@ ComObject::Find(Value const& name, RValue*& ptr) const
   }
   else
   {
-    ptr = new ComMemberVariable(properName, dispid, this);
+    if(!(pfd->invkind & INVOKE_PROPERTYGET))
+    {
+      throw std::runtime_error("Write-only COM properties not supported");
+    }
+    if((pfd->invkind & INVOKE_PROPERTYPUT)    ||
+       (pfd->invkind & INVOKE_PROPERTYPUTREF) )
+    {
+      ptr = new RWComVariable(properName, dispid, this);
+    }
+    else
+    {
+      ptr = new ROComVariable(properName, dispid, this);
+    }
   }
 
   // Add to member variables
@@ -316,10 +328,10 @@ ComObject::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args, VARIANT
   // Check parameter count
   USHORT minPars = pfd->cParams - pfd->cParamsOpt;
   USHORT maxPars = pfd->cParams;
-  if(/*args.size() < minPars ||*/ args.size() > maxPars)
-  {
-    throw std::runtime_error("Invalid number of arguments supplied to COM method");
-  }
+//   if(/*args.size() < minPars ||*/ args.size() > maxPars)
+//   {
+//     throw std::runtime_error("Invalid number of arguments supplied to COM method");
+//   }
 
   // Create arguments list
   DISPPARAMS dispparams;
@@ -395,6 +407,55 @@ ComObject::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const
   return result;
 }
 
+Enumerator* 
+ComObject::GetEnumerator(Value const& value) const
+{
+  // Check that it's a dispatch pointer
+  if(value.Type() != Value::tObject)
+  {
+    throw std::runtime_error("Member cannot be enumerated");
+  }
+
+  // Convert the object to a ComObject
+  ComObject* ci = dynamic_cast<ComObject*>(&value.GetObject());
+  if(ci == 0)
+  {
+    throw std::runtime_error("Member cannot be enumerated");
+  }
+
+  // Retrieve the DISPID_NEWENUM object
+  IUnknownPtr pUnk;
+  try
+  {
+    // Prepare result variant
+    VARIANT vResult;
+    VariantInit(&vResult);
+
+    // Invoke NEWENUM
+    ci->Invoke(DISPID_NEWENUM, INVOKE_PROPERTYGET, Arguments(), vResult);
+
+    // Copy pEnum
+    pUnk = vResult.punkVal;
+
+    // Cleanup
+    VariantClear(&vResult);
+  }
+  catch(std::runtime_error const&)
+  {
+    throw std::runtime_error("Member cannot be enumerated");
+  }
+
+  // Accept empty enumerator, but when filled, check conversion
+  IEnumVARIANTPtr pEnum(pUnk);
+  if(pUnk && !pEnum)
+  {
+    throw std::runtime_error("Member cannot be enumerated");
+  }
+
+  // Construct enumerator
+  return new ComEnumerator(pEnum);
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 ComEnumerator::ComEnumerator(IEnumVARIANTPtr const& pEnum) :
@@ -440,7 +501,7 @@ ComEnumerator::GetNext(Value& value)
 
 //////////////////////////////////////////////////////////////////////////
 
-ComMemberVariable::ComMemberVariable(String name, DISPID dispid, ComObject const* inst) :
+ROComVariable::ROComVariable(String name, DISPID dispid, ComObject const* inst) :
 m_name    (name),
 m_dispid  (dispid),
 m_inst    (inst)
@@ -448,7 +509,35 @@ m_inst    (inst)
 }
 
 Value const& 
-ComMemberVariable::GetValue() const
+ROComVariable::GetValue() const
+{
+  // Setup empty argument list
+  Arguments args;
+
+  // Invoke property getter
+  m_value = m_inst->Invoke(m_dispid, INVOKE_PROPERTYGET, args);
+
+  // Return stored value
+  return m_value;
+}
+
+Enumerator* 
+ROComVariable::GetEnumerator() const
+{
+  return m_inst->GetEnumerator(GetValue());
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+RWComVariable::RWComVariable(String name, DISPID dispid, ComObject const* inst) :
+m_name    (name),
+m_dispid  (dispid),
+m_inst    (inst)
+{
+}
+
+Value const& 
+RWComVariable::GetValue() const
 {
   // Setup empty argument list
   Arguments args;
@@ -461,7 +550,7 @@ ComMemberVariable::GetValue() const
 }
 
 void 
-ComMemberVariable::SetValue(Value const& rhs)
+RWComVariable::SetValue(Value const& rhs)
 {
   // Setup argument list
   Arguments args;
@@ -471,56 +560,10 @@ ComMemberVariable::SetValue(Value const& rhs)
   m_inst->Invoke(m_dispid, INVOKE_PROPERTYPUT, args);
 }
 
-ComEnumerator* 
-ComMemberVariable::GetEnumerator() const
+Enumerator* 
+RWComVariable::GetEnumerator() const
 {
-  // Retrieve property value
-  Value const& value = GetValue();
-
-  // Check that it's a dispatch pointer
-  if(value.Type() != Value::tObject)
-  {
-    throw std::runtime_error("Member cannot be enumerated");
-  }
-
-  // Convert the object to a ComObject
-  ComObject* ci = dynamic_cast<ComObject*>(&value.GetObject());
-  if(ci == 0)
-  {
-    throw std::runtime_error("Member cannot be enumerated");
-  }
-
-  // Retrieve the DISPID_NEWENUM object
-  IUnknownPtr pUnk;
-  try
-  {
-    // Prepare result variant
-    VARIANT vResult;
-    VariantInit(&vResult);
-
-    // Invoke NEWENUM
-    ci->Invoke(DISPID_NEWENUM, INVOKE_PROPERTYGET, Arguments(), vResult);
-
-    // Copy pEnum
-    pUnk = vResult.punkVal;
-
-    // Cleanup
-    VariantClear(&vResult);
-  }
-  catch(std::runtime_error const&)
-  {
-    throw std::runtime_error("Member cannot be enumerated");
-  }
-
-  // Accept empty enumerator, but when filled, check conversion
-  IEnumVARIANTPtr pEnum(pUnk);
-  if(pUnk && !pEnum)
-  {
-    throw std::runtime_error("Member cannot be enumerated");
-  }
-
-  // Construct enumerator
-  return new ComEnumerator(pEnum);
+  return m_inst->GetEnumerator(GetValue());
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -691,7 +691,7 @@ RValue&
 Evaluator::EvalAssignment(Ast* node)
 {
   // Evaluate left-hand side
-  LValue& lhs = dynamic_cast<LValue&>(EvalExpression(node->m_a2));
+  LValue& lhs = EvalExpression(node->m_a2).LVal();
   if(&lhs == 0)
   {
     throw std::runtime_error("Expression does not yield an lvalue");

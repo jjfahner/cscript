@@ -35,6 +35,7 @@ xmlDoc.preserveWhitespace = false;
 
 // Load XML data
 xmlDoc.load("sample.xml");
+xmlDoc.baseName = "bla";
 
 // Enumerate tree
 enumNodes(xmlDoc);

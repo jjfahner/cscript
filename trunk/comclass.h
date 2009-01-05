@@ -94,6 +94,11 @@ public:
   //
   Value Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const;
 
+  //
+  // Retrieve an enumerator for a property
+  //
+  Enumerator* GetEnumerator(Value const& value) const;
+
 protected:
 
   //
@@ -143,7 +148,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-class ComMemberVariable : public LValue
+class ROComVariable : public virtual RValue
 {
   ComObject const* m_inst;
   mutable Value m_value;
@@ -155,7 +160,35 @@ public:
   //
   // Construction
   //
-  ComMemberVariable(String name, DISPID dispid, ComObject const* inst);
+  ROComVariable(String name, DISPID dispid, ComObject const* inst);
+
+  //
+  // Retrieve value
+  //
+  Value const& GetValue() const;
+
+  //
+  // Create an enumerator
+  //
+  virtual Enumerator* GetEnumerator() const;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class RWComVariable : public LValue
+{
+  ComObject const* m_inst;
+  mutable Value m_value;
+  String m_name;
+  DISPID m_dispid;
+
+public:
+
+  //
+  // Construction
+  //
+  RWComVariable(String name, DISPID dispid, ComObject const* inst);
 
   //
   // Retrieve value
@@ -170,7 +203,7 @@ public:
   //
   // Create an enumerator
   //
-  virtual ComEnumerator* GetEnumerator() const;
+  virtual Enumerator* GetEnumerator() const;
 
 };
 

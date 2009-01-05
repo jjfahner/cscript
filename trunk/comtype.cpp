@@ -293,12 +293,22 @@ ComTypeInfo::InitCache() const
     String name(W2T(bstrName));
     SysFreeString(bstrName);
 
-    // Cache function info and DISPID
-    m_dispinf[pfd->memid] = *pfd;
-    m_dispnms[pfd->memid] = name;
+    // Check whether the dispid is already present
+    if(m_dispinf.count(pfd->memid))
+    {
+      // @HACK Combine the invkind flags
+      m_dispinf[pfd->memid].invkind = (INVOKEKIND)
+        (pfd->invkind|m_dispinf[pfd->memid].invkind);
+    }
+    else
+    {
+      // Cache function info and DISPID
+      m_dispinf[pfd->memid] = *pfd;
+      m_dispnms[pfd->memid] = name;
 
-    // Convert name to lower and cache it
-    m_dispids[name] = pfd->memid;
+      // Convert name to lower and cache it
+      m_dispids[name] = pfd->memid;
+    }
 
     // Release the function description
     pTypeInfo->ReleaseFuncDesc(pfd);
