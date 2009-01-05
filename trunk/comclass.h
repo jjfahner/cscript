@@ -148,7 +148,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-class ROComVariable : public virtual RValue
+class ROComVariable : public RValue
 {
   ComObject const* m_inst;
   mutable Value m_value;
