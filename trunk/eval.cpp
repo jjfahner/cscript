@@ -127,6 +127,11 @@ struct VecRestore
   }
   ~VecRestore()
   {
+    for(size_t i = m_size; i < m_vec.size(); ++i)
+    {
+      delete m_vec[i];
+      m_vec[i] = 0;
+    }
     m_vec.resize(m_size);
   }
 };
@@ -840,7 +845,7 @@ Evaluator::EvalIndex(Ast* node)
   }
   
   // Done
-  return *val;
+  return StoreTemp(new BoundLValue(val->LVal(), lhs));
 }
 
 RValue&
@@ -964,17 +969,6 @@ Evaluator::EvalFunctionCall(Ast* node)
     // Evaluate lhs expression
     rval = &EvalExpression(node->m_a1);
   }
-  else if(node->m_a3)
-  {
-    // Evaluate instance expression
-    args.SetObject(&EvalExpression(node->m_a3).GetObject());
-
-    // Resolve function on object
-    if(!args.GetObject()->Find(String(node->m_a1->m_a1), rval))
-    {
-      throw script_exception(node, "Object doesn't support this method");
-    }
-  }
   else
   {
     // Find first object with this name
@@ -982,6 +976,11 @@ Evaluator::EvalFunctionCall(Ast* node)
     {
       throw script_exception(node, "Function not found");
     }
+  }
+
+  if(BoundValue* bval = dynamic_cast<BoundValue*>(rval))
+  {
+    args.SetObject(bval->GetBoundObject());
   }
 
   // Cast to function
@@ -1605,18 +1604,29 @@ Evaluator::EvalNewExpression(Ast* node)
 RValue&
 Evaluator::EvalMemberExpression(Ast* node)
 {
-  // Evaluate left side
-  Object* instPtr = &EvalExpression(node->m_a1).GetObject();
-
-  // Retrieve value
-  RValue* ptr;
-  if(!instPtr->Find(String(node->m_a2), ptr))
+  // Retrieve left-hand side
+  Object* object = ValueToType<Object>(EvalExpression(node->m_a1));
+  if(object == 0)
   {
-    throw script_exception(node, "Class has no member '" + node->m_a2.GetString() + "'");
+    throw std::runtime_error("Left-hand side does not yield an object");
   }
 
-  // Done
-  return *ptr;
+  // Lookup right-hand side
+  RValue* rval;
+  if(!object->Find(String(node->m_a2->m_a1), rval))
+  {
+    throw script_exception(node, "Object has no member '" + node->m_a2.GetString() + "'");
+  }
+
+  // Construct bound member
+  if(LValue* lval = dynamic_cast<LValue*>(rval))
+  {
+    return StoreTemp(new BoundLValue(*lval, object));
+  }
+  else
+  {
+    return StoreTemp(new BoundRValue(*rval, object));
+  }
 }
 
 RValue&
