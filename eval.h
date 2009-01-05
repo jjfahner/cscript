@@ -184,8 +184,8 @@ protected:
   // Function handlers
   //
   friend class ScriptFunction;
-  Value EvalFunctionCall(Ast* node);
-  Value EvalScriptCall(ScriptFunction* fun, Arguments& args);
+  RValue& EvalFunctionCall(Ast* node);
+  RValue& EvalScriptCall(ScriptFunction* fun, Arguments& args);
 
   //
   // Convert a value in-place
