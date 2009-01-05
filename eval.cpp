@@ -942,21 +942,6 @@ Evaluator::EvalClassDecl(Ast* node)
   }
 }
 
-inline Instance* 
-GetInstance(Value const& v)
-{
-  if(v.Type() != Value::tObject)
-  {
-    throw std::runtime_error("Expression does not yield an object");
-  }
-  Instance* inst = dynamic_cast<Instance*>(&v.GetObject());
-  if(inst == 0)
-  {
-    throw std::runtime_error("Expression does not yield an object");
-  }
-  return inst;
-}
-
 Value
 Evaluator::EvalFunctionCall(Ast* node)
 {
@@ -964,36 +949,31 @@ Evaluator::EvalFunctionCall(Ast* node)
 
   // Resolve function pointer
   RValue* rval = 0;
-  if(node->m_a1->m_type != lvalue)
+  if(node->m_a1->m_type == lvalue)
   {
-    // Evaluate lhs expression
-    rval = &EvalExpression(node->m_a1);
-  }
-  else
-  {
-    // Find first object with this name
+    // Named objects are found through the current scope
     if(!m_scope->Find(String(node->m_a1->m_a1), rval))
     {
       throw script_exception(node, "Function not found");
     }
   }
-
-  if(BoundValue* bval = dynamic_cast<BoundValue*>(rval))
+  else
   {
-    args.SetObject(bval->GetBoundObject());
+    // Expressions are evaluated in the current scope
+    rval = &EvalExpression(node->m_a1);
   }
 
-  // Cast to function
+  // Cast result to function
   Function* fun = ValueToType<Function>(*rval);
   if(fun == 0)
   {
     throw script_exception(node, "Function call on non-function object");
   }
 
-  // In case of member function, prepend instance
-  if(args.GetObject() == 0 && dynamic_cast<MemberFunction*>(fun))
+  // Add object context to arguments
+  if(BoundValue* bval = dynamic_cast<BoundValue*>(rval))
   {
-    args.SetObject(&EvalThisExpression(node).GetObject());
+    args.SetObject(bval->GetBoundObject());
   }
 
   // Add parameters to arguments
@@ -1226,7 +1206,7 @@ Evaluator::EvalNamedArguments(Ast* node, Function* fun, AstList const* arglist, 
     }
 
     // Assign by value/by ref
-    if((*pi)->m_a4.GetNumber() == ptByRef)
+    if((*pi)->m_a4 && (*pi)->m_a4.GetNumber() == ptByRef)
     {
       // TODO validate type is correct for byref?
       args.push_back(value);
@@ -1234,7 +1214,7 @@ Evaluator::EvalNamedArguments(Ast* node, Function* fun, AstList const* arglist, 
     else
     {
       // TODO execute conversion to type
-      //args.push_back(*value);
+      args.push_back(value);
     }
   }
 }

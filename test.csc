@@ -34,7 +34,7 @@ function main()
   { foo : function(f) { print(f("world")); } } . foo ( function(arg) { return "Hello {arg}\n"; } );
 
   // Create temporary function and invoke
-  function(h, w) { print("{h} {w}\n"); } ("Hello", "world");
+  function(h, w) { print("{h} {w}\n"); } (w : "world", h : "Hello");
 
   // Create temporary object with unnamed function and invoke through index
   [ function(h, w) { print("{h} {w}\n"); } ] [0] ("Hello", "world");
