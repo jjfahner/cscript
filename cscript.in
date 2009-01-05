@@ -258,7 +258,7 @@ type(R) ::= TYPE(A) .   { R = new Ast(type_specifier, Value::tObject, String(A))
 //
 
 // Function call
-function_call(R) ::= IDENTIFIER(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(function_call, String(A), B); }
+function_call(R) ::= primary_expression(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(function_call, A, B); }
 
 // Positional argument
 positional_argument(R) ::= expression(A) . { R = A; }
@@ -375,7 +375,7 @@ native_declaration ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { 
 
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(function_declaration, String(A),  B, C); }
-closure_declaration(R)  ::= FUNCTION LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(closure_declaration, String("<closure>"), B, C); }
+closure_declaration(R)  ::= FUNCTION LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(closure_declaration, String("__closure"), B, C); }
 
 // Single parameter
 parameter(R) ::= type(A) IDENTIFIER(B) .        { R = p->AllocAst(parameter, String(B), ptByVal, A); }
