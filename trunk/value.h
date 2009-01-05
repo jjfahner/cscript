@@ -211,6 +211,28 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
+template <typename T>
+inline bool ValueHasType(Value const& v)
+{
+  if(v.Type() != Value::tObject)
+  {
+    return false;
+  }
+  return dynamic_cast<T*>(&v.GetObject()) != 0;
+}
+
+template <typename T>
+inline T* ValueToType(Value const& v)
+{
+  if(v.Type() != Value::tObject)
+  {
+    return 0;
+  }
+  return dynamic_cast<T*>(&v.GetObject());
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 //
 // Less-than comparator
 //

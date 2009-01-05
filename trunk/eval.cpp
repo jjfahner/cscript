@@ -883,8 +883,7 @@ Evaluator::EvalFunDecl(Ast* node)
 RValue& 
 Evaluator::EvalClosure(Ast* node)
 {
-  Function* fun = new ScriptFunction("<closure>", node);
-  return MakeTemp(fun);
+  return MakeTemp(new ScriptFunction(node->m_a1, node));
 }
 
 void 
@@ -928,7 +927,6 @@ Evaluator::EvalClassDecl(Ast* node)
     case function_declaration:
       cl->AddMethod(node->m_a1, new MemberFunction(node->m_a1, cl, node));
       break;
-
     case conversion_operator:
       cl->AddConversion(new ConversionOperator(cl, node->m_a1.GetNode(), node));
       break;
@@ -961,13 +959,18 @@ Evaluator::EvalFunctionCall(Ast* node)
 
   // Resolve function pointer
   RValue* rval = 0;
-  if(node->m_a3)
+  if(node->m_a1->m_type != lvalue)
+  {
+    // Evaluate lhs expression
+    rval = &EvalExpression(node->m_a1);
+  }
+  else if(node->m_a3)
   {
     // Evaluate instance expression
     args.SetObject(&EvalExpression(node->m_a3).GetObject());
 
     // Resolve function on object
-    if(!args.GetObject()->Find(String(node->m_a1), rval))
+    if(!args.GetObject()->Find(String(node->m_a1->m_a1), rval))
     {
       throw script_exception(node, "Object doesn't support this method");
     }
@@ -975,23 +978,17 @@ Evaluator::EvalFunctionCall(Ast* node)
   else
   {
     // Find first object with this name
-    if(!m_scope->Find(String(node->m_a1), rval))
+    if(!m_scope->Find(String(node->m_a1->m_a1), rval))
     {
       throw script_exception(node, "Function not found");
     }
   }
 
-  // Must be an object
-  if(rval->Type() != Value::tObject)
-  {
-    throw script_exception(node, "Name doesn't refer to a function");
-  }
-
   // Cast to function
-  Function* fun;
-  if((fun = dynamic_cast<Function*>(&rval->GetObject())) == 0)
+  Function* fun = ValueToType<Function>(*rval);
+  if(fun == 0)
   {
-    throw script_exception(node, "Name doesn't refer to a function");
+    throw script_exception(node, "Function call on non-function object");
   }
 
   // In case of member function, prepend instance
