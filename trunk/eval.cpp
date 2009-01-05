@@ -678,7 +678,7 @@ Evaluator::EvalExpression(Ast* node)
   case prefix_expression:     return EvalPrefix(node);
   case postfix_expression:    return EvalPostfix(node);
   case index_expression:      return EvalIndex(node);
-  case function_call:         return MakeTemp(EvalFunctionCall(node));
+  case function_call:         return EvalFunctionCall(node);
   case literal_value:         return MakeTemp(node->m_a1.GetValue());
   case lvalue:                return EvalLValue(node);
   case list_literal:          return EvalListLiteral(node);
@@ -942,7 +942,7 @@ Evaluator::EvalClassDecl(Ast* node)
   }
 }
 
-Value
+RValue&
 Evaluator::EvalFunctionCall(Ast* node)
 {
   Arguments args;
@@ -992,15 +992,15 @@ Evaluator::EvalFunctionCall(Ast* node)
   // Evaluate function
   try
   {
-    return fun->Execute(this, args);
+    return MakeTemp(fun->Execute(this, args));
   }
   catch(return_exception const& e)
   {
-    return e.m_value;
+    return MakeTemp(e.m_value);
   }
 }
 
-Value 
+RValue&
 Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 {
   // Class scope
@@ -1036,11 +1036,11 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   try
   {
     EvalStatement(fun->GetNode()->m_a3);
-    return Value();
+    return MakeTemp(Value());
   }
   catch(return_exception const& e)
   {
-    return e.m_value;
+    return MakeTemp(e.m_value);
   }
 }
 

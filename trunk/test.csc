@@ -38,6 +38,7 @@ function main()
 
   // Create temporary object with unnamed function and invoke through index
   [ function(h, w) { print("{h} {w}\n"); } ] [0] ("Hello", "world");
+
 }
 
 main();
