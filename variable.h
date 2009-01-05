@@ -292,4 +292,90 @@ public:
 
 };
 
+//////////////////////////////////////////////////////////////////////////
+
+class BoundValue
+{
+  Value   m_object;
+
+public:
+
+  //
+  // Construction
+  //
+  BoundValue(Value const& object) :
+  m_object  (object)
+  {
+  }
+
+  //
+  // Get object
+  //
+  Object* GetBoundObject() const
+  {
+    return &m_object.GetObject();
+  }
+
+};
+
+class BoundRValue : public RValue, public BoundValue
+{
+  RValue& m_value;
+
+public:
+
+  //
+  // Construction
+  //
+  BoundRValue(RValue& value, Value const& object) :
+  BoundValue (object),
+  m_value   (value)
+  {
+  }
+
+  //
+  // Value retrieval
+  //
+  Value const& GetValue() const
+  {
+    return m_value.GetValue();
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class BoundLValue : public LValue, public BoundValue
+{
+  LValue& m_value;
+
+public:
+
+  //
+  // Construction
+  //
+  BoundLValue(LValue& value, Value const& object) :
+  BoundValue (object),
+  m_value   (value)
+  {
+  }
+
+  //
+  // Value retrieval
+  //
+  Value const& GetValue() const
+  {
+    return m_value.GetValue();
+  }
+
+  //
+  // Value 
+  //
+  void SetValue(Value const& value)
+  {
+    m_value = value;
+  }
+
+};
+
 #endif // CSCRIPT_VARIABLE_H

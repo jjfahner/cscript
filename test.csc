@@ -26,6 +26,9 @@ function main()
 
   // Create temporary object with named function and invoke
   { foo : function(h) { print("{h} {w}\n");}, w : "world" }.foo("Hello");
+
+  // Create temporary object with named function and invoke through index
+  { foo : function(h) { print("{h} {w}\n");}, w : "world" }.foo("Hello");
   
   // Create temporary object with named function and invoke with function argument
   { foo : function(f) { print(f("world")); } } . foo ( function(arg) { return "Hello {arg}\n"; } );
@@ -34,7 +37,7 @@ function main()
   function(h, w) { print("{h} {w}\n"); } ("Hello", "world");
 
   // Create temporary object with unnamed function and invoke through index
-  ([ function(h, w) { print("{h} {w}\n"); } ][0])("Hello", "world");
+  [ function(h, w) { print("{h} {w}\n"); } ] [0] ("Hello", "world");
 }
 
 main();

@@ -202,6 +202,11 @@ protected:
   // Create a temporary
   //
   RValue& MakeTemp(Value const& value);
+  
+  //
+  // Store a temporary
+  //
+  RValue& StoreTemp(RValue* rval);
 
   //
   // Scopes
@@ -217,7 +222,7 @@ protected:
   //
   // Temporaries
   //
-  typedef std::vector<Temporary*> ValueVec;
+  typedef std::vector<RValue*> ValueVec;
   ValueVec m_temporaries;
 
 };
@@ -280,6 +285,13 @@ Evaluator::MakeTemp(Value const& value)
   Temporary* temp = new Temporary(value);
   m_temporaries.push_back(temp);
   return *temp;
+}
+
+inline RValue& 
+Evaluator::StoreTemp(RValue* rval)
+{
+  m_temporaries.push_back(rval);
+  return *rval;
 }
 
 #endif // CSCRIPT_EVAL_H
