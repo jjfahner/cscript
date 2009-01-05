@@ -341,6 +341,14 @@ public:
     return m_value.GetValue();
   }
 
+  //
+  // Retrieve an enumerator for this variable
+  //
+  Enumerator* GetEnumerator() const
+  {
+    return m_value.GetEnumerator();
+  }
+
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -374,6 +382,14 @@ public:
   void SetValue(Value const& value)
   {
     m_value = value;
+  }
+
+  //
+  // Retrieve an enumerator for this variable
+  //
+  Enumerator* GetEnumerator() const
+  {
+    return m_value.GetEnumerator();
   }
 
 };
