@@ -24,22 +24,6 @@
 #include "function.h"
 #include "instance.h"
 
-Scope::~Scope()
-{
-  Variables::iterator it = m_vars.begin();
-  for(; it != m_vars.end(); ++it)
-  {
-    delete it->second;
-  }
-}
-
-void 
-GlobalScope::AddFun(Function* fun)
-{
-  // Register function in variable list to prevent collection
-  m_vars[fun->GetName()] = new RWVariable(fun);
-}
-
 void 
 GlobalScope::AddClass(Class* c)
 {
@@ -49,10 +33,3 @@ GlobalScope::AddClass(Class* c)
   }
   m_classes[c->GetName()] = c;
 }
-
-bool 
-ClassScope::FindLocal(String const& name, RValue*& ptr) const
-{
-  return m_inst->Find(name, ptr);
-}
-

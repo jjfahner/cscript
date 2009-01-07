@@ -64,8 +64,8 @@ NativeCallRegistrar::RegisterCalls()
   ie = GetCallInfoList().end();
   for(; it != ie; ++it)
   {
-    Evaluator::GetGlobalScope().AddFun(
-      new NativeFunction(it->m_decl, it->m_call));
+    Function* fun = new NativeFunction(it->m_decl, it->m_call);
+    Evaluator::GetGlobalScope().Add(fun->GetName(), new ROVariable(fun));
   }
 }
 
@@ -116,7 +116,14 @@ void PrintValue(Value const& val)
     sep = ",";
     PrintValue(it->first);
     csout << ":";
-    PrintValue(it->second->GetValue());
+    if(it->second->Type() == Value::tObject)
+    {
+      csout << it->second->GetObject().GetTypeName();
+    }
+    else
+    {
+      PrintValue(it->second->GetValue());
+    }
   }
 
   csout << "]";
