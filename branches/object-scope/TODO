@@ -1,0 +1,21 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// TODO file for cscript
+//
+
+Fix ast line numbers. Currently they are determined when a node is finally
+allocated, but by then the lexer points to the last line that makes up the
+node, instead of the first line.
+
+Consider implicitly converting condition values to boolean for statements
+like if, while and for.
+
+Consider moving back to parsing input completely before evaluation.
+
+COM: When building type information, store all FUNCDESC instances for 
+dispatch ids of properties. Then enable the argument count check in Invoke.
+
+JSON: Because of a parsing conflict with empty compound statements, JSON
+initializers cannot currently be empty. Not a problem, since the same effect
+can be achieved using an empty list initializer []. Still, it would be nicer
+to fix this.
