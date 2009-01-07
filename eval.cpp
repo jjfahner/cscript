@@ -82,10 +82,6 @@ public:
   {
     if(m_prv)
     {
-      if(dynamic_cast<GlobalScope*>(m_eval->m_scope) == 0)
-      {
-        delete m_eval->m_scope;
-      }
       m_eval->m_scope = m_prv;
       m_prv = 0;
       m_cur = 0;
@@ -153,16 +149,20 @@ m_scope   (0),
 m_file    (0),
 m_allocs  (0)
 {
-  // Register native calls
+  // Create global scope
+  m_global = new GlobalScope(&GetGlobalScope());
+
+  // Native calls
   static bool nativeCallsRegistered = false;
   if(!nativeCallsRegistered)
   {
+    // Register native calls
     nativeCallsRegistered = true;
     NativeCallRegistrar::RegisterCalls();
-  }
 
-  // Create global scope
-  m_global = new GlobalScope(&GetGlobalScope());
+    // Cleanup after native call registration
+    Collect();
+  }
 }
 
 void 
@@ -344,8 +344,8 @@ Evaluator::Collect()
 {
   Objects valid;
 
-  // Build list of valid objects
-  m_scope->AddObjects(valid);
+  // Insert root object in scope
+  valid.insert(m_scope ? m_scope : m_global);
 
   // Append temporaries
   for(size_t i = 0; i < m_temporaries.size(); ++i)
@@ -852,7 +852,7 @@ RValue&
 Evaluator::EvalLValue(Ast* node)
 {
   RValue* ptr;
-  if(m_scope->Find(node->m_a1, ptr))
+  if(m_scope->Lookup(node->m_a1, ptr))
   {
     return *ptr;
   }
@@ -876,13 +876,13 @@ Evaluator::EvalVarDecl(Ast* node)
 
   // Create variable
   // TODO deletion of newed variable
-  m_scope->AddVar(node->m_a1, value);
+  m_scope->Add(node->m_a1, new RWVariable(value));
 }
 
 void
 Evaluator::EvalFunDecl(Ast* node)
 {
-  m_scope->AddFun(new ScriptFunction(node->m_a1, node));
+  m_scope->Add(node->m_a1, new ROVariable(new ScriptFunction(node->m_a1, node)));
 }
 
 RValue& 
@@ -894,7 +894,7 @@ Evaluator::EvalClosure(Ast* node)
 void 
 Evaluator::EvalExternDecl(Ast* node)
 {
-  m_scope->AddFun(new ExternFunction(node->m_a1, node));
+  m_scope->Add(node->m_a1, new ROVariable(new ExternFunction(node->m_a1, node)));
 }
 
 void 
@@ -952,7 +952,7 @@ Evaluator::EvalFunctionCall(Ast* node)
   if(node->m_a1->m_type == lvalue)
   {
     // Named objects are found through the current scope
-    if(!m_scope->Find(String(node->m_a1->m_a1), rval))
+    if(!m_scope->Lookup(String(node->m_a1->m_a1), rval))
     {
       throw script_exception(node, "Function not found");
     }
@@ -1017,8 +1017,11 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
     parentScope = m_scope;
   }
 
+  // Create function scope
+  //AutoScope asf(this, new ClassScope(parentScope, fun));
+
   // Create argument scope
-  AutoScope as(this, new Scope(parentScope));
+  AutoScope asa(this, new Scope(m_scope));
 
   // Insert arguments into argument scope
   AstList::const_iterator pi, pe;
@@ -1026,7 +1029,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   pe = fun->GetParameters()->end();
   for(size_t index = 0; pi != pe; ++pi, ++index)
   {
-    m_scope->AddVar((*pi)->m_a1, args[index]);
+    m_scope->Add((*pi)->m_a1, new RWVariable(args[index]));
   }
 
   // Create function execution scope
@@ -1385,7 +1388,7 @@ Evaluator::EvalForeachStatement(Ast* node)
 
   // Fetch variable
   RValue* rval;
-  if(!m_scope->Find(varName, rval))
+  if(!m_scope->Lookup(varName, rval))
   {
     throw script_exception(node, "Failed to find iterator variable");
   }
@@ -1643,7 +1646,7 @@ Evaluator::EvalTryStatement(Ast* node)
         // Insert exception into scope
         // TODO this maketemp might crash horribly during exception cleanup!!!
         AutoScope scope(this, new Scope(m_scope));
-        m_scope->AddVar(node->m_a2->m_a1, MakeTemp(e.m_value));
+        m_scope->Add(node->m_a2->m_a1, new RWVariable(e.m_value));
 
         // Evaluate catch block
         EvalStatement(node->m_a2->m_a2);

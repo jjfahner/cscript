@@ -201,9 +201,9 @@ private:
   Types     m_type;
   union 
   {
-    Bool    m_bool;
-    Int     m_int;
     String* m_string;
+    Int     m_int;
+    Bool    m_bool;
     Object* m_object;
   };
 

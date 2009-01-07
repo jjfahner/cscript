@@ -1,4 +1,3 @@
-
 function main()
 {
   // Create named object with methods like javascript
@@ -28,7 +27,7 @@ function main()
   { foo : function(h) { print("{h} {w}\n");}, w : "world" }.foo("Hello");
 
   // Create temporary object with named function and invoke through index
-  { foo : function(h) { print("{h} {w}\n");}, w : "world" }.foo("Hello");
+  { foo : function(h) { print("{h} {w}\n");}, w : "world" }["foo"]("Hello");
   
   // Create temporary object with named function and invoke with function argument
   { foo : function(f) { print(f("world")); } } . foo ( function(arg) { return "Hello {arg}\n"; } );
@@ -41,4 +40,8 @@ function main()
 
 }
 
+
 main();
+
+function p(arg) { print(arg); return p; }
+p("Hello")(" ")("World");

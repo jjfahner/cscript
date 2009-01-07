@@ -35,7 +35,7 @@ class Class;
 // Default scope implementation
 //
 
-class Scope
+class Scope : public Object
 {
 public:
 
@@ -49,14 +49,13 @@ public:
   //
   // Construction
   //
-  Scope(Scope* parent = 0) : m_parent (parent)
+  Scope(Scope* parent = 0) : m_parent (0)
   {
+    if(parent)
+    {
+      SetParent(parent);
+    }
   }
-
-  //
-  // Destruction
-  //
-  virtual ~Scope();
 
   //
   // Parent scope
@@ -67,83 +66,38 @@ public:
   }
   virtual void SetParent(Scope* parent)
   {
-    m_parent = parent;
-  }
-
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Variables
-  //
-
-  //
-  // Add a variable
-  //
-  virtual void AddVar(String const& name, Value const& value)
-  {
-    if(m_vars.count(name))
+    if(m_parent)
     {
-      throw std::runtime_error("Variable already declared");
+      delete m_members["__parent"];
     }
-    m_vars[name] = new RWVariable(value);
+    m_parent = parent;
+    m_members["__parent"] = new ROVariable(parent);
   }
 
   //
   // Retrieve a variable
   //
-  virtual bool Find(String const& name, RValue*& ptr) const
+  virtual bool Lookup(String const& name, RValue*& ptr) const
   {
     ptr = 0;
-    if(FindLocal(name, ptr))
+    if(Object::Find(name, ptr))
     {
       return true;
     }
     if(m_parent)
     {
-      return m_parent->Find(name, ptr);
+      return m_parent->Lookup(name, ptr);
     }
     return false;
   }
 
-  //
-  // Retrieve list of variables
-  //
-  Variables const& GetMembers() const
+  virtual void Add(String const& name, RValue* value)
   {
-    return m_vars;
-  }
-
-  //
-  // Add variables to list
-  //
-  void AddObjects(Objects& objects) const
-  {
-    Variables::const_iterator it, ie;
-    it = m_vars.begin();
-    ie = m_vars.end();
-    for(; it != ie; ++it)
+    if(Contains(name))
     {
-      if(it->second->Type() == Value::tObject)
-      {
-        objects.insert(&it->second->GetObject());
-      }
+      throw std::runtime_error("Variable already declared");
     }
-    if(m_parent)
-    {
-      m_parent->AddObjects(objects);
-    }
-  }
-
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Functions
-  //
-
-  //
-  // Add a function
-  //
-  virtual void AddFun(Function* fun)
-  {
-    throw std::runtime_error("Invalid scope for function declaration");
+    m_members[name] = value;
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -186,20 +140,9 @@ public:
 
 protected:
 
-  //
-  // Retrieve a variable from local scope
-  //
-  virtual bool FindLocal(String const& name, RValue*& ptr) const
-  {
-    Variables::const_iterator it = m_vars.find(name);
-    if(it == m_vars.end())
-    {
-      return false;
-    }
-    ptr = it->second;
-    return true;
-  }
+  using Object::Find;
 
+  //
   //
   // Retrieve a class from local scope
   //
@@ -212,7 +155,6 @@ protected:
   // Members
   //
   Scope*    m_parent;
-  Variables m_vars;
 
 };
 
@@ -233,16 +175,6 @@ public:
   Scope (parent)
   {
   }
-
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Functions
-  //
-
-  //
-  // Add a function
-  //
-  virtual void AddFun(Function* fun);
 
   //
   // Add class to this scope
@@ -299,19 +231,27 @@ public:
   }
 
   //
-  // Variables may not be added to class scopes
+  // Retrieve a variable
   //
-  virtual void AddVar(String const& name, Value const& value)
+  virtual bool Lookup(String const& name, RValue*& ptr) const
   {
-    throw std::runtime_error("Cannot add variables to class scope");
+    if(m_inst->Find(name, ptr))
+    {
+      return true;
+    }
+    return Scope::Lookup(name, ptr);
   }
 
-protected:
+  // TODO implement fixed-flag on Object::m_members
+//   //
+//   // Variables may not be added to class scopes
+//   //
+//   virtual void AddVar(String const& name, Value const& value)
+//   {
+//     throw std::runtime_error("Cannot add variables to class scope");
+//   }
 
-  //
-  // Retrieve a local variable
-  //
-  virtual bool FindLocal(String const& name, RValue*& ref) const;
+protected:
 
   //
   // Members

@@ -408,13 +408,6 @@ function main()
   {
     print("\n{errors} tests failed.\n");
   }
-
-  // Print objects
-  //print("\n\nBefore collect():\n");
-  //dump();
-  //collect();
-  //print("\n\nAfter collect():\n");
-  //dump();
 }
 
 
@@ -426,8 +419,12 @@ function main()
 main();
 
 // Run garbage collector
-print("Collecting...");
+print("\n\nBefore collect:\n");
+dump();
+print("Collecting...\n");
 collect();
+print("\n\nAfter collect:\n");
+dump();
 print("Done\n");
 
 // EOF
