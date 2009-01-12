@@ -352,7 +352,7 @@ Evaluator::Collect()
   {
     if(m_temporaries[i]->Type() == Value::tObject)
     {
-      valid.insert(&m_temporaries[i]->GetObject());
+      valid.insert(m_temporaries[i]->GetObject());
     }
   }
 
@@ -387,7 +387,7 @@ Evaluator::Compare(Value const& lhs, Value const& rhs)
                   rhs.GetString().c_str());
   
   case Value::tObject: 
-    return int(&lhs.GetObject() - &rhs.GetObject());
+    return int(lhs.GetObject() - rhs.GetObject());
   }
 
   // Invalid type
@@ -837,7 +837,7 @@ Evaluator::EvalIndex(Ast* node)
   }
 
   // Retrieve value
-  Members& vars = lhs.GetObject().GetMembers();
+  Members& vars = lhs.GetObject()->GetMembers();
   RValue* val = vars[rhs];
   if(val == 0)
   {
@@ -1274,7 +1274,7 @@ Evaluator::EvalListLiteral(Ast* node)
 {
   // Create empty map
   Value v(Object::Create());
-  Object& o = v.GetObject();
+  Object* o = v.GetObject();
   
   // Recurse into map values
   if(!node->m_a1.Empty())
@@ -1294,7 +1294,7 @@ Evaluator::EvalListLiteral(Ast* node)
       }
 
       // Insert into member variables
-      o.GetMembers()[key] = new RWVariable(element);
+      o->GetMembers()[key] = new RWVariable(element);
 
       // Check for next element
       if(child->m_a2.Empty()) 
@@ -1316,7 +1316,7 @@ Evaluator::EvalJsonLiteral(Ast* node)
 {
   // Create empty map
   Value v(Object::Create());
-  Object& o = v.GetObject();
+  Object* o = v.GetObject();
 
   // Recurse into map values
   if(!node->m_a1.Empty())
@@ -1326,7 +1326,7 @@ Evaluator::EvalJsonLiteral(Ast* node)
     {
       // Retrieve and check key
       String key = child->m_a1->m_a1;
-      if(o.GetMembers().count(key))
+      if(o->GetMembers().count(key))
       {
         throw script_exception(node, "Duplicate key in JSON literal");
       }
@@ -1335,7 +1335,7 @@ Evaluator::EvalJsonLiteral(Ast* node)
       RValue const& element = EvalExpression(child->m_a1->m_a2);
 
       // Insert into member variables
-      o.GetMembers()[key] = new RWVariable(element);
+      o->GetMembers()[key] = new RWVariable(element);
 
       // Check for next element
       if(child->m_a2.Empty()) 

@@ -161,11 +161,11 @@ MarkObjects(Objects& white, Objects& grey, Objects& black)
     {
       if(it->first.Type() == Value::tObject)
       {
-        grey.insert(&it->first.GetObject());
+        grey.insert(it->first.GetObject());
       }
       if(it->second->Type() == Value::tObject)
       {
-        grey.insert(&it->second->GetObject());
+        grey.insert(it->second->GetObject());
       }
     }
   }

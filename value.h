@@ -142,10 +142,10 @@ public:
     return *m_string;
   }
 
-  Object& GetObject() const
+  Object* GetObject() const
   {
     AssertType(tObject);
-    return *m_object;
+    return m_object;
   }
 
   //
@@ -228,7 +228,7 @@ inline T* ValueToType(Value const& v)
   {
     return 0;
   }
-  return dynamic_cast<T*>(&v.GetObject());
+  return dynamic_cast<T*>(v.GetObject());
 }
 
 //////////////////////////////////////////////////////////////////////////

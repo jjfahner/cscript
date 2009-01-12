@@ -417,7 +417,7 @@ ComObject::GetEnumerator(Value const& value) const
   }
 
   // Convert the object to a ComObject
-  ComObject* ci = dynamic_cast<ComObject*>(&value.GetObject());
+  ComObject* ci = dynamic_cast<ComObject*>(value.GetObject());
   if(ci == 0)
   {
     throw std::runtime_error("Member cannot be enumerated");

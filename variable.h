@@ -52,7 +52,7 @@ public:
   Value::Bool           GetBool()   const { return GetValue().GetBool();   }
   Value::Int            GetInt()    const { return GetValue().GetInt();    }
   Value::String const&  GetString() const { return GetValue().GetString(); }
-  Object&               GetObject() const { return GetValue().GetObject(); }
+  Object*               GetObject() const { return GetValue().GetObject(); }
 
   //
   // Actual value retrieval implemented in derived class
@@ -144,12 +144,12 @@ class ObjectEnumerator : public Enumerator
 {
   typedef Members::const_iterator Iterator;
 
-  Object&  m_obj;
+  Object*  m_obj;
   Iterator m_cur;
 
 public:
 
-  ObjectEnumerator(Object& object) :
+  ObjectEnumerator(Object* object) :
   m_obj (object)
   {
     // Initialize iterator
@@ -159,13 +159,13 @@ public:
   virtual void Reset()
   {
     // Set iterator to start
-    m_cur = m_obj.GetMembers().begin();
+    m_cur = m_obj->GetMembers().begin();
   }
 
   virtual bool GetNext(Value& value)
   {
     // Check current position
-    if(m_cur == m_obj.GetMembers().end())
+    if(m_cur == m_obj->GetMembers().end())
     {
       return false;
     }
@@ -318,7 +318,7 @@ public:
   //
   Object* GetBoundObject() const
   {
-    return &m_object.GetObject();
+    return m_object.GetObject();
   }
 
 };
