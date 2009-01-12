@@ -912,7 +912,7 @@ Evaluator::EvalFunctionMember(Ast* node)
         RValue* rval;
         if(!f->Find(name, rval))
         {
-          rval = new RWVariable(Value());
+          rval = new RWVariable();
           f->GetMembers()[name] = rval;
         }
         return *rval;
@@ -1644,7 +1644,7 @@ Evaluator::EvalMemberExpression(Ast* node)
   RValue* rval;
   if(!object->Find(String(node->m_a2->m_a1), rval))
   {
-    rval = new RWVariable(Value());
+    rval = new RWVariable();
     object->Add(node->m_a2->m_a1.GetString(), rval);
   }
 
