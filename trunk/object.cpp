@@ -67,24 +67,6 @@ Object::GetTypeName() const
   return typeid(*this).name();
 }
 
-bool 
-Object::Contains(Value const& key) const
-{
-  return m_members.count(key) != 0;
-}
-
-bool 
-Object::Find(Value const& name, RValue*& pValue) const
-{
-  Members::const_iterator it = m_members.find(name);
-  if(it == m_members.end())
-  {
-    return false;
-  }
-  pValue = it->second;
-  return true;
-}
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Helpers for garbage collector

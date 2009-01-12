@@ -77,27 +77,19 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool Lookup(String const& name, RValue*& ptr) const
+  virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner)
   {
     ptr = 0;
+    owner = 0;
     if(Object::Find(name, ptr))
     {
       return true;
     }
     if(m_parent)
     {
-      return m_parent->Lookup(name, ptr);
+      return m_parent->Lookup(name, ptr, owner);
     }
     return false;
-  }
-
-  virtual void Add(String const& name, RValue* value)
-  {
-    if(Contains(name))
-    {
-      throw std::runtime_error("Variable already declared");
-    }
-    m_members[name] = value;
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -209,14 +201,14 @@ protected:
 //
 // Class scope
 //
-class ClassScope : public Scope
+class ObjectScope : public Scope
 {
 public:
 
   //
   // Construction
   //
-  ClassScope(Scope* parent, Object* inst) :
+  ObjectScope(Scope* parent, Object* inst) :
   Scope  (parent),
   m_inst (inst)
   {
@@ -233,23 +225,15 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool Lookup(String const& name, RValue*& ptr) const
+  virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner)
   {
     if(m_inst->Find(name, ptr))
     {
+      owner = m_inst;
       return true;
     }
-    return Scope::Lookup(name, ptr);
+    return Scope::Lookup(name, ptr, owner);
   }
-
-  // TODO implement fixed-flag on Object::m_members
-//   //
-//   // Variables may not be added to class scopes
-//   //
-//   virtual void AddVar(String const& name, Value const& value)
-//   {
-//     throw std::runtime_error("Cannot add variables to class scope");
-//   }
 
 protected:
 

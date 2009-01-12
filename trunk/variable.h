@@ -301,6 +301,11 @@ class BoundValue
 public:
 
   //
+  // Factory
+  //
+  static RValue* Create(RValue& value, Object* object);
+
+  //
   // Construction
   //
   BoundValue(Value const& object) :
@@ -393,5 +398,17 @@ public:
   }
 
 };
+
+//////////////////////////////////////////////////////////////////////////
+
+/*static*/ inline RValue* 
+BoundValue::Create(RValue& value, Object* object)
+{
+  if(LValue* lval = dynamic_cast<LValue*>(&value))
+  {
+    return new BoundLValue(*lval, object);
+  }
+  return new BoundRValue(value, object);
+}
 
 #endif // CSCRIPT_VARIABLE_H

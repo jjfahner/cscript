@@ -179,6 +179,8 @@ protected:
   RValue& EvalIndex(Ast* node);
   RValue& EvalConversion(Ast* node);
   RValue& EvalClosure(Ast* node);
+  RValue& EvalFunctionMember(Ast* node);
+  RValue& EvalFunctionIndex(Ast* node);
 
   //
   // Function handlers

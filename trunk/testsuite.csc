@@ -399,6 +399,41 @@ function main()
   assert("Try/finally", try_finally(), true);
   assert("Try/catch/finally", try_catch_finally(), true);
   
+  // Create named object with methods like javascript
+  a = { 
+    foo : function() { return ++baz; },
+    bar : function() { return --baz; },
+    baz : 10
+  };
+
+  // Invoke methods on object
+  assert("Named object method foo", a.foo(), 11);
+  assert("Named object method bar", a.bar(), 10);
+
+  // Create variable containing function and invoke
+  a = function(arg) { return "Hello {arg}"; };
+  assert("Invoke function object through variable", a("world"), "Hello world");
+
+  // Create temporary object with named function and invoke
+  assert("Invoke named function on temporary object", 
+    { foo : function(h) { return "{h} {w}";}, w : "world" }.foo("Hello"),
+    "Hello world");
+
+  // Create temporary object with named function and invoke through index
+  assert("Invoke named function on temporary object using subscript operator", 
+    { foo : function(h) { return "{h} {w}";}, w : "world" }["foo"]("Hello"),
+    "Hello world");
+  
+  // Create temporary object with named function and invoke with function argument
+  assert("Invoke named function passing temporary function object", 
+    { foo : function(f) { return f("world"); } } . foo ( function(arg) { return "Hello {arg}"; } ),
+    "Hello world");
+
+  // Create temporary object with unnamed function and invoke through index
+  assert("Invoke unnamed function on temporary object using subscript operator", 
+    [ function(h, w) { return "{h} {w}"; } ] [0] ("Hello", "world"),
+    "Hello world");
+
   // Print result
   if(errors == 0)
   {
@@ -419,8 +454,8 @@ function main()
 main();
 
 // Run garbage collector
-print("\n\nBefore collect:\n");
-dump();
+// print("\n\nBefore collect:\n");
+// dump();
 print("Collecting...\n");
 collect();
 print("\n\nAfter collect:\n");

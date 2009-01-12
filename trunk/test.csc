@@ -38,10 +38,16 @@ function main()
   // Create temporary object with unnamed function and invoke through index
   [ function(h, w) { print("{h} {w}\n"); } ] [0] ("Hello", "world");
 
+  //var f = function;
+  
+  function.a = "Hallo";
+  print(function.name + " : " + function.a + "\n");
+
+  print(function(){}.name + "\n");
 }
 
 
 main();
 
-function p(arg) { print(arg); return p; }
-p("Hello")(" ")("World");
+//function p(arg) { print(arg); return p; }
+//p("Hello")(" ")("World");

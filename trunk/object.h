@@ -99,14 +99,39 @@ public:
   }
 
   //
+  // Add a member
+  //
+  virtual void Add(String const& name, RValue* value)
+  {
+    if(Contains(name))
+    {
+      throw std::runtime_error("Variable already declared");
+    }
+    m_members[name] = value;
+  }
+
+
+  //
   // Contains a member
   //
-  virtual bool Contains(Value const& key) const;
+  virtual bool Contains(Value const& key) const
+  {
+    return m_members.count(key) != 0;
+  }
 
   //
   // Find a member
   //
-  virtual bool Find(Value const& name, RValue*& pValue) const;
+  virtual bool Find(Value const& name, RValue*& pValue) const
+  {
+    Members::const_iterator it = m_members.find(name);
+    if(it == m_members.end())
+    {
+      return false;
+    }
+    pValue = it->second;
+    return true;
+  }
   
   //
   // Finalization

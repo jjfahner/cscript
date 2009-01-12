@@ -196,6 +196,8 @@ postfix_expression(R) ::= postfix_expression(A) SUBSUB .                        
 postfix_expression(R) ::= postfix_expression(A) LPAREN argument_list(B) RPAREN .  { R = p->AllocAst(function_call, A, B); }
 postfix_expression(R) ::= postfix_expression(A) DOT id_expression(B).             { R = p->AllocAst(member_expression, A, B); }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocAst(index_expression, A, B); }
+postfix_expression(R) ::= FUNCTION DOT id_expression(A) .						  { R = p->AllocAst(function_member_expression, A); }
+postfix_expression(R) ::= FUNCTION LBRACKET expression(A) RBRACKET .			  { R = p->AllocAst(function_index_expression, A); }
 
 // Primary expression
 primary_expression(R) ::= literal(A) .                  { R = A; }
