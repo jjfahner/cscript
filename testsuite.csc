@@ -434,6 +434,12 @@ function main()
     [ function(h, w) { return "{h} {w}"; } ] [0] ("Hello", "world"),
     "Hello world");
 
+  // Test function members
+  a = function() { return ++f; };
+  a.f = 0;
+  assert("Function with static (1)", a(), 1);
+  assert("Function with static (2)", a(), 2);
+
   // Print result
   if(errors == 0)
   {

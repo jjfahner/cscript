@@ -1647,8 +1647,7 @@ Evaluator::EvalMemberExpression(Ast* node)
   if(!object->Find(String(node->m_a2->m_a1), rval))
   {
     rval = new RWVariable(Value());
-    object->GetMembers()[node->m_a2->m_a1] = rval;
-    //throw script_exception(node, "Object has no member '" + node->m_a2.GetString() + "'");
+    object->Add(node->m_a2->m_a1, rval);
   }
 
   // Construct bound member
