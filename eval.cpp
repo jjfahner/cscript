@@ -688,6 +688,8 @@ Evaluator::EvalExpression(Ast* node)
   case member_expression:     return EvalMemberExpression(node);  
   case conversion_expression: return EvalConversion(node);
   case closure_declaration:   return EvalClosure(node);
+  case function_member_expression:  return EvalFunctionMember(node);
+  case function_index_expression:   return EvalFunctionIndex(node);
   }
   throw script_exception(node, "Invalid expression type");
 }
@@ -852,9 +854,10 @@ RValue&
 Evaluator::EvalLValue(Ast* node)
 {
   RValue* ptr;
-  if(m_scope->Lookup(node->m_a1, ptr))
+  Object* owner;
+  if(m_scope->Lookup(node->m_a1, ptr, owner))
   {
-    return *ptr;
+    return owner ? StoreTemp(BoundValue::Create(*ptr, owner)) : *ptr;
   }
   throw script_exception(node, "Undeclared variable '" + node->m_a1.GetString() + "'");
 }
@@ -882,13 +885,52 @@ Evaluator::EvalVarDecl(Ast* node)
 void
 Evaluator::EvalFunDecl(Ast* node)
 {
-  m_scope->Add(node->m_a1, new ROVariable(new ScriptFunction(node->m_a1, node)));
+  Function* fun = new ScriptFunction(node->m_a1, node);
+  fun->GetMembers()["name"]   = new ROVariable(fun->GetName());
+  fun->GetMembers()["parent"] = new ROVariable(m_scope);
+  m_scope->Add(node->m_a1, new ROVariable(fun));
 }
 
 RValue& 
 Evaluator::EvalClosure(Ast* node)
 {
-  return MakeTemp(new ScriptFunction(node->m_a1, node));
+  Function* fun = new ScriptFunction(node->m_a1, node);
+  fun->GetMembers()["name"]   = new ROVariable(fun->GetName());
+  fun->GetMembers()["parent"] = new ROVariable(m_scope);
+  return MakeTemp(fun);
+}
+
+RValue& 
+Evaluator::EvalFunctionMember(Ast* node)
+{
+  String name = node->m_a1->m_a1;
+
+  Scope* s = m_scope;
+  while(s)
+  {
+    if(ObjectScope* c = dynamic_cast<ObjectScope*>(s))
+    {
+      if(Function* f = dynamic_cast<Function*>(c->GetObject()))
+      {
+        RValue* rval;
+        if(!f->Find(name, rval))
+        {
+          rval = new RWVariable(Value());
+          f->GetMembers()[name] = rval;
+        }
+        return *rval;
+      }
+    }
+    s = s->GetParent();
+  }
+
+  throw script_exception(node, "Invalid scope for function keyword");
+}
+
+RValue& 
+Evaluator::EvalFunctionIndex(Ast* node)
+{
+  throw script_exception(node, "Fail");
 }
 
 void 
@@ -947,12 +989,14 @@ Evaluator::EvalFunctionCall(Ast* node)
 {
   Arguments args;
 
+  RValue* rval  = 0;
+  Object* owner = 0;
+
   // Resolve function pointer
-  RValue* rval = 0;
   if(node->m_a1->m_type == lvalue)
   {
     // Named objects are found through the current scope
-    if(!m_scope->Lookup(String(node->m_a1->m_a1), rval))
+    if(!m_scope->Lookup(String(node->m_a1->m_a1), rval, owner))
     {
       throw script_exception(node, "Function not found");
     }
@@ -961,6 +1005,12 @@ Evaluator::EvalFunctionCall(Ast* node)
   {
     // Expressions are evaluated in the current scope
     rval = &EvalExpression(node->m_a1);
+
+    // Add object context to arguments
+    if(BoundValue* bval = dynamic_cast<BoundValue*>(rval))
+    {
+      owner = bval->GetBoundObject();
+    }
   }
 
   // Cast result to function
@@ -971,10 +1021,7 @@ Evaluator::EvalFunctionCall(Ast* node)
   }
 
   // Add object context to arguments
-  if(BoundValue* bval = dynamic_cast<BoundValue*>(rval))
-  {
-    args.SetObject(bval->GetBoundObject());
-  }
+  args.SetObject(owner);
 
   // Add parameters to arguments
   args.SetParameters(fun->GetParameters());
@@ -1011,14 +1058,14 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   if(args.GetObject())
   {
     // Create class scope
-    cs.Set(new ClassScope(parentScope, args.GetObject()));
+    cs.Set(new ObjectScope(parentScope, args.GetObject()));
 
     // Adjust parent scope
     parentScope = m_scope;
   }
 
   // Create function scope
-  //AutoScope asf(this, new ClassScope(parentScope, fun));
+  AutoScope asf(this, new ObjectScope(parentScope, fun));
 
   // Create argument scope
   AutoScope asa(this, new Scope(m_scope));
@@ -1388,7 +1435,8 @@ Evaluator::EvalForeachStatement(Ast* node)
 
   // Fetch variable
   RValue* rval;
-  if(!m_scope->Lookup(varName, rval))
+  Object* owner;
+  if(!m_scope->Lookup(varName, rval, owner))
   {
     throw script_exception(node, "Failed to find iterator variable");
   }
@@ -1598,7 +1646,9 @@ Evaluator::EvalMemberExpression(Ast* node)
   RValue* rval;
   if(!object->Find(String(node->m_a2->m_a1), rval))
   {
-    throw script_exception(node, "Object has no member '" + node->m_a2.GetString() + "'");
+    rval = new RWVariable(Value());
+    object->GetMembers()[node->m_a2->m_a1] = rval;
+    //throw script_exception(node, "Object has no member '" + node->m_a2.GetString() + "'");
   }
 
   // Construct bound member
@@ -1618,8 +1668,8 @@ Evaluator::EvalThisExpression(Ast* node)
   Scope* scope = m_scope;
   while(scope)
   {
-    ClassScope* cs = dynamic_cast<ClassScope*>(scope);
-    if(cs)
+    ObjectScope* cs = dynamic_cast<ObjectScope*>(scope);
+    if(cs && dynamic_cast<Function*>(cs->GetObject()) == 0)
     {
       return MakeTemp(cs->GetObject());
     }
