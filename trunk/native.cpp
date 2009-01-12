@@ -104,8 +104,8 @@ void PrintValue(Value const& val)
   }
 
   Members::const_iterator it, ie;
-  it = val.GetObject().GetMembers().begin();
-  ie = val.GetObject().GetMembers().end();
+  it = val.GetObject()->GetMembers().begin();
+  ie = val.GetObject()->GetMembers().end();
 
   csout << "[";
 
@@ -118,7 +118,7 @@ void PrintValue(Value const& val)
     csout << ":";
     if(it->second->Type() == Value::tObject)
     {
-      csout << it->second->GetObject().GetTypeName();
+      csout << it->second->GetObject()->GetTypeName();
     }
     else
     {
@@ -166,7 +166,7 @@ NATIVE_CALL("__native count(arg)")
   {
     throw std::runtime_error("Invalid type for count");
   }
-  return Value(args[0].GetObject().GetMembers().size());
+  return Value(args[0].GetObject()->GetMembers().size());
 }
 
 struct objprinter {

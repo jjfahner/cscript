@@ -231,20 +231,20 @@ NATIVE_CALL("__native socket(string name, string port)")
 
 NATIVE_CALL("__native closesocket(s)")
 {
-  Socket* s = dynamic_cast<Socket*>(&args[0].GetObject());
+  Socket* s = dynamic_cast<Socket*>(args[0].GetObject());
   s->Disconnect();
   return true;
 }
 
 NATIVE_CALL("__native send(socket, string data, int len = 0)")
 {
-  Socket* s = dynamic_cast<Socket*>(&args[0].GetObject());
+  Socket* s = dynamic_cast<Socket*>(args[0].GetObject());
   return s->Send(args[1], args[2]);
 }
 
 NATIVE_CALL("__native recv(socket, int len, int timeout = 0)")
 {
-  Socket* s = dynamic_cast<Socket*>(&args[0].GetObject());
+  Socket* s = dynamic_cast<Socket*>(args[0].GetObject());
   return s->Receive(args[1], args[2]);  
 }
 
