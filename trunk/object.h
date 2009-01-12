@@ -101,13 +101,20 @@ public:
   //
   // Add a member
   //
-  virtual void Add(String const& name, RValue* value)
+  virtual RValue* Add(String const& key, RValue* value)
   {
-    if(Contains(name))
+    // This overload is basically meant to prevent the
+    // automatic conversion from AstData to string
+    return Add(Value(key), value);
+  }
+  virtual RValue* Add(Value const& key, RValue* value)
+  {
+    if(Contains(key))
     {
       throw std::runtime_error("Variable already declared");
     }
-    m_members[name] = value;
+    m_members[key] = value;
+    return value;
   }
 
 
@@ -122,9 +129,9 @@ public:
   //
   // Find a member
   //
-  virtual bool Find(Value const& name, RValue*& pValue) const
+  virtual bool Find(Value const& key, RValue*& pValue) const
   {
-    Members::const_iterator it = m_members.find(name);
+    Members::const_iterator it = m_members.find(key);
     if(it == m_members.end())
     {
       return false;

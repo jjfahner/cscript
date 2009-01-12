@@ -837,13 +837,10 @@ Evaluator::EvalIndex(Ast* node)
   }
 
   // Retrieve value
-  Members& vars = lhs.GetObject()->GetMembers();
-  RValue* val = vars[rhs];
-  if(val == 0)
+  RValue* val;
+  if(!lhs.GetObject()->Find(rhs, val))
   {
-    // Create new variable
-    val = new RWVariable(Value());
-    vars[rhs] = val;
+    val = lhs.GetObject()->Add(rhs, new RWVariable());
   }
   
   // Done
@@ -879,7 +876,7 @@ Evaluator::EvalVarDecl(Ast* node)
 
   // Create variable
   // TODO deletion of newed variable
-  m_scope->Add(node->m_a1, new RWVariable(value));
+  m_scope->Add(node->m_a1.GetString(), new RWVariable(value));
 }
 
 void
@@ -888,7 +885,7 @@ Evaluator::EvalFunDecl(Ast* node)
   Function* fun = new ScriptFunction(node->m_a1, node);
   fun->GetMembers()["name"]   = new ROVariable(fun->GetName());
   fun->GetMembers()["parent"] = new ROVariable(m_scope);
-  m_scope->Add(node->m_a1, new ROVariable(fun));
+  m_scope->Add(node->m_a1.GetString(), new ROVariable(fun));
 }
 
 RValue& 
@@ -936,7 +933,8 @@ Evaluator::EvalFunctionIndex(Ast* node)
 void 
 Evaluator::EvalExternDecl(Ast* node)
 {
-  m_scope->Add(node->m_a1, new ROVariable(new ExternFunction(node->m_a1, node)));
+  m_scope->Add(node->m_a1.GetString(), 
+    new ROVariable(new ExternFunction(node->m_a1, node)));
 }
 
 void 
@@ -1076,7 +1074,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   pe = fun->GetParameters()->end();
   for(size_t index = 0; pi != pe; ++pi, ++index)
   {
-    m_scope->Add((*pi)->m_a1, new RWVariable(args[index]));
+    m_scope->Add((*pi)->m_a1.GetString(), new RWVariable(args[index]));
   }
 
   // Create function execution scope
@@ -1647,7 +1645,7 @@ Evaluator::EvalMemberExpression(Ast* node)
   if(!object->Find(String(node->m_a2->m_a1), rval))
   {
     rval = new RWVariable(Value());
-    object->Add(node->m_a2->m_a1, rval);
+    object->Add(node->m_a2->m_a1.GetString(), rval);
   }
 
   // Construct bound member
@@ -1695,7 +1693,7 @@ Evaluator::EvalTryStatement(Ast* node)
         // Insert exception into scope
         // TODO this maketemp might crash horribly during exception cleanup!!!
         AutoScope scope(this, new Scope(m_scope));
-        m_scope->Add(node->m_a2->m_a1, new RWVariable(e.m_value));
+        m_scope->Add(node->m_a2->m_a1.GetString(), new RWVariable(e.m_value));
 
         // Evaluate catch block
         EvalStatement(node->m_a2->m_a2);

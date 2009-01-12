@@ -226,7 +226,7 @@ class RWVariable : public Variable, public LValue
 
 public:
 
-  RWVariable(Value const& value) :
+  RWVariable(Value const& value = Value()) :
   m_value (value)
   {
   }
