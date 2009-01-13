@@ -464,8 +464,8 @@ main();
 // dump();
 print("Collecting...\n");
 collect();
-print("\n\nAfter collect:\n");
-dump();
+//print("\n\nAfter collect:\n");
+//dump();
 print("Done\n");
 
 // EOF

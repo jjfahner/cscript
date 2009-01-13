@@ -23,7 +23,6 @@
 
 #include "types.h"
 #include "value.h"
-#include "class.h"
 
 class Arguments : public std::vector<Value>
 {

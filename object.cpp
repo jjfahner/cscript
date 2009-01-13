@@ -64,7 +64,12 @@ Object::~Object()
 String 
 Object::GetTypeName() const
 {
-  return typeid(*this).name();
+  String type = typeid(*this).name();
+  if(type.substr(0, 6) == "class ")
+  {
+    type = type.substr(6);
+  }
+  return type;
 }
 
 //////////////////////////////////////////////////////////////////////////

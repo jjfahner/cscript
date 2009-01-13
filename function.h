@@ -25,9 +25,9 @@
 #include "value.h"
 #include "args.h"
 #include "native.h"
+#include "object.h"
 
 class Evaluator;
-class Class;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -130,129 +130,6 @@ protected:
   // Members
   //
   Ast* m_node;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Script function
-//
-
-class MemberFunction : public ScriptFunction
-{
-public:
-
-  //
-  // Construction
-  // 
-  MemberFunction(String name, Class const* cl, Ast* node) :
-  ScriptFunction(name, node),
-  m_class(cl)
-  {
-  }
-
-  //
-  // Object type
-  //
-  virtual String GetTypeName() const;
-
-  //
-  // Retrieve class
-  //
-  Class const* GetClass() const
-  {
-    return m_class;
-  }
-
-protected:
-
-  //
-  // Members
-  //
-  Class const* m_class;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Constructor
-//
-
-class Constructor : public MemberFunction
-{
-public:
-
-  //
-  // Construction
-  //
-  Constructor(Class const* cl, Ast* node) :
-  MemberFunction("Constructor", cl, node)
-  {
-  }
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Constructor
-//
-
-class Destructor : public MemberFunction
-{
-public:
-
-  //
-  // Construction
-  //
-  Destructor(Class const* cl, Ast* node) :
-  MemberFunction("Destructor", cl, node)
-  {
-  }
-
-  //
-  // Parameter list
-  //
-  virtual AstList const* GetParameters() const;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Conversion operator
-//
-
-class ConversionOperator : public MemberFunction
-{
-public:
-
-  //
-  // Construction
-  // 
-  ConversionOperator(Class const* cl, TypeInfo const& ti, Ast* node) :
-  MemberFunction(ti.GetName(), cl, node),
-  m_ti (ti)
-  {
-  }
-
-  //
-  // Retrieve type info
-  //
-  TypeInfo const& GetTypeInfo() const
-  {
-    return m_ti;
-  }
-
-  //
-  // Override parameters call; conversion operators have no parameters
-  //
-  virtual AstList const* GetParameters() const;
-
-protected:
-
-  //
-  // Members
-  //
-  TypeInfo m_ti;
 
 };
 

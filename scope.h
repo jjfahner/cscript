@@ -26,9 +26,7 @@
 #include "variable.h"
 #include "function.h"
 
-class Instance;
 class Function;
-class Class;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -38,13 +36,6 @@ class Class;
 class Scope : public Object
 {
 public:
-
-  //
-  // Types
-  //
-  typedef std::map<String, RValue*>   Variables;
-  typedef std::map<String, Function*> Functions;
-  typedef std::map<String, Class*>    Classes;
 
   //
   // Construction
@@ -75,7 +66,16 @@ public:
   }
 
   //
-  // Retrieve a variable
+  // Retrieve a variable without owner
+  //
+  virtual bool Lookup(String const& name, RValue*& ptr)
+  {
+    Object* owner;
+    return Lookup(name, ptr, owner);
+  }
+
+  //
+  // Retrieve a variable with owner
   //
   virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner)
   {
@@ -92,56 +92,12 @@ public:
     return false;
   }
 
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Classes
-  //
-
-  //
-  // Add a new class
-  //
-  virtual void AddClass(Class* node)
-  {
-    throw std::runtime_error("Invalid context for class declaration");
-  }
-
-  //
-  // Find a class by name
-  //
-  virtual bool FindClass(String const& name, Class*& node)
-  {
-    if(FindClassLocal(name, node))
-    {
-      return true;
-    }
-    if(m_parent)
-    {
-      return m_parent->FindClass(name, node);
-    }
-    return false;
-  }
-
-  //
-  // Retrieve list of classes
-  //
-  virtual Classes const& GetClasses() const
-  {
-    static Classes classes;
-    return classes;
-  }
-
 protected:
 
+  //
+  // Hide Find function, is replaced by Lookup
+  //
   using Object::Find;
-
-  //
-  //
-  // Retrieve a class from local scope
-  //
-  virtual bool FindClassLocal(String const& name, Class*& node) const
-  {
-    return false;
-  }
 
   //
   // Members
@@ -152,54 +108,7 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Global scope. Despite the name, GlobalScope is not *the* top-level
-// scope, but merely *one* of the top-level scopes.
-//
-
-class GlobalScope : public Scope
-{
-public:
-
-  //
-  // Construction
-  //
-  GlobalScope(Scope* parent = 0) :
-  Scope (parent)
-  {
-  }
-
-  //
-  // Add class to this scope
-  //
-  virtual void AddClass(Class* c);
-
-protected:
-
-  //
-  // Retrieve a class
-  //
-  virtual bool FindClassLocal(String const& name, Class*& node) const
-  {
-    Classes::const_iterator it = m_classes.find(name);
-    if(it == m_classes.end())
-    {
-      return false;
-    }
-    node = it->second;
-    return true;
-  }
-
-
-  //
-  // Members
-  //
-  Classes   m_classes;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Class scope
+// Object scope
 //
 class ObjectScope : public Scope
 {

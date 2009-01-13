@@ -52,7 +52,6 @@ int parseNextToken(Char*& start, Char*& end)
   "break"                   { return TOK_BREAK; }
   "case"                    { return TOK_CASE; }
   "catch"                   { return TOK_CATCH; }
-  "class"                   { return TOK_CLASS; }
   "continue"                { return TOK_CONTINUE; }
   "default"                 { return TOK_DEFAULT; }
   "else"                    { return TOK_ELSE; }
@@ -60,14 +59,13 @@ int parseNextToken(Char*& start, Char*& end)
   "false"                   { return TOK_FALSE; }
   "finally"                 { return TOK_FINALLY; }
   "for"                     { return TOK_FOR; }
-  "function"				{ return TOK_FUNCTION; }
+  "function"				        { return TOK_FUNCTION; }
   "if"                      { return TOK_IF; }
   "in"                      { return TOK_IN; }
   "include"                 { return TOK_INCLUDE; }
   "int"                     { return TOK_INT; }
   "new"                     { return TOK_NEW; }
   "null"                    { return TOK_NULL; }
-  "operator"                { return TOK_OPERATOR; }
   "return"                  { return TOK_RETURN; }
   "string"                  { return TOK_STRING; }
   "switch"                  { return TOK_SWITCH; }
@@ -131,7 +129,6 @@ int parseNextToken(Char*& start, Char*& end)
   "{"     { return TOK_LBRACE; }
   "}"     { return TOK_RBRACE; }
   "!"     { return TOK_NOT; }
-  "~"     { return TOK_TILDE; }
   
   */
 }

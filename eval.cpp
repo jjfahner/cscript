@@ -27,7 +27,6 @@
 #include "file.h"
 #include "lexer.h"
 #include "tokens.h"
-#include "instance.h"
 
 //
 // Parser functions
@@ -137,10 +136,10 @@ struct VecRestore
 // Evaluator implementation
 //
 
-/*static*/ GlobalScope&
+/*static*/ Scope&
 Evaluator::GetGlobalScope()
 {
-  static GlobalScope scope;
+  static Scope scope;
   return scope;
 }
 
@@ -150,7 +149,7 @@ m_file    (0),
 m_allocs  (0)
 {
   // Create global scope
-  m_global = new GlobalScope(&GetGlobalScope());
+  m_global = new Scope(&GetGlobalScope());
 
   // Native calls
   static bool nativeCallsRegistered = false;
@@ -173,15 +172,7 @@ Evaluator::Reset()
 
   // Create new global scope
   delete m_global;
-  m_global = new GlobalScope(&GetGlobalScope());
-}
-
-Class* 
-Evaluator::FindType(String const& name)
-{
-  Class* cl = 0;
-  m_scope->FindClass(name, cl);
-  return cl;
+  m_global = new Scope(&GetGlobalScope());
 }
 
 void
@@ -298,12 +289,6 @@ Evaluator::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData
   // Create node
   Ast* node = new Ast(type, a1, a2, a3, a4);  
   node->m_pos = pos;
-  
-  // Register new types
-  if(type == class_declaration)
-  {
-    m_scope->AddClass(new Class(a1));
-  }
   
   // Return the new node
   return node;
@@ -630,7 +615,6 @@ Evaluator::EvalStatement(Ast* node)
   case variable_declaration:  EvalVarDecl(node);          break;
   case function_declaration:  EvalFunDecl(node);          break;
   case extern_declaration:    EvalExternDecl(node);       break;
-  case class_declaration:     EvalClassDecl(node);        break;
   case try_statement:         EvalTryStatement(node);     break;
   case for_statement:         EvalForStatement(node);     break;
   case foreach_statement:     EvalForeachStatement(node); break;
@@ -935,51 +919,6 @@ Evaluator::EvalExternDecl(Ast* node)
 {
   m_scope->Add(node->m_a1.GetString(), 
     new ROVariable(new ExternFunction(node->m_a1, node)));
-}
-
-void 
-Evaluator::EvalClassDecl(Ast* node)
-{
-  // Find the class declaration
-  Class* cl = FindType(node->m_a1);
-  if(cl == 0)
-  {
-    cl = new Class(node->m_a1);
-  }
-
-  // Enumerate members
-  AstList* list = node->m_a2;
-  AstList::iterator it, ie;
-  it = list->begin();
-  ie = list->end();
-  for(; it != ie; ++it)
-  {
-    Ast* node = *it;
-    switch(node->m_type)
-    {
-    case constructor:
-      cl->SetConstructor(new Constructor(cl, node));
-      break;
-
-    case destructor:
-      cl->SetDestructor(new Destructor(cl, node));
-      break;
-
-    case variable_declaration:
-      cl->AddVariable(node->m_a1, node);
-      break;
-
-    case function_declaration:
-      cl->AddMethod(node->m_a1, new MemberFunction(node->m_a1, cl, node));
-      break;
-    case conversion_operator:
-      cl->AddConversion(new ConversionOperator(cl, node->m_a1.GetNode(), node));
-      break;
-
-    default:
-      throw script_exception(node, "Invalid member type");
-    }
-  }
 }
 
 RValue&
@@ -1572,61 +1511,41 @@ Evaluator::EvalSwitchStatement(Ast* node)
 RValue&
 Evaluator::EvalNewExpression(Ast* node)
 {
-  // Find class type
-  Class* c = 0;
-  if(!m_scope->FindClass(node->m_a1->m_a2, c))
+  // Find object
+  RValue* rval;
+  if(!m_scope->Lookup(node->m_a1, rval))
   {
-    throw script_exception(node, "Undefined class '" + 
-                  node->m_a1->m_a2.GetString() + "'");
+    throw script_exception(node, "Variable not found");
   }
 
-  // Instantiate class
-  Instance* inst = Instance::Create(this, c);
-
-  // Add to temporaries
-  MakeTemp(inst);
-
-  // Execute constructor
-  if(Constructor* fun = inst->GetClass()->GetConstructor())
+  // Must be an object
+  if(rval->Type() != Value::tObject)
   {
-    // Prep arguments
-    Arguments args;
-    args.SetObject(inst);
-    args.SetParameters(fun->GetParameters());
+    throw script_exception(node, "Cannot instantiate a non-object variable");
+  }
+  Object* source = rval->GetObject();
 
-    // Evaluate arguments
-    if(node->m_a2->m_type == positional_arguments)
+  // Create the object
+  Object* inst = Object::Create();
+
+  // Clone members
+  Members::const_iterator it = source->GetMembers().begin();
+  Members::const_iterator ie = source->GetMembers().end();
+  for(; it != ie; ++it)
+  {
+    RValue* rv = it->second;
+    if(LValue* lv = dynamic_cast<RWVariable*>(rv))
     {
-      EvalPositionalArguments(node, fun, node->m_a2->m_a1, args);
+      rv = new RWVariable(rv->GetValue());
     }
     else
     {
-      EvalNamedArguments(node, fun, node->m_a2->m_a1, args);
+      rv = new ROVariable(rv->GetValue());
     }
-    
-    // Execute constructor
-    try 
-    {
-      fun->Execute(this, args);
-    }
-    catch(return_exception const&)
-    {
-
-    }
-    catch(...)
-    {
-      delete inst;
-    }
+    inst->Add(it->first, rv);
   }
 
-  // Update new count
-  if(++m_allocs == g_collect_threshold)
-  {
-    Collect();
-    m_allocs = 0;
-  }
-
-  // Done
+  // Return temporary
   return MakeTemp(inst);
 }
 
@@ -1762,40 +1681,4 @@ Evaluator::PerformConversion(Value& value, TypeInfo const& newType)
   case Value::tString:  value = ValString(value); break;
   default:              throw std::runtime_error("Invalid conversion");
   }
-
-//   // Conversion from class type via conversion operator
-//   if(oldType == Value::stInstance)
-//   {
-//     // Extract instance
-//     Instance* inst = value->GetInstance();
-//     
-//     // Try to find a conversion operator
-//     ConversionOperator* conv;
-//     if(inst->GetClass()->FindConversion(newType, conv))
-//     {
-//       // Create arguments
-//       Arguments args;
-//       args.SetInstance(inst);
-// 
-//       // Execute conversion
-//       value = conv->Execute(this, args);
-//       return;
-//     }
-//   }
-// 
-//   // Conversion to class type via constructor
-//   if(newType == Value::stInstance)
-//   {
-//     // TODO
-//   }
-// 
-//   // No way to convert from/to instance
-//   if(oldType == Value::stInstance || newType == Value::stInstance)
-//   {
-//     throw std::runtime_error("Cannot convert from '" + oldType.GetName() + 
-//                                             "' to '" + newType.GetName() + "'");
-//   }
-// 
-//   // Attempt to perform scalar conversion
-//   value->SetType(newType);
 }

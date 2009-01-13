@@ -33,6 +33,7 @@
 #include "args.h"
 #include "object.h"
 #include "function.h"
+#include "variable.h"
 
 class ComTypeInfo;
 class ComMemberFunction;
