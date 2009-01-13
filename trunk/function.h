@@ -107,6 +107,21 @@ public:
   }
 
   //
+  // Clone
+  //
+  virtual Object* Clone() const
+  {
+    // Create copy of function
+    ScriptFunction* s = new ScriptFunction(m_name, m_node);
+
+    // Clone object into copy
+    Function::Clone(s);
+
+    // Done
+    return s;
+  }
+
+  //
   // Retrieve node
   //
   Ast* GetNode() const
@@ -148,6 +163,14 @@ public:
   NativeFunction(String decl, NativeCall call);
 
   //
+  // Clone
+  //
+  virtual Object* Clone() const
+  {
+    throw std::runtime_error("Cannot clone native function");
+  }
+
+  //
   // Parameter list
   //
   virtual AstList const* GetParameters() const
@@ -186,6 +209,14 @@ public:
   Function  (name),
   m_node    (node)
   {
+  }
+
+  //
+  // Clone
+  //
+  virtual Object* Clone() const
+  {
+    throw std::runtime_error("Cannot clone extern function");
   }
 
   //

@@ -61,6 +61,26 @@ Object::~Object()
   }
 }
 
+Object* 
+Object::Clone(Object* into) const
+{
+  // Ensure there's an instance
+  if(into == 0)
+  {
+    into = new Object();
+  }
+
+  // Copy members
+  Members::const_iterator it;
+  for(it = m_members.begin(); it != m_members.end(); ++it)
+  {
+    into->m_members[it->first] = it->second->Clone();
+  }
+
+  // Done
+  return into;
+}
+
 String 
 Object::GetTypeName() const
 {
