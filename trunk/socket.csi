@@ -23,14 +23,14 @@
 // Socket wrapper class
 //
 
-class Socket
-{
-  var m_socket = null;
+var Socket = {
+
+  m_socket : null,
 
   //
   // Connect to peer
   //
-  function Connect(address, port)
+  Connect : function(address, port)
   {
     var s = socket(address, port);
     if(s === false)
@@ -38,12 +38,12 @@ class Socket
       throw "failed to connect socket";
     }
     m_socket = s;
-  }
+  },
 
   //
   // Close connection
   //
-  function Close()
+  Close : function ()
   {
     if(m_socket != null)
     {
@@ -51,12 +51,12 @@ class Socket
       m_socket = null;
       closesocket(s);
     }
-  }
+  },
 
   //
   // Send data
   //
-  function Send(data, length)
+  Send : function (data, length)
   {
     if(m_socket == null)
     {
@@ -66,12 +66,12 @@ class Socket
     {
       throw "failed to send data";
     }
-  }
+  },
 
   //
   // Receive data
   //
-  function Recv(length, timeout)
+  Recv : function (length, timeout)
   {
     if(m_socket == null)
     {

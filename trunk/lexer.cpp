@@ -116,12 +116,6 @@ Lexer::Lex(Token& token)
       token.m_type = TOK_IDENTIFIER;
     }
 
-    // Type detection
-    if(token.m_type == TOK_IDENTIFIER && m_evaluator.FindType(token))
-    {
-      token.m_type = TOK_TYPE;
-    }
-
     // Done
     return true;
   }

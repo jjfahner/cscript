@@ -34,20 +34,6 @@ ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
   return evaluator->EvalScriptCall(this, args);
 }
 
-AstList const* 
-Destructor::GetParameters() const
-{
-  static AstList list;
-  return &list;
-}
-
-AstList const* 
-ConversionOperator::GetParameters() const
-{
-  static AstList list;
-  return &list;
-}
-
 NativeFunction::NativeFunction(String decl, NativeCall call) :
 Function  (""),
 m_call    (call),
@@ -78,12 +64,6 @@ AstList const*
 ExternFunction::GetParameters() const
 {
   return m_node->m_a2;
-}
-
-String 
-MemberFunction::GetTypeName() const
-{
-  return Object::GetTypeName() + "::" + m_class->GetName() + "::" + Function::GetName();
 }
 
 #ifdef WIN32

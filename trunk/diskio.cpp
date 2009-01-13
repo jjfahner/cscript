@@ -21,6 +21,7 @@
 #include "types.h"
 #include "native.h"
 #include "args.h"
+#include "object.h"
 
 class NativeFile : public Object
 {

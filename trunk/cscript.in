@@ -186,8 +186,8 @@ unary_expression(R) ::= postfix_expression(A) .      { R = A; }
 unary_expression(R) ::= SUBOP  unary_expression(A) . { R = p->AllocAst(prefix_expression, op_negate, A); }
 unary_expression(R) ::= ADDADD unary_expression(A) . { R = p->AllocAst(prefix_expression, op_preinc, A); }
 unary_expression(R) ::= SUBSUB unary_expression(A) . { R = p->AllocAst(prefix_expression, op_predec, A); }
+unary_expression(R) ::= new_expression(A) . 			   { R = A; }
 unary_expression(R) ::= NOT unary_expression(A) .    { R = p->AllocAst(prefix_expression, op_not,    A); }
-unary_expression(R) ::= new_expression(A) .          { R = A; }
 
 // Postfix expression
 postfix_expression(R) ::= primary_expression(A) .                                 { R = A; }
@@ -206,7 +206,6 @@ primary_expression(R) ::= LPAREN expression(A) RPAREN . { R = A; }
 primary_expression(R) ::= list_literal(A) .             { R = A; }
 primary_expression(R) ::= json_literal(A) .             { R = A; }
 primary_expression(R) ::= THIS .                        { R = p->AllocAst(this_expression); }
-primary_expression(R) ::= type(A) LPAREN expression(B) RPAREN . { R = p->AllocAst(conversion_expression, A, B); }
 primary_expression(R) ::= closure_declaration(A) .      { R = A; }
 
 // Literals
@@ -238,10 +237,9 @@ json_content(R) ::= json_entry(A) . { R = p->AllocAst(json_content, A); }
 json_content(R) ::= json_entry(A) COMMA json_content(B) . { R = p->AllocAst(json_content, A, B); }
 json_entry(R)   ::= IDENTIFIER(A) COLON expression(B) .   { R = p->AllocAst(json_entry, String(A), B); }
 
-
 // New expression
-new_expression(R) ::= NEW type(A) .                                { R = p->AllocAst(new_expression, A, p->AllocAst(positional_arguments, new AstList)); }
-new_expression(R) ::= NEW type(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(new_expression, A, B); }
+new_expression(R) ::= NEW IDENTIFIER(A) .                                { R = p->AllocAst(new_expression, String(A), p->AllocAst(positional_arguments, new AstList)); }
+new_expression(R) ::= NEW IDENTIFIER(A) LPAREN argument_list(B) RPAREN . { R = p->AllocAst(new_expression, String(A), B); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -310,7 +308,6 @@ continue_statement(R) ::= CONTINUE SEMICOLON . { R = p->AllocAst(continue_statem
 
 // Declaration starting point
 declaration_statement(R) ::= function_declaration(A) . { R = A; }
-declaration_statement(R) ::= class_declaration(A)  .   { R = A; }
 declaration_statement(R) ::= vardecl_statement(A) .    { R = A; }
 
 vardecl_statement(R) ::= variable_declaration(A) SEMICOLON .      { R = A; }
@@ -325,46 +322,6 @@ declarator_sequence(R) ::= declarator_sequence(A) COMMA declarator(B) . { R = p-
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Class declaration
-//
-
-// Class split into header and body to ensure early registration of the class name
-class_declaration(R) ::= class_start(A) LBRACE                  RBRACE . { R = A; A->m_a2 = new AstList; }
-class_declaration(R) ::= class_start(A) LBRACE class_members(B) RBRACE . { R = A; A->m_a2 = B; }
-
-// Class start
-class_start(R) ::= CLASS IDENTIFIER(A) .  { R = p->AllocAst(class_declaration, String(A)); }
-class_start    ::= CLASS TYPE .           { throw std::runtime_error("Class already declared"); }
-
-// Class members
-class_member(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
-class_member(R) ::= function_declaration(A) .           { R = A; }
-class_member(R) ::= conversion_operator(A) .            { R = A; }
-class_member(R) ::= constructor(A) .                    { R = A; }
-class_member(R) ::= destructor(A) .                     { R = A; }
-
-// Constructor
-constructor(R) ::= type(A) LPAREN parameter_list(B) RPAREN compound_statement(C) . { R = p->AllocAst(constructor, A, B, C); }
-
-// Destructor
-destructor(R) ::= TILDE type(A) LPAREN RPAREN compound_statement(B) . { R = p->AllocAst(destructor, A, new AstList, B); }
-
-// Conversion operator - make sure to have approx. the same layout as for regular functions
-conversion_operator(R) ::= OPERATOR type(A) LPAREN RPAREN compound_statement(B) . { R = p->AllocAst(conversion_operator, A, new AstList, B); }
-
-// Class members
-%type class_members { AstList* }
-class_members(R) ::= class_member(A) . { 
-  R = new AstList;
-  R->push_back(A);
-}
-class_members(R) ::= class_members(A) class_member(B) . { 
-  R = A;
-  R->push_back(B);
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Function declaration
 //
 
@@ -373,7 +330,7 @@ native_declaration ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { 
 
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(function_declaration, String(A),  B, C); }
-closure_declaration(R)  ::= FUNCTION LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(closure_declaration, String("__closure"), B, C); }
+closure_declaration(R)  ::= FUNCTION LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocAst(closure_declaration, String("function"), B, C); }
 
 // Single parameter
 parameter(R) ::= type(A) IDENTIFIER(B) .        { R = p->AllocAst(parameter, String(B), ptByVal, A); }

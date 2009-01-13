@@ -46,7 +46,7 @@ public:
   // Static top-level scope, used by 
   // all instances of Evaluator
   //
-  static GlobalScope& GetGlobalScope();
+  static Scope& GetGlobalScope();
 
   //
   // Construction
@@ -83,11 +83,6 @@ public:
   // Parse native call
   //
   Ast* ParseNativeCall(String const& declaration);
-
-  //
-  // Find a declared type
-  //
-  Class* FindType(String const& name);
 
   //
   // Allocate node
@@ -152,7 +147,6 @@ protected:
   void EvalVarDecl(Ast* node);
   void EvalFunDecl(Ast* node);
   void EvalExpStmt(Ast* node);
-  void EvalClassDecl(Ast* node);
   void EvalForStatement(Ast* node);
   void EvalForeachStatement(Ast* node);
   void EvalWhileStatement(Ast* node);
@@ -213,8 +207,8 @@ protected:
   //
   // Scopes
   //
-  GlobalScope*  m_global;
-  Scope*        m_scope;
+  Scope* m_global;
+  Scope* m_scope;
 
   //
   // Allocations

@@ -23,17 +23,12 @@
 // File wrapper class
 //
 
-class File
+var File =
 {
-  var m_name;
-  var m_file;
+  m_name : null,
+  m_file : null,
 
-  operator string ()
-  {
-    return m_name;
-  }
-
-  function Open(filename, mode)
+  Open : function(filename, mode)
   {
     Close();
     var f = fopen(filename, mode);
@@ -43,9 +38,9 @@ class File
     }
     m_name = filename;
     this.m_file = f;
-  }
+  },
 
-  function Close()
+  Close : function()
   {
     if(m_file != null)
     {
@@ -53,18 +48,18 @@ class File
       m_file = null;
       m_name = null;
     }
-  }
+  },
 
-  function Read(length)
+  Read : function(length)
   {
     if(m_file == null)
     {
       return false;
     }
     return fread(m_file, length);
-  }
+  },
 
-  function Write(data, length)
+  Write : function(data, length)
   {
     if(m_file == null)
     {
