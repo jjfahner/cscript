@@ -181,6 +181,7 @@ protected:
   //
   friend class ScriptFunction;
   RValue& EvalFunctionCall(Ast* node);
+  RValue& EvalFunctionCall(Ast* node, Function* fun, Object* owner, Ast* arguments);
   RValue& EvalScriptCall(ScriptFunction* fun, Arguments& args);
 
   //

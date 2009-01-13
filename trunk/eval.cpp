@@ -924,8 +924,6 @@ Evaluator::EvalExternDecl(Ast* node)
 RValue&
 Evaluator::EvalFunctionCall(Ast* node)
 {
-  Arguments args;
-
   RValue* rval  = 0;
   Object* owner = 0;
 
@@ -957,6 +955,15 @@ Evaluator::EvalFunctionCall(Ast* node)
     throw script_exception(node, "Function call on non-function object");
   }
 
+  // Continue in overload
+  return EvalFunctionCall(node, fun, owner, node->m_a2);
+}
+
+RValue& 
+Evaluator::EvalFunctionCall(Ast* node, Function* fun, Object* owner, Ast* arguments)
+{
+  Arguments args;
+
   // Add object context to arguments
   args.SetObject(owner);
 
@@ -964,13 +971,13 @@ Evaluator::EvalFunctionCall(Ast* node)
   args.SetParameters(fun->GetParameters());
 
   // Evaluate arguments
-  if(node->m_a2->m_type == positional_arguments)
+  if(arguments->m_type == positional_arguments)
   {
-    EvalPositionalArguments(node, fun, node->m_a2->m_a1, args);
+    EvalPositionalArguments(node, fun, arguments->m_a1, args);
   }
   else
   {
-    EvalNamedArguments(node, fun, node->m_a2->m_a1, args);
+    EvalNamedArguments(node, fun, arguments->m_a1, args);
   }
 
   // Evaluate function
@@ -1524,11 +1531,15 @@ Evaluator::EvalNewExpression(Ast* node)
     throw script_exception(node, "Cannot instantiate a non-object variable");
   }
 
-  // Retrieve the source object
-  Object* source = rval->GetObject();
-
   // Create a clone
-  Object* inst = source->Clone();
+  Object* inst = rval->GetObject()->Clone();
+
+  // Invoke constructor when instantiating a function
+  if(Function* fun = dynamic_cast<Function*>(inst))
+  {
+    // Evaluate constructor
+    EvalFunctionCall(node, fun, inst, node->m_a2);
+  }
 
   // Return temporary
   return MakeTemp(inst);
