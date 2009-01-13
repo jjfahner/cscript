@@ -37,6 +37,11 @@ public:
   virtual ~RValue() {}
 
   //
+  // Clone
+  //
+  virtual RValue* Clone() const = 0;
+
+  //
   // Automatic conversion to Value
   //
   operator Value const& () const
@@ -213,6 +218,11 @@ public:
   {
   }
 
+  virtual RValue* Clone() const
+  {
+    return new ROVariable(m_value);
+  }
+
   virtual Value const& GetValue() const
   {
     return m_value;
@@ -229,6 +239,11 @@ public:
   RWVariable(Value const& value = Value()) :
   m_value (value)
   {
+  }
+
+  virtual RValue* Clone() const
+  {
+    return new RWVariable(m_value);
   }
 
   virtual Value const& GetValue() const
@@ -265,24 +280,9 @@ public:
   {
   }
 
-  Value const& GetValue() const
+  virtual RValue* Clone() const
   {
-    return m_value;
-  }
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
-class Constant : public RValue
-{
-  Value m_value;
-
-public:
-
-  Constant(Value const& value) :
-  m_value (value)
-  {
+    return new Temporary(m_value);
   }
 
   Value const& GetValue() const
@@ -296,6 +296,8 @@ public:
 
 class BoundValue
 {
+protected:
+
   Value   m_object;
 
 public:
@@ -339,6 +341,14 @@ public:
   }
 
   //
+  // Clone
+  //
+  virtual RValue* Clone() const
+  {
+    return new BoundRValue(m_value, m_object);
+  }
+
+  //
   // Value retrieval
   //
   Value const& GetValue() const
@@ -371,6 +381,14 @@ public:
   BoundValue (object),
   m_value   (value)
   {
+  }
+
+  //
+  // Clone
+  //
+  virtual RValue* Clone() const
+  {
+    return new BoundLValue(m_value, m_object);
   }
 
   //

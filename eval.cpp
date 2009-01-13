@@ -1523,27 +1523,12 @@ Evaluator::EvalNewExpression(Ast* node)
   {
     throw script_exception(node, "Cannot instantiate a non-object variable");
   }
+
+  // Retrieve the source object
   Object* source = rval->GetObject();
 
-  // Create the object
-  Object* inst = Object::Create();
-
-  // Clone members
-  Members::const_iterator it = source->GetMembers().begin();
-  Members::const_iterator ie = source->GetMembers().end();
-  for(; it != ie; ++it)
-  {
-    RValue* rv = it->second;
-    if(LValue* lv = dynamic_cast<RWVariable*>(rv))
-    {
-      rv = new RWVariable(rv->GetValue());
-    }
-    else
-    {
-      rv = new ROVariable(rv->GetValue());
-    }
-    inst->Add(it->first, rv);
-  }
+  // Create a clone
+  Object* inst = source->Clone();
 
   // Return temporary
   return MakeTemp(inst);
