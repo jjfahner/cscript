@@ -18,7 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "comclass.h"
+#include "comobject.h"
 #include "native.h"
 
 #include <map>

@@ -190,54 +190,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\comclass.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="false"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="false"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\comclass.h"
-				>
-			</File>
-			<File
-				RelativePath=".\comtype.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="false"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="false"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\comtype.h"
-				>
-			</File>
-			<File
 				RelativePath=".\eval.cpp"
 				>
 				<FileConfiguration
@@ -459,6 +411,54 @@
 		<Filter
 			Name="native"
 			>
+			<File
+				RelativePath=".\comobject.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\comobject.h"
+				>
+			</File>
+			<File
+				RelativePath=".\comtype.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						DisableLanguageExtensions="false"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\comtype.h"
+				>
+			</File>
 			<File
 				RelativePath=".\consio.cpp"
 				>
