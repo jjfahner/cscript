@@ -56,6 +56,11 @@ public:
   static Object* Create(IDispatch* p);
 
   //
+  // Clone
+  //
+  virtual Object* Clone(Object* into = 0);
+
+  //
   // Class type name
   //
   virtual String GetTypeName() const

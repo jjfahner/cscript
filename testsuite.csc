@@ -440,6 +440,15 @@ function main()
   assert("Function with static (1)", a(), 1);
   assert("Function with static (2)", a(), 2);
 
+  // Define function with member
+  var Class = function (a) {
+    b = "{a} {b}";
+  };
+  Class.b = "world";
+
+  // Test new and constructor
+  assert("Class constructor", (new Class("Hello")).b, "Hello world");
+
   // Print result
   if(errors == 0)
   {

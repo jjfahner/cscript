@@ -109,7 +109,7 @@ public:
   //
   // Clone
   //
-  virtual Object* Clone() const
+  virtual Object* Clone(Object* into = 0) const
   {
     // Create copy of function
     ScriptFunction* s = new ScriptFunction(m_name, m_node);
@@ -165,7 +165,7 @@ public:
   //
   // Clone
   //
-  virtual Object* Clone() const
+  virtual Object* Clone(Object* into = 0) const
   {
     throw std::runtime_error("Cannot clone native function");
   }
@@ -214,7 +214,7 @@ public:
   //
   // Clone
   //
-  virtual Object* Clone() const
+  virtual Object* Clone(Object* into = 0) const
   {
     throw std::runtime_error("Cannot clone extern function");
   }
