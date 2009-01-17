@@ -134,14 +134,13 @@ Algorithm:
 
 1.  Consider all objects white.
 2.  Consider root objects grey.
-3.  Consider the black set empty.
+3.  Let the black set be empty.
 3.  For each grey object:
 4.    Remove the grey object from the white set.
 5.    Insert the grey object into the black set.
 6.    Add objects referred to by the now black object to the grey set.
 7.  Move black objects to the global list.
-8.  Finalize white objects.
-9.  Delete white objects.
+8.  Delete white objects.
 
 */
 //////////////////////////////////////////////////////////////////////////
