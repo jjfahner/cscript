@@ -20,6 +20,4 @@ initializers cannot currently be empty. Not a problem, since the same effect
 can be achieved using an empty list initializer []. Still, it would be nicer
 to fix this.
 
-Make Enumerator an Object
-
 Figure out whether Temporary cannot be replaced by eg. ROVariable
