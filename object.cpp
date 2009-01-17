@@ -29,7 +29,6 @@
 
 // Global object list
 static Objects g_objects;
-static Objects g_finalized;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -102,17 +101,6 @@ struct safe_deleter {
   {
     try {
       delete ptr;
-    }
-    catch(...) {
-      // TODO
-    }
-  }
-};
-
-struct safe_finalizer {
-  void operator () (Object* ptr) const {
-    try {
-      ptr->Finalize();
     }
     catch(...) {
       // TODO
@@ -209,36 +197,9 @@ Object::Collect(Objects grey)
   // Move reachable objects into black set
   MarkObjects(white, grey, black);
 
-  // Copy finalizable objects into separate set
-  std::remove_copy_if(white.begin(), white.end(), 
-               std::inserter(final, final.end()), 
-                      std::not1(std::mem_fun(
-                        &Object::FinalizeRequired)));
-
-  // Remove objects that were already finalized before
-  erase_from(final, g_finalized.begin(), g_finalized.end());
-  
-  // Copy final to grey to keep final set intact
-  // when calling MarkObjects on finalizable set
-  grey = final;
-
-  // Resurrect finalizable objects recursively
-  MarkObjects(white, grey, black);
-
   // Move black list to global list
   black.swap(g_objects);
 
   // Delete white objects
   std::for_each(white.begin(), white.end(), safe_deleter());
-  white.clear();
-
-  // Handle finalized objects
-  if(final.size())
-  {
-    // Finalize objects that have not been finalized
-    std::for_each(final.begin(), final.end(), safe_finalizer());
-
-    // Store list of objects not to finalize again
-    g_finalized.swap(final);
-  }
 }
