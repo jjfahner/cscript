@@ -144,17 +144,6 @@ public:
     pValue = it->second;
     return true;
   }
-  
-  //
-  // Finalization
-  //
-  virtual bool FinalizeRequired() const
-  {
-    return false;
-  }
-  virtual void Finalize() 
-  {
-  }
 
 protected:
 
