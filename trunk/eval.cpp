@@ -1392,15 +1392,18 @@ Evaluator::EvalForeachStatement(Ast* node)
   RValue& rhs = EvalExpression(node->m_a2);
 
   // Retrieve enumerator
-  std::auto_ptr<Enumerator> pen(rhs.GetEnumerator());
-  if(pen.get() == 0)
+  Enumerator* enumerator = rhs.GetEnumerator();
+  if(enumerator == 0)
   {
     throw script_exception(node, "Invalid type specified in foreach");
   }
 
+  // Add to local scope
+  MakeTemp(enumerator);
+
   // Enumerate members
   Value itVal;
-  while(pen->GetNext(itVal))
+  while(enumerator->GetNext(itVal))
   {
     // Assign value to iterator variable
     var = itVal;
