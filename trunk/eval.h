@@ -280,8 +280,7 @@ inline RValue&
 Evaluator::MakeTemp(Value const& value)
 {
   Temporary* temp = new Temporary(value);
-  m_temporaries.push_back(temp);
-  return *temp;
+  return StoreTemp(temp);
 }
 
 inline RValue& 
