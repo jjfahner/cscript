@@ -568,6 +568,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\file.h"
+				>
+			</File>
+			<File
 				RelativePath=".\opcodes.h"
 				>
 			</File>
