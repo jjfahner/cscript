@@ -23,6 +23,13 @@
 void 
 Output::Write(int64 n)
 {
+  // Shortcut for 0
+  if(n == 0)
+  {
+    Write("0");
+    return;
+  }
+
   // Setup buffer
   char buf[100];
   char* p = buf + 50;
