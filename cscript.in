@@ -81,15 +81,28 @@ translation_unit ::= statement_sequence(A) . { if(A) p->EvalStatement(A); }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
-statement_sequence(R) ::= statement_sequence(A) statement(B) . { 
-  if(A->m_type == statement_sequence) {
+statement_sequence(R) ::= statement_sequence(A) statement(B) . 
+{ 
+  if(A == 0 || B == 0) // @HACK: this is required because include_statement
+  {                    // returns NULL values, which means statement may
+    if(A != 0)         // return NULL values
+    {
+      R = A;
+    }
+    else if(B != 0)
+    {
+      R = B;
+    }
+  }
+  else if(A->m_type == statement_sequence) {
     R = A;
+    R->m_a1.GetList()->push_back(B);
   }
   else {
     R = p->AllocAst(statement_sequence, new AstList);
     R->m_a1.GetList()->push_back(A);
+    R->m_a1.GetList()->push_back(B);
   }
-  R->m_a1.GetList()->push_back(B);
 }
 
 // Statement
