@@ -254,6 +254,16 @@ function main()
   assert("Nested array", [1,[2,3]][1][0], 2);
   assert("Nested array", [1,[2,3]][1][1], 3);
   
+  // Add array entries
+  a = [];
+  a[] = 0;
+  a[] = 1;
+  a[] = 2;
+  assert("Array entries", count(a), 3);
+  assert("Array entries", a[0], 0);
+  assert("Array entries", a[1], 1);
+  assert("Array entries", a[2], 2);
+
   // For loop
   for(a = 0; a < 10; ++a) {}
   assert("For", a, 10);
