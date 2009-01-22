@@ -74,33 +74,10 @@
 // Start symbol
 main ::= translation_unit .
 
-// Empty file
+// Translation unit
 translation_unit ::= .
-
-// Native declaration
-translation_unit ::= native_declaration .
-
-// Statement sequence
-translation_unit ::= top_statement_sequence .
-
-// Top-level statement sequence
-top_statement_sequence ::= top_statement(A) .                        { if(A) p->EvalStatement(A); }
-top_statement_sequence ::= top_statement_sequence top_statement(A) . { if(A) p->EvalStatement(A); }
-
-// Top-level statements
-top_statement(R) ::= include_statement(A) .     { R = A; }
-top_statement(R) ::= expression_statement(A) .  { R = A; }
-top_statement(R) ::= declaration_statement(A) . { R = A; }
-top_statement(R) ::= for_statement(A) .         { R = A; }
-top_statement(R) ::= compound_statement(A) .    { R = A; }
-top_statement(R) ::= if_statement(A) .          { R = A; }
-top_statement(R) ::= while_statement(A) .       { R = A; }
-top_statement(R) ::= foreach_statement(A) .     { R = A; }
-top_statement(R) ::= return_statement(A) .      { R = A; }
-top_statement(R) ::= switch_statement(A) .      { R = A; }
-top_statement(R) ::= extern_declaration(A) .    { R = A; }
-top_statement(R) ::= try_statement(A) .         { R = A; }
-top_statement(R) ::= error .                    { R = 0; }
+translation_unit ::= native_declaration(A) . { if(A) p->EvalStatement(A); }
+translation_unit ::= statement_sequence(A) . { if(A) p->EvalStatement(A); }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
@@ -116,8 +93,10 @@ statement_sequence(R) ::= statement_sequence(A) statement(B) . {
 }
 
 // Statement
+statement(R) ::= include_statement(A) .     { R = A; }
 statement(R) ::= expression_statement(A) .  { R = A; }
-statement(R) ::= vardecl_statement(A) .     { R = A; }
+statement(R) ::= declaration_statement(A) . { R = A; }
+statement(R) ::= extern_declaration(A) .    { R = A; }
 statement(R) ::= for_statement(A) .         { R = A; }
 statement(R) ::= compound_statement(A) .    { R = A; }
 statement(R) ::= if_statement(A) .          { R = A; }
