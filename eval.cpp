@@ -805,9 +805,8 @@ Evaluator::EvalPostfix(Ast* node)
 RValue&
 Evaluator::EvalIndex(Ast* node)
 {
+  // Check type of left-hand side
   RValue& lhs = EvalExpression(node->m_a1);
-  RValue& rhs = EvalExpression(node->m_a2);
-
   switch(lhs.Type())
   {
   case Value::tNull:
@@ -820,11 +819,32 @@ Evaluator::EvalIndex(Ast* node)
     throw script_exception(node, "Invalid type for index operator");
   }
 
-  // Retrieve value
-  RValue* val;
-  if(!lhs.GetObject()->Find(rhs, val))
+  // Locate value
+  RValue* val = 0;
+  if(node->m_a2.Empty())
   {
-    val = lhs.GetObject()->Add(rhs, new RWVariable());
+    // Use size as key
+    Value key = (Value::Int)lhs.GetObject()->GetMembers().size();
+
+    // Make sure this key doesn't exist.
+    if(lhs.GetObject()->Find(key, val))
+    {
+      throw std::runtime_error("Key to add already exists");
+    }
+    
+    // Add value
+    val = lhs.GetObject()->Add(key, new RWVariable());
+  }
+  else
+  {
+    // Evaluate index expression
+    RValue& rhs = EvalExpression(node->m_a2);
+
+    // Retrieve value
+    if(!lhs.GetObject()->Find(rhs, val))
+    {
+      val = lhs.GetObject()->Add(rhs, new RWVariable());
+    }
   }
   
   // Done
