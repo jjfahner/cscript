@@ -147,6 +147,7 @@ protected:
   void EvalVarDecl(Ast* node);
   void EvalFunDecl(Ast* node);
   void EvalExpStmt(Ast* node);
+  void EvalIncludeStatement(Ast* node);
   void EvalForStatement(Ast* node);
   void EvalForeachStatement(Ast* node);
   void EvalWhileStatement(Ast* node);

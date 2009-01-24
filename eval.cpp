@@ -616,6 +616,7 @@ Evaluator::EvalStatement(Ast* node)
   case function_declaration:  EvalFunDecl(node);          break;
   case extern_declaration:    EvalExternDecl(node);       break;
   case try_statement:         EvalTryStatement(node);     break;
+  case include_statement:     EvalIncludeStatement(node); break;
   case for_statement:         EvalForStatement(node);     break;
   case foreach_statement:     EvalForeachStatement(node); break;
   case if_statement:          EvalIfStatement(node);      break;
@@ -1332,6 +1333,12 @@ Evaluator::EvalReturnStatement(Ast* node)
 
   // Throw return exception
   throw return_exception(node, value);
+}
+
+void 
+Evaluator::EvalIncludeStatement(Ast* node)
+{
+  ParseFile(node->m_a1);
 }
 
 void 

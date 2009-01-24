@@ -1,11 +1,12 @@
+function foo(a)
+{
+  function bar(a)
+  {
+    include "test.csi";
+  }
+  return bar(a);
+}
 
-var a = [];
-a[] = 10;
-a[] = 20;
-a[] = 30;
+var f = foo;
 
-print(a);
-
-a[5] = 30;
-a["b"] = 40;
-a[] = 50;
+print(f("Hello world"));
