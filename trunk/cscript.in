@@ -117,6 +117,7 @@ statement(R) ::= error .                    { R = 0; }
 
 // Expression
 expression(R) ::= assignment_expression(A) . { R = A; }
+expression(R) ::= xml_expression(A)        . { R = A; }
 
 // Optional expression
 expression_opt(R) ::= .               { R = 0; }
@@ -437,3 +438,41 @@ catch_block(R) ::= CATCH LPAREN IDENTIFIER(A) RPAREN compound_statement(B) . { R
 finally_block(R) ::= FINALLY compound_statement(A) . { R = p->AllocAst(finally_block, A); }
 
 throw_statement(R) ::= THROW expression(A) SEMICOLON . { R = p->AllocAst(throw_statement, A); }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// XML literals
+//
+
+xml_expression(R) ::= xml_elements(A) . { R = p->AllocAst(xml_expression, A); p->GetLexer()->ToggleXml(false); }
+
+xml_elements(R) ::= xml_element(A) . { R = A; }
+xml_elements(R) ::= xml_elements(A) xml_element(B) . { R = p->AllocAst(xml_tags, A, B); }
+
+xml_start_tag ::= ST . { p->GetLexer()->ToggleXml(true); }
+
+xml_open_tag(R)   ::= xml_start_tag xml_name(A) xml_attributes(B) GT .        { R = p->AllocAst(xml_open_tag,   A, B); } 
+xml_closed_tag(R) ::= xml_start_tag xml_name(A) xml_attributes(B) DIVOP GT .  { R = p->AllocAst(xml_closed_tag, A, B); }
+xml_close_tag(R)  ::= xml_start_tag DIVOP xml_name(A) GT .                    { R = p->AllocAst(xml_close_tag,  A); }
+
+xml_element(R) ::= xml_processing_instruction(A) . { R = A; }
+xml_element(R) ::= xml_open_tag(A) .    { R = A; }
+xml_element(R) ::= xml_closed_tag(A) .  { R = A; }
+xml_element(R) ::= xml_close_tag(A) .   { R = A; }
+xml_element(R) ::= XMLTEXT(A) . { R = p->AllocAst(xml_text, String(A)); }
+
+xml_processing_instruction(R) ::= XMLPRO IDENTIFIER(A) xml_attribute_list(B) XMLPRC . { R = p->AllocAst(xml_processing_instruction, String(A), B); } 
+
+xml_attribute_list(R) ::= xml_attribute(A) . { R = A; }
+xml_attribute_list(R) ::= xml_attribute_list(A) xml_attribute(B) . { R = p->AllocAst(xml_attributes, A, B); }
+
+xml_attributes(R) ::= . { R = 0; }
+xml_attributes(R) ::= xml_attribute_list(A) . { R = A; }
+
+xml_attribute(R) ::= xml_name(A) ASSIGN LIT_STRING(B) . { R = p->AllocAst(xml_attribute, A, String(B)); }
+
+xml_name(R) ::= xml_uname(A) . { R = A; }
+xml_name(R) ::= xml_qname(A) . { R = A; }
+
+xml_uname(R) ::= IDENTIFIER(A) .                      { R = p->AllocAst(xml_uname, String(A)); }
+xml_qname(R) ::= IDENTIFIER(A) COLON IDENTIFIER(B) .  { R = p->AllocAst(xml_qname, String(A), String(B)); }

@@ -49,6 +49,13 @@ struct Token
   size_t      m_size;
   int         m_type;
 
+  void Init()
+  {
+    m_text = 0;
+    m_size = 0;
+    m_type = 0;
+  }
+
   operator String () const
   {
     return String(m_text, m_size);

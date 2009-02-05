@@ -74,3 +74,6 @@
 #define TOK_CATCH                          74
 #define TOK_FINALLY                        75
 #define TOK_THROW                          76
+#define TOK_XMLTEXT                        77
+#define TOK_XMLPRO                         78
+#define TOK_XMLPRC                         79

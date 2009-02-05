@@ -35,7 +35,8 @@ Lexer::Lexer(Evaluator& evaluator) :
 m_evaluator (evaluator),
 m_strptr  (0),
 m_line    (0),
-m_string  (0)
+m_string  (0),
+m_parseXml(0)
 {
 }
 
@@ -51,6 +52,12 @@ Lexer::SetText(Char* text)
 bool
 Lexer::Lex(Token& token)
 {
+  // XML parser
+  if(m_parseXml == 2 && LexXml(token))
+  {
+    return true;
+  }
+
   // String interpolation
   if(m_string == 1 || m_string == 3)
   {
@@ -88,6 +95,12 @@ Lexer::Lex(Token& token)
     case TOK_LIT_STRING:  m_strptr = end; return LexString(token);
     case TOK_NEWLINE:     m_strptr = end; ++m_line; continue;
     case TOK_COMMENT:     LexComment(); continue;
+    }
+
+    // Switch to next state for xml parser
+    if(m_parseXml == 1 && type == TOK_GT)
+    {
+      m_parseXml = 2;
     }
     
     // No token check
@@ -199,3 +212,27 @@ Lexer::LexComment()
   return true;
 }
 
+bool 
+Lexer::LexXml(Token& token)
+{
+  // Reset state
+  m_parseXml = 1;
+
+  // Non-tag content
+  Char* ptr = m_strptr;
+  while(*ptr && *ptr != '<' && *ptr != ';')
+  {
+    ++ptr;
+  }
+  if(ptr != m_strptr)
+  {
+    token.m_size = ptr - m_strptr;
+    token.m_text = m_strptr;
+    token.m_type = TOK_XMLTEXT;
+    m_strptr = ptr;
+    return true;
+  }
+
+  // No xml text found
+  return false;
+}

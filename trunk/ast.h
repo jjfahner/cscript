@@ -90,7 +90,18 @@ enum AstTypes
   conversion_expression,
   closure_declaration,
   function_member_expression,
-  function_index_expression
+  function_index_expression,
+  xml_expression,
+  xml_processing_instruction,
+  xml_tags,
+  xml_open_tag,
+  xml_close_tag,
+  xml_closed_tag,
+  xml_text,
+  xml_attribute,
+  xml_attributes,
+  xml_uname,
+  xml_qname
 };
 
 enum AccessTypes
