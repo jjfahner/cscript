@@ -52,12 +52,20 @@ public:
     return m_line;
   }
 
+  //
+  // Toggle xml parse mode
+  //
+  void ToggleXml(bool enable = true) {
+    m_parseXml = enable ? 1 : 0;
+  }
+
 private:
 
   //
   // Specialized lexing
   //
   bool LexString(Token& token);
+  bool LexXml(Token& token);
   bool LexComment();
 
   //
@@ -67,8 +75,9 @@ private:
   Char*   m_source;
   size_t  m_length;
   Char*   m_strptr;
-  int32    m_line;
+  int32   m_line;
   int     m_string;
+  int     m_parseXml;
 
 };
 

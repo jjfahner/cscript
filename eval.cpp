@@ -229,11 +229,17 @@ Evaluator::ParseText(char const* text)
   // Try block for parser memory management
   try 
   {
-    // Run parser loop
     Token token;
+    token.Init();
+
+    // Run parser loop
     while(lexer.Lex(token))
     {
       CScriptParse(pParser, token.m_type, token, this);
+
+#     ifdef _DEBUG
+      token.Init();
+#     endif
     }
 
     // Empty token to finalize parse
@@ -673,6 +679,7 @@ Evaluator::EvalExpression(Ast* node)
   case member_expression:     return EvalMemberExpression(node);  
   case conversion_expression: return EvalConversion(node);
   case closure_declaration:   return EvalClosure(node);
+  case xml_expression:        return EvalXmlExpression(node);
   case function_member_expression:  return EvalFunctionMember(node);
   case function_index_expression:   return EvalFunctionIndex(node);
   }
@@ -900,6 +907,12 @@ Evaluator::EvalClosure(Ast* node)
   fun->GetMembers()["name"]   = new ROVariable(fun->GetName());
   fun->GetMembers()["parent"] = new ROVariable(m_scope);
   return MakeTemp(fun);
+}
+
+RValue& 
+Evaluator::EvalXmlExpression(Ast* node)
+{
+  return MakeTemp(0);
 }
 
 RValue& 

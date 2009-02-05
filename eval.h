@@ -54,6 +54,13 @@ public:
   Evaluator();
 
   //
+  // Retrieve current lexer
+  //
+  Lexer* GetLexer() const {
+    return m_lexer;
+  }
+
+  //
   // Evaluation of single code line
   //
   Value Eval(String code, bool isFileName = false);
@@ -174,6 +181,7 @@ protected:
   RValue& EvalIndex(Ast* node);
   RValue& EvalConversion(Ast* node);
   RValue& EvalClosure(Ast* node);
+  RValue& EvalXmlExpression(Ast* node);
   RValue& EvalFunctionMember(Ast* node);
   RValue& EvalFunctionIndex(Ast* node);
 
