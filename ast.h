@@ -93,7 +93,7 @@ enum AstTypes
   function_index_expression,
   xml_expression,
   xml_processing_instruction,
-  xml_tags,
+  xml_elements,
   xml_open_tag,
   xml_close_tag,
   xml_closed_tag,

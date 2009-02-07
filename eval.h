@@ -215,6 +215,11 @@ protected:
   RValue& StoreTemp(RValue* rval);
 
   //
+  // Build xml tree
+  //
+  Object* BuildXmlTree(Ast* ast, Object* node);
+
+  //
   // Scopes
   //
   Scope* m_global;

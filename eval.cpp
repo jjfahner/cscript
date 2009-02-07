@@ -818,7 +818,7 @@ Evaluator::EvalIndex(Ast* node)
   switch(lhs.Type())
   {
   case Value::tNull:
-    lhs.LVal() = Object::Create();
+    lhs.LVal() = new Object();
     break;
   case Value::tObject:
     // Fine
@@ -909,10 +909,198 @@ Evaluator::EvalClosure(Ast* node)
   return MakeTemp(fun);
 }
 
+enum XmlNodeTypes
+{
+  xmlUnknown = 0,
+  xmlElement = 1,
+  xmlAttribute = 2, 	
+  xmlText = 3,
+  xmlCDATASection = 4,
+  xmlEntityReference = 5, 	
+  xmlEntity = 6,
+  xmlProcessingInstruction = 7,
+  xmlComment = 8,
+  xmlDocument = 9,
+  xmlDocumentType = 10,
+  xmlDocumentFragment = 11,
+  xmlNotation = 12
+};
+
+String 
+XmlNodeName(XmlNodeTypes nodeType)
+{
+  switch(nodeType)
+  {
+  case xmlElement:                return "#element";
+  case xmlAttribute:              return "#attribute";
+  case xmlText:                   return "#text";
+  case xmlCDATASection:           return "#cdata-section";
+  case xmlEntityReference:        return "#entity-reference";
+  case xmlEntity:                 return "#entity";
+  case xmlProcessingInstruction:  return "#processing-instruction";
+  case xmlComment:                return "#comment";
+  case xmlDocument:               return "#document";
+  case xmlDocumentType:           return "#document-type";
+  case xmlDocumentFragment:       return "#document-fragment";
+  case xmlNotation:               return "#notation";
+  default:                        throw std::runtime_error("Invalid XML node type");
+  }
+}
+Object* 
+CreateXmlObject(XmlNodeTypes nodeType, Object* parentNode = 0)
+{
+  // Create new node
+  Object* childNode = new Object();
+
+  // Create members
+  childNode->LVal("nodeType")     = (Value::Int)nodeType;
+  childNode->LVal("nodeName")     = XmlNodeName(nodeType);
+  childNode->LVal("nodeTypeName") = XmlNodeName(nodeType);
+
+  // Append to parent node
+  if(parentNode)
+  {
+    childNode->LVal("parentNode") = parentNode;
+    Object* coll = nodeType == xmlAttribute ?
+      parentNode->LVal("attributes").GetObject() :
+      parentNode->LVal("childNodes").GetObject() ;
+    coll->LVal(coll->GetMembers().size()) = childNode;
+  }
+
+  // Create complex members
+  switch(nodeType)
+  {
+  case xmlDocument:
+  case xmlElement:
+    childNode->LVal("childNodes") = new Object();
+    // Intentional fallthrough
+  case xmlProcessingInstruction:
+    childNode->LVal("attributes") = new Object();
+    break;
+  }
+
+  // Done
+  return childNode;
+}
+
+void 
+SetNodeName(Ast* ast, Object* node)
+{
+  String qname;
+  String lname;
+  String ns;
+  if(ast->m_type == xml_qname)
+  {
+    lname = ast->m_a2.GetString();
+    ns    = ast->m_a1.GetString();
+    qname = ns + ":" + lname;
+  }
+  else
+  {
+    lname = ast->m_a1.GetString();
+    qname = lname;
+  }
+  
+  node->LVal("nodeName")      = lname;
+  node->LVal("localName")     = lname;
+  node->LVal("qualifiedName") = qname;
+  node->LVal("namespace")     = ns;
+}
+
+void 
+AddXmlAttributes(Ast* ast, Object* node)
+{
+  // Retrieve ast element list
+  AstList& list = *ast->m_a1.GetList();
+  
+  // Walk through list
+  AstList::iterator it = list.begin();
+  for(; it != list.end(); ++it)
+  {
+    Ast* ast = *it;
+    Object* attr = CreateXmlObject(xmlAttribute, node);
+    SetNodeName(ast->m_a1, attr);
+    attr->LVal("value") = ast->m_a2.GetString();
+  }
+}
+
 RValue& 
 Evaluator::EvalXmlExpression(Ast* node)
 {
-  return MakeTemp(0);
+  // Retrieve ast element list
+  AstList& list = *node->m_a1->m_a1.GetList();
+
+  // Create document element
+  Object* doc = CreateXmlObject(xmlDocument);
+
+  // Setup temporaries
+  Object* cur = doc;
+  Object* tmp;
+
+  // Walk through list
+  AstList::iterator it = list.begin();
+  for(; it != list.end(); ++it)
+  {
+    Ast* node = *it;
+    switch(node->m_type)
+    {
+    case xml_processing_instruction:
+      tmp = CreateXmlObject(xmlProcessingInstruction, cur);
+      tmp->LVal("nodeName") = node->m_a1.GetString();
+      if(!node->m_a2.Empty())
+      {
+        AddXmlAttributes(node->m_a2, tmp);
+      }
+      break;
+
+    case xml_open_tag:
+      tmp = CreateXmlObject(xmlElement, cur);
+      cur = tmp;
+      SetNodeName(node->m_a1, cur);
+      if(!node->m_a2.Empty())
+      {
+        AddXmlAttributes(node->m_a2, tmp);
+      }
+      break;
+
+    case xml_close_tag:
+      if(cur == 0)
+      {
+        throw script_exception(node, "Invalid xml structure");
+      }
+      cur = cur->RVal("parentNode").GetObject();
+      break;
+
+    case xml_closed_tag:
+      tmp = CreateXmlObject(xmlElement, cur);
+      SetNodeName(node->m_a1, tmp);
+      if(!node->m_a2.Empty())
+      {
+        AddXmlAttributes(node->m_a2, tmp);
+      }
+      break;
+
+    case xml_text:
+      tmp = CreateXmlObject(xmlText, cur);
+      tmp->LVal("data")   = node->m_a1.GetString();
+      tmp->LVal("length") = node->m_a1.GetString().length();
+      break;
+
+    default:
+      throw script_exception(node, "Unexpected xml node type");
+    }
+  }
+
+  // Check whether we've gotten back to the document element
+  if(cur != doc)
+  {
+    throw script_exception(node, "Invalid xml structure");
+  }
+
+  // TODO Set document element
+
+  // Done
+  return MakeTemp(doc);
 }
 
 RValue& 
@@ -1116,7 +1304,7 @@ Evaluator::EvalPositionalArguments(Ast* node, Function* fun, AstList const* argl
     if((*pi)->m_a2.GetNumber() == ptVariadic)
     {
       // Insert map
-      Object* va = Object::Create();
+      Object* va = new Object();
       args.push_back(va);
 
       // Insert remaining arguments
@@ -1251,7 +1439,7 @@ RValue&
 Evaluator::EvalListLiteral(Ast* node)
 {
   // Create empty map
-  Value v(Object::Create());
+  Value v(new Object());
   Object* o = v.GetObject();
   
   // Recurse into map values
@@ -1293,7 +1481,7 @@ RValue&
 Evaluator::EvalJsonLiteral(Ast* node)
 {
   // Create empty map
-  Value v(Object::Create());
+  Value v(new Object());
   Object* o = v.GetObject();
 
   // Recurse into map values
