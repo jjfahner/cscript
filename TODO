@@ -10,8 +10,6 @@ node, instead of the first line.
 Consider implicitly converting condition values to boolean for statements
 like if, while and for.
 
-Consider moving back to parsing input completely before evaluation.
-
 COM: When building type information, store all FUNCDESC instances for 
 dispatch ids of properties. Then enable the argument count check in Invoke.
 
