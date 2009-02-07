@@ -32,12 +32,6 @@ static Objects g_objects;
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ Object*
-Object::Create()
-{
-  return new Object();
-}
-
 /*static*/ Objects const& 
 Object::GetObjects()
 {
@@ -90,6 +84,24 @@ Object::GetTypeName() const
   }
   return type;
 }
+
+RValue& 
+Object::RVal(Value const& key)
+{
+  RValue*& rval = m_members[key];
+  if(rval == 0)
+  {
+    rval = new RWVariable();
+  }
+  return *rval;
+}
+
+LValue& 
+Object::LVal(Value const& key)
+{
+  return RVal(key).LVal();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //

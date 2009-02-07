@@ -28,7 +28,9 @@
 
 class Object;
 class RValue;
+class LValue;
 class Function;
+class Variable;
 
 //
 // List of root objects
@@ -53,11 +55,6 @@ public:
   //
 
   //
-  // Object factory
-  //
-  static Object* Create();
-
-  //
   // Invoke garbage collection.
   //
   static void Collect(Objects valid);
@@ -71,6 +68,11 @@ public:
   //
   // Instance members
   //
+
+  //
+  // Construction
+  //
+  Object();
 
   //
   // Virtual destruction
@@ -106,6 +108,11 @@ public:
   //
   // Add a member
   //
+  virtual RValue* Add(char const* key, RValue* value)
+  {
+    // Fix ambiguous construction from char*
+    return Add(Value(key), value);
+  }
   virtual RValue* Add(String const& key, RValue* value)
   {
     // This overload is basically meant to prevent the
@@ -122,6 +129,15 @@ public:
     return value;
   }
 
+  //
+  // Retrieve a variable, creating it if required
+  //
+  virtual RValue& RVal(Value const& key);
+
+  //
+  // Retrieve a variable as lval, creating it if required
+  //
+  virtual LValue& LVal(Value const& key);
 
   //
   // Contains a member
@@ -150,7 +166,6 @@ protected:
   //
   // Protected construction
   //
-  Object();
   Object(Object const&);
   Object& operator = (Object const&);
 
