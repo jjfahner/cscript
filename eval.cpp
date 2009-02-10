@@ -636,7 +636,7 @@ Evaluator::EvalStatement(Object* node)
 
   case translation_unit:      EvalStatement(A1(node));    break;
   case statement_sequence:    EvalStatementSeq(node);     break;
-  case expression_statement:  EvalExpStmt(A1(node));      break;
+  case expression_statement:  EvalExpression(A1(node));   break;
   case variable_declaration:  EvalVarDecl(node);          break;
   case function_declaration:  EvalFunDecl(node);          break;
   case extern_declaration:    EvalExternDecl(node);       break;
@@ -671,16 +671,10 @@ Evaluator::EvalStatement(Object* node)
   }
 }
 
-void 
-Evaluator::EvalExpStmt(Ast node)
-{
-  EvalExpression(node);
-}
-
 RValue&
-Evaluator::EvalExpression(Ast node)
+Evaluator::EvalExpression(Object* node)
 {
-  switch(node->m_type)
+  switch(ATYPE(node))
   {
   case assignment_expression: return EvalAssignment(node);
   case binary_expression:     return EvalBinary(node);
@@ -689,7 +683,7 @@ Evaluator::EvalExpression(Ast node)
   case postfix_expression:    return EvalPostfix(node);
   case index_expression:      return EvalIndex(node);
   case function_call:         return EvalFunctionCall(node);
-  case literal_value:         return MakeTemp(node->m_a1.GetValue());
+  case literal_value:         return MakeTemp(A1(node));
   case lvalue:                return EvalLValue(node);
   case list_literal:          return EvalListLiteral(node);
   case json_literal:          return EvalJsonLiteral(node);
@@ -706,20 +700,20 @@ Evaluator::EvalExpression(Ast node)
 }
 
 RValue&
-Evaluator::EvalAssignment(Ast node)
+Evaluator::EvalAssignment(Object* node)
 {
   // Evaluate left-hand side
-  LValue& lhs = EvalExpression(node->m_a2).LVal();
+  LValue& lhs = EvalExpression(A2(node)).LVal();
   if(&lhs == 0)
   {
     throw std::runtime_error("Expression does not yield an lvalue");
   }
 
   // Evaluate right-hand side
-  RValue& rhs = EvalExpression(node->m_a3);
+  RValue& rhs = EvalExpression(A3(node));
 
   // Perform assignment
-  switch(node->m_a1.GetNumber())
+  switch(A1(node).GetInt())
   {
   case op_assign: return lhs = rhs;
   case op_assadd: return lhs = ValAdd(lhs, rhs);
@@ -732,33 +726,30 @@ Evaluator::EvalAssignment(Ast node)
 }
 
 RValue&
-Evaluator::EvalBinary(Ast node)
+Evaluator::EvalBinary(Object* node)
 {
   Value result;
-  switch(node->m_a1.GetNumber())
+  switch(A1(node).GetInt())
   {
-  case op_add:    result = ValAdd (EvalExpression(node->m_a2), EvalExpression(node->m_a3)); break;
-  case op_sub:    result = ValSub (EvalExpression(node->m_a2), EvalExpression(node->m_a3)); break;
-  case op_mul:    result = ValMul (EvalExpression(node->m_a2), EvalExpression(node->m_a3)); break;
-  case op_div:    result = ValDiv (EvalExpression(node->m_a2), EvalExpression(node->m_a3)); break;
-  case op_mod:    result = ValMod (EvalExpression(node->m_a2), EvalExpression(node->m_a3)); break;
-  case op_eq:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) == 0; break;
-  case op_ne:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) != 0; break;
-  case op_lt:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) <  0; break;
-  case op_le:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) <= 0; break;
-  case op_gt:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) >  0; break;
-  case op_ge:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) >= 0; break;
+  case op_add:    result = ValAdd (EvalExpression(A2(node)), EvalExpression(A3(node))); break;
+  case op_sub:    result = ValSub (EvalExpression(A2(node)), EvalExpression(A3(node))); break;
+  case op_mul:    result = ValMul (EvalExpression(A2(node)), EvalExpression(A3(node))); break;
+  case op_div:    result = ValDiv (EvalExpression(A2(node)), EvalExpression(A3(node))); break;
+  case op_mod:    result = ValMod (EvalExpression(A2(node)), EvalExpression(A3(node))); break;
+  case op_eq:     result = Compare(EvalExpression(A2(node)), EvalExpression(A3(node))) == 0; break;
+  case op_ne:     result = Compare(EvalExpression(A2(node)), EvalExpression(A3(node))) != 0; break;
+  case op_lt:     result = Compare(EvalExpression(A2(node)), EvalExpression(A3(node))) <  0; break;
+  case op_le:     result = Compare(EvalExpression(A2(node)), EvalExpression(A3(node))) <= 0; break;
+  case op_gt:     result = Compare(EvalExpression(A2(node)), EvalExpression(A3(node))) >  0; break;
+  case op_ge:     result = Compare(EvalExpression(A2(node)), EvalExpression(A3(node))) >= 0; break;
 
-  case op_logor:  result = ValBool(EvalExpression(node->m_a2)) || 
-                           ValBool(EvalExpression(node->m_a3)) ; break;
-  case op_logand: result = ValBool(EvalExpression(node->m_a2)) && 
-                           ValBool(EvalExpression(node->m_a3)) ; break;
+  case op_logor:  result = ValBool(EvalExpression(A2(node))) || 
+                           ValBool(EvalExpression(A3(node))) ; break;
+  case op_logand: result = ValBool(EvalExpression(A2(node))) && 
+                           ValBool(EvalExpression(A3(node))) ; break;
 
-  case op_seq:    result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) == 0; break;
-  case op_sne:    result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) != 0; break;
-
-  //   case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) == 0; break;
-  //   case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) != 0; break;
+  case op_seq:    result = Compare(EvalExpression(A2(node)), EvalExpression(A3(node))) == 0; break;
+  case op_sne:    result = Compare(EvalExpression(A2(node)), EvalExpression(A3(node))) != 0; break;
 
   default: throw script_exception(node, "Invalid binary operator");
   }  
@@ -767,13 +758,13 @@ Evaluator::EvalBinary(Ast node)
 }
 
 RValue&
-Evaluator::EvalTernary(Ast node)
+Evaluator::EvalTernary(Object* node)
 {
-  if(EvalExpression(node->m_a1).GetBool())
+  if(EvalExpression(A1(node)).GetBool())
   {
-    return EvalExpression(node->m_a2);
+    return EvalExpression(A2(node));
   }
-  return EvalExpression(node->m_a3);
+  return EvalExpression(A3(node));
 }
 
 void 
