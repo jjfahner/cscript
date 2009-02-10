@@ -99,7 +99,7 @@ private:
   typedef std::map<long, FUNCDESC>    dispif_map;
 
   //
-  // Members
+  // MemberMap
   //
   ITypeInfoPtr        m_typeinfo;
   CLSID               m_clsid;

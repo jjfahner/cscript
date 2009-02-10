@@ -22,12 +22,6 @@
 #include "eval.h"
 #include "astlist.h"
 
-AstList const* 
-ScriptFunction::GetParameters() const
-{
-  return m_node->m_a2;
-}
-
 Value 
 ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
@@ -36,22 +30,23 @@ ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
 
 NativeFunction::NativeFunction(String decl, NativeCall call) :
 Function  (""),
-m_call    (call),
-m_pars    (0)
+m_call    (call)
 {
   // Create parser
   Evaluator eval;
 
   // Parse declaration
-  Ast* node = eval.ParseNativeCall(decl);
+  Object* node = eval.ParseNativeCall(decl);
   if(node == 0)
   {
     throw std::runtime_error("Failed to register native call '" + decl + "'");
   }
 
   // Extract name and parameter list
-  m_name = node->m_a1.GetString();
-  m_pars = node->m_a2.GetList();
+  m_name = A1(node);
+
+  // Store the ast node
+  (*this)["__ast"] = node;
 }
 
 Value
@@ -60,10 +55,10 @@ NativeFunction::Execute(Evaluator* evaluator, Arguments& args)
   return m_call(evaluator, args);
 }
 
-AstList const* 
+Object* 
 ExternFunction::GetParameters() const
 {
-  return m_node->m_a2;
+  return A2(GetNode());
 }
 
 #ifdef WIN32
@@ -73,15 +68,17 @@ ExternFunction::GetParameters() const
 Value
 ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
+  Object* node = GetNode();
+
   // Load library
-  HMODULE hModule = LoadLibrary(m_node->m_a3.GetString().c_str());
+  HMODULE hModule = LoadLibrary(A3(node).GetString().c_str());
   if(hModule == 0)
   {
     throw std::runtime_error("Failed to load library");
   }
 
   // Find function address
-  FARPROC proc = GetProcAddress(hModule, m_node->m_a1.GetString().c_str());
+  FARPROC proc = GetProcAddress(hModule, A1(node).GetString().c_str());
   if(proc == 0)
   {
     throw std::runtime_error("Failed to retrieve function pointer");
@@ -94,13 +91,12 @@ ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
   // Copy arguments into buffer stack
   size_t index = 0;
   AstList::const_reverse_iterator pi, pe;
-  pi = m_node->m_a2.GetList()->rbegin();
-  pe = m_node->m_a2.GetList()->rend();
+  AstList list(A2(node));
+  pi = list.rbegin();
+  pe = list.rend();
   for(; pi != pe; ++pi, ++index)
   {
-    Ast* par = (*pi);
-    Ast* typ = par->m_a2;
-    switch(typ->m_a1.GetNumber())
+    switch(A2(A1(*pi)).GetInt())
     {
     case Value::tInt:   // int
       stack[index] = (int)args[index].GetInt();

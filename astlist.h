@@ -22,10 +22,12 @@
 #define CSCRIPT_ASTLIST_H
 
 #include "ast.h"
+#include "object.h"
+#include "variable.h"
 
 class AstList
 {
-  typedef std::list<Ast*> ListImpl;
+  typedef std::list<Object*> ListImpl;
 
 public:
 
@@ -44,9 +46,14 @@ public:
     *this = rhs;
   }
 
-  ~AstList()
+  AstList(Object* source)
   {
-    clear();
+    MemberMap const& map = source->Members();
+    MemberMap::const_iterator it;
+    for(it = map.begin(); it != map.end(); ++it)
+    {
+      m_list.push_back(it->second->GetObject());
+    }
   }
 
   void adopt(AstList& rhs)
@@ -58,22 +65,13 @@ public:
     rhs.m_list.clear();
   }
 
-  void push_back(Ast* node)
+  void push_back(Object* node)
   {
-    ++node->m_refs;
     m_list.push_back(node);
   }
 
   void clear()
   {
-    while(m_list.size())
-    {
-      if(--m_list.front()->m_refs == 0)
-      {
-        delete m_list.front();
-      }
-      m_list.pop_front();
-    }
     m_list.clear();
   }
 
@@ -140,9 +138,8 @@ public:
 private:
 
 
-  std::list<Ast*> m_list;
+  ListImpl m_list;
   
-  friend class AstData;
   int m_refs;
 
 };

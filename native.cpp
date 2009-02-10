@@ -103,9 +103,9 @@ void PrintValue(Value const& val)
     throw std::runtime_error("Invalid subtype");
   }
 
-  Members::const_iterator it, ie;
-  it = val.GetObject()->GetMembers().begin();
-  ie = val.GetObject()->GetMembers().end();
+  MemberMap::const_iterator it, ie;
+  it = val.GetObject()->Members().begin();
+  ie = val.GetObject()->Members().end();
 
   csout << "[";
 
@@ -166,7 +166,7 @@ NATIVE_CALL("__native count(arg)")
   {
     throw std::runtime_error("Invalid type for count");
   }
-  return Value(args[0].GetObject()->GetMembers().size());
+  return Value(args[0].GetObject()->Members().size());
 }
 
 struct objprinter {

@@ -232,7 +232,7 @@ protected:
   static MatchTypes ParseCharClass(char const* charClass);
 
   //
-  // Members
+  // MemberMap
   //
   State           m_start;
   State           m_final;

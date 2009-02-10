@@ -95,7 +95,7 @@ public:
 private:
 
   //
-  // Members
+  // MemberMap
   //
   String    m_path;
   FileTypes m_type;

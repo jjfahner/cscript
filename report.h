@@ -66,7 +66,7 @@ public:
 private:
 
   //
-  // Members
+  // MemberMap
   //
   int m_errors;
   int m_warnings;

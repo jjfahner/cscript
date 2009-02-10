@@ -69,7 +69,7 @@ private:
   bool LexComment();
 
   //
-  // Members
+  // MemberMap
   //
   Evaluator& m_evaluator;
   Char*   m_source;
