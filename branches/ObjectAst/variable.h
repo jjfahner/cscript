@@ -42,14 +42,6 @@ public:
   virtual RValue* Clone() const = 0;
 
   //
-  // Automatic conversion to Value
-  //
-  operator Value const& () const
-  {
-    return GetValue();
-  }
-
-  //
   // Wrappers for Value interface
   //
   Value::Types          Type()      const { return GetValue().Type();      }
@@ -58,6 +50,20 @@ public:
   Value::Int            GetInt()    const { return GetValue().GetInt();    }
   Value::String const&  GetString() const { return GetValue().GetString(); }
   Object*               GetObject() const { return GetValue().GetObject(); }
+
+  //
+  // Conversion to boolean checks emptyness, not boolean value
+  //
+  operator bool   () const { return !Empty(); }
+  bool operator ! () const { return  Empty(); }
+
+  //
+  // Automatic conversions
+  //
+  operator Object*               () const { return GetObject(); }
+  operator Value::Int            () const { return GetInt();    }
+  operator Value::String const&  () const { return GetString(); }
+  operator Value const&          () const { return GetValue();  }
 
   //
   // Act directly on object

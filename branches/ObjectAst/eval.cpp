@@ -41,6 +41,12 @@ void CScriptParse(void*, int,Token, Evaluator*);
 //
 static const size_t g_collect_threshold = 1000;
 
+#define ATYPE(arg)  ((*arg)["type"].GetInt())
+#define A1(arg)     ((*arg)["a1"])
+#define A2(arg)     ((*arg)["a2"])
+#define A3(arg)     ((*arg)["a3"])
+#define A4(arg)     ((*arg)["a4"])
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Comparator implementation
@@ -619,18 +625,18 @@ Evaluator::Eval(String text, bool isFileName)
 }
 
 void 
-Evaluator::EvalStatement(Ast node)
+Evaluator::EvalStatement(Object* node)
 {
   VecRestore<ValueVec> vr(m_temporaries);
   MakeTemp((Object*)node);
 
-  switch(node->m_type)
+  switch(ATYPE(node))
   {
   case empty_statement:       break;
 
-  case translation_unit:      EvalStatement(node->m_a1);  break;
+  case translation_unit:      EvalStatement(A1(node));    break;
   case statement_sequence:    EvalStatementSeq(node);     break;
-  case expression_statement:  EvalExpStmt(node->m_a1);    break;
+  case expression_statement:  EvalExpStmt(A1(node));      break;
   case variable_declaration:  EvalVarDecl(node);          break;
   case function_declaration:  EvalFunDecl(node);          break;
   case extern_declaration:    EvalExternDecl(node);       break;
@@ -646,18 +652,18 @@ Evaluator::EvalStatement(Ast node)
   case break_statement:       throw break_exception(node);  
   case continue_statement:    throw continue_exception(node);
   case throw_statement:       throw user_exception(node, 
-                                  EvalExpression(node->m_a1));
+                                  EvalExpression(A1(node)));
 
   case declaration_sequence:
-    EvalStatement(node->m_a1);
-    EvalStatement(node->m_a2);
+    EvalStatement(A1(node));
+    EvalStatement(A2(node));
     break;
 
   case compound_statement:
-    if(node->m_a1)
+    if(A1(node))
     {
       AutoScope as(this, new Scope(m_scope));
-      EvalStatement(node->m_a1);
+      EvalStatement(A1(node));
     }
     break;
 
@@ -865,7 +871,7 @@ Evaluator::EvalIndex(Ast node)
     // Retrieve value
     if(!lhs.GetObject()->Find(rhs, val))
     {
-      val = lhs.GetObject()->Add(rhs, new RWVariable());
+      val = lhs->Add(rhs, new RWVariable());
     }
   }
   
