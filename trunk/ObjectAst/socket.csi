@@ -1,0 +1,90 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2007 - 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
+
+//
+// Socket wrapper class
+//
+
+var Socket = {
+
+  m_socket : null,
+
+  //
+  // Connect to peer
+  //
+  Connect : function(address, port)
+  {
+    var s = socket(address, port);
+    if(s === false)
+    {
+      throw "failed to connect socket";
+    }
+    m_socket = s;
+  },
+
+  //
+  // Close connection
+  //
+  Close : function ()
+  {
+    if(m_socket != null)
+    {
+      var s = m_socket;
+      m_socket = null;
+      closesocket(s);
+    }
+  },
+
+  //
+  // Send data
+  //
+  Send : function (data, length)
+  {
+    if(m_socket == null)
+    {
+      throw "socket not connected";
+    }
+    if(send(m_socket, data, length) === false)
+    {
+      throw "failed to send data";
+    }
+  },
+
+  //
+  // Receive data
+  //
+  Recv : function (length, timeout)
+  {
+    if(m_socket == null)
+    {
+      throw "socket not connected";
+    }
+    var result = recv(m_socket, length, timeout);
+    if(result === false)
+    {
+      throw "failed to receive data";
+    }
+    return result;
+  }
+
+};
+
+// EOF
