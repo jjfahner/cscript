@@ -94,7 +94,7 @@ public:
   //
   // Allocate node
   //
-  Ast* AllocAst(AstTypes type, 
+  Ast* AllocNode(AstTypes type, 
     AstData const& a1 = AstData(), 
     AstData const& a2 = AstData(), 
     AstData const& a3 = AstData(), 
