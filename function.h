@@ -26,6 +26,7 @@
 #include "args.h"
 #include "native.h"
 #include "object.h"
+#include "variable.h"
 
 class Evaluator;
 
@@ -72,7 +73,7 @@ public:
   //
   // Parameter list
   //
-  virtual AstList const* GetParameters() const = 0;
+  virtual Object* GetParameters() const = 0;
 
   //
   // Execute function 
@@ -82,7 +83,7 @@ public:
 protected:
 
   //
-  // Members
+  // MemberMap
   //
   String m_name;
 
@@ -100,10 +101,10 @@ public:
   //
   // Construction
   // 
-  ScriptFunction(String name, Ast* node) :
-  Function (name),
-  m_node   (node)
+  ScriptFunction(String name, Object* node) :
+  Function (name)
   {
+    (*this)["__ast"] = node;
   }
 
   //
@@ -112,7 +113,7 @@ public:
   virtual Object* Clone(Object* into = 0) const
   {
     // Create copy of function
-    ScriptFunction* s = new ScriptFunction(m_name, m_node);
+    ScriptFunction* s = new ScriptFunction(m_name, GetNode());
 
     // Clone object into copy
     Function::Clone(s);
@@ -124,27 +125,20 @@ public:
   //
   // Retrieve node
   //
-  Ast* GetNode() const
+  Object* GetNode() const
   {
-    return m_node;
+    return const_cast<ScriptFunction&>(*this)["__ast"].GetObject();
   }
 
   //
   // Parameter list
   //
-  virtual AstList const* GetParameters() const;
+  virtual Object* GetParameters() const;
 
   //
   // Execution
   //
   virtual Value Execute(Evaluator* evaluator, Arguments& args);
-
-protected:
-
-  //
-  // Members
-  //
-  Ast* m_node;
 
 };
 
@@ -173,7 +167,7 @@ public:
   //
   // Parameter list
   //
-  virtual AstList const* GetParameters() const
+  virtual Object* GetParameters() const
   {
     return m_pars;
   }
@@ -186,10 +180,10 @@ public:
 protected:
 
   //
-  // Members
+  // MemberMap
   //
   NativeCall  m_call;
-  AstList*    m_pars;
+  Object*     m_pars;
 
 };
 
@@ -205,10 +199,10 @@ public:
   //
   // Construction
   //
-  ExternFunction(String name, Ast* node) :
-  Function  (name),
-  m_node    (node)
+  ExternFunction(String name, Object* node) :
+  Function  (name)
   {
+    (*this)["__ast"] = node;
   }
 
   //
@@ -220,21 +214,22 @@ public:
   }
 
   //
+  // Retrieve node
+  //
+  Object* GetNode() const
+  {
+    return const_cast<ExternFunction&>(*this)["__ast"].GetObject();
+  }
+
+  //
   // Parameter list
   //
-  virtual AstList const* GetParameters() const;
+  virtual Object* GetParameters() const;
 
   //
   // Execution
   //
   virtual Value Execute(Evaluator* evaluator, Arguments& args);
-
-protected:
-
-  //
-  // Members
-  //
-  Ast* m_node;
 
 };
 

@@ -47,7 +47,7 @@ Object::Object()
 
 Object::~Object()
 {
-  Members::iterator it = m_members.begin();
+  MemberMap::iterator it = m_members.begin();
   for(; it != m_members.end(); ++it)
   {
     delete it->second;
@@ -64,7 +64,7 @@ Object::Clone(Object* into) const
   }
 
   // Copy members
-  Members::const_iterator it;
+  MemberMap::const_iterator it;
   for(it = m_members.begin(); it != m_members.end(); ++it)
   {
     into->m_members[it->first] = it->second->Clone();
@@ -102,6 +102,13 @@ Object::LVal(Value const& key)
   return RVal(key).LVal();
 }
 
+LValue& 
+Object::Add(Value const& value)
+{
+  LValue& lval = LVal(m_members.size());
+  lval = value;
+  return lval;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -178,9 +185,9 @@ MarkObjects(Objects& white, Objects& grey, Objects& black)
     black.insert(obj);
 
     // Walk object members
-    Members::const_iterator it, ie;
-    it = obj->GetMembers().begin();
-    ie = obj->GetMembers().end();
+    MemberMap::const_iterator it, ie;
+    it = obj->Members().begin();
+    ie = obj->Members().end();
     for(; it != ie; ++it)
     {
       if(it->first.Type() == Value::tObject)

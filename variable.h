@@ -60,6 +60,11 @@ public:
   Object*               GetObject() const { return GetValue().GetObject(); }
 
   //
+  // Act directly on object
+  //
+  Object* operator -> () const { return GetObject(); }
+
+  //
   // Actual value retrieval implemented in derived class
   //
   virtual Value const& GetValue() const = 0;
@@ -147,7 +152,7 @@ public:
 
 class ObjectEnumerator : public Enumerator
 {
-  typedef Members::const_iterator Iterator;
+  typedef MemberMap::const_iterator Iterator;
 
   Object*  m_obj;
   Iterator m_cur;
@@ -164,13 +169,13 @@ public:
   virtual void Reset()
   {
     // Set iterator to start
-    m_cur = m_obj->GetMembers().begin();
+    m_cur = m_obj->Members().begin();
   }
 
   virtual bool GetNext(Value& value)
   {
     // Check current position
-    if(m_cur == m_obj->GetMembers().end())
+    if(m_cur == m_obj->Members().end())
     {
       return false;
     }
@@ -200,7 +205,7 @@ RValue::GetEnumerator() const
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Members
+// MemberMap
 //
 
 class Variable

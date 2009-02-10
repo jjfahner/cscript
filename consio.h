@@ -49,7 +49,7 @@ public:
 protected:
 
   //
-  // Members
+  // MemberMap
   //
   std::istream& m_is;
 
@@ -81,7 +81,7 @@ public:
 protected:
 
   //
-  // Members
+  // MemberMap
   //
   std::ostream& m_os;
 

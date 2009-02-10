@@ -40,7 +40,7 @@ typedef std::set<Object*> Objects;
 //
 // Member map
 //
-typedef std::map<Value, RValue*, ValueComparatorLess> Members;
+typedef std::map<Value, RValue*, ValueComparatorLess> MemberMap;
 
 //
 // Object class
@@ -92,7 +92,7 @@ public:
   //
   // Retrieve variables
   //
-  virtual Members& GetMembers()
+  virtual MemberMap& Members()
   {
     return m_members;
   }
@@ -100,9 +100,9 @@ public:
   //
   // Retrieve const variables
   //
-  Members const& GetMembers() const
+  MemberMap const& Members() const
   {
-    return const_cast<Object*>(this)->GetMembers();
+    return const_cast<Object*>(this)->Members();
   }
 
   //
@@ -130,14 +130,27 @@ public:
   }
 
   //
-  // Retrieve a variable, creating it if required
+  // Retrieve variable as rvalue
   //
   virtual RValue& RVal(Value const& key);
 
   //
-  // Retrieve a variable as lval, creating it if required
+  // Retrieve variable as lvalue
   //
   virtual LValue& LVal(Value const& key);
+
+  //
+  // Use index operator to retrieve lvalue
+  //
+  LValue& operator [] (Value const& key)
+  {
+    return LVal(key);
+  }
+
+  //
+  // Add new item to end
+  //
+  LValue& Add(Value const& value);
 
   //
   // Contains a member
@@ -152,7 +165,7 @@ public:
   //
   virtual bool Find(Value const& key, RValue*& pValue) const
   {
-    Members::const_iterator it = m_members.find(key);
+    MemberMap::const_iterator it = m_members.find(key);
     if(it == m_members.end())
     {
       return false;
@@ -172,7 +185,7 @@ protected:
   //
   // Object members
   //
-  Members m_members;
+  MemberMap m_members;
 
 };
 

@@ -149,7 +149,7 @@ public:
 private:
 
   //
-  // Members
+  // MemberMap
   //
   MapType& m_map;
   String   m_idx;
@@ -224,7 +224,7 @@ public:
 private:
 
   //
-  // Members
+  // MemberMap
   //
   MapType* m_properties;
 

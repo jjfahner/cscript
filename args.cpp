@@ -25,11 +25,12 @@ Value const&
 Arguments::at(String const& name) const
 {
   AstList::const_iterator it, ie;
-  it = m_parameters->begin();
-  ie = m_parameters->end();
+  AstList parlist(m_parameters);
+  it = parlist.begin();
+  ie = parlist.end();
   for(size_t index = 0; it != ie; ++it, ++index)
   {
-    if((*it)->m_a1.GetString() == name)
+    if(Ast(*it)->m_a1.GetString() == name)
     {
       return at(index);
     }

@@ -23,70 +23,24 @@
 
 #include "types.h"
 #include "value.h"
+#include "object.h"
+#include "variable.h"
+
+class Ast;
 
 class AstData
 {
 public:
 
-  enum Types {
-    Null,
-    Node,
-    Text,
-    List,
-    Val,
-    Number
-  };
-
-  AstData() : 
-  m_type    (Null),
-  m_number  (0)
+  AstData(Object* obj, Value const& key) : 
+  m_obj   (obj),
+  m_key   (key)
   {
-  }
-
-  AstData(AstData const& rhs) : 
-  m_type    (Null),
-  m_number  (0)
-  {
-    *this = rhs;
-  }
-
-  AstData(Ast* node);
-  AstData(AstList* list);
-
-  AstData(String const& text) : 
-  m_type    (Text),
-  m_string  (new String(text))
-  {
-  }
-
-  AstData(Value const& value) :
-  m_type    (Val),
-  m_value   (new Value(value))
-  {
-  }
-
-  AstData(int32 number) : 
-  m_type    (Number),
-  m_number  (number)
-  {
-  }
-
-  ~AstData()
-  {
-    Clear();
   }
 
   bool Empty() const
   {
-    return m_type == Null;
-  }
-
-  void Clear();
-
-  void Release()
-  {
-    m_type   = Null;
-    m_number = 0;
+    return !m_obj->Contains(m_key);
   }
 
   operator bool () const
@@ -99,60 +53,48 @@ public:
     return Empty();
   }
 
-  Types Type() const
+  Value::Types Type() const
   {
-    return m_type;
+    return Empty() ? Value::tNull : (*m_obj)[m_key].Type();
   }
 
-  void AssertType(Types type) const
+  void AssertType(Value::Types type) const
   {
-    if(m_type != type)
+    if(Type() != type)
     {
       throw std::runtime_error("Invalid type");
     }
   }
 
-  Ast* GetNode() const
+  Value::Int GetNumber() const
   {
-    AssertType(Node);
-    return m_node;
+    AssertType(Value::tInt);
+    return (*m_obj)[m_key].GetInt();
   }
 
   String const& GetString() const
   {
-    AssertType(Text);
-    return *m_string;
+    AssertType(Value::tString);
+    return (*m_obj)[m_key].GetString();
   }
 
-  AstList* GetList() const
+  Object* GetNode() const
   {
-    AssertType(List);
-    return m_list;
+    AssertType(Value::tObject);
+    return (*m_obj)[m_key].GetObject();
   }
 
   Value const& GetValue() const
   {
-    AssertType(Val);
-    return *m_value;
+    return (*m_obj)[m_key];
   }
 
-  int32 GetNumber() const
-  {
-    AssertType(Number);
-    return m_number;
-  }
-
-  operator Ast* () const
+  operator Object* () const
   {
     return GetNode();
   }
 
-  operator AstList* () const
-  {
-    return GetList();
-  }
-
-  operator String const& () const
+  operator Value::String const& () const
   {
     return GetString();
   }
@@ -162,29 +104,18 @@ public:
     return GetValue();
   }
 
-  operator int32 () const
+  operator Value::Int () const
   {
     return GetNumber();
   }
 
-  Ast* operator -> () const
-  {
-    return GetNode();
-  }
-
-  AstData const& operator = (AstData const& rhs);
+  Ast operator -> () const;
 
 private:
 
-  Types m_type;
-
-  union {
-    Ast*      m_node;
-    String*   m_string;
-    AstList*  m_list;
-    Value*    m_value;
-    int32     m_number;
-  };
+  friend class Ast;
+  Object*   m_obj;
+  Value     m_key;
 
 };
 

@@ -52,11 +52,11 @@ public:
   //
   // Parameters
   //
-  AstList const* GetParameters() const
+  Object* GetParameters() const
   {
     return m_parameters;
   }
-  void SetParameters(AstList const* parameters)
+  void SetParameters(Object* parameters)
   {
     m_parameters = parameters;
   }
@@ -79,10 +79,10 @@ public:
 protected:
 
   //
-  // Members
+  // MemberMap
   //
-  Object*         m_object;
-  AstList const*  m_parameters;
+  Object* m_object;
+  Object* m_parameters;
 
 };
 

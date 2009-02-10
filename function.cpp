@@ -22,10 +22,10 @@
 #include "eval.h"
 #include "astlist.h"
 
-AstList const* 
+Object* 
 ScriptFunction::GetParameters() const
 {
-  return m_node->m_a2;
+  return Ast(GetNode()).m_a2;
 }
 
 Value 
@@ -43,7 +43,7 @@ m_pars    (0)
   Evaluator eval;
 
   // Parse declaration
-  Ast* node = eval.ParseNativeCall(decl);
+  Ast node(eval.ParseNativeCall(decl));
   if(node == 0)
   {
     throw std::runtime_error("Failed to register native call '" + decl + "'");
@@ -51,7 +51,7 @@ m_pars    (0)
 
   // Extract name and parameter list
   m_name = node->m_a1.GetString();
-  m_pars = node->m_a2.GetList();
+  m_pars = node->m_a2.GetNode();
 }
 
 Value
@@ -60,10 +60,10 @@ NativeFunction::Execute(Evaluator* evaluator, Arguments& args)
   return m_call(evaluator, args);
 }
 
-AstList const* 
+Object* 
 ExternFunction::GetParameters() const
 {
-  return m_node->m_a2;
+  return Ast(GetNode())->m_a2;
 }
 
 #ifdef WIN32
@@ -73,15 +73,17 @@ ExternFunction::GetParameters() const
 Value
 ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
+  Ast node(GetNode());
+
   // Load library
-  HMODULE hModule = LoadLibrary(m_node->m_a3.GetString().c_str());
+  HMODULE hModule = LoadLibrary(node->m_a3.GetString().c_str());
   if(hModule == 0)
   {
     throw std::runtime_error("Failed to load library");
   }
 
   // Find function address
-  FARPROC proc = GetProcAddress(hModule, m_node->m_a1.GetString().c_str());
+  FARPROC proc = GetProcAddress(hModule, node->m_a1.GetString().c_str());
   if(proc == 0)
   {
     throw std::runtime_error("Failed to retrieve function pointer");
@@ -94,12 +96,13 @@ ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
   // Copy arguments into buffer stack
   size_t index = 0;
   AstList::const_reverse_iterator pi, pe;
-  pi = m_node->m_a2.GetList()->rbegin();
-  pe = m_node->m_a2.GetList()->rend();
+  AstList list(node->m_a2);
+  pi = list.rbegin();
+  pe = list.rend();
   for(; pi != pe; ++pi, ++index)
   {
-    Ast* par = (*pi);
-    Ast* typ = par->m_a2;
+    Ast par(*pi);
+    Ast typ(par->m_a2);
     switch(typ->m_a1.GetNumber())
     {
     case Value::tInt:   // int
