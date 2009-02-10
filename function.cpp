@@ -22,12 +22,6 @@
 #include "eval.h"
 #include "astlist.h"
 
-Object* 
-ScriptFunction::GetParameters() const
-{
-  return Ast(GetNode()).m_a2;
-}
-
 Value 
 ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
@@ -36,22 +30,23 @@ ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
 
 NativeFunction::NativeFunction(String decl, NativeCall call) :
 Function  (""),
-m_call    (call),
-m_pars    (0)
+m_call    (call)
 {
   // Create parser
   Evaluator eval;
 
   // Parse declaration
-  Ast node(eval.ParseNativeCall(decl));
+  Object* node = eval.ParseNativeCall(decl);
   if(node == 0)
   {
     throw std::runtime_error("Failed to register native call '" + decl + "'");
   }
 
   // Extract name and parameter list
-  m_name = node->m_a1.GetString();
-  m_pars = node->m_a2.GetNode();
+  m_name = Ast(node)->m_a1.GetString();
+
+  // Store the ast node
+  (*this)["__ast"] = node;
 }
 
 Value

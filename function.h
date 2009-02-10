@@ -27,6 +27,7 @@
 #include "native.h"
 #include "object.h"
 #include "variable.h"
+#include "ast.h"
 
 class Evaluator;
 
@@ -133,7 +134,10 @@ public:
   //
   // Parameter list
   //
-  virtual Object* GetParameters() const;
+  virtual Object* GetParameters() const
+  {
+    return Ast(GetNode()).m_a2;
+  }
 
   //
   // Execution
@@ -165,11 +169,19 @@ public:
   }
 
   //
+  // Retrieve node
+  //
+  Object* GetNode() const
+  {
+    return const_cast<NativeFunction&>(*this)["__ast"].GetObject();
+  }
+
+  //
   // Parameter list
   //
   virtual Object* GetParameters() const
   {
-    return m_pars;
+    return Ast(GetNode()).m_a2;
   }
 
   //
@@ -183,7 +195,6 @@ protected:
   // MemberMap
   //
   NativeCall  m_call;
-  Object*     m_pars;
 
 };
 

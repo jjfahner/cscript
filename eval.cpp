@@ -621,6 +621,8 @@ void
 Evaluator::EvalStatement(Ast node)
 {
   VecRestore<ValueVec> vr(m_temporaries);
+  MakeTemp((Object*)node);
+
   switch(node->m_type)
   {
   case empty_statement:       break;
@@ -1010,14 +1012,14 @@ Evaluator::EvalFunctionCall(Ast node, Function* fun, Object* owner, Ast argument
   args.SetParameters(fun->GetParameters());
 
   // Evaluate arguments
-  AstList pars(arguments->m_a1);
+  AstList arglist(arguments->m_a1);
   if(arguments->m_type == positional_arguments)
   {
-    EvalPositionalArguments(node, fun, &pars, args);
+    EvalPositionalArguments(node, fun, &arglist, args);
   }
   else
   {
-    EvalNamedArguments(node, fun, &pars, args);
+    EvalNamedArguments(node, fun, &arglist, args);
   }
 
   // Evaluate function
