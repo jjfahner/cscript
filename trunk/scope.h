@@ -100,7 +100,7 @@ protected:
   using Object::Find;
 
   //
-  // Members
+  // MemberMap
   //
   Scope*    m_parent;
 
@@ -147,7 +147,7 @@ public:
 protected:
 
   //
-  // Members
+  // MemberMap
   //
   Object* m_inst;
 

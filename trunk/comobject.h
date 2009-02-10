@@ -118,7 +118,7 @@ protected:
   ~ComObject();
 
   //
-  // Members
+  // MemberMap
   //
   friend class ComMemberFunction;
   friend class ComMemberVariable;
@@ -237,7 +237,7 @@ public:
   //
   // Retrieve parameter list
   //
-  AstList const* GetParameters() const;
+  Object* GetParameters() const;
 
   //
   // Execution
@@ -247,7 +247,7 @@ public:
 protected:
 
   //
-  // Members
+  // MemberMap
   //
   ComObject const* m_inst;
   DISPID       m_dispid;

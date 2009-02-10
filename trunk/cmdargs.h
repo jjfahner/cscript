@@ -65,7 +65,7 @@ public:
 private:
 
   //
-  // Members
+  // MemberMap
   //
   StringMap m_args;
 

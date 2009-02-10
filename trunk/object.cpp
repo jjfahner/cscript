@@ -47,7 +47,7 @@ Object::Object()
 
 Object::~Object()
 {
-  Members::iterator it = m_members.begin();
+  MemberMap::iterator it = m_members.begin();
   for(; it != m_members.end(); ++it)
   {
     delete it->second;
@@ -64,7 +64,7 @@ Object::Clone(Object* into) const
   }
 
   // Copy members
-  Members::const_iterator it;
+  MemberMap::const_iterator it;
   for(it = m_members.begin(); it != m_members.end(); ++it)
   {
     into->m_members[it->first] = it->second->Clone();
@@ -102,22 +102,45 @@ Object::LVal(Value const& key)
   return RVal(key).LVal();
 }
 
+LValue& 
+Object::Add(Value const& value)
+{
+  LValue& lval = LVal(m_members.size());
+  lval = value;
+  return lval;
+}
+
+void 
+Object::Add(MemberMap const& source)
+{
+  MemberMap::const_iterator it;
+  for(it = source.begin(); it != source.end(); ++it)
+  {
+    Add(it->second->GetValue());
+  }
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Helpers for garbage collector
 //
 
-struct safe_deleter {
+class ObjectDeleter
+{
+public:
+
   void operator () (Object* ptr) const
   {
-    try {
+    try 
+    {
       delete ptr;
     }
-    catch(...) {
+    catch(...) 
+    {
       // TODO
     }
   }
+
 };
 
 template <typename T, typename U>
@@ -178,9 +201,9 @@ MarkObjects(Objects& white, Objects& grey, Objects& black)
     black.insert(obj);
 
     // Walk object members
-    Members::const_iterator it, ie;
-    it = obj->GetMembers().begin();
-    ie = obj->GetMembers().end();
+    MemberMap::const_iterator it, ie;
+    it = obj->Members().begin();
+    ie = obj->Members().end();
     for(; it != ie; ++it)
     {
       if(it->first.Type() == Value::tObject)
@@ -212,5 +235,5 @@ Object::Collect(Objects grey)
   black.swap(g_objects);
 
   // Delete white objects
-  std::for_each(white.begin(), white.end(), safe_deleter());
+  std::for_each(white.begin(), white.end(), ObjectDeleter());
 }

@@ -21,9 +21,6 @@
 #ifndef CSCRIPT_AST_H
 #define CSCRIPT_AST_H
 
-#include "any.h"
-#include "props.h"
-#include "astdata.h"
 #include "opcodes.h"
 
 class Ast;
@@ -122,55 +119,13 @@ enum ParameterTypes
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Ast base type
+// Ast accessors
 //
 
-class Ast 
-{
-public:
-
-  typedef std::map<String, int32> Annotations;
-
-  //
-  // Construction
-  //
-  Ast(AstTypes type);
-  Ast(AstTypes type, AstData const& a1);
-  Ast(AstTypes type, AstData const& a1, AstData const& a2);
-  Ast(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3);
-  Ast(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4);
-
-  //
-  // Destructor
-  //
-  ~Ast();
-
-  //
-  // Ast structure
-  //
-  AstTypes  m_type;
-  AstData   m_a1;
-  AstData   m_a2;
-  AstData   m_a3;
-  AstData   m_a4;
-
-  //
-  // Annotations
-  //
-  typedef PropertiesT<any> Properties;
-  Properties m_props;
-
-  //
-  // Refcount
-  //
-  friend class AstData;
-  int m_refs;
-
-  //
-  // File position
-  //
-  FilePos   m_pos;
-
-};
+#define ATYPE(arg)  ((*arg)["type"].GetInt())
+#define A1(arg)     ((*arg)["a1"])
+#define A2(arg)     ((*arg)["a2"])
+#define A3(arg)     ((*arg)["a3"])
+#define A4(arg)     ((*arg)["a4"])
 
 #endif // CSCRIPT_AST_H

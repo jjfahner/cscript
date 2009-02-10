@@ -268,7 +268,7 @@ ComObject::Find(Value const& name, RValue*& ptr) const
   }
 
   // We'll need a non-const version of the members array
-  Members& members = const_cast<Members&>(m_members);
+  MemberMap& members = const_cast<MemberMap&>(m_members);
 
   // Lookup the variable
   if(members.count(properName))
@@ -583,7 +583,7 @@ m_dispid  (dispid)
 {
 }
 
-AstList const* 
+Object* 
 ComMemberFunction::GetParameters() const
 {
   return 0;

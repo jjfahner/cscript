@@ -44,7 +44,7 @@ public:
   //
   // Construct from node
   //
-  TypeInfo(Ast* node);
+  TypeInfo(Object* node);
   
   //
   // Construct from variant
@@ -86,7 +86,7 @@ public:
 protected:
 
   //
-  // Members
+  // MemberMap
   //
   Value::Types m_type;
   String       m_name;

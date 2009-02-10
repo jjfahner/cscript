@@ -40,7 +40,7 @@ typedef std::set<Object*> Objects;
 //
 // Member map
 //
-typedef std::map<Value, RValue*, ValueComparatorLess> Members;
+typedef std::map<Value, RValue*, ValueComparatorLess> MemberMap;
 
 //
 // Object class
@@ -75,11 +75,6 @@ public:
   Object();
 
   //
-  // Virtual destruction
-  //
-  virtual ~Object();
-
-  //
   // Clone the object
   //
   virtual Object* Clone(Object* into = 0) const;
@@ -92,7 +87,7 @@ public:
   //
   // Retrieve variables
   //
-  virtual Members& GetMembers()
+  virtual MemberMap& Members()
   {
     return m_members;
   }
@@ -100,25 +95,24 @@ public:
   //
   // Retrieve const variables
   //
-  Members const& GetMembers() const
+  MemberMap const& Members() const
   {
-    return const_cast<Object*>(this)->GetMembers();
+    return const_cast<Object*>(this)->Members();
   }
+
+  //
+  // Add new item to end
+  //
+  LValue& Add(Value const& value);
+
+  //
+  // Add members in member list
+  //
+  void Add(MemberMap const& source);
 
   //
   // Add a member
   //
-  virtual RValue* Add(char const* key, RValue* value)
-  {
-    // Fix ambiguous construction from char*
-    return Add(Value(key), value);
-  }
-  virtual RValue* Add(String const& key, RValue* value)
-  {
-    // This overload is basically meant to prevent the
-    // automatic conversion from AstData to string
-    return Add(Value(key), value);
-  }
   virtual RValue* Add(Value const& key, RValue* value)
   {
     if(Contains(key))
@@ -130,14 +124,22 @@ public:
   }
 
   //
-  // Retrieve a variable, creating it if required
+  // Retrieve variable as rvalue
   //
   virtual RValue& RVal(Value const& key);
 
   //
-  // Retrieve a variable as lval, creating it if required
+  // Retrieve variable as lvalue
   //
   virtual LValue& LVal(Value const& key);
+
+  //
+  // Use index operator to retrieve lvalue
+  //
+  LValue& operator [] (Value const& key)
+  {
+    return LVal(key);
+  }
 
   //
   // Contains a member
@@ -152,7 +154,7 @@ public:
   //
   virtual bool Find(Value const& key, RValue*& pValue) const
   {
-    Members::const_iterator it = m_members.find(key);
+    MemberMap::const_iterator it = m_members.find(key);
     if(it == m_members.end())
     {
       return false;
@@ -170,9 +172,15 @@ protected:
   Object& operator = (Object const&);
 
   //
+  // Virtual destruction
+  //
+  friend class ObjectDeleter;
+  virtual ~Object();
+
+  //
   // Object members
   //
-  Members m_members;
+  MemberMap m_members;
 
 };
 
