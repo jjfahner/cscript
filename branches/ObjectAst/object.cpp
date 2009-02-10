@@ -110,21 +110,37 @@ Object::Add(Value const& value)
   return lval;
 }
 
+void 
+Object::Add(MemberMap const& source)
+{
+  MemberMap::const_iterator it;
+  for(it = source.begin(); it != source.end(); ++it)
+  {
+    Add(it->second->GetValue());
+  }
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Helpers for garbage collector
 //
 
-struct safe_deleter {
+class ObjectDeleter
+{
+public:
+
   void operator () (Object* ptr) const
   {
-    try {
+    try 
+    {
       delete ptr;
     }
-    catch(...) {
+    catch(...) 
+    {
       // TODO
     }
   }
+
 };
 
 template <typename T, typename U>
@@ -219,5 +235,5 @@ Object::Collect(Objects grey)
   black.swap(g_objects);
 
   // Delete white objects
-  std::for_each(white.begin(), white.end(), safe_deleter());
+  std::for_each(white.begin(), white.end(), ObjectDeleter());
 }

@@ -335,8 +335,8 @@ parameter_list(R) ::= . { R = new Object; }
 parameter_list(R) ::= parameters(A)     . { R = A; }
 parameter_list(R) ::= opt_parameters(A) . { R = A; }
 parameter_list(R) ::= variadic_parameter(A) . { R = new Object; R->Add(A); }
-parameter_list(R) ::= parameters(A) COMMA opt_parameters(B) .     { R = A; A->Add(B); /* Needs adopt */ }
-parameter_list(R) ::= parameters(A) COMMA variadic_parameter(B) . { R = A; A->Add(B); /* Needs adopt */ }
+parameter_list(R) ::= parameters(A) COMMA opt_parameters(B) .     { R = A; A->Add(B->Members()); }
+parameter_list(R) ::= parameters(A) COMMA variadic_parameter(B) . { R = A; A->Add(B); }
 
 // List of parameters
 parameters(R) ::= parameter(A) .                      { R = new Object; R->Add(A); }

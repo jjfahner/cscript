@@ -75,11 +75,6 @@ public:
   Object();
 
   //
-  // Virtual destruction
-  //
-  virtual ~Object();
-
-  //
   // Clone the object
   //
   virtual Object* Clone(Object* into = 0) const;
@@ -153,6 +148,11 @@ public:
   LValue& Add(Value const& value);
 
   //
+  // Add members in member list
+  //
+  void Add(MemberMap const& source);
+
+  //
   // Contains a member
   //
   virtual bool Contains(Value const& key) const
@@ -181,6 +181,12 @@ protected:
   //
   Object(Object const&);
   Object& operator = (Object const&);
+
+  //
+  // Virtual destruction
+  //
+  friend class ObjectDeleter;
+  virtual ~Object();
 
   //
   // Object members
