@@ -480,7 +480,7 @@ main();
 
 // Run garbage collector
 // print("\n\nBefore collect:\n");
-dump();
+//dump();
 print("Collecting...\n");
 collect();
 //print("\n\nAfter collect:\n");
