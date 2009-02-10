@@ -101,19 +101,29 @@ public:
   }
 
   //
+  // Add new item to end
+  //
+  LValue& Add(Value const& value);
+
+  //
+  // Add members in member list
+  //
+  void Add(MemberMap const& source);
+
+  //
   // Add a member
   //
-  virtual RValue* Add(char const* key, RValue* value)
-  {
-    // Fix ambiguous construction from char*
-    return Add(Value(key), value);
-  }
-  virtual RValue* Add(String const& key, RValue* value)
-  {
-    // This overload is basically meant to prevent the
-    // automatic conversion from AstData to string
-    return Add(Value(key), value);
-  }
+//   virtual RValue* Add(char const* key, RValue* value)
+//   {
+//     // Fix ambiguous construction from char*
+//     return Add(Value(key), value);
+//   }
+//   virtual RValue* Add(String const& key, RValue* value)
+//   {
+//     // This overload is basically meant to prevent the
+//     // automatic conversion from AstData to string
+//     return Add(Value(key), value);
+//   }
   virtual RValue* Add(Value const& key, RValue* value)
   {
     if(Contains(key))
@@ -141,16 +151,6 @@ public:
   {
     return LVal(key);
   }
-
-  //
-  // Add new item to end
-  //
-  LValue& Add(Value const& value);
-
-  //
-  // Add members in member list
-  //
-  void Add(MemberMap const& source);
 
   //
   // Contains a member

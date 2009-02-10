@@ -141,6 +141,19 @@ public:
   }
 
   //
+  // Construction from lvalue
+  //
+  Ast(LValue const& lval) :
+  m_obj   (lval.GetObject()),
+  m_type  ((AstTypes)(*m_obj)["type"].GetInt()),
+  m_a1    (m_obj, "a1"),
+  m_a2    (m_obj, "a2"),
+  m_a3    (m_obj, "a3"),
+  m_a4    (m_obj, "a4")
+  {
+  }
+
+  //
   // Copy construction
   //
   Ast(Ast const& ast) :
@@ -185,7 +198,7 @@ public:
   //
   // Ast structure
   //
-  Object*   m_obj;
+  Object*   m_obj; // Must be first member in class
   AstTypes  m_type;
   AstData   m_a1;
   AstData   m_a2;

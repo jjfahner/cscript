@@ -69,7 +69,7 @@ public:
   // Evaluation of an expression
   //
   RValue& EvalExpression(Ast node);
-  void    EvalStatement(Ast node);
+  void    EvalStatement(Object* node);
 
   //
   // Reset the evaluator
