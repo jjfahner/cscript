@@ -68,7 +68,7 @@ public:
   //
   // Evaluation of an expression
   //
-  RValue& EvalExpression(Ast node);
+  RValue& EvalExpression(Object* node);
   void    EvalStatement(Object* node);
 
   //
@@ -153,7 +153,6 @@ protected:
   void EvalStatementSeq(Ast node);
   void EvalVarDecl(Ast node);
   void EvalFunDecl(Ast node);
-  void EvalExpStmt(Ast node);
   void EvalIncludeStatement(Ast node);
   void EvalForStatement(Ast node);
   void EvalForeachStatement(Ast node);
@@ -173,9 +172,9 @@ protected:
   RValue& EvalNewExpression(Ast node);
   RValue& EvalMemberExpression(Ast node);
   RValue& EvalThisExpression(Ast node);
-  RValue& EvalAssignment(Ast node);
-  RValue& EvalBinary(Ast node);
-  RValue& EvalTernary(Ast node);
+  RValue& EvalAssignment(Object* node);
+  RValue& EvalBinary(Object* node);
+  RValue& EvalTernary(Object* node);
   RValue& EvalPrefix(Ast node);
   RValue& EvalPostfix(Ast node);
   RValue& EvalIndex(Ast node);
