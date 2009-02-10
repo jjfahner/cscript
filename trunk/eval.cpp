@@ -285,7 +285,7 @@ Evaluator::OnSyntaxError()
 }
 
 Ast* 
-Evaluator::AllocAst(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4)
+Evaluator::AllocNode(AstTypes type, AstData const& a1, AstData const& a2, AstData const& a3, AstData const& a4)
 {
   // Set file position
   FilePos pos;
