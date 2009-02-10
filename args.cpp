@@ -30,7 +30,7 @@ Arguments::at(String const& name) const
   ie = parlist.end();
   for(size_t index = 0; it != ie; ++it, ++index)
   {
-    if(Ast(*it)->m_a1.GetString() == name)
+    if(A1(*it).GetString() == name)
     {
       return at(index);
     }

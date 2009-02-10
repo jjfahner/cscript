@@ -113,17 +113,6 @@ public:
   //
   // Add a member
   //
-//   virtual RValue* Add(char const* key, RValue* value)
-//   {
-//     // Fix ambiguous construction from char*
-//     return Add(Value(key), value);
-//   }
-//   virtual RValue* Add(String const& key, RValue* value)
-//   {
-//     // This overload is basically meant to prevent the
-//     // automatic conversion from AstData to string
-//     return Add(Value(key), value);
-//   }
   virtual RValue* Add(Value const& key, RValue* value)
   {
     if(Contains(key))

@@ -21,7 +21,6 @@
 #ifndef CSCRIPT_AST_H
 #define CSCRIPT_AST_H
 
-#include "astdata.h"
 #include "opcodes.h"
 
 class Ast;
@@ -120,91 +119,13 @@ enum ParameterTypes
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Ast base type
+// Ast accessors
 //
 
-class Ast 
-{
-public:
-
-  //
-  // Construction
-  //
-  Ast(Object* object) :
-  m_obj   (object),
-  m_type  ((AstTypes)(*object)["type"].GetInt()),
-  m_a1    (object, "a1"),
-  m_a2    (object, "a2"),
-  m_a3    (object, "a3"),
-  m_a4    (object, "a4")
-  {
-  }
-
-  //
-  // Construction from lvalue
-  //
-  Ast(LValue const& lval) :
-  m_obj   (lval.GetObject()),
-  m_type  ((AstTypes)(*m_obj)["type"].GetInt()),
-  m_a1    (m_obj, "a1"),
-  m_a2    (m_obj, "a2"),
-  m_a3    (m_obj, "a3"),
-  m_a4    (m_obj, "a4")
-  {
-  }
-
-  //
-  // Copy construction
-  //
-  Ast(Ast const& ast) :
-  m_obj   (ast.m_obj),
-  m_type  (ast.m_type),
-  m_a1    (m_obj, "a1"),
-  m_a2    (m_obj, "a2"),
-  m_a3    (m_obj, "a3"),
-  m_a4    (m_obj, "a4")
-  {
-  }
-
-  //
-  // Construction from AstData
-  //
-  Ast(AstData const& ad) :
-  m_obj   (ad.GetNode()),
-  m_type  ((AstTypes)(*m_obj)["type"].GetInt()),
-  m_a1    (m_obj, "a1"),
-  m_a2    (m_obj, "a2"),
-  m_a3    (m_obj, "a3"),
-  m_a4    (m_obj, "a4")
-  {
-  }
-
-  //
-  // Allow use of ->
-  //
-  Ast const* operator -> () const
-  {
-    return this;
-  }
-
-  //
-  // Convert to object
-  //
-  operator Object* () const
-  {
-    return m_obj;
-  }
-
-  //
-  // Ast structure
-  //
-  Object*   m_obj; // Must be first member in class
-  AstTypes  m_type;
-  AstData   m_a1;
-  AstData   m_a2;
-  AstData   m_a3;
-  AstData   m_a4;
-  
-};
+#define ATYPE(arg)  ((*arg)["type"].GetInt())
+#define A1(arg)     ((*arg)["a1"])
+#define A2(arg)     ((*arg)["a2"])
+#define A3(arg)     ((*arg)["a3"])
+#define A4(arg)     ((*arg)["a4"])
 
 #endif // CSCRIPT_AST_H

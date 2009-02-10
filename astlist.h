@@ -140,7 +140,6 @@ private:
 
   ListImpl m_list;
   
-  friend class AstData;
   int m_refs;
 
 };
