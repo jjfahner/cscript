@@ -44,7 +44,7 @@ public:
   //
   // Construct from node
   //
-  TypeInfo(Ast* node);
+  TypeInfo(Object* node);
   
   //
   // Construct from variant

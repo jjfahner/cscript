@@ -136,7 +136,7 @@ public:
   //
   virtual Object* GetParameters() const
   {
-    return Ast(GetNode()).m_a2;
+    return A2(GetNode());
   }
 
   //
@@ -181,7 +181,7 @@ public:
   //
   virtual Object* GetParameters() const
   {
-    return Ast(GetNode()).m_a2;
+    return A2(GetNode());
   }
 
   //

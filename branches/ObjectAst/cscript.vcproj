@@ -314,10 +314,6 @@
 			Name="support"
 			>
 			<File
-				RelativePath=".\any.h"
-				>
-			</File>
-			<File
 				RelativePath=".\cmdargs.cpp"
 				>
 			</File>
@@ -331,10 +327,6 @@
 			</File>
 			<File
 				RelativePath=".\convert.h"
-				>
-			</File>
-			<File
-				RelativePath=".\props.h"
 				>
 			</File>
 		</Filter>
@@ -536,19 +528,7 @@
 			Name="language"
 			>
 			<File
-				RelativePath=".\ast.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ast.h"
-				>
-			</File>
-			<File
-				RelativePath=".\astdata.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\astdata.h"
 				>
 			</File>
 			<File

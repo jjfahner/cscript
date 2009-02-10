@@ -150,46 +150,46 @@ protected:
   //
   // Statement handlers
   //
-  void EvalStatementSeq(Ast node);
-  void EvalVarDecl(Ast node);
-  void EvalFunDecl(Ast node);
-  void EvalIncludeStatement(Ast node);
-  void EvalForStatement(Ast node);
-  void EvalForeachStatement(Ast node);
-  void EvalWhileStatement(Ast node);
-  void EvalSwitchStatement(Ast node);
-  void EvalIfStatement(Ast node);
-  void EvalReturnStatement(Ast node);
-  void EvalExternDecl(Ast node);
-  void EvalTryStatement(Ast node);
+  void EvalStatementSeq(Object* node);
+  void EvalVarDecl(Object* node);
+  void EvalFunDecl(Object* node);
+  void EvalIncludeStatement(Object* node);
+  void EvalForStatement(Object* node);
+  void EvalForeachStatement(Object* node);
+  void EvalWhileStatement(Object* node);
+  void EvalSwitchStatement(Object* node);
+  void EvalIfStatement(Object* node);
+  void EvalReturnStatement(Object* node);
+  void EvalExternDecl(Object* node);
+  void EvalTryStatement(Object* node);
 
   //
   // Expression handlers
   //
-  RValue& EvalLValue(Ast node);
-  RValue& EvalListLiteral(Ast node);
-  RValue& EvalJsonLiteral(Ast node);
-  RValue& EvalNewExpression(Ast node);
-  RValue& EvalMemberExpression(Ast node);
-  RValue& EvalThisExpression(Ast node);
+  RValue& EvalLValue(Object* node);
+  RValue& EvalListLiteral(Object* node);
+  RValue& EvalJsonLiteral(Object* node);
+  RValue& EvalNewExpression(Object* node);
+  RValue& EvalMemberExpression(Object* node);
+  RValue& EvalThisExpression(Object* node);
   RValue& EvalAssignment(Object* node);
   RValue& EvalBinary(Object* node);
   RValue& EvalTernary(Object* node);
-  RValue& EvalPrefix(Ast node);
-  RValue& EvalPostfix(Ast node);
-  RValue& EvalIndex(Ast node);
-  RValue& EvalConversion(Ast node);
-  RValue& EvalClosure(Ast node);
-  RValue& EvalXmlExpression(Ast node);
-  RValue& EvalFunctionMember(Ast node);
-  RValue& EvalFunctionIndex(Ast node);
+  RValue& EvalPrefix(Object* node);
+  RValue& EvalPostfix(Object* node);
+  RValue& EvalIndex(Object* node);
+  RValue& EvalConversion(Object* node);
+  RValue& EvalClosure(Object* node);
+  RValue& EvalXmlExpression(Object* node);
+  RValue& EvalFunctionMember(Object* node);
+  RValue& EvalFunctionIndex(Object* node);
 
   //
   // Function handlers
   //
   friend class ScriptFunction;
-  RValue& EvalFunctionCall(Ast node);
-  RValue& EvalFunctionCall(Ast node, Function* fun, Object* owner, Ast arguments);
+  RValue& EvalFunctionCall(Object* node);
+  RValue& EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* arguments);
   RValue& EvalScriptCall(ScriptFunction* fun, Arguments& args);
 
   //
@@ -200,8 +200,8 @@ protected:
   //
   // Evaluate argument list
   //
-  void EvalPositionalArguments(Ast node, Function* fun, AstList const* arglist, Arguments& args);
-  void EvalNamedArguments(Ast node, Function* fun, AstList const* arglist, Arguments& args);
+  void EvalPositionalArguments(Object* node, Function* fun, AstList const* arglist, Arguments& args);
+  void EvalNamedArguments(Object* node, Function* fun, AstList const* arglist, Arguments& args);
 
   //
   // Create a temporary
@@ -247,21 +247,21 @@ protected:
 //
 struct script_exception : public std::runtime_error
 {
-  Ast m_node;
-  script_exception(Ast node, char const* message = "") : std::runtime_error(message), m_node (node) {}
-  script_exception(Ast node, String const& message) : std::runtime_error(message.c_str()), m_node (node) {}
+  Object* m_node;
+  script_exception(Object* node, char const* message = "") : std::runtime_error(message), m_node (node) {}
+  script_exception(Object* node, String const& message) : std::runtime_error(message.c_str()), m_node (node) {}
   ~script_exception() throw () {}
 };
 
 struct break_exception : public script_exception
 {
-  break_exception(Ast node) : script_exception (node) {}
+  break_exception(Object* node) : script_exception (node) {}
   ~break_exception() throw () {}
 };
 
 struct continue_exception : public script_exception
 {
-  continue_exception(Ast node) : script_exception (node) {}
+  continue_exception(Object* node) : script_exception (node) {}
   ~continue_exception() throw () {}
 };
 
@@ -273,16 +273,16 @@ struct reset_exception : public std::exception
 struct return_exception : public script_exception
 {
   Value m_value;
-  return_exception(Ast node) : script_exception (node) {}
-  return_exception(Ast node, Value const& value) : script_exception (node), m_value (value) {}
+  return_exception(Object* node) : script_exception (node) {}
+  return_exception(Object* node, Value const& value) : script_exception (node), m_value (value) {}
   ~return_exception() throw() {}
 };
 
 struct user_exception : public script_exception
 {
   Value m_value;
-  user_exception(Ast node) : script_exception (node) {}
-  user_exception(Ast node, Value const& value) : script_exception (node), m_value (value) {}
+  user_exception(Object* node) : script_exception (node) {}
+  user_exception(Object* node, Value const& value) : script_exception (node), m_value (value) {}
   ~user_exception() throw() {}
 };
 
