@@ -72,7 +72,7 @@ public:
   //
   // Parameter list
   //
-  virtual AstList const* GetParameters() const = 0;
+  virtual Object const* GetParameters() const = 0;
 
   //
   // Execute function 
@@ -100,7 +100,7 @@ public:
   //
   // Construction
   // 
-  ScriptFunction(String name, Ast* node) :
+  ScriptFunction(String name, Object* node) :
   Function (name),
   m_node   (node)
   {
@@ -124,7 +124,7 @@ public:
   //
   // Retrieve node
   //
-  Ast* GetNode() const
+  Object* GetNode() const
   {
     return m_node;
   }
@@ -132,7 +132,7 @@ public:
   //
   // Parameter list
   //
-  virtual AstList const* GetParameters() const;
+  virtual Object const* GetParameters() const;
 
   //
   // Execution
@@ -144,7 +144,7 @@ protected:
   //
   // Members
   //
-  Ast* m_node;
+  Object* m_node;
 
 };
 
@@ -173,7 +173,7 @@ public:
   //
   // Parameter list
   //
-  virtual AstList const* GetParameters() const
+  virtual Object const* GetParameters() const
   {
     return m_pars;
   }
@@ -189,7 +189,7 @@ protected:
   // Members
   //
   NativeCall  m_call;
-  AstList*    m_pars;
+  Object*     m_pars;
 
 };
 
@@ -205,7 +205,7 @@ public:
   //
   // Construction
   //
-  ExternFunction(String name, Ast* node) :
+  ExternFunction(String name, Object* node) :
   Function  (name),
   m_node    (node)
   {
@@ -222,7 +222,7 @@ public:
   //
   // Parameter list
   //
-  virtual AstList const* GetParameters() const;
+  virtual Object const* GetParameters() const;
 
   //
   // Execution
@@ -234,7 +234,7 @@ protected:
   //
   // Members
   //
-  Ast* m_node;
+  Object* m_node;
 
 };
 

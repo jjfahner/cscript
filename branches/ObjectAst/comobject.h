@@ -237,7 +237,7 @@ public:
   //
   // Retrieve parameter list
   //
-  AstList const* GetParameters() const;
+  Object const* GetParameters() const;
 
   //
   // Execution

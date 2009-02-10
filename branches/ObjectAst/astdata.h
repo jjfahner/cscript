@@ -62,7 +62,7 @@ public:
     return m_value;
   }
 
-  Value::Int GetNumber() const
+  Value::Int GetInt() const
   {
     return m_value.GetInt();
   }
@@ -86,7 +86,7 @@ public:
 
   operator Value::Int () const
   {
-    return GetNumber();
+    return GetInt();
   }
 
   Ast* operator -> () const

@@ -52,11 +52,11 @@ public:
   //
   // Parameters
   //
-  AstList const* GetParameters() const
+  Object const* GetParameters() const
   {
     return m_parameters;
   }
-  void SetParameters(AstList const* parameters)
+  void SetParameters(Object const* parameters)
   {
     m_parameters = parameters;
   }
@@ -81,8 +81,8 @@ protected:
   //
   // Members
   //
-  Object*         m_object;
-  AstList const*  m_parameters;
+  Object*       m_object;
+  Object const* m_parameters;
 
 };
 

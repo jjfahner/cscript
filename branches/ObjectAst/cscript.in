@@ -48,7 +48,7 @@
 %token_prefix     TOK_
 %token_type       { Token }
 %extra_argument   { Evaluator* p }
-%default_type     { Ast* }
+%default_type     { Object* }
 
 // Error handlers
 %parse_failure {
@@ -76,20 +76,20 @@ main ::= translation_unit .
 
 // Translation unit
 translation_unit ::= .
-translation_unit ::= native_declaration(A) . { if(A) p->EvalStatement(A); }
-translation_unit ::= statement_sequence(A) . { if(A) p->EvalStatement(A); }
+translation_unit ::= native_declaration(A) . { if(A) p->EvalStatement(*A); }
+translation_unit ::= statement_sequence(A) . { if(A) p->EvalStatement(*A); }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
 statement_sequence(R) ::= statement_sequence(A) statement(B) . { 
-  if(A->m_type == statement_sequence) {
+  if((*A)["type"].GetInt() == statement_sequence) {
     R = A;
   }
   else {
     R = p->AllocNode(statement_sequence, new Object());
-    R->m_a1.Append(A);
+    (*R)["a1"].GetObject()->Append(A);
   }
-  R->m_a1.Append(B);
+  (*R)["a1"].GetObject()->Append(B);
 }
 
 // Statement
@@ -227,10 +227,10 @@ new_expression(R) ::= NEW IDENTIFIER(A) LPAREN argument_list(B) RPAREN . { R = p
 // Types
 //
 
-type(R) ::= BOOL(A) .   { R = new Ast(type_specifier, Value::tBool,   String(A)); }
-type(R) ::= INT(A) .    { R = new Ast(type_specifier, Value::tInt,    String(A)); }
-type(R) ::= STRING(A) . { R = new Ast(type_specifier, Value::tString, String(A)); }
-type(R) ::= TYPE(A) .   { R = new Ast(type_specifier, Value::tObject, String(A)); }
+type(R) ::= BOOL(A) .   { R = p->AllocNode(type_specifier, Value::tBool,   String(A)); }
+type(R) ::= INT(A) .    { R = p->AllocNode(type_specifier, Value::tInt,    String(A)); }
+type(R) ::= STRING(A) . { R = p->AllocNode(type_specifier, Value::tString, String(A)); }
+type(R) ::= TYPE(A) .   { R = p->AllocNode(type_specifier, Value::tObject, String(A)); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -357,7 +357,7 @@ function_body(R) ::= statement(A) . { R = A; }
 extern_declaration(R) ::= EXTERN LIT_STRING(A) type(B) IDENTIFIER(C) 
   LPAREN parameter_list(D) RPAREN SEMICOLON . 
 { 
-  R = new Ast(extern_declaration, String(C), D, String(A), B); 
+  R = p->AllocNode(extern_declaration, String(C), D, String(A), B); 
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -447,8 +447,8 @@ throw_statement(R) ::= THROW expression(A) SEMICOLON . { R = p->AllocNode(throw_
 xml_expression(R) ::= xml_elements(A) . { R = p->AllocNode(xml_expression, A); p->GetLexer()->ToggleXml(false); }
 
 // Element sequence
-xml_elements(R) ::= xml_element(A) .                  { R = p->AllocNode(xml_elements, new Object()); R->m_a1.Append(A); }
-xml_elements(R) ::= xml_elements(A) xml_element(B) .  { R = A; R->m_a1.Append(B); }
+xml_elements(R) ::= xml_element(A) .                  { R = p->AllocNode(xml_elements, new Object()); (*R)["a1"].GetObject()->Append(A); }
+xml_elements(R) ::= xml_elements(A) xml_element(B) .  { R = A; (*R)["a1"].GetObject()->Append(B); }
 
 // Start of tag required to toggle parse mode in lexer
 xml_start_tag ::= ST . { p->GetLexer()->ToggleXml(true); }
@@ -461,8 +461,8 @@ xml_element(R) ::= xml_start_tag DIVOP xml_name(A) GT .                   { R = 
 xml_element(R) ::= XMLTEXT(A) .                                           { R = p->AllocNode(xml_text, String(A)); }
 
 // Attribute sequence
-xml_attribute_list(R) ::= xml_attribute(A) .                       { R = p->AllocNode(xml_attributes, new Object()); R->m_a1.Append(A); }
-xml_attribute_list(R) ::= xml_attribute_list(A) xml_attribute(B) . { R = A; R->m_a1.Append(B); }
+xml_attribute_list(R) ::= xml_attribute(A) .                       { R = p->AllocNode(xml_attributes, new Object()); (*R)["a1"].GetObject()->Append(A); }
+xml_attribute_list(R) ::= xml_attribute_list(A) xml_attribute(B) . { R = A; (*R)["a1"].GetObject()->Append(B); }
 
 // Optional attribute sequence
 xml_attributes(R) ::= .                       { R = 0; }

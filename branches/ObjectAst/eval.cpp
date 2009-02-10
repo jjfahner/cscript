@@ -284,62 +284,67 @@ Evaluator::OnSyntaxError()
   throw std::runtime_error("Aborted");
 }
 
-Ast* 
+Object*
 Evaluator::AllocNode(AstTypes type)
 {
-  FilePos pos;
-  pos.m_file = m_file ? m_file->GetPath() : "";
-  pos.m_line = m_lexer->GetLine();
-  Ast* node = new Ast(type);  
-  node->m_pos = pos;
+  Object* node = new Object;
+  (*node)["type"] = type;
+  (*node)["file"] = m_file ? m_file->GetPath() : "";
+  (*node)["line"] = m_lexer->GetLine();
   return node;
 }
 
-Ast* 
+Object* 
 Evaluator::AllocNode(AstTypes type, Value const& a1)
 {
-  FilePos pos;
-  pos.m_file = m_file ? m_file->GetPath() : "";
-  pos.m_line = m_lexer->GetLine();
-  Ast* node = new Ast(type, a1);  
-  node->m_pos = pos;
+  Object* node = new Object;  
+  (*node)["type"] = type;
+  (*node)["a1"]   = a1;
+  (*node)["file"] = m_file ? m_file->GetPath() : "";
+  (*node)["line"] = m_lexer->GetLine();
   return node;
 }
 
-Ast* 
+Object* 
 Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2)
 {
-  FilePos pos;
-  pos.m_file = m_file ? m_file->GetPath() : "";
-  pos.m_line = m_lexer->GetLine();
-  Ast* node = new Ast(type, a1, a2);  
-  node->m_pos = pos;
+  Object* node = new Object;  
+  (*node)["type"] = type;
+  (*node)["a1"]   = a1;
+  (*node)["a2"]   = a2;
+  (*node)["file"] = m_file ? m_file->GetPath() : "";
+  (*node)["line"] = m_lexer->GetLine();
   return node;
 }
 
-Ast* 
+Object* 
 Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3)
 {
-  FilePos pos;
-  pos.m_file = m_file ? m_file->GetPath() : "";
-  pos.m_line = m_lexer->GetLine();
-  Ast* node = new Ast(type, a1, a2, a3);  
-  node->m_pos = pos;
+  Object* node = new Object;  
+  (*node)["type"] = type;
+  (*node)["a1"]   = a1;
+  (*node)["a2"]   = a2;
+  (*node)["a3"]   = a3;
+  (*node)["file"] = m_file ? m_file->GetPath() : "";
+  (*node)["line"] = m_lexer->GetLine();
   return node;
 }
 
-Ast* 
+Object* 
 Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4)
 {
-  FilePos pos;
-  pos.m_file = m_file ? m_file->GetPath() : "";
-  pos.m_line = m_lexer->GetLine();
-  Ast* node = new Ast(type, a1, a2, a3, a4);  
-  node->m_pos = pos;
+  Object* node = new Object;  
+  (*node)["type"] = type;
+  (*node)["a1"]   = a1;
+  (*node)["a2"]   = a2;
+  (*node)["a3"]   = a3;
+  (*node)["a4"]   = a4;
+  (*node)["file"] = m_file ? m_file->GetPath() : "";
+  (*node)["file"] = m_lexer->GetLine();
   return node;
 }
 
-Ast* 
+Object* 
 Evaluator::ParseNativeCall(String const& declaration)
 {
   // Reset reporter
@@ -556,15 +561,15 @@ Evaluator::ValNot(Value const& lhs)
 inline void 
 PrintLineInfo(script_exception const& e)
 {
-  if(e.m_node && !e.m_node->m_pos.m_file.empty())
+  if(e.m_node && !(*e.m_node)["file"].Empty())
   {
     csout
       << "\n"
-      << e.m_node->m_pos.m_file 
+      << (*e.m_node)["file"].GetString()
       << "("
-      << e.m_node->m_pos.m_line
+      << (*e.m_node)["line"].GetInt()
       << ") : ";
-  }
+ }
 }
 
 Value 
@@ -647,16 +652,16 @@ Evaluator::Eval(String text, bool isFileName)
 }
 
 void 
-Evaluator::EvalStatement(Ast* node)
+Evaluator::EvalStatement(Object& node)
 {
   VecRestore<ValueVec> vr(m_temporaries);
-  switch(node->m_type)
+  switch(node["type"].GetInt())
   {
   case empty_statement:       break;
 
-  case translation_unit:      EvalStatement(node->m_a1);  break;
+  case translation_unit:      EvalStatement(node["a1"]);   break;
   case statement_sequence:    EvalStatementSeq(node);     break;
-  case expression_statement:  EvalExpStmt(node->m_a1);    break;
+  case expression_statement:  EvalExpStmt(node["a1"]);     break;
   case variable_declaration:  EvalVarDecl(node);          break;
   case function_declaration:  EvalFunDecl(node);          break;
   case extern_declaration:    EvalExternDecl(node);       break;
@@ -669,38 +674,38 @@ Evaluator::EvalStatement(Ast* node)
   case return_statement:      EvalReturnStatement(node);  break;
   case switch_statement:      EvalSwitchStatement(node);  break;
 
-  case break_statement:       throw break_exception(node);  
-  case continue_statement:    throw continue_exception(node);
-  case throw_statement:       throw user_exception(node, 
-                                  EvalExpression(node->m_a1));
+  case break_statement:       throw break_exception(&node);  
+  case continue_statement:    throw continue_exception(&node);
+  case throw_statement:       throw user_exception(&node, 
+                                  EvalExpression(node["a1"]));
 
   case declaration_sequence:
-    EvalStatement(node->m_a1);
-    EvalStatement(node->m_a2);
+    EvalStatement(node["a1"]);
+    EvalStatement(node["a2"]);
     break;
 
   case compound_statement:
-    if(node->m_a1)
+    if(node.Contains("a1"))
     {
       AutoScope as(this, new Scope(m_scope));
-      EvalStatement(node->m_a1);
+      EvalStatement(node["a1"]);
     }
     break;
 
-  default: throw script_exception(node, "Invalid node type");
+  default: throw script_exception(&node, "Invalid node type");
   }
 }
 
 void 
-Evaluator::EvalExpStmt(Ast* node)
+Evaluator::EvalExpStmt(Object& node)
 {
   EvalExpression(node);
 }
 
 RValue&
-Evaluator::EvalExpression(Ast* node)
+Evaluator::EvalExpression(Object& node)
 {
-  switch(node->m_type)
+  switch(node["type"].GetInt())
   {
   case assignment_expression: return EvalAssignment(node);
   case binary_expression:     return EvalBinary(node);
@@ -709,7 +714,7 @@ Evaluator::EvalExpression(Ast* node)
   case postfix_expression:    return EvalPostfix(node);
   case index_expression:      return EvalIndex(node);
   case function_call:         return EvalFunctionCall(node);
-  case literal_value:         return MakeTemp(node->m_a1.GetValue());
+  case literal_value:         return MakeTemp(node["a1"].GetValue());
   case lvalue:                return EvalLValue(node);
   case list_literal:          return EvalListLiteral(node);
   case json_literal:          return EvalJsonLiteral(node);
@@ -722,24 +727,24 @@ Evaluator::EvalExpression(Ast* node)
   case function_member_expression:  return EvalFunctionMember(node);
   case function_index_expression:   return EvalFunctionIndex(node);
   }
-  throw script_exception(node, "Invalid expression type");
+  throw script_exception(&node, "Invalid expression type");
 }
 
 RValue&
-Evaluator::EvalAssignment(Ast* node)
+Evaluator::EvalAssignment(Object& node)
 {
   // Evaluate left-hand side
-  LValue& lhs = EvalExpression(node->m_a2).LVal();
+  LValue& lhs = EvalExpression(node["a2"]).LVal();
   if(&lhs == 0)
   {
     throw std::runtime_error("Expression does not yield an lvalue");
   }
 
   // Evaluate right-hand side
-  RValue& rhs = EvalExpression(node->m_a3);
+  RValue& rhs = EvalExpression(node["a3"]);
 
   // Perform assignment
-  switch(node->m_a1.GetNumber())
+  switch(node["a1"].GetInt())
   {
   case op_assign: return lhs = rhs;
   case op_assadd: return lhs = ValAdd(lhs, rhs);
@@ -748,71 +753,71 @@ Evaluator::EvalAssignment(Ast* node)
   case op_assdiv: return lhs = ValDiv(lhs, rhs); 
   case op_assmod: return lhs = ValMod(lhs, rhs);
   }
-  throw script_exception(node, "Invalid assignment operator");
+  throw script_exception(&node, "Invalid assignment operator");
 }
 
 RValue&
-Evaluator::EvalBinary(Ast* node)
+Evaluator::EvalBinary(Object& node)
 {
   Value result;
-  switch(node->m_a1.GetNumber())
+  switch(node["a1"].GetInt())
   {
-  case op_add:    result = ValAdd (EvalExpression(node->m_a2), EvalExpression(node->m_a3)); break;
-  case op_sub:    result = ValSub (EvalExpression(node->m_a2), EvalExpression(node->m_a3)); break;
-  case op_mul:    result = ValMul (EvalExpression(node->m_a2), EvalExpression(node->m_a3)); break;
-  case op_div:    result = ValDiv (EvalExpression(node->m_a2), EvalExpression(node->m_a3)); break;
-  case op_mod:    result = ValMod (EvalExpression(node->m_a2), EvalExpression(node->m_a3)); break;
-  case op_eq:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) == 0; break;
-  case op_ne:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) != 0; break;
-  case op_lt:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) <  0; break;
-  case op_le:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) <= 0; break;
-  case op_gt:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) >  0; break;
-  case op_ge:     result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) >= 0; break;
+  case op_add:    result = ValAdd (EvalExpression(node["a2"]), EvalExpression(node["a3"])); break;
+  case op_sub:    result = ValSub (EvalExpression(node["a2"]), EvalExpression(node["a3"])); break;
+  case op_mul:    result = ValMul (EvalExpression(node["a2"]), EvalExpression(node["a3"])); break;
+  case op_div:    result = ValDiv (EvalExpression(node["a2"]), EvalExpression(node["a3"])); break;
+  case op_mod:    result = ValMod (EvalExpression(node["a2"]), EvalExpression(node["a3"])); break;
+  case op_eq:     result = Compare(EvalExpression(node["a2"]), EvalExpression(node["a3"])) == 0; break;
+  case op_ne:     result = Compare(EvalExpression(node["a2"]), EvalExpression(node["a3"])) != 0; break;
+  case op_lt:     result = Compare(EvalExpression(node["a2"]), EvalExpression(node["a3"])) <  0; break;
+  case op_le:     result = Compare(EvalExpression(node["a2"]), EvalExpression(node["a3"])) <= 0; break;
+  case op_gt:     result = Compare(EvalExpression(node["a2"]), EvalExpression(node["a3"])) >  0; break;
+  case op_ge:     result = Compare(EvalExpression(node["a2"]), EvalExpression(node["a3"])) >= 0; break;
 
-  case op_logor:  result = ValBool(EvalExpression(node->m_a2)) || 
-                           ValBool(EvalExpression(node->m_a3)) ; break;
-  case op_logand: result = ValBool(EvalExpression(node->m_a2)) && 
-                           ValBool(EvalExpression(node->m_a3)) ; break;
+  case op_logor:  result = ValBool(EvalExpression(node["a2"])) || 
+                           ValBool(EvalExpression(node["a3"])) ; break;
+  case op_logand: result = ValBool(EvalExpression(node["a2"])) && 
+                           ValBool(EvalExpression(node["a3"])) ; break;
 
-  case op_seq:    result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) == 0; break;
-  case op_sne:    result = Compare(EvalExpression(node->m_a2), EvalExpression(node->m_a3)) != 0; break;
+  case op_seq:    result = Compare(EvalExpression(node["a2"]), EvalExpression(node["a3"])) == 0; break;
+  case op_sne:    result = Compare(EvalExpression(node["a2"]), EvalExpression(node["a3"])) != 0; break;
 
-  //   case op_seq:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) == 0; break;
-  //   case op_sne:    return EvalExpression(node->m_a2)->Compare(*EvalExpression(node->m_a3), true) != 0; break;
+  //   case op_seq:    return EvalExpression(node["a2"])->Compare(*EvalExpression(node["a3"]), true) == 0; break;
+  //   case op_sne:    return EvalExpression(node["a2"])->Compare(*EvalExpression(node["a3"]), true) != 0; break;
 
-  default: throw script_exception(node, "Invalid binary operator");
+  default: throw script_exception(&node, "Invalid binary operator");
   }  
   
   return MakeTemp(result);
 }
 
 RValue&
-Evaluator::EvalTernary(Ast* node)
+Evaluator::EvalTernary(Object& node)
 {
-  if(EvalExpression(node->m_a1).GetBool())
+  if(EvalExpression(node["a1"]).GetBool())
   {
-    return EvalExpression(node->m_a2);
+    return EvalExpression(node["a2"]);
   }
-  return EvalExpression(node->m_a3);
+  return EvalExpression(node["a3"]);
 }
 
 void 
-Evaluator::EvalStatementSeq(Ast* node)
+Evaluator::EvalStatementSeq(Object& node)
 {
   Object::ConstIterator it, ie;
-  it = node->m_a1.GetObject()->Begin();
-  ie = node->m_a1.GetObject()->End();
+  it = node["a1"].GetObject()->Begin();
+  ie = node["a1"].GetObject()->End();
   for(; it != ie; ++it)
   {
-    EvalStatement(dynamic_cast<Ast*>(it->second->GetObject()));
+    EvalStatement(*dynamic_cast<Object*>(it->second->GetObject()));
   }
 }
 
 RValue&
-Evaluator::EvalPrefix(Ast* node)
+Evaluator::EvalPrefix(Object& node)
 {
-  RValue& lhs = EvalExpression(node->m_a2);
-  switch(node->m_a1.GetNumber())
+  RValue& lhs = EvalExpression(node["a2"]);
+  switch(node["a1"].GetInt())
   {
   case op_preinc:
     lhs.LVal() = ValAdd(lhs, 1); 
@@ -825,24 +830,24 @@ Evaluator::EvalPrefix(Ast* node)
   case op_not:    
     return MakeTemp(ValNot(lhs));
   }
-  throw script_exception(node, "Invalid prefix operator");
+  throw script_exception(&node, "Invalid prefix operator");
 }
 
 RValue&
-Evaluator::EvalPostfix(Ast* node)
+Evaluator::EvalPostfix(Object& node)
 {
   // Evaluate lhs
-  LValue& lhs = EvalExpression(node->m_a2).LVal();
+  LValue& lhs = EvalExpression(node["a2"]).LVal();
 
   // Create temporary with result value
   RValue& result = MakeTemp(lhs);
 
   // Perform postfix operation
-  switch(node->m_a1.GetNumber())
+  switch(node["a1"].GetInt())
   {
   case op_postinc: lhs.SetValue(ValAdd(lhs, 1)); break;
   case op_postdec: lhs.SetValue(ValSub(lhs, 1)); break;
-  default: script_exception(node, "Invalid postfix operator");
+  default: script_exception(&node, "Invalid postfix operator");
   }
   
   // Done
@@ -850,10 +855,10 @@ Evaluator::EvalPostfix(Ast* node)
 }
 
 RValue&
-Evaluator::EvalIndex(Ast* node)
+Evaluator::EvalIndex(Object& node)
 {
   // Check type of left-hand side
-  RValue& lhs = EvalExpression(node->m_a1);
+  RValue& lhs = EvalExpression(node["a1"]);
   switch(lhs.Type())
   {
   case Value::tNull:
@@ -863,12 +868,12 @@ Evaluator::EvalIndex(Ast* node)
     // Fine
     break;
   default:  
-    throw script_exception(node, "Invalid type for index operator");
+    throw script_exception(&node, "Invalid type for index operator");
   }
 
   // Locate value
   RValue* val = 0;
-  if(node->m_a2.Empty())
+  if(node["a2"].Empty())
   {
     // Use size as key
     Value key = (Value::Int)lhs.GetObject()->GetMembers().size();
@@ -885,12 +890,12 @@ Evaluator::EvalIndex(Ast* node)
   else
   {
     // Evaluate index expression
-    RValue& rhs = EvalExpression(node->m_a2);
+    RValue& rhs = EvalExpression(node["a2"]);
 
     // Retrieve value
     if(!lhs.GetObject()->Find(rhs, val))
     {
-      val = lhs.GetObject()->Add(rhs, new RWVariable());
+      val = lhs.GetObject()->Add(rhs.GetValue(), new RWVariable());
     }
   }
   
@@ -899,59 +904,60 @@ Evaluator::EvalIndex(Ast* node)
 }
 
 RValue&
-Evaluator::EvalLValue(Ast* node)
+Evaluator::EvalLValue(Object& node)
 {
   RValue* ptr;
   Object* owner;
-  if(m_scope->Lookup(node->m_a1, ptr, owner))
+  if(m_scope->Lookup(node["a1"], ptr, owner))
   {
     return owner ? StoreTemp(BoundValue::Create(*ptr, owner)) : *ptr;
   }
-  throw script_exception(node, "Undeclared variable '" + node->m_a1.GetString() + "'");
+  throw script_exception(&node, "Undeclared variable '" + node["a1"].GetString() + "'");
 }
 
 void
-Evaluator::EvalVarDecl(Ast* node)
+Evaluator::EvalVarDecl(Object& node)
 {
   // Determine right-hand value
   Value value;
-  if(node->m_a2.Empty())
+  if(node["a2"].Empty())
   {
     value = Value();
   }
   else
   {
     // Assign value-of rhs
-    value = EvalExpression(node->m_a2);
+    value = EvalExpression(node["a2"]);
   }
 
   // Create variable
   // TODO deletion of newed variable
-  m_scope->Add(node->m_a1.GetString(), new RWVariable(value));
+  m_scope->Add(node["a1"].GetString(), new RWVariable(value));
 }
 
 void
-Evaluator::EvalFunDecl(Ast* node)
+Evaluator::EvalFunDecl(Object& node)
 {
-  Function* fun = new ScriptFunction(node->m_a1, node);
-  fun->GetMembers()["name"]   = new ROVariable(fun->GetName());
-  fun->GetMembers()["parent"] = new ROVariable(m_scope);
-  m_scope->Add(node->m_a1.GetString(), new ROVariable(fun));
+  Function* fun = new ScriptFunction(node["a1"], &node);
+  (*fun)["name"]   = fun->GetName();
+  (*fun)["parent"] = m_scope;
+  (*fun)["code"] = &node;
+  m_scope->Add(node["a1"].GetString(), new ROVariable(fun));
 }
 
 RValue& 
-Evaluator::EvalClosure(Ast* node)
+Evaluator::EvalClosure(Object& node)
 {
-  Function* fun = new ScriptFunction(node->m_a1, node);
+  Function* fun = new ScriptFunction(node["a1"], &node);
   fun->GetMembers()["name"]   = new ROVariable(fun->GetName());
   fun->GetMembers()["parent"] = new ROVariable(m_scope);
   return MakeTemp(fun);
 }
 
 RValue& 
-Evaluator::EvalFunctionMember(Ast* node)
+Evaluator::EvalFunctionMember(Object& node)
 {
-  String name = node->m_a1->m_a1;
+  String name = node["a1"]["a1"];
 
   Scope* s = m_scope;
   while(s)
@@ -972,41 +978,41 @@ Evaluator::EvalFunctionMember(Ast* node)
     s = s->GetParent();
   }
 
-  throw script_exception(node, "Invalid scope for function keyword");
+  throw script_exception(&node, "Invalid scope for function keyword");
 }
 
 RValue& 
-Evaluator::EvalFunctionIndex(Ast* node)
+Evaluator::EvalFunctionIndex(Object& node)
 {
-  throw script_exception(node, "Fail");
+  throw script_exception(&node, "Fail");
 }
 
 void 
-Evaluator::EvalExternDecl(Ast* node)
+Evaluator::EvalExternDecl(Object& node)
 {
-  m_scope->Add(node->m_a1.GetString(), 
-    new ROVariable(new ExternFunction(node->m_a1, node)));
+  m_scope->Add(node["a1"], new ROVariable(
+    new ExternFunction(node["a1"], &node)));
 }
 
 RValue&
-Evaluator::EvalFunctionCall(Ast* node)
+Evaluator::EvalFunctionCall(Object& node)
 {
   RValue* rval  = 0;
   Object* owner = 0;
 
   // Resolve function pointer
-  if(node->m_a1->m_type == lvalue)
+  if(node["a1"]["type"].GetInt() == lvalue)
   {
     // Named objects are found through the current scope
-    if(!m_scope->Lookup(String(node->m_a1->m_a1), rval, owner))
+    if(!m_scope->Lookup(String(node["a1"]["a1"]), rval, owner))
     {
-      throw script_exception(node, "Function not found");
+      throw script_exception(&node, "Function not found");
     }
   }
   else
   {
     // Expressions are evaluated in the current scope
-    rval = &EvalExpression(node->m_a1);
+    rval = &EvalExpression(node["a1"]);
 
     // Add object context to arguments
     if(BoundValue* bval = dynamic_cast<BoundValue*>(rval))
@@ -1019,15 +1025,15 @@ Evaluator::EvalFunctionCall(Ast* node)
   Function* fun = ValueToType<Function>(*rval);
   if(fun == 0)
   {
-    throw script_exception(node, "Function call on non-function object");
+    throw script_exception(&node, "Function call on non-function object");
   }
 
   // Continue in overload
-  return EvalFunctionCall(node, fun, owner, node->m_a2);
+  return EvalFunctionCall(node, fun, owner, node["a2"]);
 }
 
 RValue& 
-Evaluator::EvalFunctionCall(Ast* node, Function* fun, Object* owner, Ast* arguments)
+Evaluator::EvalFunctionCall(Object& node, Function* fun, Object* owner, Object& arguments)
 {
   Arguments args;
 
@@ -1038,13 +1044,13 @@ Evaluator::EvalFunctionCall(Ast* node, Function* fun, Object* owner, Ast* argume
   args.SetParameters(fun->GetParameters());
 
   // Evaluate arguments
-  if(arguments->m_type == positional_arguments)
+  if(arguments["type"].GetInt() == positional_arguments)
   {
-    EvalPositionalArguments(node, fun, arguments->m_a1, args);
+    EvalPositionalArguments(node, fun, arguments["a1"], args);
   }
   else
   {
-    EvalNamedArguments(node, fun, arguments->m_a1, args);
+    EvalNamedArguments(node, fun, arguments["a1"], args);
   }
 
   // Evaluate function
@@ -1082,12 +1088,15 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   AutoScope asa(this, new Scope(m_scope));
 
   // Insert arguments into argument scope
-  AstList::const_iterator pi, pe;
-  pi = fun->GetParameters()->begin();
-  pe = fun->GetParameters()->end();
-  for(size_t index = 0; pi != pe; ++pi, ++index)
+  if(Object const* pars = fun->GetParameters())
   {
-    m_scope->Add((*pi)->m_a1.GetString(), new RWVariable(args[index]));
+    Object::ConstIterator pi, pe;
+    pi = pars->Begin();
+    pe = pars->End();
+    for(size_t index = 0; pi != pe; ++pi, ++index)
+    {
+      m_scope->Add((*pi->second)["a1"], new RWVariable(args[index]));
+    }
   }
 
   // Create function execution scope
@@ -1096,7 +1105,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   // Execute expression
   try
   {
-    EvalStatement(fun->GetNode()->m_a3);
+    EvalStatement((*fun->GetNode())["a3"]);
     return MakeTemp(Value());
   }
   catch(return_exception const& e)
@@ -1106,114 +1115,113 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 }
 
 void 
-Evaluator::EvalPositionalArguments(Ast* node, Function* fun, Ast* arglist, Arguments& args)
+Evaluator::EvalPositionalArguments(Object& node, Function* fun, Object& arglist, Arguments& args)
 {
   // Retrieve formal parameters
-  // TODO ast
-  AstList const* parlist = 0; //fun->GetParameters();
+  Object const* parlist = fun->GetParameters();
 
   // No formal parameter list
   if(parlist == 0)
   {
-//     // Evaluate arguments
-//     AstList::const_iterator ai = arglist->begin();
-//     for(; ai != arglist->end(); ++ai)
-//     {
-//       args.push_back(EvalExpression(*ai));
-//     }
+    // Evaluate arguments
+    Object::ConstIterator ai = arglist.Begin();
+    for(; ai != arglist.End(); ++ai)
+    {
+      args.push_back(EvalExpression(*ai->second));
+    }
 
     // Done
     return;
   }
 
-//   // Enumerate parameters
-//   AstList::const_iterator pi, pe, ai, ae;
-//   pi = parlist->begin();
-//   pe = parlist->end();
-//   ai = arglist->begin();
-//   ae = arglist->end();
-//   for(;;)
-//   {
-//     // End of lists
-//     if(pi == pe && ai == ae)
-//     {
-//       break;
-//     }
-// 
-//     // End of parameters
-//     if(pi == pe)
-//     {
-//       throw script_exception(node, "Too many arguments in call to '" + fun->GetName() + "'");
-//     }
-// 
-//     // Variadic parameter
-//     if((*pi)->m_a2.GetNumber() == ptVariadic)
-//     {
-//       // Insert map
-//       Object* va = new Object();
-//       args.push_back(va);
-// 
-//       // Insert remaining arguments
-//       for(; ai != ae; ++ai)
-//       {
-//         // Evaluate argument value. ATTN: this dereference
-//         // is intentional; variadic arguments are by value.
-//         Value val = EvalExpression(*ai);
-// 
-//         // Append to list
-//         va->GetMembers()[va->GetMembers().size() - 1] = new RWVariable(val);
-//       }
-// 
-//       // Done
-//       break;
-//     }
-// 
-//     // End of arguments
-//     Value value;
-//     if(ai == ae)
-//     {
-//       // Must have default value
-//       if(!(*pi)->m_a4)
-//       {
-//         throw script_exception(node, "Not enough arguments in call to '" + fun->GetName() + "'");
-//       }
-// 
-//       // Evaluate default value
-//       value = EvalExpression((*pi)->m_a4);
-//     }
-//     else
-//     {
-//       // Evaluate argument
-//       value = EvalExpression(*ai);
-//     }
-// 
-//     // Handle byref/byval
-//     if((*pi)->m_a2.GetNumber() == ptByVal)
-//     {
-//       // Dereference the value
-// //       value = *value;
-//     }
-// 
-//     // Apply type conversion to value
-//     if((*pi)->m_a3)
-//     {
-//       PerformConversion(value, (*pi)->m_a3.GetNode());
-//     }
-// 
-//     // Add to argument list
-//     args.push_back(value);
-// 
-//     // Next iteration
-//     ++pi;
-//     if(ai != ae)
-//     {
-//       ++ai;
-//     }
-//   }
+  // Enumerate parameters
+  Object::ConstIterator pi, pe, ai, ae;
+  pi = parlist->Begin();
+  pe = parlist->End();
+  ai = arglist.Begin();
+  ae = arglist.End();
+  for(;;)
+  {
+    // End of lists
+    if(pi == pe && ai == ae)
+    {
+      break;
+    }
+
+    // End of parameters
+    if(pi == pe)
+    {
+      throw script_exception(&node, "Too many arguments in call to '" + fun->GetName() + "'");
+    }
+
+    // Variadic parameter
+    if((*pi->second)["a2"].GetInt() == ptVariadic)
+    {
+      // Insert map
+      Object* va = new Object();
+      args.push_back(va);
+
+      // Insert remaining arguments
+      for(; ai != ae; ++ai)
+      {
+        // Evaluate argument value. ATTN: this dereference
+        // is intentional; variadic arguments are by value.
+        Value val = EvalExpression(*ai->second);
+
+        // Append to list
+        va->GetMembers()[va->GetMembers().size() - 1] = new RWVariable(val);
+      }
+
+      // Done
+      break;
+    }
+
+    // End of arguments
+    Value value;
+    if(ai == ae)
+    {
+      // Must have default value
+      if(!(*pi->second)["a4"])
+      {
+        throw script_exception(&node, "Not enough arguments in call to '" + fun->GetName() + "'");
+      }
+
+      // Evaluate default value
+      value = EvalExpression((*pi->second)["a4"]);
+    }
+    else
+    {
+      // Evaluate argument
+      value = EvalExpression(*ai->second);
+    }
+
+    // Handle byref/byval
+    if((*pi->second)["a2"].GetInt() == ptByVal)
+    {
+      // Dereference the value
+//       value = *value;
+    }
+
+    // Apply type conversion to value
+    if((*pi->second)["a3"])
+    {
+      PerformConversion(value, *(*pi->second)["a3"].GetObject());
+    }
+
+    // Add to argument list
+    args.push_back(value);
+
+    // Next iteration
+    ++pi;
+    if(ai != ae)
+    {
+      ++ai;
+    }
+  }
 }
 
 void 
-Evaluator::EvalNamedArguments(Ast* node, Function* fun, Ast* arglist, Arguments& args)
+Evaluator::EvalNamedArguments(Object& node, Function* fun, Object& arglist, Arguments& args)
 {
   // TODO: validate superfluous/duplicate arguments
   // TODO: implement type conversions
@@ -1228,10 +1236,10 @@ Evaluator::EvalNamedArguments(Ast* node, Function* fun, Ast* arglist, Arguments&
 //   for(; pi != pe; ++pi)
 //   {
 //     // Extract parameter name
-//     String parname = (*pi)->m_a1.GetString();
+//     String parname = (*pi)["a1"].GetString();
 // 
 //     // Cannot supply named arguments for variadic parameter
-//     if((*pi)->m_a2.GetNumber() == ptVariadic)
+//     if((*pi)["a2"].GetInt() == ptVariadic)
 //     {
 //       // Variadic is always last in list - add empty list and stop
 // //      args.push_back(Value::stAssoc);
@@ -1244,7 +1252,7 @@ Evaluator::EvalNamedArguments(Ast* node, Function* fun, Ast* arglist, Arguments&
 //     ae = arglist->end();
 //     for(; ai != ae; ++ai)
 //     {
-//       if((*ai)->m_a1.GetString() == parname)
+//       if((*ai)["a1"].GetString() == parname)
 //       {
 //         break;
 //       }
@@ -1255,21 +1263,21 @@ Evaluator::EvalNamedArguments(Ast* node, Function* fun, Ast* arglist, Arguments&
 //     if(ai != ae)
 //     {
 //       // Fill in positional argument
-//       value = EvalExpression((*ai)->m_a2);
+//       value = EvalExpression((*ai)["a2"]);
 //     }
-//     else if((*pi)->m_a3)
+//     else if((*pi)["a3"])
 //     {
 //       // Evaluate default value
-//       value = EvalExpression((*pi)->m_a3);
+//       value = EvalExpression((*pi)["a3"]);
 //     }
 //     else
 //     {
 //       // Missing argument
-//       throw script_exception(node, "No value specified for parameter '" + parname + "'");
+//       throw script_exception(&node, "No value specified for parameter '" + parname + "'");
 //     }
 // 
 //     // Assign by value/by ref
-//     if((*pi)->m_a4 && (*pi)->m_a4.GetNumber() == ptByRef)
+//     if((*pi)->m_a4 && (*pi)->m_a4.GetInt() == ptByRef)
 //     {
 //       // TODO validate type is correct for byref?
 //       args.push_back(value);
@@ -1283,40 +1291,40 @@ Evaluator::EvalNamedArguments(Ast* node, Function* fun, Ast* arglist, Arguments&
 }
 
 RValue&
-Evaluator::EvalListLiteral(Ast* node)
+Evaluator::EvalListLiteral(Object& node)
 {
   // Create empty map
   Value v(new Object());
   Object* o = v.GetObject();
   
   // Recurse into map values
-  if(!node->m_a1.Empty())
+  if(!node["a1"].Empty())
   {
-    Ast* child = node->m_a1;
+    Object* child = node["a1"];
     int index = 0;
     while(child)
     {
       // Evaluate element
-      RValue const& element = EvalExpression(child->m_a1->m_a1);
+      RValue const& element = EvalExpression((*child)["a1"]["a1"]);
 
       // Evaluate key
       Value key = index++;
-      if(child->m_a1->m_a2)
+      if((*child)["a1"]["a2"])
       {
-        key = EvalExpression(child->m_a1->m_a2);
+        key = EvalExpression((*child)["a1"]["a2"]);
       }
 
       // Insert into member variables
       o->GetMembers()[key] = new RWVariable(element);
 
       // Check for next element
-      if(child->m_a2.Empty()) 
+      if((*child)["a2"].Empty()) 
       {
         break;
       }
 
       // Set next element
-      child = child->m_a2;
+      child = (*child)["a2"];
     }
   }
 
@@ -1325,39 +1333,39 @@ Evaluator::EvalListLiteral(Ast* node)
 }
 
 RValue&
-Evaluator::EvalJsonLiteral(Ast* node)
+Evaluator::EvalJsonLiteral(Object& node)
 {
   // Create empty map
   Value v(new Object());
   Object* o = v.GetObject();
 
   // Recurse into map values
-  if(!node->m_a1.Empty())
+  if(!node["a1"].Empty())
   {
-    Ast* child = node->m_a1;
+    Object* child = node["a1"];
     while(child)
     {
       // Retrieve and check key
-      String key = child->m_a1->m_a1;
+      String key = (*child)["a1"]["a1"];
       if(o->GetMembers().count(key))
       {
-        throw script_exception(node, "Duplicate key in JSON literal");
+        throw script_exception(&node, "Duplicate key in JSON literal");
       }
 
       // Evaluate element
-      RValue const& element = EvalExpression(child->m_a1->m_a2);
+      RValue const& element = EvalExpression((*child)["a1"]["a2"]);
 
       // Insert into member variables
       o->GetMembers()[key] = new RWVariable(element);
 
       // Check for next element
-      if(child->m_a2.Empty()) 
+      if((*child)["a2"].Empty()) 
       {
         break;
       }
 
       // Set next element
-      child = child->m_a2;
+      child = (*child)["a2"];
     }
   }
 
@@ -1366,50 +1374,50 @@ Evaluator::EvalJsonLiteral(Ast* node)
 }
 
 void 
-Evaluator::EvalReturnStatement(Ast* node)
+Evaluator::EvalReturnStatement(Object& node)
 {
   // Determine return value
   Value value;
-  if(node->m_a1.Empty())
+  if(node["a1"].Empty())
   {
     value = Value();
   }
   else
   {
-    value = EvalExpression(node->m_a1);
+    value = EvalExpression(node["a1"]);
   }
 
   // Throw return exception
-  throw return_exception(node, value);
+  throw return_exception(&node, value);
 }
 
 void 
-Evaluator::EvalIncludeStatement(Ast* node)
+Evaluator::EvalIncludeStatement(Object& node)
 {
-  ParseFile(node->m_a1);
+  ParseFile(node["a1"]);
 }
 
 void 
-Evaluator::EvalForStatement(Ast* node)
+Evaluator::EvalForStatement(Object& node)
 {
   // Outer scope
   AutoScope scope(this, new Scope(m_scope));
   
   // Evaluate init expression
-  EvalStatement(node->m_a1);
+  EvalStatement(node["a1"]);
 
   // Evaluate loop
   for(;;)
   {
     // Evaluate condition
-    RValue const& cond = EvalExpression(node->m_a2);
+    RValue const& cond = EvalExpression(node["a2"]);
     if(cond.Type() != Value::tBool)
     {
-      throw script_exception(node->m_a2, "Expression does not yield a boolean value");
+      throw script_exception(node["a2"], "Expression does not yield a boolean value");
     }
 
     // Check condition
-    if(!EvalExpression(node->m_a2).GetBool())
+    if(!EvalExpression(node["a2"]).GetBool())
     {
       break;
     }
@@ -1418,7 +1426,7 @@ Evaluator::EvalForStatement(Ast* node)
     try 
     {
       AutoScope scope(this, new Scope(m_scope));
-      EvalStatement(node->m_a4);
+      EvalStatement(node["a4"]);
     }
     catch(break_exception const&)
     {
@@ -1429,27 +1437,27 @@ Evaluator::EvalForStatement(Ast* node)
     }
 
     // Evaluate post expression
-    EvalExpression(node->m_a3);
+    EvalExpression(node["a3"]);
   }  
 }
 
 void 
-Evaluator::EvalForeachStatement(Ast* node)
+Evaluator::EvalForeachStatement(Object& node)
 {
   AutoScope scope(this, new Scope(m_scope));
 
   String varName;
-  Ast*   varNode = node->m_a1;
+  Object&   varNode = node["a1"];
 
   // Determine variable name
-  if(varNode->m_type == variable_declaration)
+  if(varNode["type"].GetInt() == variable_declaration)
   {
     EvalStatement(varNode);
-    varName = varNode->m_a1.GetString();
+    varName = varNode["a1"].GetString();
   }
   else
   {
-    varName = node->m_a1.GetString();
+    varName = node["a1"].GetString();
   }
 
   // Fetch variable
@@ -1457,20 +1465,20 @@ Evaluator::EvalForeachStatement(Ast* node)
   Object* owner;
   if(!m_scope->Lookup(varName, rval, owner))
   {
-    throw script_exception(node, "Failed to find iterator variable");
+    throw script_exception(&node, "Failed to find iterator variable");
   }
 
   // Convert to lvalue
   LValue& var = rval->LVal();
 
   // Evaluate expression
-  RValue& rhs = EvalExpression(node->m_a2);
+  RValue& rhs = EvalExpression(node["a2"]);
 
   // Retrieve enumerator
   Enumerator* enumerator = rhs.GetEnumerator();
   if(enumerator == 0)
   {
-    throw script_exception(node, "Invalid type specified in foreach");
+    throw script_exception(&node, "Invalid type specified in foreach");
   }
 
   // Add to local scope
@@ -1487,7 +1495,7 @@ Evaluator::EvalForeachStatement(Ast* node)
     try
     {
       AutoScope scope(this, new Scope(m_scope));
-      EvalStatement(node->m_a3);
+      EvalStatement(node["a3"]);
     }
     catch(break_exception const&)
     {
@@ -1500,33 +1508,33 @@ Evaluator::EvalForeachStatement(Ast* node)
 }
 
 void
-Evaluator::EvalIfStatement(Ast* node)
+Evaluator::EvalIfStatement(Object& node)
 {
-  RValue const& cond = EvalExpression(node->m_a1);
+  RValue const& cond = EvalExpression(node["a1"]);
   if(cond.Type() != Value::tBool)
   {
-    throw script_exception(node->m_a1, "Expression does not yield a boolean value");
+    throw script_exception(node["a1"], "Expression does not yield a boolean value");
   }
 
   if(cond.GetBool())
   {
-    EvalStatement(node->m_a2);
+    EvalStatement(node["a2"]);
   }
-  else if(node->m_a3)
+  else if(node["a3"])
   {
-    EvalStatement(node->m_a3);
+    EvalStatement(node["a3"]);
   }
 }
 
 void        
-Evaluator::EvalWhileStatement(Ast* node)
+Evaluator::EvalWhileStatement(Object& node)
 {
   for(;;)
   {
-    RValue const& cond = EvalExpression(node->m_a1);
+    RValue const& cond = EvalExpression(node["a1"]);
     if(cond.Type() != Value::tBool)
     {
-      throw script_exception(node->m_a1, "Expression does not yield a boolean value");
+      throw script_exception(node["a1"], "Expression does not yield a boolean value");
     }
 
     if(!cond.GetBool())
@@ -1537,7 +1545,7 @@ Evaluator::EvalWhileStatement(Ast* node)
     try
     {
       AutoScope scope(this, new Scope(m_scope));
-      EvalStatement(node->m_a2);
+      EvalStatement(node["a2"]);
     }
     catch(break_exception const&)
     {
@@ -1550,32 +1558,32 @@ Evaluator::EvalWhileStatement(Ast* node)
 }
 
 void
-Evaluator::EvalSwitchStatement(Ast* node)
+Evaluator::EvalSwitchStatement(Object& node)
 {
   // Switch value
-  Value value = EvalExpression(node->m_a1);
+  Value value = EvalExpression(node["a1"]);
 
   // Create iterators
   // TODO ast
-  AstList* cases = 0; // node->m_a2;
+  AstList* cases = 0; // node["a2"];
   AstList::const_iterator it = cases->begin();
   AstList::const_iterator ie = cases->end();
 
   // Find case that matches switch value
-  Ast* statement = 0;
+  Object* statement = 0;
   for(; it != ie; ++it)
   {
     if((*it)->m_type == default_case)
     {
       if(statement)
       {
-        throw script_exception(node, "More than one default case in switch statement");
+        throw script_exception(&node, "More than one default case in switch statement");
       }
-      statement = (*it)->m_a1;
+      statement = (**it)["a1"];
     }
-    else if(Compare(EvalExpression((*it)->m_a1), value) == 0)
+    else if(Compare(EvalExpression((**it)["a1"]), value) == 0)
     {
-      statement = (*it)->m_a2;
+      statement = (**it)["a2"];
       break;
     }
   }
@@ -1586,7 +1594,7 @@ Evaluator::EvalSwitchStatement(Ast* node)
     try
     {
       AutoScope as(this, new Scope(m_scope));
-      EvalStatement(statement);
+      EvalStatement(*statement);
     }
     catch(break_exception const&)
     {
@@ -1595,19 +1603,19 @@ Evaluator::EvalSwitchStatement(Ast* node)
 }
 
 RValue&
-Evaluator::EvalNewExpression(Ast* node)
+Evaluator::EvalNewExpression(Object& node)
 {
   // Find object
   RValue* rval;
-  if(!m_scope->Lookup(node->m_a1, rval))
+  if(!m_scope->Lookup(node["a1"], rval))
   {
-    throw script_exception(node, "Variable not found");
+    throw script_exception(&node, "Variable not found");
   }
 
   // Must be an object
   if(rval->Type() != Value::tObject)
   {
-    throw script_exception(node, "Cannot instantiate a non-object variable");
+    throw script_exception(&node, "Cannot instantiate a non-object variable");
   }
 
   // Create a clone
@@ -1617,7 +1625,7 @@ Evaluator::EvalNewExpression(Ast* node)
   if(Function* fun = dynamic_cast<Function*>(inst))
   {
     // Evaluate constructor
-    EvalFunctionCall(node, fun, inst, node->m_a2);
+    EvalFunctionCall(node, fun, inst, node["a2"]);
   }
 
   // Return temporary
@@ -1625,10 +1633,10 @@ Evaluator::EvalNewExpression(Ast* node)
 }
 
 RValue&
-Evaluator::EvalMemberExpression(Ast* node)
+Evaluator::EvalMemberExpression(Object& node)
 {
   // Retrieve left-hand side
-  Object* object = ValueToType<Object>(EvalExpression(node->m_a1));
+  Object* object = ValueToType<Object>(EvalExpression(node["a1"]));
   if(object == 0)
   {
     throw std::runtime_error("Left-hand side does not yield an object");
@@ -1636,10 +1644,10 @@ Evaluator::EvalMemberExpression(Ast* node)
 
   // Lookup right-hand side
   RValue* rval;
-  if(!object->Find(String(node->m_a2->m_a1), rval))
+  if(!object->Find(String(node["a2"]["a1"]), rval))
   {
     rval = new RWVariable();
-    object->Add(node->m_a2->m_a1.GetString(), rval);
+    object->Add(node["a2"]["a1"].GetString(), rval);
   }
 
   // Construct bound member
@@ -1654,7 +1662,7 @@ Evaluator::EvalMemberExpression(Ast* node)
 }
 
 RValue&
-Evaluator::EvalThisExpression(Ast* node)
+Evaluator::EvalThisExpression(Object& node)
 {
   Scope* scope = m_scope;
   while(scope)
@@ -1666,31 +1674,31 @@ Evaluator::EvalThisExpression(Ast* node)
     }
     scope = scope->GetParent();
   }
-  throw script_exception(node, "Invalid context for 'this'");
+  throw script_exception(&node, "Invalid context for 'this'");
 }
 
 void 
-Evaluator::EvalTryStatement(Ast* node)
+Evaluator::EvalTryStatement(Object& node)
 {
   try
   {
     try 
     {
       // Execute guarded block
-      EvalStatement(node->m_a1);
+      EvalStatement(node["a1"]);
     }
     catch(user_exception const& e)
     {
       // Handle only when handler is present
-      if(node->m_a2)
+      if(node["a2"])
       {
         // Insert exception into scope
         // TODO this maketemp might crash horribly during exception cleanup!!!
         AutoScope scope(this, new Scope(m_scope));
-        m_scope->Add(node->m_a2->m_a1.GetString(), new RWVariable(e.m_value));
+        m_scope->Add(node["a2"]["a1"].GetString(), new RWVariable(e.m_value));
 
         // Evaluate catch block
-        EvalStatement(node->m_a2->m_a2);
+        EvalStatement(node["a2"]["a2"]);
       }
       else
       {
@@ -1702,10 +1710,10 @@ Evaluator::EvalTryStatement(Ast* node)
   catch(...)
   {
     // Exception thrown in catch block
-    if(node->m_a3)
+    if(node["a3"])
     {
       // Evaluate finally
-      EvalStatement(node->m_a3->m_a1);
+      EvalStatement(node["a3"]["a1"]);
     }
 
     // Re-throw exception from catch block
@@ -1713,23 +1721,23 @@ Evaluator::EvalTryStatement(Ast* node)
   }
 
   // Evaluate finally
-  if(node->m_a3)
+  if(node["a3"])
   {
-    EvalStatement(node->m_a3->m_a1);
+    EvalStatement(node["a3"]["a1"]);
   }
 }
 
 RValue&
-Evaluator::EvalConversion(Ast* node)
+Evaluator::EvalConversion(Object& node)
 {
   // Evaluate expression
   // ATTN: the implicit conversion from RValue& to Value
   // is intended: the conversion must not be applied to 
   // the source for the conversion!!!
-  Value value = EvalExpression(node->m_a2);
+  Value value = EvalExpression(node["a2"]);
 
   // Perform the conversion
-  PerformConversion(value, node->m_a1.GetNode());
+  PerformConversion(value, *node["a1"].GetObject());
   
   // Return converted value
   return MakeTemp(value);
@@ -1801,21 +1809,21 @@ Object*
 CreateXmlObject(XmlNodeTypes nodeType, Object* parentNode = 0)
 {
   // Create new node
-  Object* childNode = new Object();
+  Object& childNode = *new Object();
 
   // Create members
-  childNode->LVal("nodeType")     = (Value::Int)nodeType;
-  childNode->LVal("nodeName")     = XmlNodeName(nodeType);
-  childNode->LVal("nodeTypeName") = XmlNodeName(nodeType);
+  childNode["nodeType"]     = (Value::Int)nodeType;
+  childNode["nodeName"]     = XmlNodeName(nodeType);
+  childNode["nodeTypeName"] = XmlNodeName(nodeType);
 
   // Append to parent node
   if(parentNode)
   {
-    childNode->LVal("parentNode") = parentNode;
+    childNode["parentNode"] = parentNode;
     Object* coll = nodeType == xmlAttribute ?
-      parentNode->LVal("attributes").GetObject() :
-    parentNode->LVal("childNodes").GetObject() ;
-    coll->LVal(coll->GetMembers().size()) = childNode;
+      (*parentNode)["attributes"].GetObject() :
+      (*parentNode)["childNodes"].GetObject() ;
+    coll->LVal(coll->GetMembers().size()) = &childNode;
   }
 
   // Create complex members
@@ -1823,65 +1831,65 @@ CreateXmlObject(XmlNodeTypes nodeType, Object* parentNode = 0)
   {
   case xmlDocument:
   case xmlElement:
-    childNode->LVal("childNodes") = new Object();
+    childNode["childNodes"] = new Object();
     // Intentional fallthrough
   case xmlProcessingInstruction:
-    childNode->LVal("attributes") = new Object();
+    childNode["attributes"] = new Object();
     break;
   }
 
   // Done
-  return childNode;
+  return &childNode;
 }
 
 void 
-SetNodeName(Ast* ast, Object* node)
+SetNodeName(Object& ast, Object& node)
 {
   String qname;
   String lname;
   String ns;
-  if(ast->m_type == xml_qname)
+  if(ast["type"].GetInt() == xml_qname)
   {
-    lname = ast->m_a2.GetString();
-    ns    = ast->m_a1.GetString();
+    lname = ast["a2"].GetString();
+    ns    = ast["a1"].GetString();
     qname = ns + ":" + lname;
   }
   else
   {
-    lname = ast->m_a1.GetString();
+    lname = ast["a1"].GetString();
     qname = lname;
   }
 
-  node->LVal("nodeName")      = lname;
-  node->LVal("localName")     = lname;
-  node->LVal("qualifiedName") = qname;
-  node->LVal("namespace")     = ns;
+  node["nodeName"]      = lname;
+  node["localName"]     = lname;
+  node["qualifiedName"] = qname;
+  node["namespace"]     = ns;
 }
 
 void 
-AddXmlAttributes(Ast* ast, Object* node)
+AddXmlAttributes(Object& ast, Object* node)
 {
   // Retrieve ast element list
   // TODO ast
-//   AstList& list = *ast->m_a1.GetList();
+//   AstList& list = *ast["a1"].GetList();
 // 
 //   // Walk through list
 //   AstList::iterator it = list.begin();
 //   for(; it != list.end(); ++it)
 //   {
-//     Ast* ast = *it;
+//     Object& ast = *it;
 //     Object* attr = CreateXmlObject(xmlAttribute, node);
-//     SetNodeName(ast->m_a1, attr);
-//     attr->LVal("value") = ast->m_a2.GetString();
+//     SetNodeName(ast["a1"], attr);
+//     attr->LVal("value") = ast["a2"].GetString();
 //   }
 }
 
 RValue& 
-Evaluator::EvalXmlExpression(Ast* node)
+Evaluator::EvalXmlExpression(Object& node)
 {
   // TODO ast
 //   // Retrieve ast element list
-//   AstList& list = *node->m_a1->m_a1.GetList();
+//   AstList& list = *node["a1"]["a1"].GetList();
 // 
 //   // Create document element
 //   Object* doc = CreateXmlObject(xmlDocument);
@@ -1894,60 +1902,60 @@ Evaluator::EvalXmlExpression(Ast* node)
 //   AstList::iterator it = list.begin();
 //   for(; it != list.end(); ++it)
 //   {
-//     Ast* node = *it;
-//     switch(node->m_type)
+//     Object& node = *it;
+//     switch(node["type"])
 //     {
 //     case xml_processing_instruction:
 //       tmp = CreateXmlObject(xmlProcessingInstruction, cur);
-//       tmp->LVal("nodeName") = node->m_a1.GetString();
-//       if(!node->m_a2.Empty())
+//       tmp->LVal("nodeName") = node["a1"].GetString();
+//       if(!node["a2"].Empty())
 //       {
-//         AddXmlAttributes(node->m_a2, tmp);
+//         AddXmlAttributes(node["a2"], tmp);
 //       }
 //       break;
 // 
 //     case xml_open_tag:
 //       tmp = CreateXmlObject(xmlElement, cur);
 //       cur = tmp;
-//       SetNodeName(node->m_a1, cur);
-//       if(!node->m_a2.Empty())
+//       SetNodeName(node["a1"], cur);
+//       if(!node["a2"].Empty())
 //       {
-//         AddXmlAttributes(node->m_a2, tmp);
+//         AddXmlAttributes(node["a2"], tmp);
 //       }
 //       break;
 // 
 //     case xml_close_tag:
 //       if(cur == 0)
 //       {
-//         throw script_exception(node, "Invalid xml structure");
+//         throw script_exception(&node, "Invalid xml structure");
 //       }
 //       cur = cur->RVal("parentNode").GetObject();
 //       break;
 // 
 //     case xml_closed_tag:
 //       tmp = CreateXmlObject(xmlElement, cur);
-//       SetNodeName(node->m_a1, tmp);
-//       if(!node->m_a2.Empty())
+//       SetNodeName(node["a1"], tmp);
+//       if(!node["a2"].Empty())
 //       {
-//         AddXmlAttributes(node->m_a2, tmp);
+//         AddXmlAttributes(node["a2"], tmp);
 //       }
 //       break;
 // 
 //     case xml_text:
 //       tmp = CreateXmlObject(xmlText, cur);
-//       tmp->LVal("data")   = node->m_a1.GetString();
-//       tmp->LVal("length") = node->m_a1.GetString().length();
+//       tmp->LVal("data")   = node["a1"].GetString();
+//       tmp->LVal("length") = node["a1"].GetString().length();
 //       break;
 // 
 //     default:
-//       throw script_exception(node, "Unexpected xml node type");
+//       throw script_exception(&node, "Unexpected xml node type");
 //     }
 //   }
 // 
 //   // Check whether we've gotten back to the document element
 //   if(cur != doc)
 //   {
-//     throw script_exception(node, "Invalid xml structure");
+//     throw script_exception(&node, "Invalid xml structure");
 //   }
 // 
 //   // TODO Set document element

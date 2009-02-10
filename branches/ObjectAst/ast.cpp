@@ -23,7 +23,7 @@
 #include "lexer.h"
 #include "io.h"
 #include "variable.h"
-
+/*
 Ast::Ast(AstTypes type) :
 m_type(type)
 {
@@ -31,29 +31,29 @@ m_type(type)
 
 Ast::Ast(AstTypes type, Value const& a1) :
 m_type(type),
-m_a1  (a1)
+["a1"]  (a1)
 {
-  (*this)["type"] = type;
+  (*this)m_type = type;
   (*this)["a1"]   = a1;
 }
 
 Ast::Ast(AstTypes type, Value const& a1, Value const& a2) :
 m_type(type),
-m_a1(a1),
-m_a2(a2)
+["a1"](a1),
+["a2"](a2)
 {
-  (*this)["type"] = type;
+  (*this)m_type = type;
   (*this)["a1"]   = a1;
   (*this)["a2"]   = a2;
 }
 
 Ast::Ast(AstTypes type, Value const& a1, Value const& a2, Value const& a3) :
 m_type(type),
-m_a1(a1),
-m_a2(a2),
-m_a3(a3)
+["a1"](a1),
+["a2"](a2),
+["a3"](a3)
 {
-  (*this)["type"] = type;
+  (*this)m_type = type;
   (*this)["a1"]   = a1;
   (*this)["a2"]   = a2;
   (*this)["a3"]   = a3;
@@ -61,14 +61,15 @@ m_a3(a3)
 
 Ast::Ast(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4) :
 m_type(type),
-m_a1(a1),
-m_a2(a2),
-m_a3(a3),
-m_a4(a4)
+["a1"](a1),
+["a2"](a2),
+["a3"](a3),
+["a4"](a4)
 {
-  (*this)["type"] = type;
+  (*this)m_type = type;
   (*this)["a1"]   = a1;
   (*this)["a2"]   = a2;
   (*this)["a3"]   = a3;
   (*this)["a4"]   = a4;
 }
+*/

@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include "typeinfo.h"
 #include "ast.h"
+#include "variable.h"
 
 /*static*/ String 
 TypeInfo::GetTypeName(Value const& value)
@@ -41,9 +42,9 @@ m_name (name)
 {
 }
 
-TypeInfo::TypeInfo(Ast* node) :
-m_type ((Value::Types)node->m_a1.GetNumber()),
-m_name (node->m_a2.GetString())
+TypeInfo::TypeInfo(Object& node) :
+m_type ((Value::Types)node["a1"].GetInt()),
+m_name (node["a2"])
 {
 }
 

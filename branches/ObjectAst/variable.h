@@ -58,6 +58,18 @@ public:
   Value::Int            GetInt()    const { return GetValue().GetInt();    }
   Value::String const&  GetString() const { return GetValue().GetString(); }
   Object*               GetObject() const { return GetValue().GetObject(); }
+  
+  //
+  // Operators
+  //
+  operator Value::Bool   () const { return GetValue().GetBool(); }
+  operator Value::Int    () const { return GetValue().GetInt(); }
+  operator Value::String () const { return GetValue().GetString(); }
+  operator Object*       () const { return GetValue().GetObject(); }
+  operator Object&       () const { return *GetValue().GetObject(); }
+  Object* operator ->    () const { return GetObject(); }
+  LValue& operator [] (Value const& key) const { return (*GetObject())[key]; }
+  LValue& operator [] (char const* key)  const { return (*GetObject())[key]; }
 
   //
   // Actual value retrieval implemented in derived class

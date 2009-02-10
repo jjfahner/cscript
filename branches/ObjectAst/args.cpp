@@ -20,16 +20,17 @@
 //////////////////////////////////////////////////////////////////////////
 #include "args.h"
 #include "astlist.h"
+#include "variable.h"
 
 Value const& 
 Arguments::at(String const& name) const
 {
-  AstList::const_iterator it, ie;
-  it = m_parameters->begin();
-  ie = m_parameters->end();
+  Object::ConstIterator it, ie;
+  it = m_parameters->Begin();
+  ie = m_parameters->End();
   for(size_t index = 0; it != ie; ++it, ++index)
   {
-    if((*it)->m_a1.GetString() == name)
+    if((*it->second)["a1"].GetString() == name)
     {
       return at(index);
     }
