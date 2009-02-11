@@ -110,6 +110,18 @@ Object::Add(Value const& value)
   return lval;
 }
 
+RValue* 
+Object::Add(Value const& key, Value const& value)
+{
+  if(ContainsKey(key))
+  {
+    throw std::runtime_error("Variable already declared");
+  }
+  RValue* rval = new RWVariable(value);
+  m_members[key] = rval;
+  return rval;
+}
+
 void 
 Object::AddMembers(Object* source)
 {
