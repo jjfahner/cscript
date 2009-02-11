@@ -88,6 +88,7 @@ public:
 
   //////////////////////////////////////////////////////////////////////////
 
+  typedef MemberMap::iterator                         MemberIterator;
   typedef map_iterator_t<MemberMap, key_accessor>     KeyIterator;
   typedef map_iterator_t<MemberMap, pointer_accessor> ValueIterator;
 
@@ -103,6 +104,16 @@ public:
   //
   virtual bool ContainsKey(Value const& key) const {
     return m_members.count(key) != 0;
+  }
+
+  //
+  // Iterator for members
+  //
+  MemberIterator Begin() {
+    return m_members.begin();
+  }
+  MemberIterator End() {
+    return m_members.end();
   }
 
   //
@@ -126,16 +137,6 @@ public:
   }
 
   //
-  // Retrieve variables
-  //
-  virtual MemberMap& Members() {
-    return m_members;
-  }
-  MemberMap const& Members() const {
-    return const_cast<Object*>(this)->Members();
-  }
-
-  //
   // Add new item to end
   //
   LValue& Add(Value const& value);
@@ -143,7 +144,7 @@ public:
   //
   // Add members in member list
   //
-  void Add(MemberMap const& source);
+  void AddMembers(Object* source);
 
   //
   // Add a member

@@ -2160,7 +2160,7 @@ static void yy_reduce(
         break;
       case 143:
 #line 337 "cscript.in"
-{ yygotominor.yy82 = yymsp[-2].minor.yy82; yymsp[-2].minor.yy82->Add(yymsp[0].minor.yy82->Members()); }
+{ yygotominor.yy82 = yymsp[-2].minor.yy82; yymsp[-2].minor.yy82->AddMembers(yymsp[0].minor.yy82); }
 #line 2166 "cscript.c"
         break;
       case 150:

@@ -111,10 +111,11 @@ Object::Add(Value const& value)
 }
 
 void 
-Object::Add(MemberMap const& source)
+Object::AddMembers(Object* source)
 {
-  MemberMap::const_iterator it;
-  for(it = source.begin(); it != source.end(); ++it)
+  MemberIterator it = source->Begin();
+  MemberIterator ie = source->End();
+  for(; it != ie; ++it)
   {
     Add(it->second->GetValue());
   }
@@ -202,9 +203,8 @@ MarkObjects(Objects& white, Objects& grey, Objects& black)
     black.insert(obj);
 
     // Walk object members
-    MemberMap::const_iterator it, ie;
-    it = obj->Members().begin();
-    ie = obj->Members().end();
+    Object::MemberIterator it = obj->Begin();
+    Object::MemberIterator ie = obj->End();
     for(; it != ie; ++it)
     {
       if(it->first.Type() == Value::tObject)
