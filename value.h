@@ -173,6 +173,11 @@ public:
     return *this;
   }
 
+  //
+  // Compare function
+  //
+  static int Compare(Value const& lhs, Value const& rhs);
+
 private:
 
   //
@@ -233,19 +238,11 @@ inline T* ValueToType(Value const& v)
 
 //////////////////////////////////////////////////////////////////////////
 
-//
-// Less-than comparator
-//
-class ValueComparatorLess
+inline bool 
+operator < (Value const& lhs, Value const& rhs)
 {
-public:
-
-  //
-  // Less-than operator
-  //
-  bool operator () (Value const& lhs, Value const& rhs) const;
-
-};
+  return Value::Compare(lhs, rhs) < 0;
+}
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -119,7 +119,6 @@ public:
   //
   // Value operations
   //
-  static int  Compare(Value const& lhs, Value const& rhs);
   static Value ValAdd(Value const& lhs, Value const& rhs);
   static Value ValSub(Value const& lhs, Value const& rhs);
   static Value ValMul(Value const& lhs, Value const& rhs);

@@ -18,22 +18,39 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "args.h"
+#include "value.h"
 #include "object.h"
-#include "variable.h"
-#include "ast.h"
 
-Value const& 
-Arguments::at(String const& name) const
+/*static*/ int 
+Value::Compare(Value const& lhs, Value const& rhs)
 {
-  Object::ValueIterator it = m_parameters->ValueBegin();
-  Object::ValueIterator ie = m_parameters->ValueEnd();
-  for(size_t index = 0; it != ie; ++it, ++index)
+  // Comparing different types
+  if(lhs.Type() != rhs.Type())
   {
-    if(Ast_A1(*it).GetString() == name)
-    {
-      return at(index);
-    }
+    // TODO this must be improved
+    return int((char*)&lhs - (char*)&rhs);
   }
-  throw std::runtime_error("Function has no parameter '" + name + "'");
+
+  // Type-based compare
+  switch(lhs.Type())
+  {
+  case Value::tNull:   
+    return 0;
+
+  case Value::tBool:   
+    return int(lhs.GetBool()) - int(rhs.GetBool());
+
+  case Value::tInt:    
+    return int(lhs.GetInt() - rhs.GetInt());
+
+  case Value::tString: 
+    return strcmp(lhs.GetString().c_str(), 
+      rhs.GetString().c_str());
+
+  case Value::tObject: 
+    return int(lhs.GetObject() - rhs.GetObject());
+  }
+
+  // Invalid type
+  throw std::runtime_error("Unsupported value type for comparison");
 }
