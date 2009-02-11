@@ -259,25 +259,25 @@ Evaluator::OnSyntaxError()
 Object* 
 Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4)
 {
-  // Set file position
-//   FilePos pos;
-//   pos.m_file = m_file ? m_file->GetPath() : "";
-//   pos.m_line = m_lexer->GetLine();
-
+  // Create node
   Object* obj = new Object;
   (*obj)["type"] = type;
+
+  // Set subnodes
   if(!a1.Empty())(*obj)["a1"] = a1;
   if(!a2.Empty())(*obj)["a2"] = a2;
   if(!a3.Empty())(*obj)["a3"] = a3;
   if(!a4.Empty())(*obj)["a4"] = a4;
+  
+  // Set file position
+  if(m_file /*&& m_debug*/)
+  {
+    (*obj)["file"] = m_file->GetPath();
+    (*obj)["line"] = m_lexer->GetLine();
+  }
+  
+  // Done
   return obj;
-
-  // Create node
-//   Ast* node = new Ast(type, a1, a2, a3, a4);  
-//   node->m_pos = pos;
-//   
-//   // Return the new node
-//   return node;
 }
 
 Object* 
@@ -332,148 +332,19 @@ Evaluator::Collect()
   Object::Collect(valid);
 }
 
-/*static*/ Value::Bool   
-Evaluator::ValBool(Value const& val)
-{
-  switch(val.Type())
-  {
-  case Value::tNull:    return false;
-  case Value::tBool:    return val.GetBool();
-  case Value::tInt:     return val.GetInt() != 0;
-  case Value::tString:  return val.GetString().length() != 0;
-  case Value::tObject:  break;
-  }
-  throw std::runtime_error("Cannot convert between types");
-}
-
-/*static*/ Value::Int    
-Evaluator::ValInt(Value const& val)
-{
-  switch(val.Type())
-  {
-  case Value::tNull:    return 0;
-  case Value::tBool:    return val.GetBool() ? 1 : 0;
-  case Value::tInt:     return val.GetInt();
-  case Value::tString:  return atoi(val.GetString().c_str());
-  case Value::tObject:  break; // TODO
-  }
-  throw std::runtime_error("Cannot convert between types");
-}
-
-inline 
-Value::String ToString(Value::Int val)
-{
-  char buf[25];
-  sprintf(buf, "%d", val);
-  return buf;
-}
-
-/*static*/ Value::String 
-Evaluator::ValString(Value const& val)
-{
-  switch(val.Type())
-  {
-  case Value::tNull:    return Value::String();
-  case Value::tBool:    return val.GetBool() ? "true" : "false";
-  case Value::tInt:     return ToString(val.GetInt());
-  case Value::tString:  return val.GetString();
-  case Value::tObject:  return typeid(val.GetObject()).name();
-  }
-  throw std::runtime_error("Cannot convert between types");
-}
-
-/*static*/ Value 
-Evaluator::ValAdd(Value const& lhs, Value const& rhs)
-{
-  switch(lhs.Type())
-  {
-  case Value::tInt:     return lhs.GetInt() + ValInt(rhs);
-  case Value::tString:  return lhs.GetString() + ValString(rhs);
-  case Value::tObject:  break; // TODO
-  }
-  throw std::runtime_error("Invalid type(s) for addition operator");
-}
-
-/*static*/ Value 
-Evaluator::ValSub(Value const& lhs, Value const& rhs)
-{
-  switch(lhs.Type())
-  {
-  case Value::tInt:     return lhs.GetInt() - ValInt(rhs);
-  case Value::tObject:  break; // TODO
-  }
-  throw std::runtime_error("Invalid type(s) for subtraction operator");
-}
-
-/*static*/ Value 
-Evaluator::ValMul(Value const& lhs, Value const& rhs)
-{
-  switch(lhs.Type())
-  {
-  case Value::tInt:     return lhs.GetInt() * ValInt(rhs);
-  case Value::tObject:  break; // TODO
-  }
-  throw std::runtime_error("Invalid type(s) for multiplication operator");
-}
-
-/*static*/ Value 
-Evaluator::ValDiv(Value const& lhs, Value const& rhs)
-{
-  switch(lhs.Type())
-  {
-  case Value::tInt:     return lhs.GetInt() / ValInt(rhs);
-  case Value::tObject:  break; // TODO
-  }
-  throw std::runtime_error("Invalid type(s) for division operator");
-}
-
-/*static*/ Value 
-Evaluator::ValMod(Value const& lhs, Value const& rhs)
-{
-  switch(lhs.Type())
-  {
-  case Value::tInt:     return lhs.GetInt() % ValInt(rhs);
-  case Value::tObject:  break; // TODO
-  }
-  throw std::runtime_error("Invalid type(s) for modulo operator");
-}
-
-/*static*/ Value 
-Evaluator::ValNeg(Value const& lhs)
-{
-  switch(lhs.Type())
-  {
-  case Value::tInt:     return -lhs.GetInt();
-  case Value::tObject:  break; // TODO
-  }
-  throw std::runtime_error("Invalid type(s) for negation operator");
-}
-
-/*static*/ Value 
-Evaluator::ValNot(Value const& lhs)
-{
-  switch(lhs.Type())
-  {
-  case Value::tBool:    return lhs.GetBool() == false;
-  case Value::tInt:     return lhs.GetInt()  == 0;
-  case Value::tObject:  break; // TODO
-  }
-  throw std::runtime_error("Invalid type(s) for negation operator");
-}
-
 inline void 
 PrintLineInfo(script_exception const& e)
 {
   // TODO ast
-//   if(e.m_node && !e.m_node->m_pos.m_file.empty())
-//   {
-//     csout
-//       << "\n"
-//       << e.m_node->m_pos.m_file 
-//       << "("
-//       << e.m_node->m_pos.m_line
-//       << ") : ";
-//   }
+  if(e.m_node && e.m_node->ContainsKey("file"))
+  {
+    csout
+      << "\n"
+      << (*e.m_node)["file"].GetString()
+      << "("
+      << (*e.m_node)["line"].GetInt()
+      << ") : ";
+  }
 }
 
 Value 
@@ -668,25 +539,26 @@ Evaluator::EvalBinary(Object* node)
   Value result;
   switch(Ast_A1(node).GetInt())
   {
-  case op_add:    result = ValAdd (EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
-  case op_sub:    result = ValSub (EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
-  case op_mul:    result = ValMul (EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
-  case op_div:    result = ValDiv (EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
-  case op_mod:    result = ValMod (EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
-  case op_eq:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
-  case op_ne:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
-  case op_lt:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) <  0; break;
-  case op_le:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) <= 0; break;
-  case op_gt:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) >  0; break;
-  case op_ge:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) >= 0; break;
+  case op_add:    result = ValAdd(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
+  case op_sub:    result = ValSub(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
+  case op_mul:    result = ValMul(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
+  case op_div:    result = ValDiv(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
+  case op_mod:    result = ValMod(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
+
+  case op_eq:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
+  case op_ne:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
+  case op_lt:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) <  0; break;
+  case op_le:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) <= 0; break;
+  case op_gt:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) >  0; break;
+  case op_ge:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) >= 0; break;
 
   case op_logor:  result = ValBool(EvalExpression(Ast_A2(node))) || 
                            ValBool(EvalExpression(Ast_A3(node))) ; break;
   case op_logand: result = ValBool(EvalExpression(Ast_A2(node))) && 
                            ValBool(EvalExpression(Ast_A3(node))) ; break;
 
-  case op_seq:    result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
-  case op_sne:    result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
+  case op_seq:    result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
+  case op_sne:    result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
 
   default: throw script_exception(node, "Invalid binary operator");
   }  
@@ -1475,7 +1347,7 @@ Evaluator::EvalSwitchStatement(Object* node)
       }
       statement = Ast_A1(*it);
     }
-    else if(Value::Compare(EvalExpression(Ast_A1(*it)), value) == 0)
+    else if(ValCmp(EvalExpression(Ast_A1(*it)), value) == 0)
     {
       statement = Ast_A2(*it);
       break;

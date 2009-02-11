@@ -166,7 +166,7 @@ NATIVE_CALL("__native count(arg)")
   {
     throw std::runtime_error("Invalid type for count");
   }
-  return Value(args[0].GetObject()->Members().size());
+  return args[0]->Count();
 }
 
 struct objprinter {
