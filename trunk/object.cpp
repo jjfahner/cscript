@@ -120,41 +120,6 @@ Object::Add(MemberMap const& source)
   }
 }
 
-ValueVec 
-Object::Keys() const
-{
-  // Prepare vector
-  ValueVec vec;
-  vec.reserve(m_members.size());
-
-  // Copy keys
-  MemberMap::const_iterator it;
-  for(it = m_members.begin(); it != m_members.end(); ++it)
-  {
-    vec.push_back(it->first);
-  }
-
-  // Done
-  return vec;
-}
-
-ValueVec 
-Object::Values() const
-{
-  // Prepare vector
-  ValueVec vec;
-  vec.reserve(m_members.size());
-
-  // Copy values
-  MemberMap::const_iterator it;
-  for(it = m_members.begin(); it != m_members.end(); ++it)
-  {
-    vec.push_back(it->second->GetValue());
-  }
-
-  // Done
-  return vec;
-}
 
 //////////////////////////////////////////////////////////////////////////
 //

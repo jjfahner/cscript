@@ -266,6 +266,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\value.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\value.h"
 				>
 			</File>

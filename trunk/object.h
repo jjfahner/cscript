@@ -41,13 +41,7 @@ typedef std::set<Object*> Objects;
 //
 // Member map
 //
-typedef std::map<Value, RValue*, ValueComparatorLess> MemberMap;
-
-//
-// Value list
-//
-typedef std::vector<Value> ValueVec;
-
+typedef std::map<Value, RValue*> MemberMap;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -106,42 +100,35 @@ public:
   }
 
   //
-  // Retrieve variables
-  //
-  virtual MemberMap& Members()
-  {
-    return m_members;
-  }
-
-  //
   // Iterator for values in member list
   //
-  KeyIterator KeysBegin()
-  {
+  KeyIterator KeyBegin() {
     return KeyIterator(m_members.begin());
   }
-  KeyIterator KeysEnd()
-  {
+  KeyIterator KeyEnd() {
     return KeyIterator(m_members.end());
   }
 
   //
   // Iterator for values in member list
   //
-  ValueIterator ValuesBegin()
-  {
+  ValueIterator ValueBegin() {
     return ValueIterator(m_members.begin());
   }
-  ValueIterator ValuesEnd()
-  {
+  ValueIterator ValueEnd() {
     return ValueIterator(m_members.end());
   }
 
   //
   // Retrieve const variables
   //
-  MemberMap const& Members() const
-  {
+  //
+  // Retrieve variables
+  //
+  virtual MemberMap& Members() {
+    return m_members;
+  }
+  MemberMap const& Members() const {
     return const_cast<Object*>(this)->Members();
   }
 
@@ -199,12 +186,6 @@ public:
     pValue = it->second;
     return true;
   }
-
-  //
-  // Retrieve all keys/values
-  //
-  ValueVec Keys()   const;
-  ValueVec Values() const;
 
 protected:
 

@@ -36,23 +36,6 @@ void *CScriptParseAlloc(void *(*mallocProc)(size_t));
 void CScriptParseFree(void *p, void (*freeProc)(void*));
 void CScriptParse(void*, int,Token, Evaluator*);
 
-//
-// Ratio between alloc and collect
-//
-static const size_t g_collect_threshold = 1000;
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Comparator implementation
-//
-
-bool 
-ValueComparatorLess::operator () (Value const& lhs, Value const& rhs) const
-{
-  return Evaluator::Compare(lhs, rhs) < 0;
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Autoscoping implementation
@@ -347,40 +330,6 @@ Evaluator::Collect()
 
   // Collect invalid objects
   Object::Collect(valid);
-}
-
-/*static*/ int 
-Evaluator::Compare(Value const& lhs, Value const& rhs)
-{
-  // Comparing different types
-  if(lhs.Type() != rhs.Type())
-  {
-    // TODO this must be improved
-    return int((char*)&lhs - (char*)&rhs);
-  }
-
-  // Type-based compare
-  switch(lhs.Type())
-  {
-  case Value::tNull:   
-    return 0;
-
-  case Value::tBool:   
-    return int(lhs.GetBool()) - int(rhs.GetBool());
-
-  case Value::tInt:    
-    return int(lhs.GetInt() - rhs.GetInt());
-
-  case Value::tString: 
-    return strcmp(lhs.GetString().c_str(), 
-                  rhs.GetString().c_str());
-  
-  case Value::tObject: 
-    return int(lhs.GetObject() - rhs.GetObject());
-  }
-
-  // Invalid type
-  throw std::runtime_error("Unsupported value type for comparison");
 }
 
 /*static*/ Value::Bool   
@@ -724,20 +673,20 @@ Evaluator::EvalBinary(Object* node)
   case op_mul:    result = ValMul (EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
   case op_div:    result = ValDiv (EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
   case op_mod:    result = ValMod (EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
-  case op_eq:     result = Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
-  case op_ne:     result = Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
-  case op_lt:     result = Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) <  0; break;
-  case op_le:     result = Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) <= 0; break;
-  case op_gt:     result = Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) >  0; break;
-  case op_ge:     result = Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) >= 0; break;
+  case op_eq:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
+  case op_ne:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
+  case op_lt:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) <  0; break;
+  case op_le:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) <= 0; break;
+  case op_gt:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) >  0; break;
+  case op_ge:     result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) >= 0; break;
 
   case op_logor:  result = ValBool(EvalExpression(Ast_A2(node))) || 
                            ValBool(EvalExpression(Ast_A3(node))) ; break;
   case op_logand: result = ValBool(EvalExpression(Ast_A2(node))) && 
                            ValBool(EvalExpression(Ast_A3(node))) ; break;
 
-  case op_seq:    result = Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
-  case op_sne:    result = Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
+  case op_seq:    result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
+  case op_sne:    result = Value::Compare(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
 
   default: throw script_exception(node, "Invalid binary operator");
   }  
@@ -759,8 +708,8 @@ void
 Evaluator::EvalStatementSeq(Object* node)
 {
   Object* list = Ast_A1(node);
-  Object::ValueIterator it = list->ValuesBegin();
-  Object::ValueIterator ie = list->ValuesEnd();
+  Object::ValueIterator it = list->ValueBegin();
+  Object::ValueIterator ie = list->ValueEnd();
   for(; it != ie; ++it)
   {
     EvalStatement(it->GetObject());
@@ -1042,8 +991,8 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 
   // Insert arguments into argument scope
   Object::ValueIterator pi, pe;
-  pi = fun->GetParameters()->ValuesBegin();
-  pe = fun->GetParameters()->ValuesEnd();
+  pi = fun->GetParameters()->ValueBegin();
+  pe = fun->GetParameters()->ValueEnd();
   for(size_t index = 0; pi != pe; ++pi, ++index)
   {
     m_scope->Add(Ast_A1(pi->GetObject()), 
@@ -1069,8 +1018,8 @@ void
 Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist, Arguments& args)
 {
   // Retrieve argument list
-  Object::ValueIterator ai = arglist->ValuesBegin();
-  Object::ValueIterator ae = arglist->ValuesEnd();
+  Object::ValueIterator ai = arglist->ValueBegin();
+  Object::ValueIterator ae = arglist->ValueEnd();
 
   // No formal parameter list
   if(fun->GetParameters() == 0)
@@ -1085,13 +1034,9 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist,
     return;
   }
 
-  // Retrieve parameters as list
-  ValueVec const& parlist = fun->GetParameters()->Values();
-
   // Enumerate parameters
-  ValueVec::const_iterator pi, pe;
-  pi = parlist.begin();
-  pe = parlist.end();
+  Object::ValueIterator pi = fun->GetParameters()->ValueBegin();
+  Object::ValueIterator pe = fun->GetParameters()->ValueEnd();
   for(;;)
   {
     // End of lists
@@ -1181,13 +1126,9 @@ Evaluator::EvalNamedArguments(Object* node, Function* fun, Object* arglist, Argu
   // TODO: validate superfluous/duplicate arguments
   // TODO: implement type conversions
 
-  // Retrieve parameters as list
-  ValueVec const& pars = fun->GetParameters()->Values();
-
   // Enumerate parameters
-  ValueVec::const_iterator pi, pe;
-  pi = pars.begin();
-  pe = pars.end();
+  Object::ValueIterator pi = fun->GetParameters()->ValueEnd();
+  Object::ValueIterator pe = fun->GetParameters()->ValueEnd();
   for(; pi != pe; ++pi)
   {
     // Extract parameter and name
@@ -1204,8 +1145,8 @@ Evaluator::EvalNamedArguments(Object* node, Function* fun, Object* arglist, Argu
 
     // Find named argument for parameter
     // Retrieve argument list
-    Object::ValueIterator ai = arglist->ValuesBegin();
-    Object::ValueIterator ae = arglist->ValuesEnd();
+    Object::ValueIterator ai = arglist->ValueBegin();
+    Object::ValueIterator ae = arglist->ValueEnd();
     for(; ai != ae; ++ai)
     {
       if(Ast_A1(ai->GetObject()).GetString() == parname)
@@ -1519,8 +1460,8 @@ Evaluator::EvalSwitchStatement(Object* node)
   Value value = EvalExpression(Ast_A1(node));
 
   // Create iterators
-  Object::ValueIterator it = Ast_A2(node)->ValuesBegin();
-  Object::ValueIterator ie = Ast_A2(node)->ValuesEnd();
+  Object::ValueIterator it = Ast_A2(node)->ValueBegin();
+  Object::ValueIterator ie = Ast_A2(node)->ValueEnd();
 
   // Find case that matches switch value
   Object* statement = 0;
@@ -1534,7 +1475,7 @@ Evaluator::EvalSwitchStatement(Object* node)
       }
       statement = Ast_A1(*it);
     }
-    else if(Compare(EvalExpression(Ast_A1(*it)), value) == 0)
+    else if(Value::Compare(EvalExpression(Ast_A1(*it)), value) == 0)
     {
       statement = Ast_A2(*it);
       break;
@@ -1823,8 +1764,8 @@ void
 AddXmlAttributes(Object* ast, Object* node)
 {
   // Walk through list
-  Object::ValueIterator it = Ast_A1(ast)->ValuesBegin();
-  Object::ValueIterator ie = Ast_A1(ast)->ValuesEnd();
+  Object::ValueIterator it = Ast_A1(ast)->ValueBegin();
+  Object::ValueIterator ie = Ast_A1(ast)->ValueEnd();
   for(; it != ie; ++it)
   {
     Object* attr = CreateXmlObject(xmlAttribute, node);
@@ -1838,8 +1779,8 @@ Evaluator::EvalXmlExpression(Object* node)
 {
   // Retrieve ast element list
   Object* list = Ast_A1(Ast_A1(node));
-  Object::ValueIterator it = list->ValuesBegin();
-  Object::ValueIterator ie = list->ValuesEnd();
+  Object::ValueIterator it = list->ValueBegin();
+  Object::ValueIterator ie = list->ValueEnd();
 
   // Create document element
   Object* doc = CreateXmlObject(xmlDocument);
