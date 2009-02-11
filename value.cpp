@@ -21,8 +21,8 @@
 #include "value.h"
 #include "object.h"
 
-/*static*/ int 
-Value::Compare(Value const& lhs, Value const& rhs)
+int 
+ValCmp(Value const& lhs, Value const& rhs)
 {
   // Comparing different types
   if(lhs.Type() != rhs.Type())
@@ -53,4 +53,134 @@ Value::Compare(Value const& lhs, Value const& rhs)
 
   // Invalid type
   throw std::runtime_error("Unsupported value type for comparison");
+}
+
+
+Value::Bool   
+ValBool(Value const& val)
+{
+  switch(val.Type())
+  {
+  case Value::tNull:    return false;
+  case Value::tBool:    return val.GetBool();
+  case Value::tInt:     return val.GetInt() != 0;
+  case Value::tString:  return val.GetString().length() != 0;
+  case Value::tObject:  break;
+  }
+  throw std::runtime_error("Cannot convert between types");
+}
+
+Value::Int    
+ValInt(Value const& val)
+{
+  switch(val.Type())
+  {
+  case Value::tNull:    return 0;
+  case Value::tBool:    return val.GetBool() ? 1 : 0;
+  case Value::tInt:     return val.GetInt();
+  case Value::tString:  return atoi(val.GetString().c_str());
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Cannot convert between types");
+}
+
+inline 
+Value::String IntToString(Value::Int val)
+{
+  char buf[25];
+  sprintf(buf, "%d", val);
+  return buf;
+}
+
+Value::String 
+ValString(Value const& val)
+{
+  switch(val.Type())
+  {
+  case Value::tNull:    return Value::String();
+  case Value::tBool:    return val.GetBool() ? "true" : "false";
+  case Value::tInt:     return IntToString(val.GetInt());
+  case Value::tString:  return val.GetString();
+  case Value::tObject:  return typeid(val.GetObject()).name();
+  }
+  throw std::runtime_error("Cannot convert between types");
+}
+
+Value 
+ValAdd(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return lhs.GetInt() + ValInt(rhs);
+  case Value::tString:  return lhs.GetString() + ValString(rhs);
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for addition operator");
+}
+
+Value 
+ValSub(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return lhs.GetInt() - ValInt(rhs);
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for subtraction operator");
+}
+
+Value 
+ValMul(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return lhs.GetInt() * ValInt(rhs);
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for multiplication operator");
+}
+
+Value 
+ValDiv(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return lhs.GetInt() / ValInt(rhs);
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for division operator");
+}
+
+Value 
+ValMod(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return lhs.GetInt() % ValInt(rhs);
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for modulo operator");
+}
+
+Value 
+ValNeg(Value const& lhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return -lhs.GetInt();
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for negation operator");
+}
+
+Value 
+ValNot(Value const& lhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tBool:    return lhs.GetBool() == false;
+  case Value::tInt:     return lhs.GetInt()  == 0;
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for negation operator");
 }

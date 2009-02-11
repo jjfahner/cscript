@@ -92,10 +92,16 @@ public:
   typedef map_iterator_t<MemberMap, pointer_accessor> ValueIterator;
 
   //
-  // Contains a member
+  // Member count
   //
-  virtual bool Contains(Value const& key) const
-  {
+  size_t Count() const {
+    return m_members.size();
+  }
+
+  //
+  // Is a certain key present
+  //
+  virtual bool ContainsKey(Value const& key) const {
     return m_members.count(key) != 0;
   }
 
@@ -119,9 +125,6 @@ public:
     return ValueIterator(m_members.end());
   }
 
-  //
-  // Retrieve const variables
-  //
   //
   // Retrieve variables
   //
@@ -147,7 +150,7 @@ public:
   //
   virtual RValue* Add(Value const& key, RValue* value)
   {
-    if(Contains(key))
+    if(ContainsKey(key))
     {
       throw std::runtime_error("Variable already declared");
     }

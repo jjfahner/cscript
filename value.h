@@ -24,7 +24,6 @@
 #include "types.h"
 
 class Object;
-class Evaluator;
 
 class Value
 {
@@ -136,16 +135,36 @@ public:
     return m_int;
   }
 
+  operator Int () const
+  {
+    return GetInt();
+  }
+
   String const& GetString() const
   {
     AssertType(tString);
     return *m_string;
   }
 
+  operator String const& () const
+  {
+    return GetString();
+  }
+
   Object* GetObject() const
   {
     AssertType(tObject);
     return m_object;
+  }
+
+  Object* operator -> () const
+  {
+    return GetObject();
+  }
+
+  operator Object * () const
+  {
+    return GetObject();
   }
 
   //
@@ -173,11 +192,6 @@ public:
     return *this;
   }
 
-  //
-  // Compare function
-  //
-  static int Compare(Value const& lhs, Value const& rhs);
-
 private:
 
   //
@@ -186,8 +200,8 @@ private:
   bool operator == (Value const& rhs);
 
   //
-  // Meant to prevent conversion to boolean when a Value 
-  // is constructed from an in valid pointer type
+  // Meant to prevent conversion from pointer to boolean 
+  // when a Value is constructed from an invalid pointer type
   //
   Value(void*);
 
@@ -238,10 +252,27 @@ inline T* ValueToType(Value const& v)
 
 //////////////////////////////////////////////////////////////////////////
 
+Value::Bool ValBool(Value const& val);
+Value::Int ValInt(Value const& val);
+Value::String ValString(Value const& val);
+
+Value ValNeg(Value const& lhs);
+Value ValNot(Value const& lhs);
+
+Value ValAdd(Value const& lhs, Value const& rhs);
+Value ValSub(Value const& lhs, Value const& rhs);
+Value ValMul(Value const& lhs, Value const& rhs);
+Value ValDiv(Value const& lhs, Value const& rhs);
+Value ValMod(Value const& lhs, Value const& rhs);
+
+int ValCmp(Value const& lhs, Value const& rhs);
+
+//////////////////////////////////////////////////////////////////////////
+
 inline bool 
 operator < (Value const& lhs, Value const& rhs)
 {
-  return Value::Compare(lhs, rhs) < 0;
+  return ValCmp(lhs, rhs) < 0;
 }
 
 //////////////////////////////////////////////////////////////////////////

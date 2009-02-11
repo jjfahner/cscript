@@ -158,7 +158,7 @@ public:
 
 class ObjectEnumerator : public Enumerator
 {
-  typedef MemberMap::const_iterator Iterator;
+  typedef Object::ValueIterator Iterator;
 
   Object*  m_obj;
   Iterator m_cur;
@@ -175,19 +175,19 @@ public:
   virtual void Reset()
   {
     // Set iterator to start
-    m_cur = m_obj->Members().begin();
+    m_cur = m_obj->ValueBegin();
   }
 
   virtual bool GetNext(Value& value)
   {
     // Check current position
-    if(m_cur == m_obj->Members().end())
+    if(m_cur == m_obj->ValueEnd())
     {
       return false;
     }
 
     // Retrieve value from iterator
-    value = m_cur->second->GetValue();
+    value = *m_cur;
 
     // Advance to next position
     ++m_cur;
@@ -201,12 +201,7 @@ public:
 inline Enumerator* 
 RValue::GetEnumerator() const
 {
-  Value const& v = GetValue();
-  if(v.Type() == Value::tObject)
-  {
-    return new ObjectEnumerator(v.GetObject());
-  }
-  return 0;
+  return new ObjectEnumerator(GetValue());
 }
 
 //////////////////////////////////////////////////////////////////////////
