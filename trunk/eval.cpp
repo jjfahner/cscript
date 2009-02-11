@@ -624,11 +624,21 @@ Evaluator::Eval(String text, bool isFileName)
   return Value();
 }
 
+void
+Evaluator::Eval(Object* astRoot)
+{
+  // Keep ast around during evaluation
+  MakeTemp(astRoot);
+
+  // Perform evaluation of ast tree
+  EvalStatement(astRoot);
+}
+
+
 void 
 Evaluator::EvalStatement(Object* node)
 {
   VecRestore<ValueVec> vr(m_temporaries);
-  MakeTemp((Object*)node);
 
   switch(ATYPE(node))
   {
@@ -704,10 +714,6 @@ Evaluator::EvalAssignment(Object* node)
 {
   // Evaluate left-hand side
   LValue& lhs = EvalExpression(A2(node)).LVal();
-  if(&lhs == 0)
-  {
-    throw std::runtime_error("Expression does not yield an lvalue");
-  }
 
   // Evaluate right-hand side
   RValue& rhs = EvalExpression(A3(node));

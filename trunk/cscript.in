@@ -76,8 +76,8 @@ main ::= translation_unit .
 
 // Translation unit
 translation_unit ::= .
-translation_unit ::= native_declaration(A) . { if(A) p->EvalStatement(A); }
-translation_unit ::= statement_sequence(A) . { if(A) p->EvalStatement(A); }
+translation_unit ::= native_declaration(A) . { if(A) p->Eval(A); }
+translation_unit ::= statement_sequence(A) . { if(A) p->Eval(A); }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }

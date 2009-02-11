@@ -1599,7 +1599,7 @@ static void yy_reduce(
       case 2:
       case 3:
 #line 79 "cscript.in"
-{ if(yymsp[0].minor.yy82) p->EvalStatement(yymsp[0].minor.yy82); }
+{ if(yymsp[0].minor.yy82) p->Eval(yymsp[0].minor.yy82); }
 #line 1605 "cscript.c"
         break;
       case 4:

@@ -61,15 +61,12 @@ public:
   }
 
   //
-  // Evaluation of single code line
+  // Evaluation of string/file
   //
   Value Eval(String code, bool isFileName = false);
 
-  //
-  // Evaluation of an expression
-  //
-  RValue& EvalExpression(Object* node);
-  void    EvalStatement(Object* node);
+  // Evaluation of ast tree
+  void Eval(Object* astRoot);
 
   //
   // Reset the evaluator
@@ -140,12 +137,18 @@ public:
   Lexer*    m_lexer;
   Object*   m_native;
 
-protected:
+private:
 
   //
   // Scope handling
   //
   class AutoScope;
+
+  //
+  // Evaluation of expression/statement
+  //
+  RValue& EvalExpression(Object* node);
+  void    EvalStatement(Object* node);
 
   //
   // Statement handlers
