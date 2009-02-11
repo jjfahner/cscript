@@ -624,6 +624,9 @@ Evaluator::Eval(Object* astRoot)
   // Keep ast around during evaluation
   MakeTemp(astRoot);
 
+  // Run garbage collector first
+  Collect();
+
   // Perform evaluation of ast tree
   EvalStatement(astRoot);
 }
