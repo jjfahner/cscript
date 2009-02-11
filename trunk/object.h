@@ -25,6 +25,7 @@
 #include <set>
 
 #include "value.h"
+#include "map_iter.h"
 
 class Object;
 class RValue;
@@ -42,6 +43,13 @@ typedef std::set<Object*> Objects;
 //
 typedef std::map<Value, RValue*, ValueComparatorLess> MemberMap;
 
+//
+// Value list
+//
+typedef std::vector<Value> ValueVec;
+
+
+//////////////////////////////////////////////////////////////////////////
 //
 // Object class
 //
@@ -84,12 +92,49 @@ public:
   //
   virtual String GetTypeName() const;
 
+  //////////////////////////////////////////////////////////////////////////
+
+  typedef map_iterator_t<MemberMap, key_accessor>     KeyIterator;
+  typedef map_iterator_t<MemberMap, pointer_accessor> ValueIterator;
+
+  //
+  // Contains a member
+  //
+  virtual bool Contains(Value const& key) const
+  {
+    return m_members.count(key) != 0;
+  }
+
   //
   // Retrieve variables
   //
   virtual MemberMap& Members()
   {
     return m_members;
+  }
+
+  //
+  // Iterator for values in member list
+  //
+  KeyIterator KeysBegin()
+  {
+    return KeyIterator(m_members.begin());
+  }
+  KeyIterator KeysEnd()
+  {
+    return KeyIterator(m_members.end());
+  }
+
+  //
+  // Iterator for values in member list
+  //
+  ValueIterator ValuesBegin()
+  {
+    return ValueIterator(m_members.begin());
+  }
+  ValueIterator ValuesEnd()
+  {
+    return ValueIterator(m_members.end());
   }
 
   //
@@ -142,14 +187,6 @@ public:
   }
 
   //
-  // Contains a member
-  //
-  virtual bool Contains(Value const& key) const
-  {
-    return m_members.count(key) != 0;
-  }
-
-  //
   // Find a member
   //
   virtual bool Find(Value const& key, RValue*& pValue) const
@@ -162,6 +199,12 @@ public:
     pValue = it->second;
     return true;
   }
+
+  //
+  // Retrieve all keys/values
+  //
+  ValueVec Keys()   const;
+  ValueVec Values() const;
 
 protected:
 

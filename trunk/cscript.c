@@ -10,12 +10,11 @@
 #include "ast.h"
 #include "eval.h"
 #include "tokens.h"
-#include "astlist.h"
 #include "convert.h"
 
 #pragma warning(disable:4065)
 
-#line 20 "cscript.c"
+#line 19 "cscript.c"
 /* Next is all token values, in a form suitable for use by makeheaders.
 ** This section will be null unless lemon is run with the -m switch.
 */
@@ -1591,16 +1590,16 @@ static void yy_reduce(
   */
       case 0:
       case 1:
-#line 75 "cscript.in"
+#line 74 "cscript.in"
 {
 }
-#line 1599 "cscript.c"
+#line 1598 "cscript.c"
         break;
       case 2:
       case 3:
-#line 79 "cscript.in"
+#line 78 "cscript.in"
 { if(yymsp[0].minor.yy82) p->Eval(yymsp[0].minor.yy82); }
-#line 1605 "cscript.c"
+#line 1604 "cscript.c"
         break;
       case 4:
       case 6:
@@ -1643,12 +1642,12 @@ static void yy_reduce(
       case 152:
       case 166:
       case 185:
-#line 83 "cscript.in"
+#line 82 "cscript.in"
 { yygotominor.yy82 = yymsp[0].minor.yy82; }
-#line 1650 "cscript.c"
+#line 1649 "cscript.c"
         break;
       case 5:
-#line 84 "cscript.in"
+#line 83 "cscript.in"
 { 
   if((*yymsp[-1].minor.yy82)["type"].GetInt() == statement_sequence) {
     yygotominor.yy82 = yymsp[-1].minor.yy82;
@@ -1659,665 +1658,665 @@ static void yy_reduce(
   }
   (*yygotominor.yy82)["a1"]->Add(yymsp[0].minor.yy82);
 }
-#line 1664 "cscript.c"
+#line 1663 "cscript.c"
         break;
       case 21:
       case 24:
       case 184:
-#line 111 "cscript.in"
+#line 110 "cscript.in"
 { yygotominor.yy82 = 0; }
-#line 1671 "cscript.c"
+#line 1670 "cscript.c"
         break;
       case 27:
-#line 128 "cscript.in"
+#line 127 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(assignment_expression, yymsp[-1].minor.yy194, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1676 "cscript.c"
+#line 1675 "cscript.c"
         break;
       case 28:
-#line 132 "cscript.in"
+#line 131 "cscript.in"
 { yygotominor.yy194 = op_assign; }
-#line 1681 "cscript.c"
+#line 1680 "cscript.c"
         break;
       case 29:
-#line 133 "cscript.in"
+#line 132 "cscript.in"
 { yygotominor.yy194 = op_assadd; }
-#line 1686 "cscript.c"
+#line 1685 "cscript.c"
         break;
       case 30:
-#line 134 "cscript.in"
+#line 133 "cscript.in"
 { yygotominor.yy194 = op_asssub; }
-#line 1691 "cscript.c"
+#line 1690 "cscript.c"
         break;
       case 31:
-#line 135 "cscript.in"
+#line 134 "cscript.in"
 { yygotominor.yy194 = op_assmul; }
-#line 1696 "cscript.c"
+#line 1695 "cscript.c"
         break;
       case 32:
-#line 136 "cscript.in"
+#line 135 "cscript.in"
 { yygotominor.yy194 = op_assdiv; }
-#line 1701 "cscript.c"
+#line 1700 "cscript.c"
         break;
       case 33:
-#line 137 "cscript.in"
+#line 136 "cscript.in"
 { yygotominor.yy194 = op_assmod; }
-#line 1706 "cscript.c"
+#line 1705 "cscript.c"
         break;
       case 35:
-#line 141 "cscript.in"
+#line 140 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(ternary_expression, yymsp[-4].minor.yy82, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1711 "cscript.c"
+#line 1710 "cscript.c"
         break;
       case 37:
-#line 145 "cscript.in"
+#line 144 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_logor,   yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1716 "cscript.c"
+#line 1715 "cscript.c"
         break;
       case 38:
-#line 146 "cscript.in"
+#line 145 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_logand,  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1721 "cscript.c"
+#line 1720 "cscript.c"
         break;
       case 39:
-#line 147 "cscript.in"
+#line 146 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_bitor,   yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1726 "cscript.c"
+#line 1725 "cscript.c"
         break;
       case 40:
-#line 148 "cscript.in"
+#line 147 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_bitxor,  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1731 "cscript.c"
+#line 1730 "cscript.c"
         break;
       case 41:
-#line 149 "cscript.in"
+#line 148 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_bitand,  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1736 "cscript.c"
+#line 1735 "cscript.c"
         break;
       case 42:
-#line 150 "cscript.in"
+#line 149 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_eq,   yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1741 "cscript.c"
+#line 1740 "cscript.c"
         break;
       case 43:
-#line 151 "cscript.in"
+#line 150 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_ne,   yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1746 "cscript.c"
+#line 1745 "cscript.c"
         break;
       case 44:
-#line 152 "cscript.in"
+#line 151 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_lt,   yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1751 "cscript.c"
+#line 1750 "cscript.c"
         break;
       case 45:
-#line 153 "cscript.in"
+#line 152 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_le,   yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1756 "cscript.c"
+#line 1755 "cscript.c"
         break;
       case 46:
-#line 154 "cscript.in"
+#line 153 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_gt,   yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1761 "cscript.c"
+#line 1760 "cscript.c"
         break;
       case 47:
-#line 155 "cscript.in"
+#line 154 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_ge,   yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1766 "cscript.c"
+#line 1765 "cscript.c"
         break;
       case 48:
-#line 156 "cscript.in"
+#line 155 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_add,  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1771 "cscript.c"
+#line 1770 "cscript.c"
         break;
       case 49:
-#line 157 "cscript.in"
+#line 156 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_sub,  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1776 "cscript.c"
+#line 1775 "cscript.c"
         break;
       case 50:
-#line 158 "cscript.in"
+#line 157 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_mul,  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1781 "cscript.c"
+#line 1780 "cscript.c"
         break;
       case 51:
-#line 159 "cscript.in"
+#line 158 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_div,  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1786 "cscript.c"
+#line 1785 "cscript.c"
         break;
       case 52:
-#line 160 "cscript.in"
+#line 159 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_mod,  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1791 "cscript.c"
+#line 1790 "cscript.c"
         break;
       case 53:
-#line 161 "cscript.in"
+#line 160 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_seq,  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1796 "cscript.c"
+#line 1795 "cscript.c"
         break;
       case 54:
-#line 162 "cscript.in"
+#line 161 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(binary_expression, op_sne,  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1801 "cscript.c"
+#line 1800 "cscript.c"
         break;
       case 56:
-#line 166 "cscript.in"
+#line 165 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(prefix_expression, op_negate, yymsp[0].minor.yy82); }
-#line 1806 "cscript.c"
+#line 1805 "cscript.c"
         break;
       case 57:
-#line 167 "cscript.in"
+#line 166 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(prefix_expression, op_preinc, yymsp[0].minor.yy82); }
-#line 1811 "cscript.c"
+#line 1810 "cscript.c"
         break;
       case 58:
-#line 168 "cscript.in"
+#line 167 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(prefix_expression, op_predec, yymsp[0].minor.yy82); }
-#line 1816 "cscript.c"
+#line 1815 "cscript.c"
         break;
       case 60:
-#line 170 "cscript.in"
+#line 169 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(prefix_expression, op_not,    yymsp[0].minor.yy82); }
-#line 1821 "cscript.c"
+#line 1820 "cscript.c"
         break;
       case 62:
-#line 174 "cscript.in"
+#line 173 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(postfix_expression, op_postinc, yymsp[-1].minor.yy82); }
-#line 1826 "cscript.c"
+#line 1825 "cscript.c"
         break;
       case 63:
-#line 175 "cscript.in"
+#line 174 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(postfix_expression, op_postdec, yymsp[-1].minor.yy82); }
-#line 1831 "cscript.c"
+#line 1830 "cscript.c"
         break;
       case 64:
-#line 176 "cscript.in"
+#line 175 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(function_call, yymsp[-3].minor.yy82, yymsp[-1].minor.yy82); }
-#line 1836 "cscript.c"
+#line 1835 "cscript.c"
         break;
       case 65:
-#line 177 "cscript.in"
+#line 176 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(member_expression, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1841 "cscript.c"
+#line 1840 "cscript.c"
         break;
       case 66:
-#line 178 "cscript.in"
+#line 177 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(index_expression, yymsp[-2].minor.yy82); }
-#line 1846 "cscript.c"
+#line 1845 "cscript.c"
         break;
       case 67:
-#line 179 "cscript.in"
+#line 178 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(index_expression, yymsp[-3].minor.yy82, yymsp[-1].minor.yy82); }
-#line 1851 "cscript.c"
+#line 1850 "cscript.c"
         break;
       case 68:
-#line 180 "cscript.in"
+#line 179 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(function_member_expression, yymsp[0].minor.yy82); }
-#line 1856 "cscript.c"
+#line 1855 "cscript.c"
         break;
       case 69:
-#line 181 "cscript.in"
+#line 180 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(function_index_expression, yymsp[-1].minor.yy82); }
-#line 1861 "cscript.c"
+#line 1860 "cscript.c"
         break;
       case 72:
       case 123:
       case 153:
-#line 186 "cscript.in"
+#line 185 "cscript.in"
 { yygotominor.yy82 = yymsp[-1].minor.yy82; }
-#line 1868 "cscript.c"
+#line 1867 "cscript.c"
         break;
       case 75:
-#line 189 "cscript.in"
+#line 188 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(this_expression); }
-#line 1873 "cscript.c"
+#line 1872 "cscript.c"
         break;
       case 77:
-#line 193 "cscript.in"
+#line 192 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(literal_value, Value(str2dec(String(yymsp[0].minor.yy0).c_str()))); }
-#line 1878 "cscript.c"
+#line 1877 "cscript.c"
         break;
       case 78:
-#line 194 "cscript.in"
+#line 193 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(literal_value, Value(hex2dec(String(yymsp[0].minor.yy0).c_str()))); }
-#line 1883 "cscript.c"
+#line 1882 "cscript.c"
         break;
       case 79:
-#line 195 "cscript.in"
+#line 194 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(literal_value, Value(bin2dec(String(yymsp[0].minor.yy0).c_str()))); }
-#line 1888 "cscript.c"
+#line 1887 "cscript.c"
         break;
       case 80:
-#line 196 "cscript.in"
+#line 195 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(literal_value, Value(rom2dec(String(yymsp[0].minor.yy0).c_str()))); }
-#line 1893 "cscript.c"
+#line 1892 "cscript.c"
         break;
       case 81:
-#line 197 "cscript.in"
+#line 196 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(literal_value, Value(str2flt(String(yymsp[0].minor.yy0).c_str()))); }
-#line 1898 "cscript.c"
+#line 1897 "cscript.c"
         break;
       case 82:
-#line 198 "cscript.in"
+#line 197 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(literal_value, Value(String(yymsp[0].minor.yy0))); }
-#line 1903 "cscript.c"
+#line 1902 "cscript.c"
         break;
       case 83:
-#line 199 "cscript.in"
+#line 198 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(literal_value, Value(true));    }
-#line 1908 "cscript.c"
+#line 1907 "cscript.c"
         break;
       case 84:
-#line 200 "cscript.in"
+#line 199 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(literal_value, Value(false));   }
-#line 1913 "cscript.c"
+#line 1912 "cscript.c"
         break;
       case 85:
-#line 201 "cscript.in"
+#line 200 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(literal_value, Value());        }
-#line 1918 "cscript.c"
+#line 1917 "cscript.c"
         break;
       case 86:
-#line 204 "cscript.in"
+#line 203 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(lvalue, String(yymsp[0].minor.yy0)); }
-#line 1923 "cscript.c"
+#line 1922 "cscript.c"
         break;
       case 87:
-#line 207 "cscript.in"
+#line 206 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(list_literal, yymsp[-1].minor.yy82); }
-#line 1928 "cscript.c"
+#line 1927 "cscript.c"
         break;
       case 88:
-#line 208 "cscript.in"
+#line 207 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(list_literal); }
-#line 1933 "cscript.c"
+#line 1932 "cscript.c"
         break;
       case 89:
-#line 209 "cscript.in"
+#line 208 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(list_content, yymsp[0].minor.yy82); }
-#line 1938 "cscript.c"
+#line 1937 "cscript.c"
         break;
       case 90:
-#line 210 "cscript.in"
+#line 209 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(list_content, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1943 "cscript.c"
+#line 1942 "cscript.c"
         break;
       case 91:
-#line 211 "cscript.in"
+#line 210 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(list_entry, yymsp[0].minor.yy82); }
-#line 1948 "cscript.c"
+#line 1947 "cscript.c"
         break;
       case 92:
-#line 212 "cscript.in"
+#line 211 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(list_entry, yymsp[0].minor.yy82, yymsp[-2].minor.yy82); }
-#line 1953 "cscript.c"
+#line 1952 "cscript.c"
         break;
       case 93:
-#line 215 "cscript.in"
+#line 214 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(json_literal, yymsp[-1].minor.yy82); }
-#line 1958 "cscript.c"
+#line 1957 "cscript.c"
         break;
       case 94:
-#line 217 "cscript.in"
+#line 216 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(json_content, yymsp[0].minor.yy82); }
-#line 1963 "cscript.c"
+#line 1962 "cscript.c"
         break;
       case 95:
-#line 218 "cscript.in"
+#line 217 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(json_content, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 1968 "cscript.c"
+#line 1967 "cscript.c"
         break;
       case 96:
-#line 219 "cscript.in"
+#line 218 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(json_entry, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy82); }
-#line 1973 "cscript.c"
+#line 1972 "cscript.c"
         break;
       case 97:
-#line 222 "cscript.in"
+#line 221 "cscript.in"
 { 
   yygotominor.yy82 = p->AllocNode(new_expression, String(yymsp[0].minor.yy0), 
     p->AllocNode(positional_arguments, new Object)); 
 }
-#line 1981 "cscript.c"
+#line 1980 "cscript.c"
         break;
       case 98:
-#line 226 "cscript.in"
+#line 225 "cscript.in"
 { 
   yygotominor.yy82 = p->AllocNode(new_expression, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy82); 
 }
-#line 1988 "cscript.c"
+#line 1987 "cscript.c"
         break;
       case 99:
-#line 235 "cscript.in"
+#line 234 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(type_specifier, Value::tBool,   String(yymsp[0].minor.yy0)); }
-#line 1993 "cscript.c"
+#line 1992 "cscript.c"
         break;
       case 100:
-#line 236 "cscript.in"
+#line 235 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(type_specifier, Value::tInt,    String(yymsp[0].minor.yy0)); }
-#line 1998 "cscript.c"
+#line 1997 "cscript.c"
         break;
       case 101:
-#line 237 "cscript.in"
+#line 236 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(type_specifier, Value::tString, String(yymsp[0].minor.yy0)); }
-#line 2003 "cscript.c"
+#line 2002 "cscript.c"
         break;
       case 102:
-#line 238 "cscript.in"
+#line 237 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(type_specifier, Value::tObject, String(yymsp[0].minor.yy0)); }
-#line 2008 "cscript.c"
+#line 2007 "cscript.c"
         break;
       case 104:
       case 107:
       case 142:
       case 145:
       case 147:
-#line 250 "cscript.in"
+#line 249 "cscript.in"
 { yygotominor.yy82 = new Object; yygotominor.yy82->Add(yymsp[0].minor.yy82); }
-#line 2017 "cscript.c"
+#line 2016 "cscript.c"
         break;
       case 105:
       case 108:
       case 144:
       case 146:
       case 148:
-#line 251 "cscript.in"
+#line 250 "cscript.in"
 { yygotominor.yy82 = yymsp[-2].minor.yy82; yymsp[-2].minor.yy82->Add(yymsp[0].minor.yy82); }
-#line 2026 "cscript.c"
+#line 2025 "cscript.c"
         break;
       case 106:
-#line 254 "cscript.in"
+#line 253 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(named_argument, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy82); }
-#line 2031 "cscript.c"
+#line 2030 "cscript.c"
         break;
       case 109:
-#line 261 "cscript.in"
+#line 260 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(positional_arguments, new Object); }
-#line 2036 "cscript.c"
+#line 2035 "cscript.c"
         break;
       case 110:
-#line 262 "cscript.in"
+#line 261 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(positional_arguments, yymsp[0].minor.yy82); }
-#line 2041 "cscript.c"
+#line 2040 "cscript.c"
         break;
       case 111:
-#line 263 "cscript.in"
+#line 262 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(named_arguments,      yymsp[0].minor.yy82); }
-#line 2046 "cscript.c"
+#line 2045 "cscript.c"
         break;
       case 112:
-#line 271 "cscript.in"
+#line 270 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(empty_statement); }
-#line 2051 "cscript.c"
+#line 2050 "cscript.c"
         break;
       case 113:
-#line 272 "cscript.in"
+#line 271 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(expression_statement, yymsp[-1].minor.yy82); }
-#line 2056 "cscript.c"
+#line 2055 "cscript.c"
         break;
       case 114:
-#line 275 "cscript.in"
+#line 274 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(compound_statement); }
-#line 2061 "cscript.c"
+#line 2060 "cscript.c"
         break;
       case 115:
-#line 276 "cscript.in"
+#line 275 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(compound_statement, yymsp[-1].minor.yy82); }
-#line 2066 "cscript.c"
+#line 2065 "cscript.c"
         break;
       case 116:
-#line 279 "cscript.in"
+#line 278 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(include_statement, String(yymsp[-1].minor.yy0)); }
-#line 2071 "cscript.c"
+#line 2070 "cscript.c"
         break;
       case 117:
-#line 282 "cscript.in"
+#line 281 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(return_statement, yymsp[-1].minor.yy82); }
-#line 2076 "cscript.c"
+#line 2075 "cscript.c"
         break;
       case 118:
-#line 283 "cscript.in"
+#line 282 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(return_statement);    }
-#line 2081 "cscript.c"
+#line 2080 "cscript.c"
         break;
       case 119:
-#line 286 "cscript.in"
+#line 285 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(break_statement); }
-#line 2086 "cscript.c"
+#line 2085 "cscript.c"
         break;
       case 120:
-#line 287 "cscript.in"
+#line 286 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(continue_statement); }
-#line 2091 "cscript.c"
+#line 2090 "cscript.c"
         break;
       case 125:
-#line 302 "cscript.in"
+#line 301 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(variable_declaration, String(yymsp[0].minor.yy0));    }
-#line 2096 "cscript.c"
+#line 2095 "cscript.c"
         break;
       case 126:
-#line 303 "cscript.in"
+#line 302 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(variable_declaration, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy82); }
-#line 2101 "cscript.c"
+#line 2100 "cscript.c"
         break;
       case 128:
-#line 306 "cscript.in"
+#line 305 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(declaration_sequence, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 2106 "cscript.c"
+#line 2105 "cscript.c"
         break;
       case 129:
-#line 314 "cscript.in"
+#line 313 "cscript.in"
 { p->m_native = p->AllocNode(function_declaration, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy82); }
-#line 2111 "cscript.c"
+#line 2110 "cscript.c"
         break;
       case 130:
-#line 317 "cscript.in"
+#line 316 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(function_declaration, String(yymsp[-4].minor.yy0),  yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 2116 "cscript.c"
+#line 2115 "cscript.c"
         break;
       case 131:
-#line 318 "cscript.in"
+#line 317 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(closure_declaration, String("function"), yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 2121 "cscript.c"
+#line 2120 "cscript.c"
         break;
       case 132:
-#line 321 "cscript.in"
+#line 320 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(parameter, String(yymsp[0].minor.yy0), ptByVal, yymsp[-1].minor.yy82); }
-#line 2126 "cscript.c"
+#line 2125 "cscript.c"
         break;
       case 133:
-#line 322 "cscript.in"
+#line 321 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(parameter, String(yymsp[0].minor.yy0), ptByVal);    }
-#line 2131 "cscript.c"
+#line 2130 "cscript.c"
         break;
       case 134:
-#line 323 "cscript.in"
+#line 322 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(parameter, String(yymsp[0].minor.yy0), ptByRef, yymsp[-2].minor.yy82); }
-#line 2136 "cscript.c"
+#line 2135 "cscript.c"
         break;
       case 135:
-#line 324 "cscript.in"
+#line 323 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(parameter, String(yymsp[0].minor.yy0), ptByRef);    }
-#line 2141 "cscript.c"
+#line 2140 "cscript.c"
         break;
       case 136:
-#line 327 "cscript.in"
+#line 326 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(parameter, String(yymsp[-2].minor.yy0), ptByVal, yymsp[-3].minor.yy82,       yymsp[0].minor.yy82); }
-#line 2146 "cscript.c"
+#line 2145 "cscript.c"
         break;
       case 137:
-#line 328 "cscript.in"
+#line 327 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(parameter, String(yymsp[-2].minor.yy0), ptByVal, Value(), yymsp[0].minor.yy82); }
-#line 2151 "cscript.c"
+#line 2150 "cscript.c"
         break;
       case 138:
-#line 331 "cscript.in"
+#line 330 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(parameter, String(yymsp[-1].minor.yy0), ptVariadic); }
-#line 2156 "cscript.c"
+#line 2155 "cscript.c"
         break;
       case 139:
       case 161:
-#line 334 "cscript.in"
+#line 333 "cscript.in"
 { yygotominor.yy82 = new Object; }
-#line 2162 "cscript.c"
+#line 2161 "cscript.c"
         break;
       case 143:
-#line 338 "cscript.in"
+#line 337 "cscript.in"
 { yygotominor.yy82 = yymsp[-2].minor.yy82; yymsp[-2].minor.yy82->Add(yymsp[0].minor.yy82->Members()); }
-#line 2167 "cscript.c"
+#line 2166 "cscript.c"
         break;
       case 150:
-#line 360 "cscript.in"
+#line 359 "cscript.in"
 { 
   yygotominor.yy82 = p->AllocNode(extern_declaration, String(yymsp[-4].minor.yy0), yymsp[-2].minor.yy82, String(yymsp[-6].minor.yy0), yymsp[-5].minor.yy82); 
 }
-#line 2174 "cscript.c"
+#line 2173 "cscript.c"
         break;
       case 151:
-#line 370 "cscript.in"
+#line 369 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(for_statement, yymsp[-5].minor.yy82, yymsp[-4].minor.yy82, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 2179 "cscript.c"
+#line 2178 "cscript.c"
         break;
       case 154:
       case 155:
-#line 381 "cscript.in"
+#line 380 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(foreach_statement, yymsp[-4].minor.yy82, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 2185 "cscript.c"
+#line 2184 "cscript.c"
         break;
       case 156:
-#line 383 "cscript.in"
+#line 382 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(variable_declaration, String(yymsp[0].minor.yy0)); }
-#line 2190 "cscript.c"
+#line 2189 "cscript.c"
         break;
       case 157:
-#line 394 "cscript.in"
+#line 393 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(if_statement, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 2195 "cscript.c"
+#line 2194 "cscript.c"
         break;
       case 158:
-#line 395 "cscript.in"
+#line 394 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(if_statement, yymsp[-4].minor.yy82, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 2200 "cscript.c"
+#line 2199 "cscript.c"
         break;
       case 159:
-#line 403 "cscript.in"
+#line 402 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(while_statement, yymsp[-2].minor.yy82,  yymsp[0].minor.yy82); }
-#line 2205 "cscript.c"
+#line 2204 "cscript.c"
         break;
       case 160:
-#line 411 "cscript.in"
+#line 410 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(switch_statement, yymsp[-4].minor.yy82, yymsp[-1].minor.yy82); }
-#line 2210 "cscript.c"
+#line 2209 "cscript.c"
         break;
       case 162:
       case 163:
-#line 415 "cscript.in"
+#line 414 "cscript.in"
 { yygotominor.yy82 = yymsp[-1].minor.yy82; yygotominor.yy82->Add(yymsp[0].minor.yy82); }
-#line 2216 "cscript.c"
+#line 2215 "cscript.c"
         break;
       case 164:
-#line 419 "cscript.in"
+#line 418 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(switch_case, yymsp[-2].minor.yy82, yymsp[0].minor.yy82); }
-#line 2221 "cscript.c"
+#line 2220 "cscript.c"
         break;
       case 165:
-#line 422 "cscript.in"
+#line 421 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(default_case, yymsp[0].minor.yy82); }
-#line 2226 "cscript.c"
+#line 2225 "cscript.c"
         break;
       case 167:
-#line 432 "cscript.in"
+#line 431 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(try_statement, yymsp[-1].minor.yy82, yymsp[0].minor.yy82); }
-#line 2231 "cscript.c"
+#line 2230 "cscript.c"
         break;
       case 168:
-#line 433 "cscript.in"
+#line 432 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(try_statement, yymsp[-1].minor.yy82, Value(), yymsp[0].minor.yy82); }
-#line 2236 "cscript.c"
+#line 2235 "cscript.c"
         break;
       case 169:
-#line 434 "cscript.in"
+#line 433 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(try_statement, yymsp[-2].minor.yy82, yymsp[-1].minor.yy82, yymsp[0].minor.yy82); }
-#line 2241 "cscript.c"
+#line 2240 "cscript.c"
         break;
       case 170:
-#line 436 "cscript.in"
+#line 435 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(catch_block, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy82); }
-#line 2246 "cscript.c"
+#line 2245 "cscript.c"
         break;
       case 171:
-#line 438 "cscript.in"
+#line 437 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(finally_block, yymsp[0].minor.yy82); }
-#line 2251 "cscript.c"
+#line 2250 "cscript.c"
         break;
       case 172:
-#line 440 "cscript.in"
+#line 439 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(throw_statement, yymsp[-1].minor.yy82); }
-#line 2256 "cscript.c"
+#line 2255 "cscript.c"
         break;
       case 173:
-#line 447 "cscript.in"
+#line 446 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_expression, yymsp[0].minor.yy82); p->GetLexer()->ToggleXml(false); }
-#line 2261 "cscript.c"
+#line 2260 "cscript.c"
         break;
       case 174:
-#line 450 "cscript.in"
+#line 449 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_elements, new Object); (*yygotominor.yy82)["a1"]->Add(yymsp[0].minor.yy82); }
-#line 2266 "cscript.c"
+#line 2265 "cscript.c"
         break;
       case 175:
       case 183:
-#line 451 "cscript.in"
+#line 450 "cscript.in"
 { yygotominor.yy82 = yymsp[-1].minor.yy82; (*yygotominor.yy82)["a1"]->Add(yymsp[0].minor.yy82); }
-#line 2272 "cscript.c"
+#line 2271 "cscript.c"
         break;
       case 176:
-#line 454 "cscript.in"
+#line 453 "cscript.in"
 { p->GetLexer()->ToggleXml(true); }
-#line 2277 "cscript.c"
+#line 2276 "cscript.c"
         break;
       case 177:
-#line 457 "cscript.in"
+#line 456 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_processing_instruction, String(yymsp[-2].minor.yy0), yymsp[-1].minor.yy82); }
-#line 2282 "cscript.c"
+#line 2281 "cscript.c"
         break;
       case 178:
-#line 458 "cscript.in"
+#line 457 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_open_tag,   yymsp[-2].minor.yy82, yymsp[-1].minor.yy82); }
-#line 2287 "cscript.c"
+#line 2286 "cscript.c"
         break;
       case 179:
-#line 459 "cscript.in"
+#line 458 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_closed_tag, yymsp[-3].minor.yy82, yymsp[-2].minor.yy82); }
-#line 2292 "cscript.c"
+#line 2291 "cscript.c"
         break;
       case 180:
-#line 460 "cscript.in"
+#line 459 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_close_tag,  yymsp[-1].minor.yy82); }
-#line 2297 "cscript.c"
+#line 2296 "cscript.c"
         break;
       case 181:
-#line 461 "cscript.in"
+#line 460 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_text, String(yymsp[0].minor.yy0)); }
-#line 2302 "cscript.c"
+#line 2301 "cscript.c"
         break;
       case 182:
-#line 464 "cscript.in"
+#line 463 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_attributes, new Object); (*yygotominor.yy82)["a1"]->Add(yymsp[0].minor.yy82); }
-#line 2307 "cscript.c"
+#line 2306 "cscript.c"
         break;
       case 186:
-#line 472 "cscript.in"
+#line 471 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_attribute, yymsp[-2].minor.yy82, String(yymsp[0].minor.yy0)); }
-#line 2312 "cscript.c"
+#line 2311 "cscript.c"
         break;
       case 187:
-#line 475 "cscript.in"
+#line 474 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_uname, String(yymsp[0].minor.yy0)); }
-#line 2317 "cscript.c"
+#line 2316 "cscript.c"
         break;
       case 188:
-#line 476 "cscript.in"
+#line 475 "cscript.in"
 { yygotominor.yy82 = p->AllocNode(xml_qname, String(yymsp[-2].minor.yy0), String(yymsp[0].minor.yy0)); }
-#line 2322 "cscript.c"
+#line 2321 "cscript.c"
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
@@ -2361,10 +2360,10 @@ static void yy_parse_failed(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser fails */
-#line 54 "cscript.in"
+#line 53 "cscript.in"
 
   p->OnParseFailure();
-#line 2370 "cscript.c"
+#line 2369 "cscript.c"
   CScriptParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -2378,10 +2377,10 @@ static void yy_syntax_error(
 ){
   CScriptParseARG_FETCH;
 #define TOKEN (yyminor.yy0)
-#line 57 "cscript.in"
+#line 56 "cscript.in"
 
   p->OnSyntaxError();
-#line 2388 "cscript.c"
+#line 2387 "cscript.c"
   CScriptParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

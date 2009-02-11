@@ -101,12 +101,6 @@ typedef std::list<String> StringList;
 typedef std::map<String, String> StringMap;
 
 //
-// Ast classes
-//
-class Ast;
-class AstList;
-
-//
 // File position
 //
 struct FilePos
