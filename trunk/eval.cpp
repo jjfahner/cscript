@@ -137,11 +137,11 @@ struct VecRestore
 // Evaluator implementation
 //
 
-/*static*/ Scope&
+/*static*/ Scope*
 Evaluator::GetGlobalScope()
 {
   static Scope scope;
-  return scope;
+  return &scope;
 }
 
 Evaluator::Evaluator() :
@@ -150,7 +150,7 @@ m_file    (0),
 m_allocs  (0)
 {
   // Create global scope
-  m_global = new Scope(&GetGlobalScope());
+  m_global = new Scope(GetGlobalScope());
 
   // Native calls
   static bool nativeCallsRegistered = false;
@@ -168,12 +168,11 @@ m_allocs  (0)
 void 
 Evaluator::Reset()
 {
+  // Create a new global scope
+  m_global = new Scope(GetGlobalScope());
+
   // Collect all remaining objects
   Collect();
-
-  // Create new global scope
-  delete m_global;
-  m_global = new Scope(&GetGlobalScope());
 }
 
 void
@@ -209,13 +208,6 @@ Evaluator::ParseFile(String const& filename)
 void 
 Evaluator::ParseText(char const* text)
 {
-  // Create scope
-  AutoScope as(this);
-  if(m_scope == 0)
-  {
-    as.Set(&GetGlobalScope());
-  }
-
   // Create lexer for file
   Lexer lexer(*this);
   lexer.SetText((char*)text);
@@ -237,10 +229,6 @@ Evaluator::ParseText(char const* text)
     while(lexer.Lex(token))
     {
       CScriptParse(pParser, token.m_type, token, this);
-
-#     ifdef _DEBUG
-      token.Init();
-#     endif
     }
 
     // Empty token to finalize parse
@@ -312,15 +300,15 @@ Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value cons
 Object* 
 Evaluator::ParseNativeCall(String const& declaration)
 {
-  // Reset reporter
-  m_reporter.Reset();
-
-  // Reset native call pointer
-  m_native = 0;
-
   // Parse the call
   try
   {
+    // Reset reporter
+    m_reporter.Reset();
+
+    // Reset native call pointer
+    m_native = 0;
+
     // Parse code
     ParseText(declaration.c_str());
 
@@ -542,14 +530,11 @@ PrintLineInfo(script_exception const& e)
 Value 
 Evaluator::Eval(String text, bool isFileName)
 {
-  // Reset reporter
-  m_reporter.Reset();
-
-  // Create top-level scope
-  AutoScope gs(this, m_global);
-
   try
   {
+    // Reset error reporter
+    m_reporter.Reset();
+
     // Parse code - this evaluates 
     // every statement in the code
     if(isFileName)
@@ -560,9 +545,6 @@ Evaluator::Eval(String text, bool isFileName)
     {
       ParseText(text.c_str());
     }
-
-    // Collect remaining objects
-    Collect();
 
     // Check error count
     if(m_reporter.GetErrorCount())
@@ -621,14 +603,17 @@ Evaluator::Eval(String text, bool isFileName)
 void
 Evaluator::Eval(Object* astRoot)
 {
+  // Place global scope on the scope stack
+  AutoScope as(this, m_global);
+
   // Keep ast around during evaluation
   MakeTemp(astRoot);
 
-  // Run garbage collector first
-  Collect();
-
   // Perform evaluation of ast tree
   EvalStatement(astRoot);
+
+  // Run garbage collector again
+  Collect();
 }
 
 

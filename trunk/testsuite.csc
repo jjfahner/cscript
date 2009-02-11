@@ -487,9 +487,8 @@ main();
 var countBefore = object_count();
 
 // Run garbage collector
-print("Running collect()... ");
+print("Collecting...\n");
 collect();
-print("Done\n\n");
 
 // Store number of objects after collection
 var countAfter = object_count();

@@ -47,7 +47,7 @@ public:
   // Static top-level scope, used by 
   // all instances of Evaluator
   //
-  static Scope& GetGlobalScope();
+  static Scope* GetGlobalScope();
 
   //
   // Construction
