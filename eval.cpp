@@ -20,13 +20,13 @@
 //////////////////////////////////////////////////////////////////////////
 #include "eval.h"
 #include "ast.h"
-#include "astlist.h"
 #include "native.h"
 #include "scope.h"
 #include "function.h"
 #include "file.h"
 #include "lexer.h"
 #include "tokens.h"
+#include "map_iter.h"
 #include <typeinfo>
 
 //
@@ -638,7 +638,7 @@ Evaluator::Eval(Object* astRoot)
 void 
 Evaluator::EvalStatement(Object* node)
 {
-  VecRestore<ValueVec> vr(m_temporaries);
+  VecRestore<TempVec> vr(m_temporaries);
 
   switch(ATYPE(node))
   {
@@ -776,14 +776,13 @@ Evaluator::EvalTernary(Object* node)
 void 
 Evaluator::EvalStatementSeq(Object* node)
 {
-  AstList::const_iterator it, ie;
-  AstList list(A1(node));
-  it = list.begin();
-  ie = list.end();
+  Object* list = A1(node);
+  Object::ValueIterator it = list->ValuesBegin();
+  Object::ValueIterator ie = list->ValuesEnd();
   for(; it != ie; ++it)
   {
-    EvalStatement(*it);
-  }
+    EvalStatement(it->GetObject());
+  }  
 }
 
 RValue&
@@ -1016,14 +1015,13 @@ Evaluator::EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* 
   args.SetParameters(fun->GetParameters());
 
   // Evaluate arguments
-  AstList arglist(A1(arguments));
   if(ATYPE(arguments) == positional_arguments)
   {
-    EvalPositionalArguments(node, fun, &arglist, args);
+    EvalPositionalArguments(node, fun, A1(arguments), args);
   }
   else
   {
-    EvalNamedArguments(node, fun, &arglist, args);
+    EvalNamedArguments(node, fun, A1(arguments), args);
   }
 
   // Evaluate function
@@ -1061,13 +1059,13 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   AutoScope asa(this, new Scope(m_scope));
 
   // Insert arguments into argument scope
-  AstList::const_iterator pi, pe;
-  AstList parlist(fun->GetParameters());
-  pi = parlist.begin();
-  pe = parlist.end();
+  Object::ValueIterator pi, pe;
+  pi = fun->GetParameters()->ValuesBegin();
+  pe = fun->GetParameters()->ValuesEnd();
   for(size_t index = 0; pi != pe; ++pi, ++index)
   {
-    m_scope->Add(A1(*pi), new RWVariable(args[index]));
+    m_scope->Add(A1(pi->GetObject()), 
+          new RWVariable(args[index]));
   }
 
   // Create function execution scope
@@ -1086,31 +1084,32 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 }
 
 void 
-Evaluator::EvalPositionalArguments(Object* node, Function* fun, AstList const* arglist, Arguments& args)
+Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist, Arguments& args)
 {
+  // Retrieve argument list
+  Object::ValueIterator ai = arglist->ValuesBegin();
+  Object::ValueIterator ae = arglist->ValuesEnd();
+
   // No formal parameter list
   if(fun->GetParameters() == 0)
   {
     // Evaluate arguments
-    AstList::const_iterator ai = arglist->begin();
-    for(; ai != arglist->end(); ++ai)
+    for(; ai != ae; ++ai)
     {
-      args.push_back(EvalExpression(*ai));
+      args.push_back(EvalExpression(ai->GetObject()));
     }
 
     // Done
     return;
   }
 
-  // Retrieve formal parameters
-  AstList parlist(fun->GetParameters());
+  // Retrieve parameters as list
+  ValueVec const& parlist = fun->GetParameters()->Values();
 
   // Enumerate parameters
-  AstList::const_iterator pi, pe, ai, ae;
+  ValueVec::const_iterator pi, pe;
   pi = parlist.begin();
   pe = parlist.end();
-  ai = arglist->begin();
-  ae = arglist->end();
   for(;;)
   {
     // End of lists
@@ -1125,8 +1124,11 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, AstList const* a
       throw script_exception(node, "Too many arguments in call to '" + fun->GetName() + "'");
     }
 
+    // Extract parameter
+    Object* par = pi->GetObject();
+
     // Variadic parameter
-    if(A2(*pi).GetInt() == ptVariadic)
+    if(A2(par).GetInt() == ptVariadic)
     {
       // Insert map
       Object* va = new Object();
@@ -1137,7 +1139,7 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, AstList const* a
       {
         // Evaluate argument value. ATTN: this dereference
         // is intentional; variadic arguments are by value.
-        Value val = EvalExpression(*ai);
+        Value val = EvalExpression(ai->GetObject());
 
         // Append to list
         va->Members()[va->Members().size() - 1] = new RWVariable(val);
@@ -1152,32 +1154,31 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, AstList const* a
     if(ai == ae)
     {
       // Must have default value
-      if(!A4(*pi))
+      if(!A4(par))
       {
         throw script_exception(node, "Not enough arguments in call to '" + fun->GetName() + "'");
       }
 
       // Evaluate default value
-      value = EvalExpression(A4(*pi));
+      value = EvalExpression(A4(par));
     }
     else
     {
       // Evaluate argument
-      value = EvalExpression(*ai);
+      value = EvalExpression(ai->GetObject());
     }
 
     // Handle byref/byval
-    if(A2(*pi).GetInt() == ptByVal)
+    if(A2(par).GetInt() == ptByVal)
     {
       // Dereference the value
 //       value = *value;
     }
 
     // Apply type conversion to value
-    if(A3(*pi))
+    if(A3(par))
     { 
-      // TODO ast
-      PerformConversion(value, A3(*pi).GetObject());
+      PerformConversion(value, A3(par).GetObject());
     }
 
     // Add to argument list
@@ -1193,24 +1194,26 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, AstList const* a
 }
 
 void 
-Evaluator::EvalNamedArguments(Object* node, Function* fun, AstList const* arglist, Arguments& args)
+Evaluator::EvalNamedArguments(Object* node, Function* fun, Object* arglist, Arguments& args)
 {
   // TODO: validate superfluous/duplicate arguments
   // TODO: implement type conversions
 
-  AstList parlist(fun->GetParameters());
+  // Retrieve parameters as list
+  ValueVec const& pars = fun->GetParameters()->Values();
 
   // Enumerate parameters
-  AstList::const_iterator pi, pe;
-  pi = parlist.begin();
-  pe = parlist.end();
+  ValueVec::const_iterator pi, pe;
+  pi = pars.begin();
+  pe = pars.end();
   for(; pi != pe; ++pi)
   {
-    // Extract parameter name
-    String parname = A2(*pi);
+    // Extract parameter and name
+    Object* par = pi->GetObject();
+    String parname = A2(par);
 
     // Cannot supply named arguments for variadic parameter
-    if(A2(*pi).GetInt() == ptVariadic)
+    if(A2(par).GetInt() == ptVariadic)
     {
       // Variadic is always last in list - add empty list and stop
 //      args.push_back(Value::stAssoc);
@@ -1218,12 +1221,12 @@ Evaluator::EvalNamedArguments(Object* node, Function* fun, AstList const* arglis
     }
 
     // Find named argument for parameter
-    AstList::const_iterator ai, ae;
-    ai = arglist->begin();
-    ae = arglist->end();
+    // Retrieve argument list
+    Object::ValueIterator ai = arglist->ValuesBegin();
+    Object::ValueIterator ae = arglist->ValuesEnd();
     for(; ai != ae; ++ai)
     {
-      if(A1(*ai).GetString() == parname)
+      if(A1(ai->GetObject()).GetString() == parname)
       {
         break;
       }
@@ -1234,12 +1237,12 @@ Evaluator::EvalNamedArguments(Object* node, Function* fun, AstList const* arglis
     if(ai != ae)
     {
       // Fill in positional argument
-      value = EvalExpression(A2(*ai));
+      value = EvalExpression(A2(ai->GetObject()));
     }
-    else if(A3(*pi))
+    else if(A3(par))
     {
       // Evaluate default value
-      value = EvalExpression(A3(*pi));
+      value = EvalExpression(A3(par));
     }
     else
     {
@@ -1248,7 +1251,7 @@ Evaluator::EvalNamedArguments(Object* node, Function* fun, AstList const* arglis
     }
 
     // Assign by value/by ref
-    if(A4(*pi) && A4(*pi).GetInt() == ptByRef)
+    if(A4(par) && A4(par).GetInt() == ptByRef)
     {
       // TODO validate type is correct for byref?
       args.push_back(value);
@@ -1534,9 +1537,8 @@ Evaluator::EvalSwitchStatement(Object* node)
   Value value = EvalExpression(A1(node));
 
   // Create iterators
-  AstList cases(A2(node));
-  AstList::const_iterator it = cases.begin();
-  AstList::const_iterator ie = cases.end();
+  Object::ValueIterator it = A2(node)->ValuesBegin();
+  Object::ValueIterator ie = A2(node)->ValuesEnd();
 
   // Find case that matches switch value
   Object* statement = 0;
@@ -1706,8 +1708,7 @@ Evaluator::EvalConversion(Object* node)
   Value value = EvalExpression(A2(node));
 
   // Perform the conversion
-  // TODO ast
-  //PerformConversion(value, A1(node).GetNode());
+  PerformConversion(value, A1(node).GetObject());
   
   // Return converted value
   return MakeTemp(value);
@@ -1839,12 +1840,10 @@ SetNodeName(Object* ast, Object* node)
 void 
 AddXmlAttributes(Object* ast, Object* node)
 {
-  // Retrieve ast element list
-  AstList list(A1(ast));
-
   // Walk through list
-  AstList::iterator it = list.begin();
-  for(; it != list.end(); ++it)
+  Object::ValueIterator it = A1(ast)->ValuesBegin();
+  Object::ValueIterator ie = A1(ast)->ValuesEnd();
+  for(; it != ie; ++it)
   {
     Object* attr = CreateXmlObject(xmlAttribute, node);
     SetNodeName(A1(*it), attr);
@@ -1856,7 +1855,9 @@ RValue&
 Evaluator::EvalXmlExpression(Object* node)
 {
   // Retrieve ast element list
-  AstList list(A1(A1(node)));
+  Object* list = A1(A1(node));
+  Object::ValueIterator it = list->ValuesBegin();
+  Object::ValueIterator ie = list->ValuesEnd();
 
   // Create document element
   Object* doc = CreateXmlObject(xmlDocument);
@@ -1866,8 +1867,7 @@ Evaluator::EvalXmlExpression(Object* node)
   Object* tmp;
 
   // Walk through list
-  AstList::iterator it = list.begin();
-  for(; it != list.end(); ++it)
+  for(; it != ie; ++it)
   {
     switch(ATYPE(*it))
     {

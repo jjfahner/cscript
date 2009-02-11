@@ -19,15 +19,15 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "args.h"
-#include "astlist.h"
+#include "object.h"
+#include "variable.h"
+#include "ast.h"
 
 Value const& 
 Arguments::at(String const& name) const
 {
-  AstList::const_iterator it, ie;
-  AstList parlist(m_parameters);
-  it = parlist.begin();
-  ie = parlist.end();
+  Object::ValueIterator it = m_parameters->ValuesBegin();
+  Object::ValueIterator ie = m_parameters->ValuesEnd();
   for(size_t index = 0; it != ie; ++it, ++index)
   {
     if(A1(*it).GetString() == name)

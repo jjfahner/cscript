@@ -329,6 +329,10 @@
 				RelativePath=".\convert.h"
 				>
 			</File>
+			<File
+				RelativePath=".\map_iter.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="parser"
@@ -529,10 +533,6 @@
 			>
 			<File
 				RelativePath=".\ast.h"
-				>
-			</File>
-			<File
-				RelativePath=".\astlist.h"
 				>
 			</File>
 			<File

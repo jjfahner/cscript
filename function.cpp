@@ -20,7 +20,6 @@
 //////////////////////////////////////////////////////////////////////////
 #include "function.h"
 #include "eval.h"
-#include "astlist.h"
 
 Value 
 ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
@@ -68,6 +67,8 @@ ExternFunction::GetParameters() const
 Value
 ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
+  throw std::runtime_error("External functions are disabled");
+
   Object* node = GetNode();
 
   // Load library
@@ -89,28 +90,28 @@ ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
   intptr_t * stack = new intptr_t[args.size()];
 
   // Copy arguments into buffer stack
-  size_t index = 0;
-  AstList::const_reverse_iterator pi, pe;
-  AstList list(A2(node));
-  pi = list.rbegin();
-  pe = list.rend();
-  for(; pi != pe; ++pi, ++index)
-  {
-    switch(A2(A1(*pi)).GetInt())
-    {
-    case Value::tInt:   // int
-      stack[index] = (int)args[index].GetInt();
-      break;
-
-    case Value::tString:   // string
-      stack[index] = (intptr_t)args[index].GetString().c_str();
-      break;
-
-    default:
-      delete [] stack;
-      throw std::runtime_error("Invalid argument type");
-    }
-  }
+//   size_t index = 0;
+//   AstList::const_reverse_iterator pi, pe;
+//   AstList list(A2(node));
+//   pi = list.rbegin();
+//   pe = list.rend();
+//   for(; pi != pe; ++pi, ++index)
+//   {
+//     switch(A2(A1(*pi)).GetInt())
+//     {
+//     case Value::tInt:   // int
+//       stack[index] = (int)args[index].GetInt();
+//       break;
+// 
+//     case Value::tString:   // string
+//       stack[index] = (intptr_t)args[index].GetString().c_str();
+//       break;
+// 
+//     default:
+//       delete [] stack;
+//       throw std::runtime_error("Invalid argument type");
+//     }
+//   }
 
   intptr_t dst;
   intptr_t res;

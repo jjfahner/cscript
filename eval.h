@@ -203,8 +203,8 @@ private:
   //
   // Evaluate argument list
   //
-  void EvalPositionalArguments(Object* node, Function* fun, AstList const* arglist, Arguments& args);
-  void EvalNamedArguments(Object* node, Function* fun, AstList const* arglist, Arguments& args);
+  void EvalPositionalArguments(Object* node, Function* fun, Object* arglist, Arguments& args);
+  void EvalNamedArguments(Object* node, Function* fun, Object* arglist, Arguments& args);
 
   //
   // Create a temporary
@@ -235,8 +235,8 @@ private:
   //
   // Temporaries
   //
-  typedef std::vector<RValue*> ValueVec;
-  ValueVec m_temporaries;
+  typedef std::vector<RValue*> TempVec;
+  TempVec m_temporaries;
 
 };
 
