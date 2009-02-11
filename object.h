@@ -149,15 +149,7 @@ public:
   //
   // Add a member
   //
-  virtual RValue* Add(Value const& key, RValue* value)
-  {
-    if(ContainsKey(key))
-    {
-      throw std::runtime_error("Variable already declared");
-    }
-    m_members[key] = value;
-    return value;
-  }
+  virtual RValue* Add(Value const& key, Value const& value);
 
   //
   // Retrieve variable as rvalue

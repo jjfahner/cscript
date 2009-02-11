@@ -656,7 +656,7 @@ Evaluator::EvalIndex(Object* node)
     }
     
     // Add value
-    val = lhs.GetObject()->Add(key, new RWVariable());
+    val = lhs.GetObject()->Add(key, Value());
   }
   else
   {
@@ -666,7 +666,7 @@ Evaluator::EvalIndex(Object* node)
     // Retrieve value
     if(!lhs.GetObject()->Find(rhs, val))
     {
-      val = lhs->Add(rhs, new RWVariable());
+      val = lhs->Add(rhs, Value());
     }
   }
   
@@ -703,7 +703,7 @@ Evaluator::EvalVarDecl(Object* node)
 
   // Create variable
   // TODO deletion of newed variable
-  m_scope->Add(Ast_A1(node).GetString(), new RWVariable(value));
+  m_scope->Add(Ast_A1(node).GetString(), value);
 }
 
 void
@@ -714,7 +714,7 @@ Evaluator::EvalFunDecl(Object* node)
   (*fun)["name"]   = fun->GetName();
   (*fun)["parent"] = m_scope;
 
-  m_scope->Add(Ast_A1(node).GetString(), new ROVariable(fun));
+  m_scope->Add(Ast_A1(node).GetString(), fun);
 }
 
 RValue& 
@@ -764,7 +764,7 @@ void
 Evaluator::EvalExternDecl(Object* node)
 {
   m_scope->Add(Ast_A1(node).GetString(), 
-    new ROVariable(new ExternFunction(Ast_A1(node), node)));
+    new ExternFunction(Ast_A1(node), node));
 }
 
 RValue&
@@ -866,8 +866,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   pe = fun->GetParameters()->ValueEnd();
   for(size_t index = 0; pi != pe; ++pi, ++index)
   {
-    m_scope->Add(Ast_A1(pi->GetObject()), 
-          new RWVariable(args[index]));
+    m_scope->Add(Ast_A1(pi->GetObject()), args[index]);
   }
 
   // Create function execution scope
@@ -1408,12 +1407,7 @@ Evaluator::EvalMemberExpression(Object* node)
   }
 
   // Lookup right-hand side
-  RValue* rval;
-  if(!object->Find(String(Ast_A1(Ast_A2(node))), rval))
-  {
-    rval = new RWVariable();
-    object->Add(Ast_A1(Ast_A2(node)), rval);
-  }
+  RValue* rval = &object->RVal(Ast_A1(Ast_A2(node)));
 
   // Construct bound member
   if(LValue* lval = dynamic_cast<LValue*>(rval))
@@ -1460,7 +1454,7 @@ Evaluator::EvalTryStatement(Object* node)
         // Insert exception into scope
         // TODO this maketemp might crash horribly during exception cleanup!!!
         AutoScope scope(this, new Scope(m_scope));
-        m_scope->Add(Ast_A1(Ast_A2(node)), new RWVariable(e.m_value));
+        m_scope->Add(Ast_A1(Ast_A2(node)), e.m_value);
 
         // Evaluate catch block
         EvalStatement(Ast_A2(Ast_A2(node)));

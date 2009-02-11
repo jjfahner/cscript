@@ -65,7 +65,7 @@ NativeCallRegistrar::RegisterCalls()
   for(; it != ie; ++it)
   {
     Function* fun = new NativeFunction(it->m_decl, it->m_call);
-    Evaluator::GetGlobalScope()->Add(fun->GetName(), new ROVariable(fun));
+    Evaluator::GetGlobalScope()->Add(fun->GetName(), fun);
   }
 }
 
