@@ -462,11 +462,11 @@ function main()
   // Print result
   if(errors == 0)
   {
-    print("\nAll tests succeeded!\n");
+    print("\nAll tests succeeded!\n\n");
   }
   else
   {
-    print("\n{errors} tests failed.\n");
+    print("\n{errors} tests failed.\n\n");
   }
 }
 
@@ -476,15 +476,27 @@ function main()
 // Start by invoking main()
 //
 
+// Cleanup any garbage objects and store current count
+collect();
+var countProgram = object_count();
+
+// Invoke main program
 main();
 
+// Store number of objects after main program
+var countBefore = object_count();
+
 // Run garbage collector
-// print("\n\nBefore collect:\n");
-//dump();
-print("Collecting...\n");
+print("Running collect()... ");
 collect();
-//print("\n\nAfter collect:\n");
-//dump();
-print("Done\n");
+print("Done\n\n");
+
+// Store number of objects after collection
+var countAfter = object_count();
+
+// Output object stats
+print("Program contained " + countProgram + " objects before execution\n");
+print("Program contained " + countBefore  + " objects after execution\n");
+print("Program contained " + countAfter   + " objects after collection\n");
 
 // EOF

@@ -253,6 +253,11 @@ NATIVE_CALL("__native collect()")
   return Value();
 }
 
+NATIVE_CALL("__native object_count()")
+{
+  return Object::GetObjects().size();
+};
+
 #if defined(WIN32) && !defined(_WIN32_WCE)
 
 #include <windows.h>
