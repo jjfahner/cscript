@@ -31,6 +31,7 @@
 #include "value.h"
 #include "object.h"
 #include "io.h"
+#include "file.h"
 
 class Lexer;
 struct script_exception;
@@ -219,7 +220,7 @@ private:
   //
   // Build xml tree
   //
-  Object* BuildXmlTree(Ast ast, Object* node);
+  Object* BuildXmlTree(Object* ast, Object* node);
 
   //
   // Scopes
