@@ -103,9 +103,8 @@ void PrintValue(Value const& val)
     throw std::runtime_error("Invalid subtype");
   }
 
-  MemberMap::const_iterator it, ie;
-  it = val.GetObject()->Members().begin();
-  ie = val.GetObject()->Members().end();
+  Object::MemberIterator it = val->Begin();
+  Object::MemberIterator ie = val->End();
 
   csout << "[";
 

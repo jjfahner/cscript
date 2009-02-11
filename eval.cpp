@@ -335,15 +335,11 @@ Evaluator::Collect()
 inline void 
 PrintLineInfo(script_exception const& e)
 {
-  // TODO ast
   if(e.m_node && e.m_node->ContainsKey("file"))
   {
-    csout
-      << "\n"
-      << (*e.m_node)["file"].GetString()
-      << "("
-      << (*e.m_node)["line"].GetInt()
-      << ") : ";
+    csout << "\n"
+      << (*e.m_node)["file"].GetString() << "("
+      << (*e.m_node)["line"].GetInt()    << ") : ";
   }
 }
 
@@ -446,20 +442,20 @@ Evaluator::EvalStatement(Object* node)
   {
   case empty_statement:       break;
 
-  case translation_unit:      EvalStatement(Ast_A1(node));    break;
-  case statement_sequence:    EvalStatementSeq(node);     break;
-  case expression_statement:  EvalExpression(Ast_A1(node));   break;
-  case variable_declaration:  EvalVarDecl(node);          break;
-  case function_declaration:  EvalFunDecl(node);          break;
-  case extern_declaration:    EvalExternDecl(node);       break;
-  case try_statement:         EvalTryStatement(node);     break;
-  case include_statement:     EvalIncludeStatement(node); break;
-  case for_statement:         EvalForStatement(node);     break;
-  case foreach_statement:     EvalForeachStatement(node); break;
-  case if_statement:          EvalIfStatement(node);      break;
-  case while_statement:       EvalWhileStatement(node);   break;  
-  case return_statement:      EvalReturnStatement(node);  break;
-  case switch_statement:      EvalSwitchStatement(node);  break;
+  case translation_unit:      EvalStatement(Ast_A1(node));  break;
+  case statement_sequence:    EvalStatementSeq(node);       break;
+  case expression_statement:  EvalExpression(Ast_A1(node)); break;
+  case variable_declaration:  EvalVarDecl(node);            break;
+  case function_declaration:  EvalFunDecl(node);            break;
+  case extern_declaration:    EvalExternDecl(node);         break;
+  case try_statement:         EvalTryStatement(node);       break;
+  case include_statement:     EvalIncludeStatement(node);   break;
+  case for_statement:         EvalForStatement(node);       break;
+  case foreach_statement:     EvalForeachStatement(node);   break;
+  case if_statement:          EvalIfStatement(node);        break;
+  case while_statement:       EvalWhileStatement(node);     break;  
+  case return_statement:      EvalReturnStatement(node);    break;
+  case switch_statement:      EvalSwitchStatement(node);    break;
 
   case break_statement:       throw break_exception(node);  
   case continue_statement:    throw continue_exception(node);
@@ -651,7 +647,7 @@ Evaluator::EvalIndex(Object* node)
   if(Ast_A2(node).Empty())
   {
     // Use size as key
-    Value key = (Value::Int)lhs.GetObject()->Members().size();
+    Value key = lhs->Count();
 
     // Make sure this key doesn't exist.
     if(lhs.GetObject()->Find(key, val))
@@ -714,8 +710,10 @@ void
 Evaluator::EvalFunDecl(Object* node)
 {
   Function* fun = new ScriptFunction(Ast_A1(node), node);
-  fun->Members()["name"]   = new ROVariable(fun->GetName());
-  fun->Members()["parent"] = new ROVariable(m_scope);
+  
+  (*fun)["name"]   = fun->GetName();
+  (*fun)["parent"] = m_scope;
+
   m_scope->Add(Ast_A1(node).GetString(), new ROVariable(fun));
 }
 
@@ -723,8 +721,10 @@ RValue&
 Evaluator::EvalClosure(Object* node)
 {
   Function* fun = new ScriptFunction(Ast_A1(node), node);
-  fun->Members()["name"]   = new ROVariable(fun->GetName());
-  fun->Members()["parent"] = new ROVariable(m_scope);
+
+  (*fun)["name"]   = fun->GetName();
+  (*fun)["parent"] = m_scope;
+  
   return MakeTemp(fun);
 }
 
@@ -743,8 +743,7 @@ Evaluator::EvalFunctionMember(Object* node)
         RValue* rval;
         if(!f->Find(name, rval))
         {
-          rval = new RWVariable();
-          f->Members()[name] = rval;
+          (*f)[name] = Value();
         }
         return *rval;
       }
@@ -941,7 +940,7 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist,
         Value val = EvalExpression(ai->GetObject());
 
         // Append to list
-        va->Members()[va->Members().size() - 1] = new RWVariable(val);
+        va->Add(val);
       }
 
       // Done
@@ -1084,7 +1083,7 @@ Evaluator::EvalListLiteral(Object* node)
       }
 
       // Insert into member variables
-      o->Members()[key] = new RWVariable(element);
+      (*o)[key] = element;
 
       // Check for next element
       if(!Ast_A2(child)) 
@@ -1116,7 +1115,7 @@ Evaluator::EvalJsonLiteral(Object* node)
     {
       // Retrieve and check key
       String key = Ast_A1(Ast_A1(child));
-      if(o->Members().count(key))
+      if(o->ContainsKey(key))
       {
         throw script_exception(node, "Duplicate key in JSON literal");
       }
@@ -1125,7 +1124,7 @@ Evaluator::EvalJsonLiteral(Object* node)
       RValue const& element = EvalExpression(Ast_A2(Ast_A1(child)));
 
       // Insert into member variables
-      o->Members()[key] = new RWVariable(element);
+      (*o)[key] = element;
 
       // Check for next element
       if(!Ast_A2(child)) 
@@ -1588,8 +1587,8 @@ CreateXmlObject(XmlNodeTypes nodeType, Object* parentNode = 0)
     childNode->LVal("parentNode") = parentNode;
     Object* coll = nodeType == xmlAttribute ?
       parentNode->LVal("attributes").GetObject() :
-    parentNode->LVal("childNodes").GetObject() ;
-    coll->LVal(coll->Members().size()) = childNode;
+      parentNode->LVal("childNodes").GetObject() ;
+    coll->Add(childNode);
   }
 
   // Create complex members
