@@ -30,7 +30,7 @@ Arguments::at(String const& name) const
   Object::ValueIterator ie = m_parameters->ValuesEnd();
   for(size_t index = 0; it != ie; ++it, ++index)
   {
-    if(A1(*it).GetString() == name)
+    if(Ast_A1(*it).GetString() == name)
     {
       return at(index);
     }

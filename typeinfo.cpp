@@ -44,8 +44,8 @@ m_name (name)
 }
 
 TypeInfo::TypeInfo(Object* node) :
-m_type ((Value::Types)A1(node).GetInt()),
-m_name (A2(node))
+m_type ((Value::Types)Ast_A1(node).GetInt()),
+m_name (Ast_A2(node))
 {
 }
 

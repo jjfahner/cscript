@@ -23,14 +23,9 @@
 
 #include "opcodes.h"
 
-class Ast;
-class File;
-
-//////////////////////////////////////////////////////////////////////////
 //
 // Ast node types
 //
-
 enum AstTypes
 {
   invalid,
@@ -101,15 +96,6 @@ enum AstTypes
   xml_qname
 };
 
-enum AccessTypes
-{
-  accessNone,
-  accessDefault,
-  accessPrivate,
-  accessProtected,
-  accessPublic,
-};
-
 enum ParameterTypes
 {
   ptByVal,
@@ -122,10 +108,23 @@ enum ParameterTypes
 // Ast accessors
 //
 
-#define ATYPE(arg)  ((*arg)["type"].GetInt())
-#define A1(arg)     ((*arg)["a1"])
-#define A2(arg)     ((*arg)["a2"])
-#define A3(arg)     ((*arg)["a3"])
-#define A4(arg)     ((*arg)["a4"])
+#include "object.h"
+#include "variable.h"
+
+inline AstTypes Ast_Type(Object* obj) {
+  return (AstTypes)(*obj)["type"].GetInt();
+}
+inline LValue& Ast_A1(Object* arg) {
+  return ((*arg)["a1"]);
+}
+inline LValue& Ast_A2(Object* arg) {
+  return ((*arg)["a2"]);
+}
+inline LValue& Ast_A3(Object* arg) {
+  return ((*arg)["a3"]);
+}
+inline LValue& Ast_A4(Object* arg) {
+  return ((*arg)["a4"]);
+}
 
 #endif // CSCRIPT_AST_H

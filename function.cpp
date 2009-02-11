@@ -42,7 +42,7 @@ m_call    (call)
   }
 
   // Extract name and parameter list
-  m_name = A1(node);
+  m_name = Ast_A1(node);
 
   // Store the ast node
   (*this)["__ast"] = node;
@@ -57,7 +57,7 @@ NativeFunction::Execute(Evaluator* evaluator, Arguments& args)
 Object* 
 ExternFunction::GetParameters() const
 {
-  return A2(GetNode());
+  return Ast_A2(GetNode());
 }
 
 #ifdef WIN32
@@ -72,14 +72,14 @@ ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
   Object* node = GetNode();
 
   // Load library
-  HMODULE hModule = LoadLibrary(A3(node).GetString().c_str());
+  HMODULE hModule = LoadLibrary(Ast_A3(node).GetString().c_str());
   if(hModule == 0)
   {
     throw std::runtime_error("Failed to load library");
   }
 
   // Find function address
-  FARPROC proc = GetProcAddress(hModule, A1(node).GetString().c_str());
+  FARPROC proc = GetProcAddress(hModule, Ast_A1(node).GetString().c_str());
   if(proc == 0)
   {
     throw std::runtime_error("Failed to retrieve function pointer");
@@ -92,12 +92,12 @@ ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
   // Copy arguments into buffer stack
 //   size_t index = 0;
 //   AstList::const_reverse_iterator pi, pe;
-//   AstList list(A2(node));
+//   AstList list(Ast_A2(node));
 //   pi = list.rbegin();
 //   pe = list.rend();
 //   for(; pi != pe; ++pi, ++index)
 //   {
-//     switch(A2(A1(*pi)).GetInt())
+//     switch(Ast_A2(Ast_A1(*pi)).GetInt())
 //     {
 //     case Value::tInt:   // int
 //       stack[index] = (int)args[index].GetInt();
