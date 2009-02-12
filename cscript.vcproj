@@ -334,6 +334,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\file.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\file.h"
+				>
+			</File>
+			<File
 				RelativePath=".\map_iter.h"
 				>
 			</File>
@@ -545,14 +553,6 @@
 			</File>
 			<File
 				RelativePath=".\error.h"
-				>
-			</File>
-			<File
-				RelativePath=".\file.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\file.h"
 				>
 			</File>
 			<File
