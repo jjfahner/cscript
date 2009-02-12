@@ -1219,11 +1219,11 @@ Evaluator::EvalForeachStatement(Object* node)
   if(Ast_Type(Ast_A1(node)) == variable_declaration)
   {
     EvalStatement(Ast_A1(node));
-    varName = Ast_A1(Ast_A1(node));
+    varName = Ast_A1(Ast_A1(node)).GetString();
   }
   else
   {
-    varName = Ast_A1(node);
+    varName = Ast_A1(node).GetString();
   }
 
   // Fetch variable
@@ -1609,13 +1609,13 @@ SetNodeName(Object* ast, Object* node)
   String ns;
   if(Ast_Type(ast) == xml_qname)
   {
-    lname = Ast_A2(ast);
-    ns    = Ast_A1(ast);
+    lname = Ast_A2(ast).GetString();
+    ns    = Ast_A1(ast).GetString();
     qname = ns + ":" + lname;
   }
   else
   {
-    lname = Ast_A1(ast);
+    lname = Ast_A1(ast).GetString();
     qname = lname;
   }
 
