@@ -42,7 +42,7 @@ m_call    (call)
   }
 
   // Extract name and parameter list
-  m_name = Ast_A1(node);
+  m_name = Ast_A1(node).GetString();
 
   // Store the ast node
   (*this)["__ast"] = node;
