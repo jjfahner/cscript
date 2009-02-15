@@ -23,17 +23,19 @@
 
 #include "cscript.h"
 #include "report.h"
-#include "scope.h"
-#include "args.h"
-#include "ast.h"
-#include "function.h"
-#include "typeinfo.h"
-#include "value.h"
-#include "object.h"
-#include "io.h"
-#include "file.h"
+#include "variable.h"
 
+#include <vector>
+
+enum AstTypes;
+class Object;
+class File;
 class Lexer;
+class Scope;
+class TypeInfo;
+class Function;
+class Arguments;
+
 struct script_exception;
 
 //

@@ -21,14 +21,7 @@
 #ifndef CSCRIPT_H
 #define CSCRIPT_H
 
-#include <stdexcept>
-#include <algorithm>
 #include <string>
-#include <vector>
-#include <list>
-#include <map>
-#include <set>
-
 
 //
 // Library auto-linking

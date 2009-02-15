@@ -24,6 +24,8 @@
 #include "cscript.h"
 #include "value.h"
 
+#include <vector>
+
 class Arguments : public std::vector<Value>
 {
 public:

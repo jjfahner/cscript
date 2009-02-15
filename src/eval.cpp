@@ -27,6 +27,8 @@
 #include "lexer.h"
 #include "tokens.h"
 #include "map_iter.h"
+#include "consio.h"
+#include "typeinfo.h"
 
 //
 // Parser functions
@@ -160,6 +162,12 @@ Evaluator::Reset()
 void
 Evaluator::ParseFile(String const& filename)
 {
+  // Check filename
+  if(!Path::Exists(filename))
+  {
+
+  }
+
   // Create file
   File file;
   file.Open(filename);
