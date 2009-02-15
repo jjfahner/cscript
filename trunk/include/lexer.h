@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_LEXER_H
 #define CSCRIPT_LEXER_H
 
-#include "types.h"
+#include "cscript.h"
 
 struct Token;
 class Evaluator;

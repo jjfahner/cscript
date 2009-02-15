@@ -24,11 +24,14 @@
 #include <oaidl.h>
 #include <comdef.h>
 
-#include <map>
-#include <vector>
-
 #include "parser.h"
-#include "types.h"
+#include "cscript.h"
+
+struct NCC {
+  bool operator () (String const& l, String const& r) const {
+    return strcmp_nocase(l.c_str(), r.c_str()) < 0;
+  }
+};
 
 class ComTypeInfo
 {

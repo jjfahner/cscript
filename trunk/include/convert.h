@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_CONVERT_H
 #define CSCRIPT_CONVERT_H
 
-#include "types.h"
+#include "cscript.h"
 
 //
 // Convert decimal string to decimal

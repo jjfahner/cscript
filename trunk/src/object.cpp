@@ -22,11 +22,6 @@
 #include "variable.h"
 #include "function.h"
 
-#include <typeinfo>
-#include <set>
-#include <deque>
-#include <algorithm>
-
 // Global object list
 static Objects g_objects;
 

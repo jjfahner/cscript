@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_FILE_H
 #define CSCRIPT_FILE_H
 
-#include "types.h"
+#include "cscript.h"
 
 //
 // File wrapper

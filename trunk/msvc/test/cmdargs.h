@@ -21,7 +21,9 @@
 #ifndef CSCRIPT_CMDARGS_H
 #define CSCRIPT_CMDARGS_H
 
-#include "types.h"
+#include "cscript.h"
+
+typedef std::map<String, String> StringMap;
 
 class CmdArgs
 {

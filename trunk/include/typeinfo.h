@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_TYPEINFO_H
 #define CSCRIPT_TYPEINFO_H
 
-#include "types.h"
+#include "cscript.h"
 #include "value.h"
 
 //
