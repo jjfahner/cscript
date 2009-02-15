@@ -1,2 +1,3 @@
-bin_PROGRAMS = cscript
 SUBDIRS = src
+EXTRA_DIST = autogen.sh
+
