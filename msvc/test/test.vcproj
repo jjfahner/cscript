@@ -174,15 +174,15 @@
 			Name="src"
 			>
 			<File
-				RelativePath=".\cmdargs.cpp"
+				RelativePath="..\..\src\cmdargs.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\cmdargs.h"
+				RelativePath="..\..\include\cmdargs.h"
 				>
 			</File>
 			<File
-				RelativePath=".\main.cpp"
+				RelativePath="..\..\src\main.cpp"
 				>
 			</File>
 		</Filter>
