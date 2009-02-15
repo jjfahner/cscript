@@ -21,6 +21,8 @@
 #include "value.h"
 #include "object.h"
 
+#include <typeinfo>
+
 int 
 ValCmp(Value const& lhs, Value const& rhs)
 {
