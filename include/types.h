@@ -34,6 +34,14 @@
 //
 #ifdef _MSC_VER
 
+#ifndef _LIB
+#ifdef _DEBUG
+#pragma comment(lib, "cslibd.lib")
+#else
+#pragma comment(lib, "cslib.lib")
+#endif
+#endif
+
 typedef          __int8   int8;
 typedef          __int16  int16;
 typedef          __int32  int32;
