@@ -159,18 +159,47 @@ Evaluator::Reset()
   Collect();
 }
 
+bool 
+Evaluator::OpenFile(String const& path, File& file)
+{
+  // Open file using unaltered path
+  if(file.Open(path))
+  {
+    return true;
+  }
+
+  // If using an absolute path, give up
+  if(Path::IsAbsolute(path))
+  {
+    return false;
+  }
+
+  // Combine with path of current script
+  if(m_file)
+  {
+    String altpath;
+    altpath = Path::DirectoryPart(m_file->GetPath());
+    altpath = Path::Combine(altpath, path);
+    if(file.Open(altpath))
+    {
+      return true;
+    }
+  }
+
+  // TODO Combine with current path
+  return false;
+}
+
 void
 Evaluator::ParseFile(String const& filename)
 {
-  // Check filename
-  if(!Path::Exists(filename))
-  {
-
-  }
-
-  // Create file
   File file;
-  file.Open(filename);
+
+  // Try to open the file
+  if(!OpenFile(filename, file))
+  {
+    throw std::runtime_error("Failed to open file");
+  }
 
   // Check type
   if(file.GetType() != File::source)
@@ -784,9 +813,10 @@ Evaluator::EvalFunctionCall(Object* node)
   if(Ast_Type(Ast_A1(node)) == lvalue)
   {
     // Named objects are found through the current scope
-    if(!m_scope->Lookup(String(Ast_A1(Ast_A1(node))), rval, owner))
+    String name = String(Ast_A1(Ast_A1(node)));
+    if(!m_scope->Lookup(name, rval, owner))
     {
-      throw script_exception(node, "Function not found");
+      throw script_exception(node, "Function '" + name + "' not found");
     }
   }
   else

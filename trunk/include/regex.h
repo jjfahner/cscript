@@ -23,6 +23,16 @@
 
 #pragma once 
 
+
+struct cscript_use_regex_t
+{
+  cscript_use_regex_t();
+};
+
+#ifndef CSLIB
+static cscript_use_regex_t cscript_use_regex;
+#endif
+
 #include <map>
 #include <list>
 #include <vector>

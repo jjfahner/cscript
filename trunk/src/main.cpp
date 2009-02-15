@@ -26,6 +26,9 @@
 #include "io.h"
 #include <iostream>
 
+#include "diskio.h"
+#include "regex.h"
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Print version
