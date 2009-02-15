@@ -19,9 +19,14 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "cscript.h"
+#include "diskio.h"
 #include "native.h"
 #include "args.h"
 #include "object.h"
+
+cscript_use_diskio_t::cscript_use_diskio_t()
+{
+}
 
 class NativeFile : public Object
 {

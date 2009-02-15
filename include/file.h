@@ -47,6 +47,11 @@ public:
   //
   static String Combine(String const& left, String const& right);
 
+  //
+  // Retrieve directory part of path
+  //
+  static String DirectoryPart(String const& path);
+
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,7 +95,7 @@ public:
   //
   // Open a file
   //
-  void Open(String const& path);
+  bool Open(String const& path);
 
   //
   // Close current file

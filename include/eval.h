@@ -207,6 +207,11 @@ private:
   Object* BuildXmlTree(Object* ast, Object* node);
 
   //
+  // Open a file
+  //
+  bool OpenFile(String const& path, File& file);
+
+  //
   // Scopes
   //
   Scope* m_global;

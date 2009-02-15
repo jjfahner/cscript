@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\diskio.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\error.h"
 				>
 			</File>
@@ -248,6 +252,38 @@
 			</File>
 			<File
 				RelativePath="..\..\include\variable.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="tests"
+			>
+			<File
+				RelativePath="..\..\test\com.csc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\test\eval.csc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\test\file.csi"
+				>
+			</File>
+			<File
+				RelativePath="..\..\test\socket.csi"
+				>
+			</File>
+			<File
+				RelativePath="..\..\test\test.csc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\test\test.csi"
+				>
+			</File>
+			<File
+				RelativePath="..\..\test\testsuite.csc"
 				>
 			</File>
 		</Filter>

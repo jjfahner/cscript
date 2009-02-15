@@ -30,6 +30,7 @@
 #else
 #define PATH_SEPARATOR "/"
 #endif
+#define PATH_SEPARATORS "\\/"
 
 /*static*/ bool 
 Path::Exists(String const& filename)
@@ -50,9 +51,19 @@ Path::IsAbsolute(String const& filename)
 String 
 Path::Combine(String const& lhs, String const& rhs)
 {
-  size_t rpos = lhs.find_last_not_of("\\/");
-  size_t lpos = rhs.find_first_not_of("\\/");
-  return lhs.substr(0, rpos) + PATH_SEPARATOR + rhs.substr(rpos);
+  size_t rpos = lhs.find_last_not_of(PATH_SEPARATORS);
+  size_t lpos = rhs.find_first_not_of(PATH_SEPARATORS);
+  if(rpos == String::npos) rpos = lhs.length();
+  if(lpos == String::npos) lpos = 0;
+  return lhs.substr(0, rpos + 1) + PATH_SEPARATOR + rhs.substr(lpos);
+}
+
+String 
+Path::DirectoryPart(String const& path)
+{
+  size_t rpos = path.find_last_of(PATH_SEPARATORS);
+  if(rpos == String::npos) return "";
+  return path.substr(0, rpos);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,14 +93,14 @@ File::Close()
   }
 }
 
-void 
+bool
 File::Open(String const& path)
 {
   // Open the input file
   std::ifstream ifs(path.c_str(), std::ios::binary);
   if(!ifs.good())
   {
-    throw std::runtime_error("Failed to open file");
+    return false;
   }
 
   // Store path
@@ -161,8 +172,11 @@ File::Open(String const& path)
   // Check supported types
   if(enctype != UTF8)
   {
-    throw std::runtime_error("Encoding not supported");
+    return false;
   }
+
+  // Done
+  return true;
 }
 
 String 

@@ -22,6 +22,10 @@
 #include <stdexcept>
 #include "args.h"
 
+cscript_use_regex_t::cscript_use_regex_t()
+{
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Helpers
