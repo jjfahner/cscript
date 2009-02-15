@@ -21,6 +21,7 @@
 #ifndef CSCRIPT_H
 #define CSCRIPT_H
 
+#include <stdexcept>
 #include <string>
 
 //

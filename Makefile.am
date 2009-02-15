@@ -1,2 +1,2 @@
 bin_PROGRAMS = cscript
-cscript_SOURCES = args.cpp cmdargs.cpp consio.cpp convert.cpp diskio.cpp error.cpp eval.cpp file.cpp function.cpp io.cpp lexer.cpp main.cpp native.cpp object.cpp regex.cpp report.cpp socket.cpp typeinfo.cpp value.cpp
+SUBDIRS = src
