@@ -26,8 +26,6 @@
 #include "variable.h"
 #include "function.h"
 
-class Function;
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Default scope implementation

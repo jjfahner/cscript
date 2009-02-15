@@ -22,8 +22,7 @@
 #include "variable.h"
 #include "function.h"
 
-#include <algorithm>
-
+#include <algorithm
 // Global object list
 static Objects g_objects;
 

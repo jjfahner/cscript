@@ -247,10 +247,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\valuemap.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\variable.h"
 				>
 			</File>
