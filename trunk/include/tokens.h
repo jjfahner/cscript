@@ -29,7 +29,7 @@
 #include "parser.h"
 
 //
-// Types
+// Include main header
 //
 #include "cscript.h"
 
