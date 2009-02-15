@@ -18,8 +18,53 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
+
+#ifdef _CRT_DIRECTORY_DEFINED
+#error WTF?!
+#endif
+
+#include <io.h>
+
+#ifndef _CRT_DIRECTORY_DEFINED
+#error WTF!?
+#endif
+
 #include "file.h"
 #include <fstream>
+
+//////////////////////////////////////////////////////////////////////////
+
+#ifdef WIN32
+#define PATH_SEPARATOR "\\"
+#else
+#define PATH_SEPARATOR "/"
+#endif
+
+/*static*/ bool 
+Path::Exists(String const& filename)
+{
+  return true; //_access(filename.c_str(), 0) == 0;
+}
+
+/*static*/ bool 
+Path::IsAbsolute(String const& filename)
+{
+#ifdef WIN32
+  return filename[0] == '\\' || filename[1] == ':';
+#else
+  return filename[0] == '/';
+#endif
+}
+
+String 
+Path::Combine(String const& lhs, String const& rhs)
+{
+  size_t rpos = lhs.find_last_not_of("\\/");
+  size_t lpos = rhs.find_first_not_of("\\/");
+  return lhs.substr(0, rpos) + PATH_SEPARATOR + rhs.substr(rpos);
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 File::File() :
 m_type (empty),

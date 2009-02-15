@@ -21,6 +21,11 @@
 #include "native.h"
 #include "eval.h"
 #include "function.h"
+#include "consio.h"
+#include "scope.h"
+
+#include <list>
+#include <algorithm>
 
 #if defined(_MSC_VER)
 #define strdup _strdup

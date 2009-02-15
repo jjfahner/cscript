@@ -95,7 +95,7 @@
 			OutputDirectory="..\..\build\msvc\release\test"
 			IntermediateDirectory="..\..\build\msvc\release\test"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool

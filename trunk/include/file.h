@@ -23,9 +23,34 @@
 
 #include "cscript.h"
 
-//
-// File wrapper
-//
+class Path
+{
+public:
+
+  //
+  // Path exists
+  //
+  static bool Exists(String const& path);
+
+  //
+  // Path refers to file
+  //
+  static bool IsFile(String path);
+
+  //
+  // Path is absolute
+  //
+  static bool IsAbsolute(String const& path);
+
+  //
+  // Combine two path strings
+  //
+  static String Combine(String const& left, String const& right);
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
 class File 
 {
 public:

@@ -23,6 +23,8 @@
 
 #include <oaidl.h>
 #include <comdef.h>
+#include <vector>
+#include <map>
 
 #include "parser.h"
 #include "cscript.h"

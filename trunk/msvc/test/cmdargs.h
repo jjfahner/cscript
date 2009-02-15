@@ -22,6 +22,8 @@
 #define CSCRIPT_CMDARGS_H
 
 #include "cscript.h"
+#include <map>
+#include <algorithm>
 
 typedef std::map<String, String> StringMap;
 
