@@ -31,7 +31,7 @@
 //
 // Types
 //
-#include "types.h"
+#include "cscript.h"
 
 //
 // Lexer-specific tokens

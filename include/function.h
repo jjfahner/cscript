@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_FUNCTION_H
 #define CSCRIPT_FUNCTION_H
 
-#include "types.h"
+#include "cscript.h"
 #include "value.h"
 #include "args.h"
 #include "native.h"

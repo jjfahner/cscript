@@ -943,7 +943,7 @@ Regex::MatchTypeString(MatchTypes type)
 //
 #include "native.h"
 #include "value.h"
-#include "types.h"
+#include "cscript.h"
 
 NATIVE_CALL("__native match(string pattern, string data, int offset = 0)")
 {

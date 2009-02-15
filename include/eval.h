@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_EVAL_H
 #define CSCRIPT_EVAL_H
 
-#include "types.h"
+#include "cscript.h"
 #include "report.h"
 #include "scope.h"
 #include "args.h"

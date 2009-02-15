@@ -27,7 +27,6 @@
 #include "lexer.h"
 #include "tokens.h"
 #include "map_iter.h"
-#include <typeinfo>
 
 //
 // Parser functions

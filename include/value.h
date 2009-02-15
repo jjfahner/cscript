@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_VALUE_H
 #define CSCRIPT_VALUE_H
 
-#include "types.h"
+#include "cscript.h"
 
 class Object;
 

@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_NATIVE_CALLS_H
 #define CSCRIPT_NATIVE_CALLS_H
 
-#include "types.h"
+#include "cscript.h"
 #include "value.h"
 
 class Evaluator;

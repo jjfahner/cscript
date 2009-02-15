@@ -21,8 +21,17 @@
 #ifndef CSCRIPT_REPORT_H
 #define CSCRIPT_REPORT_H
 
-#include "types.h"
+#include "cscript.h"
 #include "error.h"
+
+//
+// File position
+//
+struct FilePos
+{
+  String  m_file;
+  int32   m_line;
+};
 
 #define INTERNAL_ERROR(reporter, pos) \
   { \

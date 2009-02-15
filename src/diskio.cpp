@@ -18,7 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "types.h"
+#include "cscript.h"
 #include "native.h"
 #include "args.h"
 #include "object.h"

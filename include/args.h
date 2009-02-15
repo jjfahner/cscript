@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_ARGS_H
 #define CSCRIPT_ARGS_H
 
-#include "types.h"
+#include "cscript.h"
 #include "value.h"
 
 class Arguments : public std::vector<Value>
