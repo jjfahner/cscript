@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="..\..\build\msvc\debug\cslib\"
+			IntermediateDirectory="..\..\build\msvc\debug\cslib\"
 			ConfigurationType="4"
 			CharacterSet="2"
 			>
@@ -81,10 +81,10 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="..\..\build\msvc\release\cslib\"
+			IntermediateDirectory="..\..\build\msvc\release\cslib\"
 			ConfigurationType="4"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -106,7 +106,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				AdditionalIncludeDirectories="../../include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -124,6 +125,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				OutputFile="..\..\lib\cslib.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -313,7 +315,18 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating lexer..."
-						CommandLine="..\..\tools\re2c.exe -iswb -o ..\..\src\lexer.c ..\..\src\lexer.in"
+						CommandLine="..\..\tools\re2c.exe -iswb -o ..\..\src\lexer.c ..\..\src\lexer.in&#x0D;&#x0A;"
+						AdditionalDependencies="..\..\src\cscript.in"
+						Outputs="..\..\src\lexer.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating lexer..."
+						CommandLine="..\..\tools\re2c.exe -iswb -o ..\..\src\lexer.c ..\..\src\lexer.in&#x0D;&#x0A;"
 						AdditionalDependencies="..\..\src\cscript.in"
 						Outputs="..\..\src\lexer.c"
 					/>
@@ -336,7 +349,17 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating parser..."
-						CommandLine="..\..\tools\lemon.exe ..\..\src\parser.in &#x0D;&#x0A;move ..\..\src\parser.h ..\..\include"
+						CommandLine="..\..\tools\lemon.exe ..\..\src\parser.in&#x0D;&#x0A;move ..\..\src\parser.h ..\..\include&#x0D;&#x0A;"
+						Outputs="../../src/parser.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating parser..."
+						CommandLine="..\..\tools\lemon.exe ..\..\src\parser.in&#x0D;&#x0A;move ..\..\src\parser.h ..\..\include&#x0D;&#x0A;"
 						Outputs="../../src/parser.c"
 					/>
 				</FileConfiguration>
