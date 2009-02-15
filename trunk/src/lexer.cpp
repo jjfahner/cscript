@@ -22,7 +22,7 @@
 #include "tokens.h"
 #include "eval.h"
 #include "lexer.c"
-#include "cscript.c"
+#include "parser.c"
 
 #include <fstream>
 
