@@ -20,8 +20,8 @@
 //////////////////////////////////////////////////////////////////////////
 #include "lexer.h"
 #include "tokens.h"
-#include "lexer.gen"
 #include "eval.h"
+#include "lexer.c"
 #include "cscript.c"
 
 #include <fstream>
