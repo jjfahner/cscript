@@ -21,7 +21,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -41,13 +41,14 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				AdditionalIncludeDirectories="../../include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -287,20 +288,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\cscript.in"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating parser..."
-						CommandLine="..\..\tools\lemon.exe ..\..\src\cscript.in"
-						Outputs="..\..\src\parser.c"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\src\diskio.cpp"
 				>
 			</File>
@@ -349,6 +336,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\object.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\parser.in"
 				>
 			</File>
 			<File
