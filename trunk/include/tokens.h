@@ -26,7 +26,7 @@
 //
 // Include lemon-generated symbols
 //
-#include "cscript.h"
+#include "parser.h"
 
 //
 // Types

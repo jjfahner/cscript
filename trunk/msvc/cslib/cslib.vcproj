@@ -61,6 +61,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				OutputFile="..\..\lib\cslibd.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -156,10 +157,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\cmdargs.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\comobject.h"
 				>
 			</File>
@@ -173,10 +170,6 @@
 			</File>
 			<File
 				RelativePath="..\..\include\convert.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\cscript.h"
 				>
 			</File>
 			<File
@@ -268,10 +261,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\cmdargs.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\comobject.cpp"
 				>
 			</File>
@@ -341,6 +330,16 @@
 			<File
 				RelativePath="..\..\src\parser.in"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating parser..."
+						CommandLine="..\..\tools\lemon.exe ..\..\src\parser.in &#x0D;&#x0A;move ..\..\src\parser.h ..\..\include"
+						Outputs="../../src/parser.c"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\src\regex.cpp"
@@ -363,6 +362,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\..\TODO"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

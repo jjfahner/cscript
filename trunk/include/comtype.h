@@ -27,7 +27,7 @@
 #include <map>
 #include <vector>
 
-#include "cscript.h"
+#include "parser.h"
 #include "types.h"
 
 class ComTypeInfo
