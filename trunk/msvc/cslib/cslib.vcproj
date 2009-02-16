@@ -195,10 +195,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\consio.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\convert.cpp"
 				>
 			</File>
@@ -296,58 +292,38 @@
 				RelativePath="..\..\src\value.cpp"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="native"
-			>
-			<File
-				RelativePath="..\..\src\native\array.cpp"
+			<Filter
+				Name="native"
 				>
-			</File>
-			<File
-				RelativePath="..\..\include\native\array.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\native\diskio.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\native\diskio.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\native\regex.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\native\regex.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\native\socket.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\native\socket.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\native\standard.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\native\standard.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\native\string.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\native\string.h"
-				>
-			</File>
+				<File
+					RelativePath="..\..\src\native\array.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\native\diskio.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\native\regex.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\native\socket.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\native\standard.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\native\string.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\native\winapi.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="include"
@@ -366,10 +342,6 @@
 			</File>
 			<File
 				RelativePath="..\..\include\comtype.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\consio.h"
 				>
 			</File>
 			<File
@@ -444,6 +416,38 @@
 				RelativePath="..\..\include\variable.h"
 				>
 			</File>
+			<Filter
+				Name="native"
+				>
+				<File
+					RelativePath="..\..\include\native\array.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\native\diskio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\native\regex.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\native\socket.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\native\standard.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\native\string.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\native\winapi.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath="..\..\TODO"

@@ -91,8 +91,8 @@ operator << (Output& out, int64 n)
 // Global stream objects
 //
 
-extern Input&   csin;
-extern Output&  csout;
-extern Output&  cserr;
+// extern Input&   csin;
+// extern Output&  csout;
+// extern Output&  cserr;
 
 #endif // CSCRIPT_IO_H

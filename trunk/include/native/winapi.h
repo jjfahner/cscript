@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 //
-// This file is © 2007 - 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is © 2009 JJ Fahner <jan-jaap@jan-jaap.net>
 // This file is part of the cscript interpreter.
 // CScript can be found at http://svn.jan-jaap.net/
 //
@@ -18,56 +18,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "consio.h"
-#include <iostream>
+#ifndef CSCRIPT_NATIVE_WINAPI_H
+#define CSCRIPT_NATIVE_WINAPI_H
 
-//
-// Global streams
-//
-Input&   csin  = *new ConsoleInput;
-Output&  csout = *new ConsoleOutput;
-Output&  cserr = *new ConsoleOutput;
+#include <native.h>
 
-//////////////////////////////////////////////////////////////////////////
-//
-// ConsoleInput implementation
-//
+DECLARE_NATIVE_LINKAGE(Winapi)
 
-ConsoleInput::ConsoleInput() :
-m_is (std::cin)
-{
-}
-
-ConsoleInput::ConsoleInput(std::istream& is) :
-m_is (is)
-{
-}
-
-std::string 
-ConsoleInput::Read()
-{
-  std::string s;
-  m_is >> s;
-  return s;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// ConsoleOutput implementation
-//
-
-ConsoleOutput::ConsoleOutput() :
-m_os (std::cout)
-{
-}
-
-ConsoleOutput::ConsoleOutput(std::ostream& os) :
-m_os (os)
-{
-}
-
-void 
-ConsoleOutput::Write(char const* data)
-{
-  m_os << data;
-}
+#endif // CSCRIPT_NATIVE_WINAPI_H

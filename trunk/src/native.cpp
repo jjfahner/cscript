@@ -21,17 +21,11 @@
 #include "native.h"
 #include "eval.h"
 #include "function.h"
-#include "consio.h"
 #include "scope.h"
 
 #include <list>
 #include <algorithm>
-
-#if defined(_MSC_VER)
-#define strdup _strdup
-#elif defined(__GNUC__)
-#include <stdlib.h>
-#endif
+#include <iostream>
 
 struct CallInfo
 {
@@ -113,21 +107,21 @@ void PrintValue(Value const& val)
   switch(val.Type())
   {
   case Value::tNull:      
-    csout << "null"; 
+    std::cout << "null"; 
     return;
 
   case Value::tBool:      
-    csout << (val.GetBool() ? "true" : "false");
+    std::cout << (val.GetBool() ? "true" : "false");
     return;
 
   case Value::tInt:       
     {
-      csout << val.GetInt();
+      std::cout << val.GetInt();
       return;
     }
 
   case Value::tString:    
-    csout << val.GetString();
+    std::cout << val.GetString();
     return;
 
   case Value::tObject:
@@ -140,18 +134,18 @@ void PrintValue(Value const& val)
   Object::MemberIterator it = val->Begin();
   Object::MemberIterator ie = val->End();
 
-  csout << "[";
+  std::cout << "[";
 
   String sep;
   for(; it != ie; ++it)
   {
-    csout << sep;
+    std::cout << sep;
     sep = ",";
     PrintValue(it->first);
-    csout << ":";
+    std::cout << ":";
     if(it->second->Type() == Value::tObject)
     {
-      csout << it->second->GetObject()->GetTypeName();
+      std::cout << it->second->GetObject()->GetTypeName();
     }
     else
     {
@@ -159,7 +153,7 @@ void PrintValue(Value const& val)
     }
   }
 
-  csout << "]";
+  std::cout << "]";
 }
 
 NATIVE_CALL("__native print(value)")
@@ -171,89 +165,6 @@ NATIVE_CALL("__native print(value)")
 NATIVE_CALL("__native read()")
 {
   String line;
-  csin >> line;
+  std::cin >> line;
   return Value(line);
 }
-
-#if defined(WIN32) && !defined(_WIN32_WCE)
-
-#include <windows.h>
-
-NATIVE_CALL("__native exec(string command)")
-{
-  // Pass to system
-# if defined(_WIN32_WCE)
-  return Value();
-# else
-  return Value(system(args[0].GetString().c_str()));
-# endif
-}
-
-NATIVE_CALL("__native native(string libname, string fun, arglist...)")
-{
-  // Load library
-  HMODULE hModule = LoadLibrary(args[0].GetString().c_str());
-  if(hModule == 0)
-  {
-    throw std::runtime_error("Failed to load library");
-  }
-
-  // Find function address
-  FARPROC proc = GetProcAddress(hModule, args[1].GetString().c_str());
-  if(proc == 0)
-  {
-    throw std::runtime_error("Failed to retrieve function pointer");
-  }
-
-//   // Retrieve map
-//   Value::AssocType& map = args[2].GetMap();
-// 
-//   // Allocate memory for arguments
-//   size_t argbytes = map.size() * sizeof(int);
-//   intptr_t * stack = new intptr_t[map.size()];
-// 
-//   // Copy arguments into buffer stack
-//   for(size_t index = 0; index < map.size(); ++index)
-//   {
-//     VariantRef& arg = map[Value(index)];
-//     switch(arg->GetType())
-//     {
-//     case Value::stInt:   // int
-//       stack[index] = (int)arg->GetInt();
-//       break;
-// 
-//     case Value::stString:   // string
-//       stack[index] = (intptr_t)arg->GetString().c_str();
-//       break;
-// 
-//     default:
-//       delete [] stack;
-//       throw std::runtime_error("Invalid argument type");
-//     }
-//   }
-
-//   intptr_t dst;
-  intptr_t res = 0;
-// 
-//   // Make space on stack and copy address
-//    __asm sub esp, argbytes;
-//    __asm mov dst, esp
-// 
-//   // Copy and delete arguments
-//   memmove((void*)dst, stack, argbytes);
-//   delete [] stack;
-// 
-// 	// Invoke native function
-//   __asm call proc;
-// 
-//   // Copy return value
-//   __asm mov res, eax;
-
-  // Free the library
-  FreeLibrary(hModule);
-
-  // Done
-  return Value((Value::Int)res);
-}
-
-#endif

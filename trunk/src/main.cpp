@@ -40,7 +40,7 @@
 //
 void banner()
 {
-  csout << "CScript 0.8  Copyright (C) 2007-2009  Jan-Jaap Fahner.\n\n";
+  std::cout << "CScript 0.8  Copyright (C) 2007-2009  Jan-Jaap Fahner.\n\n";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,7 @@ void banner()
 int usage()
 {
   banner();
-  csout << 
+  std::cout << 
     "Usage: cscript [options] [file]\n\n"
     "Options:\n\n"
     "-q --quiet           Don't display banner"
@@ -91,7 +91,7 @@ int interactive(CmdArgs const& args)
   for(;;)
   {
     // Prompt for line
-    csout << "> ";
+    std::cout << "> ";
     std::cin.getline(line, 4096);
 
     // Empty lines. TODO: trim line
@@ -121,7 +121,7 @@ int interactive(CmdArgs const& args)
     code.clear();
 
     // Ensure new line
-    csout << "\n";
+    std::cout << "\n";
   }
 
   // Never reached
@@ -196,18 +196,18 @@ int main(int argc, Char** argv)
   }
   catch(std::exception const& e)
   {
-    csout << "\nException: " << e.what() << "\n";
+    std::cout << "\nException: " << e.what() << "\n";
   }
   catch(...)
   {
-    csout << "\nUnexpected exception\n";
+    std::cout << "\nUnexpected exception\n";
   }
 
   // Keep console running under MSC devenv
 #if defined(_MSC_VER) && defined(_DEBUG)
   if(IsDebuggerPresent())
   {
-    csout << "\n\nPress enter to quit";
+    std::cout << "\n\nPress enter to quit";
     std::cin.get();
   }
 #endif
