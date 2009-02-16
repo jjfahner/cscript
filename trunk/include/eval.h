@@ -126,7 +126,7 @@ private:
   //
   // Error reporting
   //
-  void ReportError(String text, Value const& source = Value());
+  void ReportError(String text, Object* source = 0);
 
   //
   // Scope handling

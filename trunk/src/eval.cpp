@@ -293,12 +293,12 @@ Evaluator::OnSyntaxError()
 }
 
 void 
-Evaluator::ReportError(String text, Value const& value)
+Evaluator::ReportError(String text, Object* source)
 {
-  if(value && value->ContainsKey("file"))
+  if(source && source->ContainsKey("file"))
   {
-    std::cout << value->RVal("file").GetString() << "("
-              << value->RVal("line").GetInt()    << ") : ";
+    std::cout << source->RVal("file").GetString() << "("
+              << source->RVal("line").GetInt()    << ") : ";
   }
   std::cout << text << "\n";
 }

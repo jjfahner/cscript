@@ -285,10 +285,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\typeinfo.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\value.cpp"
 				>
 			</File>
@@ -297,6 +293,10 @@
 				>
 				<File
 					RelativePath="..\..\src\native\array.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\native\consio.cpp"
 					>
 				</File>
 				<File
@@ -417,6 +417,10 @@
 				>
 				<File
 					RelativePath="..\..\include\native\array.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\native\consio.h"
 					>
 				</File>
 				<File
