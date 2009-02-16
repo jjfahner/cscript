@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 //
-// This file is © 2007 - 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is © 2009 JJ Fahner <jan-jaap@jan-jaap.net>
 // This file is part of the cscript interpreter.
 // CScript can be found at http://svn.jan-jaap.net/
 //
@@ -21,13 +21,8 @@
 #ifndef CSCRIPT_DISKIO_H
 #define CSCRIPT_DISKIO_H
 
-struct cscript_use_diskio_t
-{
-  cscript_use_diskio_t();
-};
+#include <native.h>
 
-#ifndef CSLIB
-static cscript_use_diskio_t cscript_use_diskio;
-#endif
+DECLARE_NATIVE_LINKAGE(Diskio)
 
 #endif // CSCRIPT_DISKIO_H

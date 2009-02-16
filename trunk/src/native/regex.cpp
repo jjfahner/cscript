@@ -18,12 +18,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "native/regex.h"
-#include "args.h"
+#include <native/regex.h>
+#include <native/regex_i.h>
 
-cscript_use_regex_t::cscript_use_regex_t()
-{
-}
+DEFINE_NATIVE_LINKAGE(Regex)
 
 //////////////////////////////////////////////////////////////////////////
 //
