@@ -19,7 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include <native/comobject.h>
-#include <native/com.h>
+#include <native/comobject_i.h>
 
 #include <map>
 
