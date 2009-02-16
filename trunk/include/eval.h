@@ -32,7 +32,6 @@ class Object;
 class File;
 class Lexer;
 class Scope;
-class TypeInfo;
 class Function;
 class ScriptFunction;
 class Arguments;
@@ -188,7 +187,7 @@ private:
   //
   // Convert a value in-place
   //
-  void PerformConversion(Value& value, TypeInfo const& newType);
+  void PerformConversion(Value& value, Value::Types newType);
 
   //
   // Evaluate argument list

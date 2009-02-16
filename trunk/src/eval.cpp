@@ -26,7 +26,6 @@
 #include "lexer.h"
 #include "tokens.h"
 #include "map_iter.h"
-#include "typeinfo.h"
 #include "native.h"
 
 #include <iostream>
@@ -530,7 +529,6 @@ Evaluator::EvalExpression(Object* node)
   case new_expression:        return EvalNewExpression(node);
   case this_expression:       return EvalThisExpression(node);
   case member_expression:     return EvalMemberExpression(node);  
-  case conversion_expression: return EvalConversion(node);
   case closure_declaration:   return EvalClosure(node);
   case xml_expression:        return EvalXmlExpression(node);
   case function_member_expression:  return EvalFunctionMember(node);
@@ -1008,7 +1006,7 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist,
     // Apply type conversion to value
     if(Ast_A3(par))
     { 
-      PerformConversion(value, Ast_A3(par).GetObject());
+      PerformConversion(value, (Value::Types)Ast_A1(Ast_A3(par)).GetInt());
     }
 
     // Add to argument list
@@ -1519,36 +1517,17 @@ Evaluator::EvalTryStatement(Object* node)
   }
 }
 
-RValue&
-Evaluator::EvalConversion(Object* node)
-{
-  // Evaluate expression
-  // ATTN: the implicit conversion from RValue& to Value
-  // is intended: the conversion must not be applied to 
-  // the source for the conversion!!!
-  Value value = EvalExpression(Ast_A2(node));
-
-  // Perform the conversion
-  PerformConversion(value, Ast_A1(node).GetObject());
-  
-  // Return converted value
-  return MakeTemp(value);
-}
-
 void 
-Evaluator::PerformConversion(Value& value, TypeInfo const& newType)
+Evaluator::PerformConversion(Value& value, Value::Types newType)
 {
-  // Determine old type
-  TypeInfo oldType(value);
-
   // Ignore when equal
-  if(oldType == newType)
+  if(value.Type() == newType)
   {
     return;
   }
 
   // Convert to basic types
-  switch(newType.GetType())
+  switch(newType)
   {
   case Value::tNull:    break;
   case Value::tBool:    value = ValBool(value);   break;
