@@ -21,11 +21,7 @@
 #ifndef REGEX_H
 #define REGEX_H
 
-#pragma once 
-
-#ifndef CSLIB
-static cscript_use_regex_t cscript_use_regex;
-#endif
+#pragma once
 
 #include <map>
 #include <list>
