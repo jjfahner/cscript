@@ -35,10 +35,10 @@
 
 struct CallInfo
 {
-  String      m_decl;
-  NativeCall  m_call;
+  String                  m_decl;
+  NativeFunction::FunPtr  m_call;
 
-  CallInfo(String const& decl = String(), NativeCall call = 0) :
+  CallInfo(String const& decl = String(), NativeFunction::FunPtr call = 0) :
   m_decl (decl),
   m_call (call)
   {
@@ -56,7 +56,7 @@ CallInfoList& GetCallInfoList()
 //
 // Register a native call
 //
-NativeCallRegistrar::NativeCallRegistrar(String const& decl, NativeCall call)
+NativeCallRegistrar::NativeCallRegistrar(String const& decl, NativeFunction::FunPtr call)
 {
   GetCallInfoList().push_back(CallInfo(decl, call));
 }
@@ -72,6 +72,35 @@ NativeCallRegistrar::RegisterCalls()
     Function* fun = new NativeFunction(it->m_decl, it->m_call);
     Evaluator::GetGlobalScope()->Add(fun->GetName(), fun);
   }
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+NativeFunction::NativeFunction(String decl, FunPtr funPtr) :
+Function  (""),
+m_funPtr  (funPtr)
+{
+  // Create parser
+  Evaluator eval;
+
+  // Parse declaration
+  Object* node = eval.ParseNativeCall(decl);
+  if(node == 0)
+  {
+    throw std::runtime_error("Failed to register native call '" + decl + "'");
+  }
+
+  // Extract name and parameter list
+  m_name = Ast_A1(node).GetString();
+
+  // Store the ast node
+  (*this)["__ast"] = node;
+}
+
+Value
+NativeFunction::Execute(Evaluator* evaluator, Arguments& args)
+{
+  return m_funPtr(evaluator, args);
 }
 
 //////////////////////////////////////////////////////////////////////////

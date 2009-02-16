@@ -22,11 +22,9 @@
 #define CSCRIPT_FUNCTION_H
 
 #include "cscript.h"
-#include "value.h"
-#include "args.h"
-#include "native.h"
 #include "object.h"
 #include "variable.h"
+#include "args.h"
 #include "ast.h"
 
 class Evaluator;
@@ -148,59 +146,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Native function
-//
-
-class NativeFunction : public Function
-{
-public:
-
-  //
-  // Construction
-  //
-  NativeFunction(String decl, NativeCall call);
-
-  //
-  // Clone
-  //
-  virtual Object* Clone(Object* into = 0) const
-  {
-    throw std::runtime_error("Cannot clone native function");
-  }
-
-  //
-  // Retrieve node
-  //
-  Object* GetNode() const
-  {
-    return const_cast<NativeFunction&>(*this)["__ast"].GetObject();
-  }
-
-  //
-  // Parameter list
-  //
-  virtual Object* GetParameters() const
-  {
-    return Ast_A2(GetNode());
-  }
-
-  //
-  // Execution
-  //
-  virtual Value Execute(Evaluator* evaluator, Arguments& args);
-
-protected:
-
-  //
-  // MemberMap
-  //
-  NativeCall  m_call;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Native function
+// External function
 //
 
 class ExternFunction : public Function

@@ -26,8 +26,10 @@
 #include "io.h"
 #include <iostream>
 
+// Link to desired native functions
 #include "diskio.h"
 #include "regex.h"
+#include "socket.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -35,7 +37,7 @@
 //
 void banner()
 {
-  csout << "CScript 0.6  Copyright (C) 2007  Jan-Jaap Fahner.\n\n";
+  csout << "CScript 0.8  Copyright (C) 2007-2009  Jan-Jaap Fahner.\n\n";
 }
 
 //////////////////////////////////////////////////////////////////////////

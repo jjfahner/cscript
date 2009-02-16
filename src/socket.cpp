@@ -19,8 +19,9 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "socket.h"
-#include "native.h"
-#include "args.h"
+#include "eval.h"
+
+DEFINE_NATIVE_LINKAGE(Socket)
 
 // Include windows socket headers
 #ifdef _MSC_VER
@@ -35,6 +36,54 @@
 #	define SOCKET_ERROR (-1)
 #	define closesocket close
 #endif
+
+//////////////////////////////////////////////////////////////////////////
+
+class Socket : public Object
+{
+public:
+
+  //
+  // Construction
+  //
+  Socket(Evaluator* eval);
+
+  //
+  // Destruction
+  //
+  virtual ~Socket();
+
+  //
+  // Connect to peer
+  //
+  Value Connect(Evaluator*, Arguments const&);
+
+  //
+  // Close connection
+  //
+  Value Disconnect(Evaluator*, Arguments const&);
+
+  //
+  // Send data
+  //
+  Value Send(Evaluator*, Arguments const&);
+
+  //
+  // Receive data
+  //
+  Value Receive(Evaluator*, Arguments const&);
+
+
+private:
+
+  //
+  // Member data
+  //
+  unsigned int m_socket;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
 
 static int g_numSockets = 0;
 
@@ -59,29 +108,41 @@ void SocketDelete()
   }
 }
 
-Socket::Socket() :
+//////////////////////////////////////////////////////////////////////////
+
+Socket::Socket(Evaluator* eval) :
 m_socket (INVALID_SOCKET)
 {
   // Global initialization
   SocketCreate();
+
+  // Register methods
+  NATIVE_METHOD(Socket, Connect,    eval->ParseNativeCall("__native Connect(string host, int port);"));
+  NATIVE_METHOD(Socket, Disconnect, eval->ParseNativeCall("__native Disconnect();"));
+  NATIVE_METHOD(Socket, Send,       eval->ParseNativeCall("__native Send(string data, int len = 0);"));
+  NATIVE_METHOD(Socket, Receive,    eval->ParseNativeCall("__native Receive(int len, int timeout = 0)"));
 }
 
 Socket::~Socket()
 {
   // Close connection
-  Disconnect();
+  Disconnect(0, Arguments());
 
   // Global cleanup
   SocketDelete();
 }
 
 Value
-Socket::Connect(Value const& host, Value const& port)
-{
+Socket::Connect(Evaluator*, Arguments const& args)
+{ 
+  // Extract parameters
+  String host = args[0].GetString();
+  String port = ValString(args[1].GetInt());
+
   // Disconnect previous connection
   if(m_socket != INVALID_SOCKET)
   {
-    Disconnect();
+    Disconnect(0, Arguments());
   }
 
   // Create hint
@@ -93,8 +154,8 @@ Socket::Connect(Value const& host, Value const& port)
 
   // Retrieve info
   addrinfo* ai;
-  if(getaddrinfo(host.GetString().c_str(), 
-                 port.GetString().c_str(), 
+  if(getaddrinfo(host.c_str(), 
+                 port.c_str(), 
                  &hint, &ai))
   {
     return false;
@@ -122,7 +183,7 @@ Socket::Connect(Value const& host, Value const& port)
 }
 
 Value 
-Socket::Disconnect()
+Socket::Disconnect(Evaluator*, Arguments const&)
 {
   if(m_socket != INVALID_SOCKET)
   {
@@ -134,8 +195,11 @@ Socket::Disconnect()
 }
 
 Value
-Socket::Send(Value const& data, Value const& len)
+Socket::Send(Evaluator*, Arguments const& args)
 {
+  String data = args[0].GetString();
+  Value::Int len = args[1].GetInt();
+
   // Check connection
   if(m_socket == INVALID_SOCKET)
   {
@@ -143,14 +207,14 @@ Socket::Send(Value const& data, Value const& len)
   }
 
   // Determine length
-  int expected = (int)len.GetInt();
+  int expected = (int)len;
   if(expected == 0)
   {
-    expected = (int)data.GetString().length();
+    expected = (int)data.length();
   }
 
   // Write data
-  int actual = send(m_socket, data.GetString().c_str(), expected, 0);
+  int actual = send(m_socket, data.c_str(), expected, 0);
   if(actual == SOCKET_ERROR)
   {
     return false;
@@ -161,21 +225,24 @@ Socket::Send(Value const& data, Value const& len)
 }
 
 Value 
-Socket::Receive(Value const& length, Value const& timeout)
+Socket::Receive(Evaluator*, Arguments const& args)
 {
+  Value::Int length  = args[0].GetInt();
+  Value::Int timeout = args[1].GetInt();
+
   // Check connection
   if(m_socket == INVALID_SOCKET)
   {
-    return false;
+    return Value();
   }
 
   // Determine timeout
   timeval  tv  = { 0, 0 };
   timeval* ptv = 0;
-  if(!timeout.Empty())
+  if(timeout > 0)
   {
     ptv = &tv;
-    ptv->tv_sec = (long) timeout.GetInt();
+    ptv->tv_sec = (long)timeout;
   }
 
   // Make set of 1 sockets ;)
@@ -184,21 +251,31 @@ Socket::Receive(Value const& length, Value const& timeout)
   FD_SET(m_socket, &fd);
 
   // Check for readability
-  if(select(FD_SETSIZE, &fd, 0, 0, ptv) != 1)
+  if(select(1, &fd, 0, 0, ptv) != 1)
   {
-    return false;
+    return Value();
   }
 
   // Allocate buffer
-  int len = int(length.GetInt());
+  int len = (int)length;
   char* buf = new char[len + 1];
 
   // Read requested bytes
   int read = recv(m_socket, buf, len, 0);
+
+  // Connection closed by peer
+  if(read == 0)
+  {
+    Disconnect(0, Arguments());
+    return Value();
+  }
+  
+  // Error
   if(read == SOCKET_ERROR)
   {
     delete [] buf;
-    return false;
+    Disconnect(0, Arguments());
+    return Value();
   }
 
   // Copy to string
@@ -212,39 +289,7 @@ Socket::Receive(Value const& length, Value const& timeout)
   return result;
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Native call interface to socket class
-//
-
-NATIVE_CALL("__native socket(string name, string port)")
+NATIVE_CALL("__native CreateSocket()")
 {
-  Socket* s = new Socket;
-  if(!s->Connect(args[0], args[1]).GetBool())
-  {
-    delete s;
-    return false;
-  }
-
-  return Value(s);
+  return new Socket(evaluator);
 }
-
-NATIVE_CALL("__native closesocket(s)")
-{
-  Socket* s = dynamic_cast<Socket*>(args[0].GetObject());
-  s->Disconnect();
-  return true;
-}
-
-NATIVE_CALL("__native send(socket, string data, int len = 0)")
-{
-  Socket* s = dynamic_cast<Socket*>(args[0].GetObject());
-  return s->Send(args[1], args[2]);
-}
-
-NATIVE_CALL("__native recv(socket, int len, int timeout = 0)")
-{
-  Socket* s = dynamic_cast<Socket*>(args[0].GetObject());
-  return s->Receive(args[1], args[2]);  
-}
-

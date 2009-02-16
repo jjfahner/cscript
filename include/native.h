@@ -22,15 +22,67 @@
 #define CSCRIPT_NATIVE_CALLS_H
 
 #include "cscript.h"
-#include "value.h"
+#include "function.h"
 
 class Evaluator;
 class Arguments;
 
+//////////////////////////////////////////////////////////////////////////
 //
-// Native call pointer
+// Native function
 //
-typedef Value (*NativeCall)(Evaluator* evaluator, Arguments const& args);
+
+class NativeFunction : public Function
+{
+public:
+  
+  //
+  // Native call signature
+  //
+  typedef Value (*FunPtr)(Evaluator* evaluator, Arguments const& args);
+
+  //
+  // Construction
+  //
+  NativeFunction(String decl, FunPtr funPtr);
+
+  //
+  // Clone
+  //
+  virtual Object* Clone(Object* into = 0) const
+  {
+    throw std::runtime_error("Cannot clone native function");
+  }
+
+  //
+  // Retrieve node
+  //
+  Object* GetNode() const
+  {
+    return const_cast<NativeFunction&>(*this)["__ast"].GetObject();
+  }
+
+  //
+  // Parameter list
+  //
+  virtual Object* GetParameters() const
+  {
+    return Ast_A2(GetNode());
+  }
+
+  //
+  // Execution
+  //
+  virtual Value Execute(Evaluator* evaluator, Arguments& args);
+
+protected:
+
+  //
+  // MemberMap
+  //
+  FunPtr m_funPtr;
+
+};
 
 //
 // Registrar for native calls
@@ -47,8 +99,10 @@ public:
   //
   // Invoked automatically by NATIVE_CALL macro
   //
-  NativeCallRegistrar(String const& decl, NativeCall call);
+  NativeCallRegistrar(String const& decl, NativeFunction::FunPtr funPtr);
 };
+
+//////////////////////////////////////////////////////////////////////////
 
 //
 // Create unique identifier from __LINE__
@@ -66,5 +120,104 @@ public:
   static Value               UNIQUE_PREFIXED(native_)   (Evaluator* evaluator, Arguments const& args);   \
   static NativeCallRegistrar UNIQUE_PREFIXED(registrar_)(decl, UNIQUE_PREFIXED(native_));           \
   static Value               UNIQUE_PREFIXED(native_)   (Evaluator* evaluator, Arguments const& args)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Native class method
+//
+
+template <typename T>
+class NativeMethod : public Function
+{
+public:
+
+  typedef Value (T::*FunPtr) 
+    (Evaluator* evaluator, Arguments const& args);
+
+  //
+  // Construction
+  //
+  NativeMethod(String name, Object* ast, FunPtr funPtr) :
+  Function  (name),
+  m_funPtr  (funPtr)
+  {
+    (*this)["__ast"] = ast;
+  }
+
+  //
+  // Clone
+  //
+  virtual Object* Clone(Object* into = 0) const
+  {
+    throw std::runtime_error("Cannot clone native method");
+  }
+
+  //
+  // Retrieve node
+  //
+  Object* GetNode() const
+  {
+    return const_cast<NativeMethod&>(*this)["__ast"].GetObject();
+  }
+
+  //
+  // Parameter list
+  //
+  virtual Object* GetParameters() const
+  {
+    return Ast_A2(GetNode());
+  }
+
+  //
+  // Execution
+  //
+  virtual Value Execute(Evaluator* evaluator, Arguments& args)
+  {
+    // Retrieve instance
+    T* inst = dynamic_cast<T*>(args.GetObject());
+    if(inst == 0)
+    {
+      throw std::runtime_error("Invalid object type");
+    }
+
+    // Invoke method
+    return (inst->*m_funPtr)(evaluator, args);
+  }
+
+protected:
+
+  //
+  // MemberMap
+  //
+  String m_decl;
+  FunPtr m_funPtr;
+
+};
+
+#define NATIVE_METHOD(class, method, ast) \
+  (*this)[#method] = new NativeMethod<class>(#method, ast, & class :: method)
+
+//////////////////////////////////////////////////////////////////////////
+
+//
+// Forced linkage when included
+//
+#ifdef CSLIB
+#define DECLARE_NATIVE_LINKAGE(name) \
+struct CSCRIPT_##name##_LINKAGE \
+{ \
+   CSCRIPT_##name##_LINKAGE(); \
+};
+#else
+#define DECLARE_NATIVE_LINKAGE(name) \
+struct CSCRIPT_##name##_LINKAGE \
+{ \
+  CSCRIPT_##name##_LINKAGE(); \
+}; \
+static CSCRIPT_##name##_LINKAGE CSCRIPT_##name##_LINKAGE_INST;
+#endif
+
+#define DEFINE_NATIVE_LINKAGE(name) \
+CSCRIPT_##name##_LINKAGE::CSCRIPT_##name##_LINKAGE() {}
 
 #endif // #ifndef CSCRIPT_NATIVE_CALLS_H
