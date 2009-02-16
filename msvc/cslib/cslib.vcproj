@@ -432,6 +432,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\native\regex.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\native\socket.h"
 					>
 				</File>
