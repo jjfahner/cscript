@@ -18,7 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "socket.h"
+#include "native/socket.h"
 #include "eval.h"
 
 DEFINE_NATIVE_LINKAGE(Socket)

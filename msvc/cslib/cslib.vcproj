@@ -148,114 +148,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="include"
-			>
-			<File
-				RelativePath="..\..\include\args.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\ast.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\comobject.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\comtype.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\consio.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\convert.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\cscript.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\diskio.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\error.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\eval.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\file.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\function.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\io.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\lexer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\map_iter.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\native.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\object.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\opcodes.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\regex.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\report.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\scope.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\socket.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\tokens.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\typeinfo.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\value.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\variable.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="tests"
 			>
 			<File
@@ -308,10 +200,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\convert.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\diskio.cpp"
 				>
 			</File>
 			<File
@@ -397,15 +285,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\regex.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\report.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\socket.cpp"
 				>
 			</File>
 			<File
@@ -414,6 +294,154 @@
 			</File>
 			<File
 				RelativePath="..\..\src\value.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="native"
+			>
+			<File
+				RelativePath="..\..\src\native\array.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\native\array.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\native\diskio.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\native\diskio.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\native\regex.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\native\regex.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\native\socket.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\native\socket.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\native\standard.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\native\standard.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\native\string.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\native\string.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="include"
+			>
+			<File
+				RelativePath="..\..\include\args.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\ast.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\comobject.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\comtype.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\consio.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\convert.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\cscript.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\error.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\eval.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\file.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\function.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\io.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\lexer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\map_iter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\native.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\object.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\opcodes.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\report.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\scope.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\tokens.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\typeinfo.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\value.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\variable.h"
 				>
 			</File>
 		</Filter>

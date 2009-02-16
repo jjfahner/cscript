@@ -18,18 +18,21 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "file.h"
-#include "cmdargs.h"
-#include "report.h"
-#include "eval.h"
-#include "ast.h"
-#include "io.h"
+#include <file.h>
+#include <cmdargs.h>
+#include <report.h>
+#include <eval.h>
+#include <ast.h>
+#include <io.h>
 #include <iostream>
 
-// Link to desired native functions
-#include "diskio.h"
-#include "regex.h"
-#include "socket.h"
+// Link to native functions
+#include <native/array.h>
+#include <native/diskio.h>
+#include <native/regex.h>
+#include <native/socket.h>
+#include <native/standard.h>
+#include <native/string.h>
 
 //////////////////////////////////////////////////////////////////////////
 //

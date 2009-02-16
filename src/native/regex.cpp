@@ -18,8 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "regex.h"
-#include <stdexcept>
+#include "native/regex.h"
 #include "args.h"
 
 cscript_use_regex_t::cscript_use_regex_t()

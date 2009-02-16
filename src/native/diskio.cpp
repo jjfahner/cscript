@@ -18,8 +18,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
+#include "native/diskio.h"
 #include "cscript.h"
-#include "diskio.h"
 #include "native.h"
 #include "args.h"
 #include "object.h"
