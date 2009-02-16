@@ -275,15 +275,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\test\test.csc"
-				>
-			</File>
-			<File
 				RelativePath="..\..\test\test.csi"
 				>
 			</File>
 			<File
 				RelativePath="..\..\test\testsuite.csc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\test\xml.csc"
 				>
 			</File>
 		</Filter>

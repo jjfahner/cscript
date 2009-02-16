@@ -27,33 +27,6 @@ ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
   return evaluator->EvalScriptCall(this, args);
 }
 
-NativeFunction::NativeFunction(String decl, NativeCall call) :
-Function  (""),
-m_call    (call)
-{
-  // Create parser
-  Evaluator eval;
-
-  // Parse declaration
-  Object* node = eval.ParseNativeCall(decl);
-  if(node == 0)
-  {
-    throw std::runtime_error("Failed to register native call '" + decl + "'");
-  }
-
-  // Extract name and parameter list
-  m_name = Ast_A1(node).GetString();
-
-  // Store the ast node
-  (*this)["__ast"] = node;
-}
-
-Value
-NativeFunction::Execute(Evaluator* evaluator, Arguments& args)
-{
-  return m_call(evaluator, args);
-}
-
 Object* 
 ExternFunction::GetParameters() const
 {

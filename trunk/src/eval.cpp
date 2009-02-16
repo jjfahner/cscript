@@ -20,7 +20,6 @@
 //////////////////////////////////////////////////////////////////////////
 #include "eval.h"
 #include "ast.h"
-#include "native.h"
 #include "scope.h"
 #include "function.h"
 #include "file.h"
@@ -29,6 +28,7 @@
 #include "map_iter.h"
 #include "consio.h"
 #include "typeinfo.h"
+#include "native.h"
 
 //
 // Parser functions

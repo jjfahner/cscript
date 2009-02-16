@@ -21,51 +21,8 @@
 #ifndef CSCRIPT_SOCKET_H
 #define CSCRIPT_SOCKET_H
 
-#include "value.h"
-#include "object.h"
+#include "native.h"
 
-class Socket : public Object
-{
-public:
-
-  //
-  // Construction
-  //
-  Socket();
-
-  //
-  // Destruction
-  //
-  virtual ~Socket();
-
-  //
-  // Connect to peer
-  //
-  Value Connect(Value const& host, Value const& port);
-
-  //
-  // Close connection
-  //
-  Value Disconnect();
-
-  //
-  // Send data
-  //
-  Value Send(Value const& data, Value const& len = 0);
-
-  //
-  // Receive data
-  //
-  Value Receive(Value const& len, Value const& timeout = Value());
-
-
-private:
-
-  //
-  // Member data
-  //
-  unsigned int m_socket;
-
-};
+DECLARE_NATIVE_LINKAGE(Socket)
 
 #endif // CSCRIPT_SOCKET_H
