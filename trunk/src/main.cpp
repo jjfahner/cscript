@@ -18,13 +18,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include <file.h>
 #include <cmdargs.h>
-#include <report.h>
 #include <eval.h>
-#include <ast.h>
-#include <io.h>
-#include <iostream>
 
 // Link to native functions
 #include <native/array.h>
@@ -34,6 +29,15 @@
 #include <native/socket.h>
 #include <native/standard.h>
 #include <native/string.h>
+
+// Link to windows-only native functions
+#ifdef WIN32
+#include <native/comobject.h>
+#include <native/winapi.h>
+#endif
+
+// Standard library stuff
+#include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -187,7 +191,6 @@ int cscript_main(int argc, Char** argv)
 //
 // CScript entry point. Exception handling root.
 //
-#ifndef _WIN32_WCE
 int main(int argc, Char** argv)
 {
   int result = EXIT_FAILURE;
@@ -215,4 +218,3 @@ int main(int argc, Char** argv)
 
 	return result;
 }
-#endif

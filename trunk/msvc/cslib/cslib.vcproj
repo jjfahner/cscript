@@ -412,14 +412,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\include\native\com.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\native\comobject.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\include\native\comtype.h"
 					>
 				</File>
