@@ -39,7 +39,7 @@ struct CoInit
 
 //////////////////////////////////////////////////////////////////////////
 
-NATIVE_CALL("__native cocreate(string classname)")
+NATIVE_CALL("cocreate(string classname)")
 {
   // Initialize COM
   static CoInit coInit;

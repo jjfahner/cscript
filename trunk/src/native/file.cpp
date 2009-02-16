@@ -18,18 +18,49 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include <native/array.h>
+#include <native/file.h>
 #include <eval.h>
 
-DEFINE_NATIVE_LINKAGE(Array)
+#include <iostream>
+
+DEFINE_NATIVE_LINKAGE(File)
 
 //////////////////////////////////////////////////////////////////////////
 
-NATIVE_CALL("count(arg)")
+class File : public Object
 {
-  if(args[0].Type() != Value::tObject)
+public:
+
+  //
+  // Construction
+  //
+  File(Evaluator* evaluator)
   {
-    throw std::runtime_error("Invalid type for count");
+    NATIVE_METHOD(File, Open, "Open(string path, string mode)");
+    NATIVE_METHOD(File, Close, "Close()");
   }
-  return args[0]->Count();
-}
+
+  //
+  // Open file
+  //
+  Value Open(Evaluator*, Arguments const& args)
+  {
+    return Value();
+  }
+
+  //
+  // Close file
+  //
+  Value Close(Evaluator*, Arguments const& args)
+  {
+    return Value();
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+NATIVE_CALL("CreateFile()")
+{
+  return new File(evaluator);
+};

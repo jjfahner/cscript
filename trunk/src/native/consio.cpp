@@ -84,13 +84,13 @@ void PrintValue(Value const& val)
   std::cout << "]";
 }
 
-NATIVE_CALL("__native print(value)")
+NATIVE_CALL("print(value)")
 {
   PrintValue(args[0]);
   return args[0];
 }
 
-NATIVE_CALL("__native read()")
+NATIVE_CALL("read()")
 {
   String line;
   std::cin >> line;

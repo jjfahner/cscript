@@ -133,7 +133,7 @@ private:
 // Native calls
 //
 
-NATIVE_CALL("__native fopen(string file, string mode)")
+NATIVE_CALL("fopen(string file, string mode)")
 {
   // Create file
   NativeFile* f = new NativeFile();
@@ -147,7 +147,7 @@ NATIVE_CALL("__native fopen(string file, string mode)")
   return Value(f);
 }
 
-NATIVE_CALL("__native fread(file, int length)")
+NATIVE_CALL("fread(file, int length)")
 {
   // Extract file
   NativeFile* f = dynamic_cast<NativeFile*>(args[0].GetObject());
@@ -160,7 +160,7 @@ NATIVE_CALL("__native fread(file, int length)")
   return f->Read(args[1]);
 }
 
-NATIVE_CALL("__native fwrite(file, string buffer, int length = 0)")
+NATIVE_CALL("fwrite(file, string buffer, int length = 0)")
 {
   // Extract file
   NativeFile* f = dynamic_cast<NativeFile*>(args[0].GetObject());
@@ -173,7 +173,7 @@ NATIVE_CALL("__native fwrite(file, string buffer, int length = 0)")
   return f->Write(args[1], args[2]);
 }
 
-NATIVE_CALL("__native fclose(file)")
+NATIVE_CALL("fclose(file)")
 {
   // Extract file
   NativeFile* f = dynamic_cast<NativeFile*>(args[0].GetObject());

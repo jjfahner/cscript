@@ -167,6 +167,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\test\test.csc"
+				>
+			</File>
+			<File
 				RelativePath="..\..\test\test.csi"
 				>
 			</File>
@@ -196,10 +200,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\eval.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\file.cpp"
 				>
 			</File>
 			<File
@@ -273,6 +273,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\srcfile.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\value.cpp"
 				>
 			</File>
@@ -297,6 +301,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\native\diskio.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\native\file.cpp"
 					>
 				</File>
 				<File
@@ -349,10 +357,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\file.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\function.h"
 				>
 			</File>
@@ -385,6 +389,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\srcfile.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\tokens.h"
 				>
 			</File>
@@ -404,6 +412,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\native\comobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\native\comobject_i.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\native\comtype.h"
 					>
 				</File>
@@ -413,6 +429,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\native\diskio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\native\file.h"
 					>
 				</File>
 				<File

@@ -25,28 +25,28 @@ DEFINE_NATIVE_LINKAGE(Standard)
 
 //////////////////////////////////////////////////////////////////////////
 
-NATIVE_CALL("__native eval(string code)")
+NATIVE_CALL("eval(string code)")
 {
   return evaluator->Eval(args[0].GetString());
 }
 
-NATIVE_CALL("__native reset()")
+NATIVE_CALL("reset()")
 {
   throw reset_exception();
 }
 
-NATIVE_CALL("__native collect()")
+NATIVE_CALL("collect()")
 {
   evaluator->Collect();
   return Value();
 }
 
-NATIVE_CALL("__native object_count()")
+NATIVE_CALL("object_count()")
 {
   return Object::GetObjects().size();
 };
 
-NATIVE_CALL("__native exit(int exitcode = 0)")
+NATIVE_CALL("exit(int exitcode = 0)")
 {
   // Exit with specified exit code
   exit((int) args[0].GetInt());
@@ -55,7 +55,7 @@ NATIVE_CALL("__native exit(int exitcode = 0)")
   throw std::runtime_error("exit() failed");
 }
 
-NATIVE_CALL("__native quit(int exitcode = 0)")
+NATIVE_CALL("quit(int exitcode = 0)")
 {
   // Exit with specified exit code
   exit((int) args[0].GetInt());
@@ -66,7 +66,7 @@ NATIVE_CALL("__native quit(int exitcode = 0)")
 
 //////////////////////////////////////////////////////////////////////////
 
-NATIVE_CALL("__native dump(fn)")
+NATIVE_CALL("dump(fn)")
 {
   // Retrieve function
   Function* fun = dynamic_cast<Function*>(args[0].GetObject());

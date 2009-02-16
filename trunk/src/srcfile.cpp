@@ -19,7 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "file.h"
+#include "srcfile.h"
 #include <fstream>
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ Path::DirectoryPart(String const& path)
 
 //////////////////////////////////////////////////////////////////////////
 
-File::File() :
+SourceFile::SourceFile() :
 m_type (empty),
 m_buff (0),
 m_data (0),
@@ -75,13 +75,13 @@ m_size (0)
 {
 }
 
-File::~File()
+SourceFile::~SourceFile()
 {
   Close();
 }
 
 void 
-File::Close()
+SourceFile::Close()
 {
   if(m_buff)
   {
@@ -93,7 +93,7 @@ File::Close()
 }
 
 bool
-File::Open(String const& path)
+SourceFile::Open(String const& path)
 {
   // Open the input file
   std::ifstream ifs(path.c_str(), std::ios::binary);
@@ -179,25 +179,25 @@ File::Open(String const& path)
 }
 
 String 
-File::GetPath() const
+SourceFile::GetPath() const
 {
   return m_path;
 }
 
-File::FileTypes 
-File::GetType() const
+SourceFile::FileTypes 
+SourceFile::GetType() const
 {
   return m_type;
 }
 
 int32 
-File::GetSize() const
+SourceFile::GetSize() const
 {
   return m_size;
 }
 
 Byte* 
-File::GetData() const
+SourceFile::GetData() const
 {
   return m_data;
 }

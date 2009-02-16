@@ -26,7 +26,7 @@ DEFINE_NATIVE_LINKAGE(Winapi)
 
 //////////////////////////////////////////////////////////////////////////
 
-NATIVE_CALL("__native exec(string command)")
+NATIVE_CALL("exec(string command)")
 {
 # if defined(_WIN32_WCE)
   return Value();
@@ -37,7 +37,7 @@ NATIVE_CALL("__native exec(string command)")
 
 //////////////////////////////////////////////////////////////////////////
 
-NATIVE_CALL("__native winapi(string libname, string fun, arglist...)")
+NATIVE_CALL("winapi(string libname, string fun, arglist...)")
 {
   // Load library
   HMODULE hModule = LoadLibrary(args[0].GetString().c_str());

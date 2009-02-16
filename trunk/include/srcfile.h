@@ -18,8 +18,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#ifndef CSCRIPT_FILE_H
-#define CSCRIPT_FILE_H
+#ifndef CSCRIPT_SRCFILE_H
+#define CSCRIPT_SRCFILE_H
 
 #include "cscript.h"
 
@@ -56,7 +56,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-class File 
+class SourceFile 
 {
 public:
 
@@ -85,12 +85,12 @@ public:
   //
   // Construction
   //
-  File();
+  SourceFile();
 
   //
   // Destruction
   //
-  ~File();
+  ~SourceFile();
 
   //
   // Open a file
@@ -135,4 +135,4 @@ private:
 
 };
 
-#endif // #ifndef CSCRIPT_FILE_H
+#endif // #ifndef CSCRIPT_SRCFILE_H

@@ -29,12 +29,12 @@
 #include <vector>
 
 class Object;
-class File;
 class Lexer;
 class Scope;
 class Function;
 class ScriptFunction;
 class Arguments;
+class SourceFile;
 
 struct script_exception;
 
@@ -116,10 +116,10 @@ public:
   //
   // TODO move to protected
   //
-  Reporter  m_reporter;
-  File*     m_file;
-  Lexer*    m_lexer;
-  Object*   m_native;
+  Reporter    m_reporter;
+  SourceFile* m_file;
+  Lexer*      m_lexer;
+  Object*     m_native;
 
 private:
 
@@ -213,7 +213,7 @@ private:
   //
   // Open a file
   //
-  bool OpenFile(String const& path, File& file);
+  bool OpenFile(String const& path, SourceFile& file);
 
   //
   // Scopes

@@ -137,7 +137,7 @@ public:
   //
   // Construction
   //
-  NativeMethod(String name, Object* ast, FunPtr funPtr) :
+  NativeMethod(String name, FunPtr funPtr, Object* ast) :
   Function  (name),
   m_funPtr  (funPtr)
   {
@@ -194,8 +194,8 @@ protected:
 
 };
 
-#define NATIVE_METHOD(class, method, ast) \
-  (*this)[#method] = new NativeMethod<class>(#method, ast, & class :: method)
+#define NATIVE_METHOD(class, method, decl) \
+  (*this)[#method] = new NativeMethod<class>(#method, & class :: method, evaluator->ParseNativeCall(decl))
 
 //////////////////////////////////////////////////////////////////////////
 
