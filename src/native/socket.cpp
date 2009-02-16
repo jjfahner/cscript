@@ -110,17 +110,17 @@ void SocketDelete()
 
 //////////////////////////////////////////////////////////////////////////
 
-Socket::Socket(Evaluator* eval) :
+Socket::Socket(Evaluator* evaluator) :
 m_socket (INVALID_SOCKET)
 {
   // Global initialization
   SocketCreate();
 
   // Register methods
-  NATIVE_METHOD(Socket, Connect,    eval->ParseNativeCall("__native Connect(string host, int port);"));
-  NATIVE_METHOD(Socket, Disconnect, eval->ParseNativeCall("__native Disconnect();"));
-  NATIVE_METHOD(Socket, Send,       eval->ParseNativeCall("__native Send(string data, int len = 0);"));
-  NATIVE_METHOD(Socket, Receive,    eval->ParseNativeCall("__native Receive(int len, int timeout = 0)"));
+  NATIVE_METHOD(Socket, Connect,    "Connect(string host, int port)");
+  NATIVE_METHOD(Socket, Disconnect, "Disconnect()");
+  NATIVE_METHOD(Socket, Send,       "Send(string data, int len = 0)");
+  NATIVE_METHOD(Socket, Receive,    "Receive(int len, int timeout = 0)");
 }
 
 Socket::~Socket()
@@ -289,7 +289,7 @@ Socket::Receive(Evaluator*, Arguments const& args)
   return result;
 }
 
-NATIVE_CALL("__native CreateSocket()")
+NATIVE_CALL("CreateSocket()")
 {
   return new Socket(evaluator);
 }

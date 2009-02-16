@@ -25,12 +25,12 @@ DEFINE_NATIVE_LINKAGE(String)
 
 //////////////////////////////////////////////////////////////////////////
 
-NATIVE_CALL("__native strlen(string value)")
+NATIVE_CALL("strlen(string value)")
 {
   return Value((Value::Int)args[0].GetString().length());
 }
 
-NATIVE_CALL("__native substr(string data, int start, int len = 0)")
+NATIVE_CALL("substr(string data, int start, int len = 0)")
 {
   String::size_type off = (String::size_type)args[1].GetInt();
   String::size_type len = (String::size_type)args[2].GetInt();
@@ -38,7 +38,7 @@ NATIVE_CALL("__native substr(string data, int start, int len = 0)")
   return Value(args[0].GetString().substr(off, len));
 }
 
-NATIVE_CALL("__native strstr(string data, string what, int start = 0)")
+NATIVE_CALL("strstr(string data, string what, int start = 0)")
 {
   String const& src = args[0].GetString();
   String const& str = args[1].GetString();
@@ -55,7 +55,7 @@ NATIVE_CALL("__native strstr(string data, string what, int start = 0)")
   return Value((Value::Int)res);
 }
 
-NATIVE_CALL("__native strchr(string data, string char, int start = 0)")
+NATIVE_CALL("strchr(string data, string char, int start = 0)")
 {
   String const& src = args[0].GetString();
   String const& chr = args[1].GetString();

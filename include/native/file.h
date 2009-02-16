@@ -18,18 +18,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include <native/array.h>
-#include <eval.h>
+#ifndef CSCRIPT_NATIVE_FILE_H
+#define CSCRIPT_NATIVE_FILE_H
 
-DEFINE_NATIVE_LINKAGE(Array)
+#include <native.h>
 
-//////////////////////////////////////////////////////////////////////////
+DECLARE_NATIVE_LINKAGE(File)
 
-NATIVE_CALL("count(arg)")
-{
-  if(args[0].Type() != Value::tObject)
-  {
-    throw std::runtime_error("Invalid type for count");
-  }
-  return args[0]->Count();
-}
+#endif // CSCRIPT_NATIVE_FILE_H

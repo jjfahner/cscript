@@ -22,7 +22,7 @@
 #include "ast.h"
 #include "scope.h"
 #include "function.h"
-#include "file.h"
+#include "srcfile.h"
 #include "lexer.h"
 #include "tokens.h"
 #include "map_iter.h"
@@ -160,7 +160,7 @@ Evaluator::Reset()
 }
 
 bool 
-Evaluator::OpenFile(String const& path, File& file)
+Evaluator::OpenFile(String const& path, SourceFile& file)
 {
   // Open file using unaltered path
   if(file.Open(path))
@@ -193,7 +193,7 @@ Evaluator::OpenFile(String const& path, File& file)
 void
 Evaluator::ParseFile(String const& filename)
 {
-  File file;
+  SourceFile file;
 
   // Try to open the file
   if(!OpenFile(filename, file))
@@ -202,13 +202,13 @@ Evaluator::ParseFile(String const& filename)
   }
 
   // Check type
-  if(file.GetType() != File::source)
+  if(file.GetType() != SourceFile::source)
   {
     throw std::runtime_error("Invalid file");
   }
 
   // Push file on stack
-  File* prevfile = m_file;
+  SourceFile* prevfile = m_file;
   m_file = &file;
 
   // Try block for file pointer stacking
@@ -340,7 +340,7 @@ Evaluator::ParseNativeCall(String const& declaration)
     m_native = 0;
 
     // Parse code
-    ParseText(declaration.c_str());
+    ParseText((String("__native ") + declaration).c_str());
 
     // Check error count
     if(m_reporter.GetErrorCount())

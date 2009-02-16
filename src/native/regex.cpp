@@ -946,7 +946,7 @@ Regex::MatchTypeString(MatchTypes type)
 #include "value.h"
 #include "cscript.h"
 
-NATIVE_CALL("__native match(string pattern, string data, int offset = 0)")
+NATIVE_CALL("match(string pattern, string data, int offset = 0)")
 {
   // Fetch string pointers
   char const* pat = args[0].GetString().c_str();
