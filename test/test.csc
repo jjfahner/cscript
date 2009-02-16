@@ -1,14 +1,9 @@
-var s = CreateSocket();
-s.Connect("jan-jaap.net", 80);
-s.Send("GET / HTTP/1.0\r\nHost: jan-jaap.net\r\nUser-Agent: cscript\r\n\r\n");
-while(true)
+var f = CreateFile();
+f.Open("filetest.txt", "w");
+
+for(var i = 0; i < 100; ++i)
 {
-  var r = s.Receive(1024, 1);
-  if(r == null)
-  {
-    break;
-  }
-  print(r);
+  f.Write("Hello world\n");
 }
 
-s.Disconnect();
+f.Close();
