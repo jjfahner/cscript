@@ -415,9 +415,9 @@ Evaluator::Eval(String text, bool isFileName)
     Reset();
   }
   // Uncaught user_exception in script
-  catch(user_exception const& e)
+  catch(CatchableException const& e)
   {
-    ReportError("Error: Uncaught exception '" + e.m_value.GetString(), e.m_node);
+    ReportError("Error: Uncaught exception '" + e.m_value.GetString() + "'", e.m_node);
   }
   // Invalid break statement
   catch(break_exception const& e)
@@ -490,7 +490,7 @@ Evaluator::EvalStatement(Object* node)
 
   case break_statement:       throw break_exception(node);  
   case continue_statement:    throw continue_exception(node);
-  case throw_statement:       throw user_exception(node, 
+  case throw_statement:       throw UserException(node, 
                                   EvalExpression(Ast_A1(node)));
 
   case declaration_sequence:
@@ -843,6 +843,7 @@ Evaluator::EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* 
 
   // Add object context to arguments
   args.SetObject(owner);
+  args.SetNode(node);
 
   // Add parameters to arguments
   args.SetParameters(fun->GetParameters());
@@ -1477,7 +1478,7 @@ Evaluator::EvalTryStatement(Object* node)
       // Execute guarded block
       EvalStatement(Ast_A1(node));
     }
-    catch(user_exception const& e)
+    catch(CatchableException const& e)
     {
       // Handle only when handler is present
       if(Ast_A2(node))

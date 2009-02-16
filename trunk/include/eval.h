@@ -275,12 +275,19 @@ struct return_exception : public script_exception
   ~return_exception() throw() {}
 };
 
-struct user_exception : public script_exception
+struct CatchableException : public script_exception
 {
   Value m_value;
-  user_exception(Object* node) : script_exception (node) {}
-  user_exception(Object* node, Value const& value) : script_exception (node), m_value (value) {}
-  ~user_exception() throw() {}
+  CatchableException(Object* node) : script_exception (node) {}
+  CatchableException(Object* node, Value const& value) : script_exception (node), m_value (value) {}
+  ~CatchableException() throw() {}
+};
+
+struct UserException : public CatchableException
+{
+  UserException(Object* node) : CatchableException (node) {}
+  UserException(Object* node, Value const& value) : CatchableException (node, value) {}
+  ~UserException() throw() {}
 };
 
 //////////////////////////////////////////////////////////////////////////

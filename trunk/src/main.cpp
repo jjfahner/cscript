@@ -25,6 +25,7 @@
 #include <native/array.h>
 #include <native/consio.h>
 #include <native/diskio.h>
+#include <native/file.h>
 #include <native/regex.h>
 #include <native/socket.h>
 #include <native/standard.h>

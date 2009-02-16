@@ -35,6 +35,7 @@ public:
   //
   Arguments() :
   m_object     (0),
+  m_node       (0),
   m_parameters (0)
   {
   }
@@ -49,6 +50,18 @@ public:
   void SetObject(Object* instance)
   {
     m_object = instance;
+  }
+
+  //
+  // Calling node
+  //
+  Object* GetNode() const
+  {
+    return m_node;
+  }
+  void SetNode(Object* node)
+  {
+    m_node = node;
   }
 
   //
@@ -84,6 +97,7 @@ protected:
   // MemberMap
   //
   Object* m_object;
+  Object* m_node;
   Object* m_parameters;
 
 };
