@@ -18,15 +18,13 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "native/diskio.h"
-#include "cscript.h"
-#include "native.h"
+#include <native/diskio.h>
 #include "args.h"
 #include "object.h"
 
-cscript_use_diskio_t::cscript_use_diskio_t()
-{
-}
+DEFINE_NATIVE_LINKAGE(Diskio)
+
+//////////////////////////////////////////////////////////////////////////
 
 class NativeFile : public Object
 {

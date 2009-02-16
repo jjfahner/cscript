@@ -18,7 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "comtype.h"
+#include <native/comtype.h>
 #include <atlconv.h>
 
 ComTypeInfo::ComTypeInfo(IDispatch* pDispatch) :

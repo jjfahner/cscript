@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 //
-// This file is © 2007 - 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is © 2009 JJ Fahner <jan-jaap@jan-jaap.net>
 // This file is part of the cscript interpreter.
 // CScript can be found at http://svn.jan-jaap.net/
 //
@@ -22,12 +22,6 @@
 #define REGEX_H
 
 #pragma once 
-
-
-struct cscript_use_regex_t
-{
-  cscript_use_regex_t();
-};
 
 #ifndef CSLIB
 static cscript_use_regex_t cscript_use_regex;

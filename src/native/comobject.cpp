@@ -18,10 +18,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "comobject.h"
-#include "native.h"
+#include <native/comobject.h>
+#include <native/com.h>
 
 #include <map>
+
+DEFINE_NATIVE_LINKAGE(Com)
 
 //////////////////////////////////////////////////////////////////////////
 
