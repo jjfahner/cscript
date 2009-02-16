@@ -26,9 +26,10 @@
 #include "lexer.h"
 #include "tokens.h"
 #include "map_iter.h"
-#include "consio.h"
 #include "typeinfo.h"
 #include "native.h"
+
+#include <iostream>
 
 //
 // Parser functions
@@ -292,6 +293,17 @@ Evaluator::OnSyntaxError()
   throw std::runtime_error("Aborted");
 }
 
+void 
+Evaluator::ReportError(String text, Value const& value)
+{
+  if(value && value->ContainsKey("file"))
+  {
+    std::cout << value->RVal("file").GetString() << "("
+              << value->RVal("line").GetInt()    << ") : ";
+  }
+  std::cout << text << "\n";
+}
+
 Object* 
 Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4)
 {
@@ -334,7 +346,6 @@ Evaluator::ParseNativeCall(String const& declaration)
     // Check error count
     if(m_reporter.GetErrorCount())
     {
-      cserr << "Aborted.\n";
       return 0;
     }
 
@@ -368,17 +379,6 @@ Evaluator::Collect()
   Object::Collect(valid);
 }
 
-inline void 
-PrintLineInfo(script_exception const& e)
-{
-  if(e.m_node && e.m_node->ContainsKey("file"))
-  {
-    csout << "\n"
-      << (*e.m_node)["file"].GetString() << "("
-      << (*e.m_node)["line"].GetInt()    << ") : ";
-  }
-}
-
 Value 
 Evaluator::Eval(String text, bool isFileName)
 {
@@ -401,7 +401,7 @@ Evaluator::Eval(String text, bool isFileName)
     // Check error count
     if(m_reporter.GetErrorCount())
     {
-      csout << "Aborted.\n";
+      ReportError("Aborted");
       return Value();
     }
   }
@@ -418,36 +418,32 @@ Evaluator::Eval(String text, bool isFileName)
   // Uncaught user_exception in script
   catch(user_exception const& e)
   {
-    PrintLineInfo(e);
-    cserr << "Error: Uncaught exception '" << e.m_value.GetString() << "'\n";
+    ReportError("Error: Uncaught exception '" + e.m_value.GetString(), e.m_node);
   }
   // Invalid break statement
   catch(break_exception const& e)
   {
-    PrintLineInfo(e);
-    cserr << "Error: Invalid break statement\n";
+    ReportError("Error: Invalid break statement", e.m_node);
   }
   // Invalid continue statement
   catch(continue_exception const& e)
   {
-    PrintLineInfo(e);
-    cserr << "Error: Invalid continue statement\n";
+    ReportError("Error: Invalid continue statement", e.m_node);
   }
   // Unexpected exception in script
   catch(script_exception const& e)
   {
-    PrintLineInfo(e);
-    cserr << "Runtime error: " << e.what() << "\n";
+    ReportError(String("Runtime error: ") + e.what(), e.m_node);
   }
   // System exception
   catch(std::exception const& e)
   {
-    cserr << "\nError: " << e.what() << "\n";
+    ReportError(String("Runtime error: ") + e.what());
   }
   // Unknown exception type
   catch(...)
   {
-    cserr << "\nError: Unexpected exception\n";
+    ReportError("Runtime error: Unexpected exception");
   }
   return Value();
 }

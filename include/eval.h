@@ -125,6 +125,11 @@ public:
 private:
 
   //
+  // Error reporting
+  //
+  void ReportError(String text, Value const& source = Value());
+
+  //
   // Scope handling
   //
   class AutoScope;

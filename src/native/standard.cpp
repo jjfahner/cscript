@@ -19,7 +19,6 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include <native/standard.h>
-#include <consio.h>
 #include <eval.h>
 
 DEFINE_NATIVE_LINKAGE(Standard)
