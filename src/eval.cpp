@@ -134,7 +134,7 @@ m_file    (0),
 m_allocs  (0)
 {
   // Create global scope
-  m_global = new Scope(GetGlobalScope());
+  m_global = new NamespaceScope(GetGlobalScope(), "__global_scope");
 
   // Native calls
   static bool nativeCallsRegistered = false;
@@ -153,7 +153,7 @@ void
 Evaluator::Reset()
 {
   // Create a new global scope
-  m_global = new Scope(GetGlobalScope());
+  m_global = new NamespaceScope(GetGlobalScope(), "__global_scope");
 
   // Collect all remaining objects
   Collect();
@@ -476,6 +476,7 @@ Evaluator::EvalStatement(Object* node)
   case translation_unit:      EvalStatement(Ast_A1(node));  break;
   case statement_sequence:    EvalStatementSeq(node);       break;
   case expression_statement:  EvalExpression(Ast_A1(node)); break;
+  case namespace_declaration: EvalNamespace(node);          break;
   case variable_declaration:  EvalVarDecl(node);            break;
   case function_declaration:  EvalFunDecl(node);            break;
   case extern_declaration:    EvalExternDecl(node);         break;
@@ -484,18 +485,26 @@ Evaluator::EvalStatement(Object* node)
   case for_statement:         EvalForStatement(node);       break;
   case foreach_statement:     EvalForeachStatement(node);   break;
   case if_statement:          EvalIfStatement(node);        break;
-  case while_statement:       EvalWhileStatement(node);     break;  
+  case while_statement:       EvalWhileStatement(node);     break;
   case return_statement:      EvalReturnStatement(node);    break;
   case switch_statement:      EvalSwitchStatement(node);    break;
 
-  case break_statement:       throw break_exception(node);  
+  case break_statement:       throw break_exception(node);
   case continue_statement:    throw continue_exception(node);
   case throw_statement:       throw UserException(node, 
                                   EvalExpression(Ast_A1(node)));
 
-  case declaration_sequence:
+  case declarator_sequence:
     EvalStatement(Ast_A1(node));
     EvalStatement(Ast_A2(node));
+    break;
+
+  case declaration_sequence:
+    EvalStatement(Ast_A1(node));
+    if(Ast_A2(node))
+    {
+      EvalStatement(Ast_A2(node));
+    }
     break;
 
   case compound_statement:
@@ -523,7 +532,8 @@ Evaluator::EvalExpression(Object* node)
   case index_expression:      return EvalIndex(node);
   case function_call:         return EvalFunctionCall(node);
   case literal_value:         return MakeTemp(Ast_A1(node));
-  case lvalue:                return EvalLValue(node);
+  case unqualified_id:        return EvalUnqualifiedId(node);
+  case qualified_id:          return EvalQualifiedId(node);
   case list_literal:          return EvalListLiteral(node);
   case json_literal:          return EvalJsonLiteral(node);
   case new_expression:        return EvalNewExpression(node);
@@ -705,7 +715,7 @@ Evaluator::EvalIndex(Object* node)
 }
 
 RValue&
-Evaluator::EvalLValue(Object* node)
+Evaluator::EvalUnqualifiedId(Object* node)
 {
   RValue* ptr;
   Object* owner;
@@ -714,6 +724,75 @@ Evaluator::EvalLValue(Object* node)
     return owner ? StoreTemp(BoundValue::Create(*ptr, owner)) : *ptr;
   }
   throw script_exception(node, "Undeclared variable '" + Ast_A1(node).GetString() + "'");
+}
+
+NamespaceScope* 
+FindNamespace(Scope* from)
+{
+  while(from)
+  {
+    if(NamespaceScope* ns = dynamic_cast<NamespaceScope*>(from))
+    {
+      return ns;
+    }
+    from = from->GetParent();
+  }
+  return 0;
+}
+
+RValue&
+Evaluator::EvalQualifiedId(Object* node)
+{
+  // Find starting scope
+  NamespaceScope* scope;
+  scope = Ast_A3(node) ? m_global : FindNamespace(m_scope);
+
+  // Perform namespace lookups
+  Object* id = node;
+  while(id && Ast_Type(id) == qualified_id)
+  {
+    // Retrieve name
+    Object* uid = Ast_A1(id);
+
+    // Lookup name in scope
+    if(!scope->ContainsKey(Ast_A1(uid)))
+    {
+      // TODO specify actual name in failed lookup
+      throw script_exception(node, "Failed to lookup name");
+    }
+
+    // Descend into scope
+    scope = dynamic_cast<NamespaceScope*>(scope->RVal(Ast_A1(uid)).GetObject());
+    if(scope == 0)
+    {
+      throw script_exception(node, "Found name is of invalid type");
+    }
+    
+    // Recurse into namespace
+    id = Ast_A2(id).GetObject();
+  }
+
+  // Now lookup name in scope
+  if(!scope->ContainsKey(Ast_A1(id)))
+  {
+    throw script_exception(node, "Scope '' does not contain a member ''");
+  }
+
+  // Retrieve value
+  return scope->RVal(Ast_A1(id));
+}
+
+void 
+Evaluator::EvalNamespace(Object* node)
+{
+  // Create namespace scope
+  AutoScope as(this, new NamespaceScope(FindNamespace(m_scope), Ast_A1(node)));
+
+  // Evaluate declarations
+  if(Ast_A2(node))
+  {
+    EvalStatement(Ast_A2(node));
+  }
 }
 
 void
@@ -804,7 +883,7 @@ Evaluator::EvalFunctionCall(Object* node)
   Object* owner = 0;
 
   // Resolve function pointer
-  if(Ast_Type(Ast_A1(node)) == lvalue)
+  if(Ast_Type(Ast_A1(node)) == unqualified_id) // TODO qualified_id
   {
     // Named objects are found through the current scope
     String name = String(Ast_A1(Ast_A1(node)));
