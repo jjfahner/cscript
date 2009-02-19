@@ -183,6 +183,11 @@ public:
     return true;
   }
 
+  //
+  // Remove a member
+  //
+  virtual void Remove(Value const& key);
+
 protected:
 
   //

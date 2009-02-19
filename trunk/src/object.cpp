@@ -131,6 +131,16 @@ Object::AddMembers(Object* source)
   }
 }
 
+void 
+Object::Remove(Value const& key)
+{
+  MemberIterator it = m_members.find(key);
+  if(it != m_members.end())
+  {
+    delete it->second;
+    m_members.erase(it);
+  }
+}
 
 //////////////////////////////////////////////////////////////////////////
 //

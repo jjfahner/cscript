@@ -35,6 +35,7 @@ class Function;
 class ScriptFunction;
 class Arguments;
 class SourceFile;
+class NamespaceScope;
 
 struct script_exception;
 
@@ -143,6 +144,7 @@ private:
   // Statement handlers
   //
   void EvalStatementSeq(Object* node);
+  void EvalNamespace(Object* node);
   void EvalVarDecl(Object* node);
   void EvalFunDecl(Object* node);
   void EvalIncludeStatement(Object* node);
@@ -158,7 +160,8 @@ private:
   //
   // Expression handlers
   //
-  RValue& EvalLValue(Object* node);
+  RValue& EvalUnqualifiedId(Object* node);
+  RValue& EvalQualifiedId(Object* node);
   RValue& EvalListLiteral(Object* node);
   RValue& EvalJsonLiteral(Object* node);
   RValue& EvalNewExpression(Object* node);
@@ -218,7 +221,7 @@ private:
   //
   // Scopes
   //
-  Scope* m_global;
+  NamespaceScope* m_global;
   Scope* m_scope;
 
   //

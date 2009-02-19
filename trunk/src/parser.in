@@ -173,10 +173,10 @@ postfix_expression(R) ::= primary_expression(A) .                               
 postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = p->AllocNode(postfix_expression, op_postinc, A); }
 postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = p->AllocNode(postfix_expression, op_postdec, A); }
 postfix_expression(R) ::= postfix_expression(A) LPAREN argument_list(B) RPAREN .  { R = p->AllocNode(function_call, A, B); }
-postfix_expression(R) ::= postfix_expression(A) DOT id_expression(B).             { R = p->AllocNode(member_expression, A, B); }
+postfix_expression(R) ::= postfix_expression(A) DOT unqualified_id(B).            { R = p->AllocNode(member_expression, A, B); }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET RBRACKET.                { R = p->AllocNode(index_expression, A); }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocNode(index_expression, A, B); }
-postfix_expression(R) ::= FUNCTION DOT id_expression(A) .						              { R = p->AllocNode(function_member_expression, A); }
+postfix_expression(R) ::= FUNCTION DOT unqualified_id(A) .						            { R = p->AllocNode(function_member_expression, A); }
 postfix_expression(R) ::= FUNCTION LBRACKET expression(A) RBRACKET .			        { R = p->AllocNode(function_index_expression, A); }
 
 // Primary expression
@@ -200,7 +200,19 @@ literal(R) ::= FALSE .          { R = p->AllocNode(literal_value, Value(false));
 literal(R) ::= NULL .           { R = p->AllocNode(literal_value, Value());        }
 
 // Id expression
-id_expression(R) ::= IDENTIFIER(A) . { R = p->AllocNode(lvalue, String(A)); }
+id_expression(R) ::= unqualified_id(A) . { R = A; }
+id_expression(R) ::= qualified_id(A)   . { R = A; }
+
+// Unqualified name
+unqualified_id(R) ::= IDENTIFIER(A) . { R = p->AllocNode(unqualified_id, String(A)); }
+
+// Qualified id
+qualified_id(R) ::= NS_SEP unqualified_id(A)        . { R = p->AllocNode(qualified_id, A, true); }
+qualified_id(R) ::=        nested_name_specifier(A) . { R = A; }
+qualified_id(R) ::= NS_SEP nested_name_specifier(A) . { R = p->AllocNode(qualified_id, A, true); }
+
+nested_name_specifier(R) ::= unqualified_id(A) NS_SEP unqualified_id(B) .         { R = p->AllocNode(qualified_id, A, B); }
+nested_name_specifier(R) ::= unqualified_id(A) NS_SEP nested_name_specifier(B)  . { R = p->AllocNode(qualified_id, A, B); }
 
 // List definition
 list_literal(R) ::= LBRACKET list_content(A) RBRACKET . { R = p->AllocNode(list_literal, A); }
@@ -291,8 +303,9 @@ continue_statement(R) ::= CONTINUE SEMICOLON . { R = p->AllocNode(continue_state
 //
 
 // Declaration starting point
-declaration_statement(R) ::= function_declaration(A) . { R = A; }
-declaration_statement(R) ::= vardecl_statement(A) .    { R = A; }
+declaration_statement(R) ::= function_declaration(A) .  { R = A; }
+declaration_statement(R) ::= vardecl_statement(A) .     { R = A; }
+declaration_statement(R) ::= namespace_declaration(A) . { R = A; }
 
 vardecl_statement(R) ::= variable_declaration(A) SEMICOLON .      { R = A; }
 
@@ -302,7 +315,13 @@ declarator(R) ::= IDENTIFIER(A) .                      { R = p->AllocNode(variab
 declarator(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocNode(variable_declaration, String(A), B); }
 
 declarator_sequence(R) ::= declarator(A) . { R = A; }
-declarator_sequence(R) ::= declarator_sequence(A) COMMA declarator(B) . { R = p->AllocNode(declaration_sequence, A, B); }
+declarator_sequence(R) ::= declarator_sequence(A) COMMA declarator(B) . { R = p->AllocNode(declarator_sequence, A, B); }
+
+namespace_declaration(R) ::= NAMESPACE IDENTIFIER(A) LBRACE RBRACE .                         { R = p->AllocNode(namespace_declaration, String(A)); }
+namespace_declaration(R) ::= NAMESPACE IDENTIFIER(A) LBRACE declaration_sequence(B) RBRACE . { R = p->AllocNode(namespace_declaration, String(A), B); }
+
+declaration_sequence(R) ::= declaration_statement(A) .                          { R = p->AllocNode(declaration_sequence, A); }
+declaration_sequence(R) ::= declaration_sequence(A) declaration_statement(B) .  { R = p->AllocNode(declaration_sequence, A, B); }
 
 //////////////////////////////////////////////////////////////////////////
 //

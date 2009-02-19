@@ -151,4 +151,62 @@ protected:
 
 };
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Namespace scope
+//
+class NamespaceScope : public Scope
+{
+public:
+
+  //
+  // Construction
+  //
+  NamespaceScope(Scope* parent, String name) :
+  Scope  (parent),
+  m_name (name)
+  {
+    if(parent)
+    {
+      SetParent(parent);
+    }
+  }
+
+  //
+  // Parent scope
+  //
+  virtual Scope* GetParent() const
+  {
+    return m_parent;
+  }
+  virtual void SetParent(Scope* parent)
+  {
+    // Parent mandatory for namespace scopes
+    if(parent == 0)
+    {
+      throw std::runtime_error("Namespace must have a parent");
+    }
+
+    // Remove namespace scope from current parent
+    if(m_parent)
+    {
+      m_parent->Remove(m_name);
+    }
+
+    // Delegate to scope impl
+    Scope::SetParent(parent);
+
+    // Reinsert into parent
+    (*m_parent)[m_name] = this;
+  }
+
+private:
+
+  //
+  // Members
+  //
+  String m_name;
+
+};
+
 #endif // CSCRIPT_RTSCOPE_H

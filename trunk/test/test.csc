@@ -1,9 +1,16 @@
-var f = CreateFile();
-f.Open("filetest.txt", "w");
-
-for(var i = 0; i < 100; ++i)
+namespace foo 
 {
-  f.Write("Hello world\n");
+  namespace bar
+  {
+    var a = 10;
+  }
+  namespace baz
+  {
+    function a() 
+    {
+      return foo::bar::a;
+    }
+  }
 }
 
-f.Close();
+print(foo::baz::a());
