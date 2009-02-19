@@ -1698,14 +1698,14 @@ static void yy_reduce(
       case 5:
 #line 83 "..\\..\\src\\parser.in"
 { 
-  if((*yymsp[-1].minor.yy124)["type"].GetInt() == statement_sequence) {
+  if(Ast_Type(yymsp[-1].minor.yy124) == statement_sequence) {
     yygotominor.yy124 = yymsp[-1].minor.yy124;
   }
   else {
     yygotominor.yy124 = p->AllocNode(statement_sequence, new Object);
-    (*yygotominor.yy124)["a1"]->Add(yymsp[-1].minor.yy124);
+    Ast_A1(yygotominor.yy124)->Add(yymsp[-1].minor.yy124);
   }
-  (*yygotominor.yy124)["a1"]->Add(yymsp[0].minor.yy124);
+  Ast_A1(yygotominor.yy124)->Add(yymsp[0].minor.yy124);
 }
 #line 1712 "..\\..\\src\\parser.c"
         break;
@@ -1969,66 +1969,70 @@ static void yy_reduce(
 #line 1971 "..\\..\\src\\parser.c"
         break;
       case 89:
-      case 91:
 #line 210 "..\\..\\src\\parser.in"
-{ yygotominor.yy124 = p->AllocNode(qualified_id, yymsp[0].minor.yy124, true); }
-#line 1977 "..\\..\\src\\parser.c"
+{ yygotominor.yy124 = p->AllocNode(qualified_id, yymsp[0].minor.yy124, Value(), true); }
+#line 1976 "..\\..\\src\\parser.c"
+        break;
+      case 91:
+#line 212 "..\\..\\src\\parser.in"
+{ yygotominor.yy124 = yymsp[0].minor.yy124; Ast_A3(yymsp[0].minor.yy124) = true; }
+#line 1981 "..\\..\\src\\parser.c"
         break;
       case 92:
       case 93:
 #line 214 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(qualified_id, yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 1983 "..\\..\\src\\parser.c"
+#line 1987 "..\\..\\src\\parser.c"
         break;
       case 94:
 #line 218 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(list_literal, yymsp[-1].minor.yy124); }
-#line 1988 "..\\..\\src\\parser.c"
+#line 1992 "..\\..\\src\\parser.c"
         break;
       case 95:
 #line 219 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(list_literal); }
-#line 1993 "..\\..\\src\\parser.c"
+#line 1997 "..\\..\\src\\parser.c"
         break;
       case 96:
 #line 220 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(list_content, yymsp[0].minor.yy124); }
-#line 1998 "..\\..\\src\\parser.c"
+#line 2002 "..\\..\\src\\parser.c"
         break;
       case 97:
 #line 221 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(list_content, yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 2003 "..\\..\\src\\parser.c"
+#line 2007 "..\\..\\src\\parser.c"
         break;
       case 98:
 #line 222 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(list_entry, yymsp[0].minor.yy124); }
-#line 2008 "..\\..\\src\\parser.c"
+#line 2012 "..\\..\\src\\parser.c"
         break;
       case 99:
 #line 223 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(list_entry, yymsp[0].minor.yy124, yymsp[-2].minor.yy124); }
-#line 2013 "..\\..\\src\\parser.c"
+#line 2017 "..\\..\\src\\parser.c"
         break;
       case 100:
 #line 226 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(json_literal, yymsp[-1].minor.yy124); }
-#line 2018 "..\\..\\src\\parser.c"
+#line 2022 "..\\..\\src\\parser.c"
         break;
       case 101:
 #line 228 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(json_content, yymsp[0].minor.yy124); }
-#line 2023 "..\\..\\src\\parser.c"
+#line 2027 "..\\..\\src\\parser.c"
         break;
       case 102:
 #line 229 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(json_content, yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 2028 "..\\..\\src\\parser.c"
+#line 2032 "..\\..\\src\\parser.c"
         break;
       case 103:
 #line 230 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(json_entry, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy124); }
-#line 2033 "..\\..\\src\\parser.c"
+#line 2037 "..\\..\\src\\parser.c"
         break;
       case 104:
 #line 233 "..\\..\\src\\parser.in"
@@ -2036,34 +2040,34 @@ static void yy_reduce(
   yygotominor.yy124 = p->AllocNode(new_expression, String(yymsp[0].minor.yy0), 
     p->AllocNode(positional_arguments, new Object)); 
 }
-#line 2041 "..\\..\\src\\parser.c"
+#line 2045 "..\\..\\src\\parser.c"
         break;
       case 105:
 #line 237 "..\\..\\src\\parser.in"
 { 
   yygotominor.yy124 = p->AllocNode(new_expression, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy124); 
 }
-#line 2048 "..\\..\\src\\parser.c"
+#line 2052 "..\\..\\src\\parser.c"
         break;
       case 106:
 #line 246 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(type_specifier, Value::tBool,   String(yymsp[0].minor.yy0)); }
-#line 2053 "..\\..\\src\\parser.c"
+#line 2057 "..\\..\\src\\parser.c"
         break;
       case 107:
 #line 247 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(type_specifier, Value::tInt,    String(yymsp[0].minor.yy0)); }
-#line 2058 "..\\..\\src\\parser.c"
+#line 2062 "..\\..\\src\\parser.c"
         break;
       case 108:
 #line 248 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(type_specifier, Value::tString, String(yymsp[0].minor.yy0)); }
-#line 2063 "..\\..\\src\\parser.c"
+#line 2067 "..\\..\\src\\parser.c"
         break;
       case 109:
 #line 249 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(type_specifier, Value::tObject, String(yymsp[0].minor.yy0)); }
-#line 2068 "..\\..\\src\\parser.c"
+#line 2072 "..\\..\\src\\parser.c"
         break;
       case 111:
       case 114:
@@ -2072,7 +2076,7 @@ static void yy_reduce(
       case 159:
 #line 261 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = new Object; yygotominor.yy124->Add(yymsp[0].minor.yy124); }
-#line 2077 "..\\..\\src\\parser.c"
+#line 2081 "..\\..\\src\\parser.c"
         break;
       case 112:
       case 115:
@@ -2081,323 +2085,323 @@ static void yy_reduce(
       case 160:
 #line 262 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = yymsp[-2].minor.yy124; yymsp[-2].minor.yy124->Add(yymsp[0].minor.yy124); }
-#line 2086 "..\\..\\src\\parser.c"
+#line 2090 "..\\..\\src\\parser.c"
         break;
       case 113:
 #line 265 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(named_argument, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy124); }
-#line 2091 "..\\..\\src\\parser.c"
+#line 2095 "..\\..\\src\\parser.c"
         break;
       case 116:
 #line 272 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(positional_arguments, new Object); }
-#line 2096 "..\\..\\src\\parser.c"
+#line 2100 "..\\..\\src\\parser.c"
         break;
       case 117:
 #line 273 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(positional_arguments, yymsp[0].minor.yy124); }
-#line 2101 "..\\..\\src\\parser.c"
+#line 2105 "..\\..\\src\\parser.c"
         break;
       case 118:
 #line 274 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(named_arguments,      yymsp[0].minor.yy124); }
-#line 2106 "..\\..\\src\\parser.c"
+#line 2110 "..\\..\\src\\parser.c"
         break;
       case 119:
 #line 282 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(empty_statement); }
-#line 2111 "..\\..\\src\\parser.c"
+#line 2115 "..\\..\\src\\parser.c"
         break;
       case 120:
 #line 283 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(expression_statement, yymsp[-1].minor.yy124); }
-#line 2116 "..\\..\\src\\parser.c"
+#line 2120 "..\\..\\src\\parser.c"
         break;
       case 121:
 #line 286 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(compound_statement); }
-#line 2121 "..\\..\\src\\parser.c"
+#line 2125 "..\\..\\src\\parser.c"
         break;
       case 122:
 #line 287 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(compound_statement, yymsp[-1].minor.yy124); }
-#line 2126 "..\\..\\src\\parser.c"
+#line 2130 "..\\..\\src\\parser.c"
         break;
       case 123:
 #line 290 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(include_statement, String(yymsp[-1].minor.yy0)); }
-#line 2131 "..\\..\\src\\parser.c"
+#line 2135 "..\\..\\src\\parser.c"
         break;
       case 124:
 #line 293 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(return_statement, yymsp[-1].minor.yy124); }
-#line 2136 "..\\..\\src\\parser.c"
+#line 2140 "..\\..\\src\\parser.c"
         break;
       case 125:
 #line 294 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(return_statement);    }
-#line 2141 "..\\..\\src\\parser.c"
+#line 2145 "..\\..\\src\\parser.c"
         break;
       case 126:
 #line 297 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(break_statement); }
-#line 2146 "..\\..\\src\\parser.c"
+#line 2150 "..\\..\\src\\parser.c"
         break;
       case 127:
 #line 298 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(continue_statement); }
-#line 2151 "..\\..\\src\\parser.c"
+#line 2155 "..\\..\\src\\parser.c"
         break;
       case 133:
 #line 314 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(variable_declaration, String(yymsp[0].minor.yy0));    }
-#line 2156 "..\\..\\src\\parser.c"
+#line 2160 "..\\..\\src\\parser.c"
         break;
       case 134:
 #line 315 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(variable_declaration, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy124); }
-#line 2161 "..\\..\\src\\parser.c"
+#line 2165 "..\\..\\src\\parser.c"
         break;
       case 136:
 #line 318 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(declarator_sequence, yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 2166 "..\\..\\src\\parser.c"
+#line 2170 "..\\..\\src\\parser.c"
         break;
       case 137:
 #line 320 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(namespace_declaration, String(yymsp[-2].minor.yy0)); }
-#line 2171 "..\\..\\src\\parser.c"
+#line 2175 "..\\..\\src\\parser.c"
         break;
       case 138:
 #line 321 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(namespace_declaration, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy124); }
-#line 2176 "..\\..\\src\\parser.c"
+#line 2180 "..\\..\\src\\parser.c"
         break;
       case 139:
 #line 323 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(declaration_sequence, yymsp[0].minor.yy124); }
-#line 2181 "..\\..\\src\\parser.c"
+#line 2185 "..\\..\\src\\parser.c"
         break;
       case 140:
 #line 324 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(declaration_sequence, yymsp[-1].minor.yy124, yymsp[0].minor.yy124); }
-#line 2186 "..\\..\\src\\parser.c"
+#line 2190 "..\\..\\src\\parser.c"
         break;
       case 141:
 #line 332 "..\\..\\src\\parser.in"
 { p->m_native = p->AllocNode(function_declaration, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy124); }
-#line 2191 "..\\..\\src\\parser.c"
+#line 2195 "..\\..\\src\\parser.c"
         break;
       case 142:
 #line 335 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(function_declaration, String(yymsp[-4].minor.yy0),  yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 2196 "..\\..\\src\\parser.c"
+#line 2200 "..\\..\\src\\parser.c"
         break;
       case 143:
 #line 336 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(closure_declaration, String("function"), yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 2201 "..\\..\\src\\parser.c"
+#line 2205 "..\\..\\src\\parser.c"
         break;
       case 144:
 #line 339 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(parameter, String(yymsp[0].minor.yy0), ptByVal, yymsp[-1].minor.yy124); }
-#line 2206 "..\\..\\src\\parser.c"
+#line 2210 "..\\..\\src\\parser.c"
         break;
       case 145:
 #line 340 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(parameter, String(yymsp[0].minor.yy0), ptByVal);    }
-#line 2211 "..\\..\\src\\parser.c"
+#line 2215 "..\\..\\src\\parser.c"
         break;
       case 146:
 #line 341 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(parameter, String(yymsp[0].minor.yy0), ptByRef, yymsp[-2].minor.yy124); }
-#line 2216 "..\\..\\src\\parser.c"
+#line 2220 "..\\..\\src\\parser.c"
         break;
       case 147:
 #line 342 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(parameter, String(yymsp[0].minor.yy0), ptByRef);    }
-#line 2221 "..\\..\\src\\parser.c"
+#line 2225 "..\\..\\src\\parser.c"
         break;
       case 148:
 #line 345 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(parameter, String(yymsp[-2].minor.yy0), ptByVal, yymsp[-3].minor.yy124,       yymsp[0].minor.yy124); }
-#line 2226 "..\\..\\src\\parser.c"
+#line 2230 "..\\..\\src\\parser.c"
         break;
       case 149:
 #line 346 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(parameter, String(yymsp[-2].minor.yy0), ptByVal, Value(), yymsp[0].minor.yy124); }
-#line 2231 "..\\..\\src\\parser.c"
+#line 2235 "..\\..\\src\\parser.c"
         break;
       case 150:
 #line 349 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(parameter, String(yymsp[-1].minor.yy0), ptVariadic); }
-#line 2236 "..\\..\\src\\parser.c"
+#line 2240 "..\\..\\src\\parser.c"
         break;
       case 151:
       case 173:
 #line 352 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = new Object; }
-#line 2242 "..\\..\\src\\parser.c"
+#line 2246 "..\\..\\src\\parser.c"
         break;
       case 155:
 #line 356 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = yymsp[-2].minor.yy124; yymsp[-2].minor.yy124->AddMembers(yymsp[0].minor.yy124); }
-#line 2247 "..\\..\\src\\parser.c"
+#line 2251 "..\\..\\src\\parser.c"
         break;
       case 162:
 #line 378 "..\\..\\src\\parser.in"
 { 
   yygotominor.yy124 = p->AllocNode(extern_declaration, String(yymsp[-4].minor.yy0), yymsp[-2].minor.yy124, String(yymsp[-6].minor.yy0), yymsp[-5].minor.yy124); 
 }
-#line 2254 "..\\..\\src\\parser.c"
+#line 2258 "..\\..\\src\\parser.c"
         break;
       case 163:
 #line 388 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(for_statement, yymsp[-5].minor.yy124, yymsp[-4].minor.yy124, yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 2259 "..\\..\\src\\parser.c"
+#line 2263 "..\\..\\src\\parser.c"
         break;
       case 166:
       case 167:
 #line 399 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(foreach_statement, yymsp[-4].minor.yy124, yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 2265 "..\\..\\src\\parser.c"
+#line 2269 "..\\..\\src\\parser.c"
         break;
       case 168:
 #line 401 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(variable_declaration, String(yymsp[0].minor.yy0)); }
-#line 2270 "..\\..\\src\\parser.c"
+#line 2274 "..\\..\\src\\parser.c"
         break;
       case 169:
 #line 412 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(if_statement, yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 2275 "..\\..\\src\\parser.c"
+#line 2279 "..\\..\\src\\parser.c"
         break;
       case 170:
 #line 413 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(if_statement, yymsp[-4].minor.yy124, yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 2280 "..\\..\\src\\parser.c"
+#line 2284 "..\\..\\src\\parser.c"
         break;
       case 171:
 #line 421 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(while_statement, yymsp[-2].minor.yy124,  yymsp[0].minor.yy124); }
-#line 2285 "..\\..\\src\\parser.c"
+#line 2289 "..\\..\\src\\parser.c"
         break;
       case 172:
 #line 429 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(switch_statement, yymsp[-4].minor.yy124, yymsp[-1].minor.yy124); }
-#line 2290 "..\\..\\src\\parser.c"
+#line 2294 "..\\..\\src\\parser.c"
         break;
       case 174:
       case 175:
 #line 433 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = yymsp[-1].minor.yy124; yygotominor.yy124->Add(yymsp[0].minor.yy124); }
-#line 2296 "..\\..\\src\\parser.c"
+#line 2300 "..\\..\\src\\parser.c"
         break;
       case 176:
 #line 437 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(switch_case, yymsp[-2].minor.yy124, yymsp[0].minor.yy124); }
-#line 2301 "..\\..\\src\\parser.c"
+#line 2305 "..\\..\\src\\parser.c"
         break;
       case 177:
 #line 440 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(default_case, yymsp[0].minor.yy124); }
-#line 2306 "..\\..\\src\\parser.c"
+#line 2310 "..\\..\\src\\parser.c"
         break;
       case 179:
 #line 450 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(try_statement, yymsp[-1].minor.yy124, yymsp[0].minor.yy124); }
-#line 2311 "..\\..\\src\\parser.c"
+#line 2315 "..\\..\\src\\parser.c"
         break;
       case 180:
 #line 451 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(try_statement, yymsp[-1].minor.yy124, Value(), yymsp[0].minor.yy124); }
-#line 2316 "..\\..\\src\\parser.c"
+#line 2320 "..\\..\\src\\parser.c"
         break;
       case 181:
 #line 452 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(try_statement, yymsp[-2].minor.yy124, yymsp[-1].minor.yy124, yymsp[0].minor.yy124); }
-#line 2321 "..\\..\\src\\parser.c"
+#line 2325 "..\\..\\src\\parser.c"
         break;
       case 182:
 #line 454 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(catch_block, String(yymsp[-2].minor.yy0), yymsp[0].minor.yy124); }
-#line 2326 "..\\..\\src\\parser.c"
+#line 2330 "..\\..\\src\\parser.c"
         break;
       case 183:
 #line 456 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(finally_block, yymsp[0].minor.yy124); }
-#line 2331 "..\\..\\src\\parser.c"
+#line 2335 "..\\..\\src\\parser.c"
         break;
       case 184:
 #line 458 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(throw_statement, yymsp[-1].minor.yy124); }
-#line 2336 "..\\..\\src\\parser.c"
+#line 2340 "..\\..\\src\\parser.c"
         break;
       case 185:
 #line 465 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(xml_expression, yymsp[0].minor.yy124); p->GetLexer()->ToggleXml(false); }
-#line 2341 "..\\..\\src\\parser.c"
+#line 2345 "..\\..\\src\\parser.c"
         break;
       case 186:
 #line 468 "..\\..\\src\\parser.in"
-{ yygotominor.yy124 = p->AllocNode(xml_elements, new Object); (*yygotominor.yy124)["a1"]->Add(yymsp[0].minor.yy124); }
-#line 2346 "..\\..\\src\\parser.c"
+{ yygotominor.yy124 = p->AllocNode(xml_elements, new Object); Ast_A1(yygotominor.yy124)->Add(yymsp[0].minor.yy124); }
+#line 2350 "..\\..\\src\\parser.c"
         break;
       case 187:
       case 195:
 #line 469 "..\\..\\src\\parser.in"
-{ yygotominor.yy124 = yymsp[-1].minor.yy124; (*yygotominor.yy124)["a1"]->Add(yymsp[0].minor.yy124); }
-#line 2352 "..\\..\\src\\parser.c"
+{ yygotominor.yy124 = yymsp[-1].minor.yy124; Ast_A1(yygotominor.yy124)->Add(yymsp[0].minor.yy124); }
+#line 2356 "..\\..\\src\\parser.c"
         break;
       case 188:
 #line 472 "..\\..\\src\\parser.in"
 { p->GetLexer()->ToggleXml(true); }
-#line 2357 "..\\..\\src\\parser.c"
+#line 2361 "..\\..\\src\\parser.c"
         break;
       case 189:
 #line 475 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(xml_processing_instruction, String(yymsp[-2].minor.yy0), yymsp[-1].minor.yy124); }
-#line 2362 "..\\..\\src\\parser.c"
+#line 2366 "..\\..\\src\\parser.c"
         break;
       case 190:
 #line 476 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(xml_open_tag,   yymsp[-2].minor.yy124, yymsp[-1].minor.yy124); }
-#line 2367 "..\\..\\src\\parser.c"
+#line 2371 "..\\..\\src\\parser.c"
         break;
       case 191:
 #line 477 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(xml_closed_tag, yymsp[-3].minor.yy124, yymsp[-2].minor.yy124); }
-#line 2372 "..\\..\\src\\parser.c"
+#line 2376 "..\\..\\src\\parser.c"
         break;
       case 192:
 #line 478 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(xml_close_tag,  yymsp[-1].minor.yy124); }
-#line 2377 "..\\..\\src\\parser.c"
+#line 2381 "..\\..\\src\\parser.c"
         break;
       case 193:
 #line 479 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(xml_text, String(yymsp[0].minor.yy0)); }
-#line 2382 "..\\..\\src\\parser.c"
+#line 2386 "..\\..\\src\\parser.c"
         break;
       case 194:
 #line 482 "..\\..\\src\\parser.in"
-{ yygotominor.yy124 = p->AllocNode(xml_attributes, new Object); (*yygotominor.yy124)["a1"]->Add(yymsp[0].minor.yy124); }
-#line 2387 "..\\..\\src\\parser.c"
+{ yygotominor.yy124 = p->AllocNode(xml_attributes, new Object); Ast_A1(yygotominor.yy124)->Add(yymsp[0].minor.yy124); }
+#line 2391 "..\\..\\src\\parser.c"
         break;
       case 198:
 #line 490 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(xml_attribute, yymsp[-2].minor.yy124, String(yymsp[0].minor.yy0)); }
-#line 2392 "..\\..\\src\\parser.c"
+#line 2396 "..\\..\\src\\parser.c"
         break;
       case 199:
 #line 493 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(xml_uname, String(yymsp[0].minor.yy0)); }
-#line 2397 "..\\..\\src\\parser.c"
+#line 2401 "..\\..\\src\\parser.c"
         break;
       case 200:
 #line 494 "..\\..\\src\\parser.in"
 { yygotominor.yy124 = p->AllocNode(xml_qname, String(yymsp[-2].minor.yy0), String(yymsp[0].minor.yy0)); }
-#line 2402 "..\\..\\src\\parser.c"
+#line 2406 "..\\..\\src\\parser.c"
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
@@ -2444,7 +2448,7 @@ static void yy_parse_failed(
 #line 53 "..\\..\\src\\parser.in"
 
   p->OnParseFailure();
-#line 2450 "..\\..\\src\\parser.c"
+#line 2454 "..\\..\\src\\parser.c"
   CScriptParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -2461,7 +2465,7 @@ static void yy_syntax_error(
 #line 56 "..\\..\\src\\parser.in"
 
   p->OnSyntaxError();
-#line 2468 "..\\..\\src\\parser.c"
+#line 2472 "..\\..\\src\\parser.c"
   CScriptParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

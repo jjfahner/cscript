@@ -8,7 +8,7 @@ namespace foo
   {
     function a() 
     {
-      return foo::bar::a;
+      return ::foo::bar::a;
     }
   }
 }

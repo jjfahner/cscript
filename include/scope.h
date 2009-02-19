@@ -200,6 +200,14 @@ public:
     (*m_parent)[m_name] = this;
   }
 
+  //
+  // Retrieve name
+  //
+  String GetName() const
+  {
+    return m_name;
+  }
+
 private:
 
   //
