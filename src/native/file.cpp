@@ -65,7 +65,7 @@ public:
     if(args[4].GetBool()) o_mode |= std::ios::trunc;
 
     // Open the file
-    m_stream.open(args[0].GetString().c_str(), o_mode);
+    m_stream.open(args[0].GetString().c_str(), (std::ios::openmode)o_mode);
 
     // Check file
     if(!m_stream.is_open() || m_stream.bad())
