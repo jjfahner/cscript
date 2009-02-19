@@ -36,8 +36,9 @@ public:
   //
   File(Evaluator* evaluator)
   {
-    NATIVE_METHOD(File, Open, "Open(string path, string mode, bool binary = false, bool atend = false, bool truncate = false)");
+    NATIVE_METHOD(File, Open,  "Open(string path, string mode, bool binary = false, bool atend = false, bool truncate = false)");
     NATIVE_METHOD(File, Close, "Close()");
+    NATIVE_METHOD(File, Read,  "Read()");
     NATIVE_METHOD(File, Write, "Write(string data, int length = 0)");
   }
 
@@ -88,6 +89,14 @@ public:
     }
 
     // No return value
+    return Value();
+  }
+  
+  //
+  // Read string
+  //
+  Value Read(Evaluator*, Arguments const& args)
+  {
     return Value();
   }
 

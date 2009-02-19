@@ -81,14 +81,14 @@ translation_unit ::= statement_sequence(A) . { if(A) p->Eval(A); }
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
 statement_sequence(R) ::= statement_sequence(A) statement(B) . { 
-  if((*A)["type"].GetInt() == statement_sequence) {
+  if(Ast_Type(A) == statement_sequence) {
     R = A;
   }
   else {
     R = p->AllocNode(statement_sequence, new Object);
-    (*R)["a1"]->Add(A);
+    Ast_A1(R)->Add(A);
   }
-  (*R)["a1"]->Add(B);
+  Ast_A1(R)->Add(B);
 }
 
 // Statement
@@ -207,9 +207,9 @@ id_expression(R) ::= qualified_id(A)   . { R = A; }
 unqualified_id(R) ::= IDENTIFIER(A) . { R = p->AllocNode(unqualified_id, String(A)); }
 
 // Qualified id
-qualified_id(R) ::= NS_SEP unqualified_id(A)        . { R = p->AllocNode(qualified_id, A, true); }
+qualified_id(R) ::= NS_SEP unqualified_id(A)        . { R = p->AllocNode(qualified_id, A, Value(), true); }
 qualified_id(R) ::=        nested_name_specifier(A) . { R = A; }
-qualified_id(R) ::= NS_SEP nested_name_specifier(A) . { R = p->AllocNode(qualified_id, A, true); }
+qualified_id(R) ::= NS_SEP nested_name_specifier(A) . { R = A; Ast_A3(A) = true; }
 
 nested_name_specifier(R) ::= unqualified_id(A) NS_SEP unqualified_id(B) .         { R = p->AllocNode(qualified_id, A, B); }
 nested_name_specifier(R) ::= unqualified_id(A) NS_SEP nested_name_specifier(B)  . { R = p->AllocNode(qualified_id, A, B); }
@@ -465,8 +465,8 @@ throw_statement(R) ::= THROW expression(A) SEMICOLON . { R = p->AllocNode(throw_
 xml_expression(R) ::= xml_elements(A) . { R = p->AllocNode(xml_expression, A); p->GetLexer()->ToggleXml(false); }
 
 // Element sequence
-xml_elements(R) ::= xml_element(A) .                  { R = p->AllocNode(xml_elements, new Object); (*R)["a1"]->Add(A); }
-xml_elements(R) ::= xml_elements(A) xml_element(B) .  { R = A; (*R)["a1"]->Add(B); }
+xml_elements(R) ::= xml_element(A) .                  { R = p->AllocNode(xml_elements, new Object); Ast_A1(R)->Add(A); }
+xml_elements(R) ::= xml_elements(A) xml_element(B) .  { R = A; Ast_A1(R)->Add(B); }
 
 // Start of tag required to toggle parse mode in lexer
 xml_start_tag ::= ST . { p->GetLexer()->ToggleXml(true); }
@@ -479,8 +479,8 @@ xml_element(R) ::= xml_start_tag DIVOP xml_name(A) GT .                   { R = 
 xml_element(R) ::= XMLTEXT(A) .                                           { R = p->AllocNode(xml_text, String(A)); }
 
 // Attribute sequence
-xml_attribute_list(R) ::= xml_attribute(A) .                       { R = p->AllocNode(xml_attributes, new Object); (*R)["a1"]->Add(A); }
-xml_attribute_list(R) ::= xml_attribute_list(A) xml_attribute(B) . { R = A; (*R)["a1"]->Add(B); }
+xml_attribute_list(R) ::= xml_attribute(A) .                       { R = p->AllocNode(xml_attributes, new Object); Ast_A1(R)->Add(A); }
+xml_attribute_list(R) ::= xml_attribute_list(A) xml_attribute(B) . { R = A; Ast_A1(R)->Add(B); }
 
 // Optional attribute sequence
 xml_attributes(R) ::= .                       { R = 0; }

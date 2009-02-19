@@ -752,20 +752,21 @@ Evaluator::EvalQualifiedId(Object* node)
   while(id && Ast_Type(id) == qualified_id)
   {
     // Retrieve name
-    Object* uid = Ast_A1(id);
+    String name = Ast_A1(Ast_A1(id));
 
     // Lookup name in scope
-    if(!scope->ContainsKey(Ast_A1(uid)))
+    if(!scope->ContainsKey(name))
     {
       // TODO specify actual name in failed lookup
-      throw script_exception(node, "Failed to lookup name");
+      throw script_exception(node, "Namespace '" + scope->GetName() + 
+        "' does not contain nested namespace '" + name + "'");
     }
 
     // Descend into scope
-    scope = dynamic_cast<NamespaceScope*>(scope->RVal(Ast_A1(uid)).GetObject());
+    scope = dynamic_cast<NamespaceScope*>(scope->RVal(name).GetObject());
     if(scope == 0)
     {
-      throw script_exception(node, "Found name is of invalid type");
+      throw script_exception(node, "Expected namespace, found function or variable");
     }
     
     // Recurse into namespace
@@ -822,6 +823,7 @@ Evaluator::EvalFunDecl(Object* node)
   
   (*fun)["name"]   = fun->GetName();
   (*fun)["parent"] = m_scope;
+  (*fun)["scope"]  = FindNamespace(m_scope);
 
   m_scope->Add(Ast_A1(node).GetString(), fun);
 }
@@ -833,6 +835,7 @@ Evaluator::EvalClosure(Object* node)
 
   (*fun)["name"]   = fun->GetName();
   (*fun)["parent"] = m_scope;
+  (*fun)["scope"]  = FindNamespace(m_scope);
   
   return MakeTemp(fun);
 }
@@ -879,33 +882,18 @@ Evaluator::EvalExternDecl(Object* node)
 RValue&
 Evaluator::EvalFunctionCall(Object* node)
 {
-  RValue* rval  = 0;
+  // Evaluate left-hand side
+  RValue& rval = EvalExpression(Ast_A1(node));
+
+  // Add object context to arguments
   Object* owner = 0;
-
-  // Resolve function pointer
-  if(Ast_Type(Ast_A1(node)) == unqualified_id) // TODO qualified_id
+  if(BoundValue* bval = dynamic_cast<BoundValue*>(&rval))
   {
-    // Named objects are found through the current scope
-    String name = String(Ast_A1(Ast_A1(node)));
-    if(!m_scope->Lookup(name, rval, owner))
-    {
-      throw script_exception(node, "Function '" + name + "' not found");
-    }
-  }
-  else
-  {
-    // Expressions are evaluated in the current scope
-    rval = &EvalExpression(Ast_A1(node));
-
-    // Add object context to arguments
-    if(BoundValue* bval = dynamic_cast<BoundValue*>(rval))
-    {
-      owner = bval->GetBoundObject();
-    }
+    owner = bval->GetBoundObject();
   }
 
   // Cast result to function
-  Function* fun = ValueToType<Function>(*rval);
+  Function* fun = ValueToType<Function>(rval.GetObject());
   if(fun == 0)
   {
     throw script_exception(node, "Function call on non-function object");
@@ -954,8 +942,10 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   // Class scope
   AutoScope cs(this);
 
-  // Determine parent scope
-  Scope* parentScope = m_global;
+  // Determine base scope for function
+  Scope* parentScope = dynamic_cast<Scope*>((*fun)["scope"].GetObject());
+
+  // Determine parent scope for invocation
   if(args.GetObject())
   {
     // Create class scope
