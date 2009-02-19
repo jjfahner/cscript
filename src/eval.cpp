@@ -533,7 +533,8 @@ Evaluator::EvalExpression(Object* node)
   case function_call:         return EvalFunctionCall(node);
   case literal_value:         return MakeTemp(Ast_A1(node));
   case unqualified_id:        return EvalUnqualifiedId(node);
-  case qualified_id:          return EvalQualifiedId(node);
+  case qualified_id_g:        return EvalQualifiedId(node);
+  case qualified_id_l:        return EvalQualifiedId(node);
   case list_literal:          return EvalListLiteral(node);
   case json_literal:          return EvalJsonLiteral(node);
   case new_expression:        return EvalNewExpression(node);
@@ -745,42 +746,53 @@ Evaluator::EvalQualifiedId(Object* node)
 {
   // Find starting scope
   NamespaceScope* scope;
-  scope = Ast_A3(node) ? m_global : FindNamespace(m_scope);
+  if(Ast_Type(node) == qualified_id_g)
+  {
+    // Start lookups in global scope
+    scope = m_global;
+  }
+  else
+  {
+    // Start lookups in current namespace
+    scope = FindNamespace(m_scope);
+  }
 
-  // Perform namespace lookups
-  Object* id = node;
-  while(id && Ast_Type(id) == qualified_id)
+  // Perform lookup
+  Object* cur = node;
+  for(;;)
   {
     // Retrieve name
-    String name = Ast_A1(Ast_A1(id));
+    String name = Ast_A1(cur);
 
     // Lookup name in scope
     if(!scope->ContainsKey(name))
     {
-      // TODO specify actual name in failed lookup
       throw script_exception(node, "Namespace '" + scope->GetName() + 
-        "' does not contain nested namespace '" + name + "'");
+        "' does not contain a member '" + name + "'");
     }
 
-    // Descend into scope
-    scope = dynamic_cast<NamespaceScope*>(scope->RVal(name).GetObject());
-    if(scope == 0)
+    // Retrieve node
+    RValue& rval = scope->RVal(name);
+
+    // If nested, descend, else retrieve value
+    if(Ast_A2(cur))
     {
-      throw script_exception(node, "Expected namespace, found function or variable");
+      // Retrieve namespace scope
+      scope = dynamic_cast<NamespaceScope*>(rval.GetObject());
+      if(scope == 0)
+      {
+        throw script_exception(node, "Expected namespace, found function or variable");
+      }
+
+      // Descend into id
+      cur = Ast_A2(cur);      
     }
-    
-    // Recurse into namespace
-    id = Ast_A2(id).GetObject();
+    else
+    {
+      // Found it
+      return rval;
+    }
   }
-
-  // Now lookup name in scope
-  if(!scope->ContainsKey(Ast_A1(id)))
-  {
-    throw script_exception(node, "Scope '' does not contain a member ''");
-  }
-
-  // Retrieve value
-  return scope->RVal(Ast_A1(id));
 }
 
 void 
@@ -884,19 +896,25 @@ Evaluator::EvalFunctionCall(Object* node)
 {
   // Evaluate left-hand side
   RValue& rval = EvalExpression(Ast_A1(node));
+  
+  // Check whether returned type is an object
+  if(rval.Type() != Value::tObject)
+  {
+    throw script_exception(node, "Function call on non-function object");
+  }
+  
+  // Cast result to function
+  Function* fun = ValueToType<Function>(rval.GetObject());
+  if(fun == 0)
+  {
+    throw script_exception(node, "Function call on non-function object");
+  }
 
   // Add object context to arguments
   Object* owner = 0;
   if(BoundValue* bval = dynamic_cast<BoundValue*>(&rval))
   {
     owner = bval->GetBoundObject();
-  }
-
-  // Cast result to function
-  Function* fun = ValueToType<Function>(rval.GetObject());
-  if(fun == 0)
-  {
-    throw script_exception(node, "Function call on non-function object");
   }
 
   // Continue in overload

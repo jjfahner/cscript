@@ -1,16 +1,26 @@
 namespace foo 
 {
+  var a = 40;
   namespace bar
   {
-    var a = 10;
+    var a = 2;
   }
   namespace baz
   {
-    function a() 
+    function a()
     {
-      return ::foo::bar::a;
+      return ::foo::a + ::foo::bar::a;
     }
+  }
+  function b()
+  {
+    return bar::a + baz::a();
   }
 }
 
-print(foo::baz::a());
+var a = 123;
+
+print("" + a + "\n");
+print("" + ::a + "\n");
+print("" + foo::baz::a() + "\n");
+print("" + foo::b() + "\n");

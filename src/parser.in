@@ -207,12 +207,11 @@ id_expression(R) ::= qualified_id(A)   . { R = A; }
 unqualified_id(R) ::= IDENTIFIER(A) . { R = p->AllocNode(unqualified_id, String(A)); }
 
 // Qualified id
-qualified_id(R) ::= NS_SEP unqualified_id(A)        . { R = p->AllocNode(qualified_id, A, Value(), true); }
-qualified_id(R) ::=        nested_name_specifier(A) . { R = A; }
-qualified_id(R) ::= NS_SEP nested_name_specifier(A) . { R = A; Ast_A3(A) = true; }
+qualified_id(R) ::= nested_name_specifier(A) . { R = A; }
+qualified_id(R) ::= IDENTIFIER(A) nested_name_specifier(B) . { R = p->AllocNode(qualified_id_l, String(A), B); }
 
-nested_name_specifier(R) ::= unqualified_id(A) NS_SEP unqualified_id(B) .         { R = p->AllocNode(qualified_id, A, B); }
-nested_name_specifier(R) ::= unqualified_id(A) NS_SEP nested_name_specifier(B)  . { R = p->AllocNode(qualified_id, A, B); }
+nested_name_specifier(R) ::= NS_SEP IDENTIFIER(A) . { R = p->AllocNode(qualified_id_g, String(A)); }
+nested_name_specifier(R) ::= NS_SEP IDENTIFIER(A) nested_name_specifier(B) . { R = p->AllocNode(qualified_id_g, String(A), B); }
 
 // List definition
 list_literal(R) ::= LBRACKET list_content(A) RBRACKET . { R = p->AllocNode(list_literal, A); }
