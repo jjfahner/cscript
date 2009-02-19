@@ -32,6 +32,31 @@ var errors = 0;
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Setup some namespaces for testing
+//
+
+namespace outer
+{
+  var name = "outer";
+  namespace inner1
+  {
+    var name = "inner1";
+  }
+  namespace inner2
+  {
+    function f()
+    {
+      return ::outer::name + ::outer::inner1::name;
+    }
+  }
+  function f()
+  {
+    return inner1::name + inner2::f();
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Assert whether a result matches the expectation
 //
 function assert(description, result, expected)
@@ -458,6 +483,12 @@ function main()
 
   // Test new and constructor
   assert("Class constructor", (new Class("Hello")).b, "Hello world");
+
+  // Test namespaces
+  assert("Namespace lookup (1)", outer::f(), "inner1outerinner1");
+  assert("Namespace lookup (2)", outer::inner2::f(), "outerinner1");
+  assert("Namespace lookup (3)", ::outer::f(), "inner1outerinner1");
+  assert("Namespace lookup (4)", ::outer::inner2::f(), "outerinner1");
 
   // Print result
   if(errors == 0)
