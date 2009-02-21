@@ -304,25 +304,19 @@ Evaluator::ReportError(String text, Object* source)
 }
 
 Object* 
-Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4)
+Evaluator::AllocNode(AstTypes type)
 {
   // Create node
   Object* obj = new Object;
   (*obj)["type"] = type;
 
-  // Set subnodes
-  if(!a1.Empty())(*obj)["a1"] = a1;
-  if(!a2.Empty())(*obj)["a2"] = a2;
-  if(!a3.Empty())(*obj)["a3"] = a3;
-  if(!a4.Empty())(*obj)["a4"] = a4;
-  
   // Set file position
   if(m_file /*&& m_debug*/)
   {
     (*obj)["file"] = m_file->GetPath();
     (*obj)["line"] = m_lexer->GetLine();
   }
-  
+
   // Done
   return obj;
 }
