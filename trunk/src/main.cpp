@@ -60,9 +60,8 @@ int usage()
   std::cout << 
     "Usage: cscript [options] [file]\n\n"
     "Options:\n\n"
-    "-q --quiet           Don't display banner"
-    "-e --execute=FILE    Name of a file to execute\n"
-    "-i --interactive     Run interpreter in interactive mode\n"
+    "-q --quiet                    Don't display banner\n"
+    "-e --execute \"expression\"   Execute expression\n"
     "\n"
     "This program comes with ABSOLUTELY NO WARRANTY.\n"
     "This is free software, and you are welcome to redistribute it\n"
@@ -151,6 +150,21 @@ int execute(String const& file)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Execute command line as expression
+//
+
+int commandline(int argc, Char** argv)
+{
+  // Execute code in file
+  Evaluator eval;
+  eval.Eval(argv[2], false);
+
+  // Exit
+  return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Application entry point
 //
 
@@ -172,9 +186,15 @@ int cscript_main(int argc, Char** argv)
   }
 
   // Interactive mode
-  if(args.IsSet("-i") ||args.IsSet("--interactive"))
+  if(args.IsSet("-i") || args.IsSet("--interactive"))
   {
     return interactive(args);
+  }
+
+  // Expression is on command line
+  if(args.IsSet("-e") || args.IsSet("--execute"))
+  {
+    return commandline(argc, argv);
   }
 
   // Execute mode
