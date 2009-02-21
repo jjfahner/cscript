@@ -537,6 +537,7 @@ Evaluator::EvalExpression(Object* node)
   case closure_declaration:   return EvalClosure(node);
   case xml_expression:        return EvalXmlExpression(node);
   case shell_command:         return EvalShellCommand(node);
+  case type_conversion:       return EvalTypeConversion(node);
   case function_member_expression:  return EvalFunctionMember(node);
   case function_index_expression:   return EvalFunctionIndex(node);
   }
@@ -568,33 +569,76 @@ Evaluator::EvalAssignment(Object* node)
 RValue&
 Evaluator::EvalBinary(Object* node)
 {
-  Value result;
-  switch(Ast_A1(node).GetInt())
+  // Evaluate left-hand side
+  RValue& lhs = EvalExpression(Ast_A2(node));
+
+  // Retrieve operator
+  opcodes opcode = (opcodes)Ast_A1(node).GetInt();
+
+  // Handle object
+  if(lhs.Type() == Value::tObject)
   {
-  case op_add:    result = ValAdd(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
-  case op_sub:    result = ValSub(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
-  case op_mul:    result = ValMul(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
-  case op_div:    result = ValDiv(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
-  case op_mod:    result = ValMod(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))); break;
+    String opfun = "operator" + OpcodeToString(opcode);
+    if(lhs->ContainsKey(opfun))
+    {
+      Object* funObj = lhs->RVal(opfun).GetObject();
+      ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
+      
+      Arguments args;
+      args.SetObject(lhs);
+      args.push_back(EvalExpression(Ast_A3(node)));
+      
+      return EvalScriptCall(fun, args);
+    }
+  }
 
-  case op_eq:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
-  case op_ne:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
-  case op_lt:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) <  0; break;
-  case op_le:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) <= 0; break;
-  case op_gt:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) >  0; break;
-  case op_ge:     result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) >= 0; break;
+  // Short-circuited operators
+  if(opcode == op_logor)
+  {
+    // TODO type conversion
+    return MakeTemp(ValBool(lhs) || ValBool(EvalExpression(Ast_A3(node))));
+  }
+  if(opcode == op_logand)
+  {
+    // TODO type conversion
+    return MakeTemp(ValBool(lhs) && ValBool(EvalExpression(Ast_A3(node))));
+  }
+  
+  // Evaluate right-hand side
+  Value rhs = EvalExpression(Ast_A3(node));
 
-  case op_logor:  result = ValBool(EvalExpression(Ast_A2(node))) || 
-                           ValBool(EvalExpression(Ast_A3(node))) ; break;
-  case op_logand: result = ValBool(EvalExpression(Ast_A2(node))) && 
-                           ValBool(EvalExpression(Ast_A3(node))) ; break;
+  // Comparison without implicit type conversion
+  if(opcode == op_seq)
+  {
+    return MakeTemp(lhs.Type() == rhs.Type() && ValCmp(lhs, rhs) == 0);
+  }
+  if(opcode == op_sne)
+  {
+    return MakeTemp(lhs.Type() == rhs.Type() && ValCmp(lhs, rhs) != 0);
+  }
 
-  case op_seq:    result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
-  case op_sne:    result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
+  // Convert to type of lhs
+  ConvertInPlace(node, rhs, lhs.Type());
 
+  // Perform operation
+  Value result;
+  switch(opcode)
+  {
+  case op_add:    result = ValAdd(lhs, rhs); break;
+  case op_sub:    result = ValSub(lhs, rhs); break;
+  case op_mul:    result = ValMul(lhs, rhs); break;
+  case op_div:    result = ValDiv(lhs, rhs); break;
+  case op_mod:    result = ValMod(lhs, rhs); break;
+  case op_eq:     result = ValCmp(lhs, rhs) == 0; break;
+  case op_ne:     result = ValCmp(lhs, rhs) != 0; break;
+  case op_lt:     result = ValCmp(lhs, rhs) <  0; break;
+  case op_le:     result = ValCmp(lhs, rhs) <= 0; break;
+  case op_gt:     result = ValCmp(lhs, rhs) >  0; break;
+  case op_ge:     result = ValCmp(lhs, rhs) >= 0; break;
   default: throw ScriptException(node, "Invalid binary operator");
   }  
-  
+
+  // Return new temporary
   return MakeTemp(result);
 }
 
@@ -1089,7 +1133,7 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist,
     // Apply type conversion to value
     if(Ast_A3(par))
     { 
-      PerformConversion(value, (Value::Types)Ast_A1(Ast_A3(par)).GetInt());
+      ConvertInPlace(node, value, (Value::Types)Ast_A1(Ast_A3(par)).GetInt());
     }
 
     // Add to argument list
@@ -1613,8 +1657,29 @@ Evaluator::EvalTryStatement(Object* node)
   }
 }
 
+RValue& 
+Evaluator::EvalTypeConversion(Object* node)
+{
+  // Evaluate the expression
+  RValue& rhs = EvalExpression(Ast_A2(node));
+  
+  // Determine type
+  Value::Types newType = (Value::Types)Ast_A1(Ast_A1(node)).GetInt();
+
+  // Perform conversion
+  return MakeTemp(Convert(node, rhs, newType));
+}
+
+Value 
+Evaluator::Convert(Object* node, Value const& value, Value::Types newType)
+{
+  Value tempValue(value);
+  ConvertInPlace(node, tempValue, newType);
+  return tempValue;
+}
+
 void 
-Evaluator::PerformConversion(Value& value, Value::Types newType)
+Evaluator::ConvertInPlace(Object* node, Value& value, Value::Types newType)
 {
   // Ignore when equal
   if(value.Type() == newType)
@@ -1622,15 +1687,35 @@ Evaluator::PerformConversion(Value& value, Value::Types newType)
     return;
   }
 
+  // Objects may implement certain type conversions themselves
+  if(value.Type() == Value::tObject)
+  {
+    String opfun = "operator " + Value::TypeToString(newType);
+    if(value->ContainsKey(opfun))
+    {
+      Object* funObj = value->RVal(opfun).GetObject();
+      ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
+
+      Arguments args;
+      args.SetObject(value);
+
+      value = EvalScriptCall(fun, args);
+      return;
+    }
+  }
+
   // Convert to basic types
   switch(newType)
   {
-  case Value::tNull:    break;
-  case Value::tBool:    value = ValBool(value);   break;
-  case Value::tInt:     value = ValInt(value);    break;
-  case Value::tString:  value = ValString(value); break;
-  default:              throw std::runtime_error("Invalid conversion");
+  case Value::tNull:    return;
+  case Value::tBool:    value = ValBool(value);   return;
+  case Value::tInt:     value = ValInt(value);    return;
+  case Value::tString:  value = ValString(value); return;
+  case Value::tObject:  if(value.Type() == Value::tNull) return;
   }
+
+  // Failed conversion
+  throw ScriptException(node, "Cannot convert between types");
 }
 
 //////////////////////////////////////////////////////////////////////////

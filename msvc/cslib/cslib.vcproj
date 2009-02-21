@@ -245,6 +245,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\opcodes.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\parser.in"
 				>
 				<FileConfiguration

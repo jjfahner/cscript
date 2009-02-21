@@ -23,6 +23,30 @@
 
 #include <typeinfo>
 
+/*static*/ String 
+Value::TypeToString(Types type)
+{
+  switch(type)
+  {
+  case Value::tNull:    return "null";
+  case Value::tBool:    return "bool";
+  case Value::tInt:     return "int";
+  case Value::tString:  return "string";
+  case Value::tObject:  return "object";
+  }
+  throw std::runtime_error("Invalid type");
+}
+
+/*static*/ Value::Types 
+Value::StringToType(String type)
+{
+  if(!stricmp(type.c_str(), "bool"))    return Value::tBool;
+  if(!stricmp(type.c_str(), "int"))     return Value::tInt;
+  if(!stricmp(type.c_str(), "string"))  return Value::tString;
+  if(!stricmp(type.c_str(), "object"))  return Value::tObject;
+  throw std::runtime_error("Invalid type");
+}
+
 int 
 ValCmp(Value const& lhs, Value const& rhs)
 {

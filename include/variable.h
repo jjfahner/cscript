@@ -401,4 +401,10 @@ BoundValue::Create(RValue& value, Object* object)
   return new BoundRValue(value, object);
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Member variable
+//
+
+
 #endif // CSCRIPT_VARIABLE_H

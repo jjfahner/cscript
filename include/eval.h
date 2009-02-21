@@ -183,6 +183,7 @@ private:
   RValue& EvalFunctionMember(Object* node);
   RValue& EvalFunctionIndex(Object* node);
   RValue& EvalShellCommand(Object* node);
+  RValue& EvalTypeConversion(Object* node);
 
   //
   // Function handlers
@@ -195,7 +196,12 @@ private:
   //
   // Convert a value in-place
   //
-  void PerformConversion(Value& value, Value::Types newType);
+  void ConvertInPlace(Object* node, Value& value, Value::Types newType);
+
+  //
+  // Convert a value
+  //
+  Value Convert(Object* node, Value const& value, Value::Types newType);
 
   //
   // Evaluate argument list
