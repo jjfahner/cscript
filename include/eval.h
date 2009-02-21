@@ -178,6 +178,7 @@ private:
   RValue& EvalXmlExpression(Object* node);
   RValue& EvalFunctionMember(Object* node);
   RValue& EvalFunctionIndex(Object* node);
+  RValue& EvalShellCommand(Object* node);
 
   //
   // Function handlers
