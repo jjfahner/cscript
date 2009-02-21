@@ -32,7 +32,7 @@ NATIVE_CALL("eval(string code)")
 
 NATIVE_CALL("reset()")
 {
-  throw reset_exception();
+  throw ResetException();
 }
 
 NATIVE_CALL("collect()")

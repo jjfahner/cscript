@@ -399,12 +399,12 @@ Evaluator::Eval(String text, bool isFileName)
     }
   }
   // Return statement
-  catch(return_exception const& e)
+  catch(ReturnException const& e)
   {
     return e.m_value;
   }
   // Reset statement
-  catch(reset_exception const&)
+  catch(ResetException const&)
   {
     Reset();
   }
@@ -414,17 +414,17 @@ Evaluator::Eval(String text, bool isFileName)
     ReportError("Error: Uncaught exception '" + e.m_value.GetString() + "'", e.m_node);
   }
   // Invalid break statement
-  catch(break_exception const& e)
+  catch(BreakException const& e)
   {
     ReportError("Error: Invalid break statement", e.m_node);
   }
   // Invalid continue statement
-  catch(continue_exception const& e)
+  catch(ContinueException const& e)
   {
     ReportError("Error: Invalid continue statement", e.m_node);
   }
   // Unexpected exception in script
-  catch(script_exception const& e)
+  catch(ScriptException const& e)
   {
     ReportError(String("Runtime error: ") + e.what(), e.m_node);
   }
@@ -483,8 +483,8 @@ Evaluator::EvalStatement(Object* node)
   case return_statement:      EvalReturnStatement(node);    break;
   case switch_statement:      EvalSwitchStatement(node);    break;
 
-  case break_statement:       throw break_exception(node);
-  case continue_statement:    throw continue_exception(node);
+  case break_statement:       throw BreakException(node);
+  case continue_statement:    throw ContinueException(node);
   case throw_statement:       throw UserException(node, 
                                   EvalExpression(Ast_A1(node)));
 
@@ -509,7 +509,7 @@ Evaluator::EvalStatement(Object* node)
     }
     break;
 
-  default: throw script_exception(node, "Invalid node type");
+  default: throw ScriptException(node, "Invalid node type");
   }
 }
 
@@ -540,7 +540,7 @@ Evaluator::EvalExpression(Object* node)
   case function_member_expression:  return EvalFunctionMember(node);
   case function_index_expression:   return EvalFunctionIndex(node);
   }
-  throw script_exception(node, "Invalid expression type");
+  throw ScriptException(node, "Invalid expression type");
 }
 
 RValue&
@@ -562,7 +562,7 @@ Evaluator::EvalAssignment(Object* node)
   case op_assdiv: return lhs = ValDiv(lhs, rhs); 
   case op_assmod: return lhs = ValMod(lhs, rhs);
   }
-  throw script_exception(node, "Invalid assignment operator");
+  throw ScriptException(node, "Invalid assignment operator");
 }
 
 RValue&
@@ -592,7 +592,7 @@ Evaluator::EvalBinary(Object* node)
   case op_seq:    result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) == 0; break;
   case op_sne:    result = ValCmp(EvalExpression(Ast_A2(node)), EvalExpression(Ast_A3(node))) != 0; break;
 
-  default: throw script_exception(node, "Invalid binary operator");
+  default: throw ScriptException(node, "Invalid binary operator");
   }  
   
   return MakeTemp(result);
@@ -637,7 +637,7 @@ Evaluator::EvalPrefix(Object* node)
   case op_not:    
     return MakeTemp(ValNot(lhs));
   }
-  throw script_exception(node, "Invalid prefix operator");
+  throw ScriptException(node, "Invalid prefix operator");
 }
 
 RValue&
@@ -654,7 +654,7 @@ Evaluator::EvalPostfix(Object* node)
   {
   case op_postinc: lhs.SetValue(ValAdd(lhs, 1)); break;
   case op_postdec: lhs.SetValue(ValSub(lhs, 1)); break;
-  default: script_exception(node, "Invalid postfix operator");
+  default: ScriptException(node, "Invalid postfix operator");
   }
   
   // Done
@@ -675,7 +675,7 @@ Evaluator::EvalIndex(Object* node)
     // Fine
     break;
   default:  
-    throw script_exception(node, "Invalid type for index operator");
+    throw ScriptException(node, "Invalid type for index operator");
   }
 
   // Locate value
@@ -719,7 +719,7 @@ Evaluator::EvalUnqualifiedId(Object* node)
   {
     return owner ? StoreTemp(BoundValue::Create(*ptr, owner)) : *ptr;
   }
-  throw script_exception(node, "Undeclared variable '" + Ast_A1(node).GetString() + "'");
+  throw ScriptException(node, "Undeclared variable '" + Ast_A1(node).GetString() + "'");
 }
 
 NamespaceScope* 
@@ -762,7 +762,7 @@ Evaluator::EvalQualifiedId(Object* node)
     // Lookup name in scope
     if(!scope->ContainsKey(name))
     {
-      throw script_exception(node, "Namespace '" + scope->GetName() + 
+      throw ScriptException(node, "Namespace '" + scope->GetName() + 
         "' does not contain a member '" + name + "'");
     }
 
@@ -776,7 +776,7 @@ Evaluator::EvalQualifiedId(Object* node)
       scope = dynamic_cast<NamespaceScope*>(rval.GetObject());
       if(scope == 0)
       {
-        throw script_exception(node, "Expected namespace, found function or variable");
+        throw ScriptException(node, "Expected namespace, found function or variable");
       }
 
       // Descend into id
@@ -870,13 +870,13 @@ Evaluator::EvalFunctionMember(Object* node)
     s = s->GetParent();
   }
 
-  throw script_exception(node, "Invalid scope for function keyword");
+  throw ScriptException(node, "Invalid scope for function keyword");
 }
 
 RValue& 
 Evaluator::EvalFunctionIndex(Object* node)
 {
-  throw script_exception(node, "Fail");
+  throw ScriptException(node, "Fail");
 }
 
 void 
@@ -895,14 +895,14 @@ Evaluator::EvalFunctionCall(Object* node)
   // Check whether returned type is an object
   if(rval.Type() != Value::tObject)
   {
-    throw script_exception(node, "Function call on non-function object");
+    throw ScriptException(node, "Function call on non-function object");
   }
   
   // Cast result to function
   Function* fun = ValueToType<Function>(rval.GetObject());
   if(fun == 0)
   {
-    throw script_exception(node, "Function call on non-function object");
+    throw ScriptException(node, "Function call on non-function object");
   }
 
   // Add object context to arguments
@@ -943,7 +943,7 @@ Evaluator::EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* 
   {
     return MakeTemp(fun->Execute(this, args));
   }
-  catch(return_exception const& e)
+  catch(ReturnException const& e)
   {
     return MakeTemp(e.m_value);
   }
@@ -992,7 +992,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
     EvalStatement(Ast_A3(fun->GetNode()));
     return MakeTemp(Value());
   }
-  catch(return_exception const& e)
+  catch(ReturnException const& e)
   {
     return MakeTemp(e.m_value);
   }
@@ -1032,7 +1032,7 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist,
     // End of parameters
     if(pi == pe)
     {
-      throw script_exception(node, "Too many arguments in call to '" + fun->GetName() + "'");
+      throw ScriptException(node, "Too many arguments in call to '" + fun->GetName() + "'");
     }
 
     // Extract parameter
@@ -1067,7 +1067,7 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist,
       // Must have default value
       if(!Ast_A4(par))
       {
-        throw script_exception(node, "Not enough arguments in call to '" + fun->GetName() + "'");
+        throw ScriptException(node, "Not enough arguments in call to '" + fun->GetName() + "'");
       }
 
       // Evaluate default value
@@ -1154,7 +1154,7 @@ Evaluator::EvalNamedArguments(Object* node, Function* fun, Object* arglist, Argu
     else
     {
       // Missing argument
-      throw script_exception(node, "No value specified for parameter '" + parname + "'");
+      throw ScriptException(node, "No value specified for parameter '" + parname + "'");
     }
 
     // Assign by value/by ref
@@ -1230,7 +1230,7 @@ Evaluator::EvalJsonLiteral(Object* node)
       String key = Ast_A1(Ast_A1(child));
       if(o->ContainsKey(key))
       {
-        throw script_exception(node, "Duplicate key in JSON literal");
+        throw ScriptException(node, "Duplicate key in JSON literal");
       }
 
       // Evaluate element
@@ -1282,7 +1282,7 @@ Evaluator::EvalReturnStatement(Object* node)
   }
 
   // Throw return exception
-  throw return_exception(node, value);
+  throw ReturnException(node, value);
 }
 
 void 
@@ -1307,7 +1307,7 @@ Evaluator::EvalForStatement(Object* node)
     RValue const& cond = EvalExpression(Ast_A2(node));
     if(cond.Type() != Value::tBool)
     {
-      throw script_exception(Ast_A2(node), "Expression does not yield a boolean value");
+      throw ScriptException(Ast_A2(node), "Expression does not yield a boolean value");
     }
 
     // Check condition
@@ -1322,11 +1322,11 @@ Evaluator::EvalForStatement(Object* node)
       AutoScope scope(this, new Scope(m_scope));
       EvalStatement(Ast_A4(node));
     }
-    catch(break_exception const&)
+    catch(BreakException const&)
     {
       break;
     }
-    catch(continue_exception const&)
+    catch(ContinueException const&)
     {
     }
 
@@ -1358,7 +1358,7 @@ Evaluator::EvalForeachStatement(Object* node)
   Object* owner;
   if(!m_scope->Lookup(varName, rval, owner))
   {
-    throw script_exception(node, "Failed to find iterator variable");
+    throw ScriptException(node, "Failed to find iterator variable");
   }
 
   // Convert to lvalue
@@ -1371,7 +1371,7 @@ Evaluator::EvalForeachStatement(Object* node)
   Enumerator* enumerator = rhs.GetEnumerator();
   if(enumerator == 0)
   {
-    throw script_exception(node, "Invalid type specified in foreach");
+    throw ScriptException(node, "Invalid type specified in foreach");
   }
 
   // Add to local scope
@@ -1390,11 +1390,11 @@ Evaluator::EvalForeachStatement(Object* node)
       AutoScope scope(this, new Scope(m_scope));
       EvalStatement(Ast_A3(node));
     }
-    catch(break_exception const&)
+    catch(BreakException const&)
     {
       break;
     }
-    catch(continue_exception const&)
+    catch(ContinueException const&)
     {
     }
   }
@@ -1406,7 +1406,7 @@ Evaluator::EvalIfStatement(Object* node)
   RValue const& cond = EvalExpression(Ast_A1(node));
   if(cond.Type() != Value::tBool)
   {
-    throw script_exception(Ast_A1(node), "Expression does not yield a boolean value");
+    throw ScriptException(Ast_A1(node), "Expression does not yield a boolean value");
   }
 
   if(cond.GetBool())
@@ -1427,7 +1427,7 @@ Evaluator::EvalWhileStatement(Object* node)
     RValue const& cond = EvalExpression(Ast_A1(node));
     if(cond.Type() != Value::tBool)
     {
-      throw script_exception(Ast_A1(node), "Expression does not yield a boolean value");
+      throw ScriptException(Ast_A1(node), "Expression does not yield a boolean value");
     }
 
     if(!cond.GetBool())
@@ -1440,11 +1440,11 @@ Evaluator::EvalWhileStatement(Object* node)
       AutoScope scope(this, new Scope(m_scope));
       EvalStatement(Ast_A2(node));
     }
-    catch(break_exception const&)
+    catch(BreakException const&)
     {
       break;
     }
-    catch(continue_exception const&)
+    catch(ContinueException const&)
     {
     }
   }
@@ -1468,7 +1468,7 @@ Evaluator::EvalSwitchStatement(Object* node)
     {
       if(statement)
       {
-        throw script_exception(node, "More than one default case in switch statement");
+        throw ScriptException(node, "More than one default case in switch statement");
       }
       statement = Ast_A1(*it);
     }
@@ -1487,7 +1487,7 @@ Evaluator::EvalSwitchStatement(Object* node)
       AutoScope as(this, new Scope(m_scope));
       EvalStatement(statement);
     }
-    catch(break_exception const&)
+    catch(BreakException const&)
     {
     }
   }
@@ -1500,13 +1500,13 @@ Evaluator::EvalNewExpression(Object* node)
   RValue* rval;
   if(!m_scope->Lookup(Ast_A1(node), rval))
   {
-    throw script_exception(node, "Variable not found");
+    throw ScriptException(node, "Variable not found");
   }
 
   // Must be an object
   if(rval->Type() != Value::tObject)
   {
-    throw script_exception(node, "Cannot instantiate a non-object variable");
+    throw ScriptException(node, "Cannot instantiate a non-object variable");
   }
 
   // Create a clone
@@ -1560,7 +1560,7 @@ Evaluator::EvalThisExpression(Object* node)
     }
     scope = scope->GetParent();
   }
-  throw script_exception(node, "Invalid context for 'this'");
+  throw ScriptException(node, "Invalid context for 'this'");
 }
 
 void 
@@ -1789,7 +1789,7 @@ Evaluator::EvalXmlExpression(Object* node)
     case xml_close_tag:
       if(cur == 0)
       {
-        throw script_exception(node, "Invalid xml structure");
+        throw ScriptException(node, "Invalid xml structure");
       }
       cur = cur->RVal("parentNode").GetObject();
       break;
@@ -1810,14 +1810,14 @@ Evaluator::EvalXmlExpression(Object* node)
       break;
 
     default:
-      throw script_exception(node, "Unexpected xml node type");
+      throw ScriptException(node, "Unexpected xml node type");
     }
   }
 
   // Check whether we've gotten back to the document element
   if(cur != doc)
   {
-    throw script_exception(node, "Invalid xml structure");
+    throw ScriptException(node, "Invalid xml structure");
   }
 
   // TODO Set document element

@@ -37,7 +37,7 @@ class Arguments;
 class SourceFile;
 class NamespaceScope;
 
-struct script_exception;
+struct ScriptException;
 
 //
 // Evaluator
@@ -283,64 +283,6 @@ Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value cons
   return obj;
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Control flow exceptions
-//
-
-//
-// Base class for all script exceptions
-//
-struct script_exception : public std::runtime_error
-{
-  Object* m_node;
-  script_exception(Object* node, char const* message = "") : std::runtime_error(message), m_node (node) {}
-  script_exception(Object* node, String const& message) : std::runtime_error(message.c_str()), m_node (node) {}
-  ~script_exception() throw () {}
-};
-
-struct break_exception : public script_exception
-{
-  break_exception(Object* node) : script_exception (node) {}
-  ~break_exception() throw () {}
-};
-
-struct continue_exception : public script_exception
-{
-  continue_exception(Object* node) : script_exception (node) {}
-  ~continue_exception() throw () {}
-};
-
-struct reset_exception : public std::exception
-{
-  ~reset_exception() throw () {}
-};
-
-struct return_exception : public script_exception
-{
-  Value m_value;
-  return_exception(Object* node) : script_exception (node) {}
-  return_exception(Object* node, Value const& value) : script_exception (node), m_value (value) {}
-  ~return_exception() throw() {}
-};
-
-struct CatchableException : public script_exception
-{
-  Value m_value;
-  CatchableException(Object* node) : script_exception (node) {}
-  CatchableException(Object* node, Value const& value) : script_exception (node), m_value (value) {}
-  ~CatchableException() throw() {}
-};
-
-struct UserException : public CatchableException
-{
-  UserException(Object* node) : CatchableException (node) {}
-  UserException(Object* node, Value const& value) : CatchableException (node, value) {}
-  ~UserException() throw() {}
-};
-
-//////////////////////////////////////////////////////////////////////////
-
 inline RValue& 
 Evaluator::MakeTemp(Value const& value)
 {
@@ -354,5 +296,61 @@ Evaluator::StoreTemp(RValue* rval)
   m_temporaries.push_back(rval);
   return *rval;
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Control flow exceptions
+//
+
+//
+// Base class for all script exceptions
+//
+struct ScriptException : public std::runtime_error
+{
+  Object* m_node;
+  ScriptException(Object* node, char const* message = "") : std::runtime_error(message), m_node (node) {}
+  ScriptException(Object* node, String const& message) : std::runtime_error(message.c_str()), m_node (node) {}
+  ~ScriptException() throw () {}
+};
+
+struct BreakException : public ScriptException
+{
+  BreakException(Object* node) : ScriptException (node) {}
+  ~BreakException() throw () {}
+};
+
+struct ContinueException : public ScriptException
+{
+  ContinueException(Object* node) : ScriptException (node) {}
+  ~ContinueException() throw () {}
+};
+
+struct ResetException : public std::exception
+{
+  ~ResetException() throw () {}
+};
+
+struct ReturnException : public ScriptException
+{
+  Value m_value;
+  ReturnException(Object* node) : ScriptException (node) {}
+  ReturnException(Object* node, Value const& value) : ScriptException (node), m_value (value) {}
+  ~ReturnException() throw() {}
+};
+
+struct CatchableException : public ScriptException
+{
+  Value m_value;
+  CatchableException(Object* node) : ScriptException (node) {}
+  CatchableException(Object* node, Value const& value) : ScriptException (node), m_value (value) {}
+  ~CatchableException() throw() {}
+};
+
+struct UserException : public CatchableException
+{
+  UserException(Object* node) : CatchableException (node) {}
+  UserException(Object* node, Value const& value) : CatchableException (node, value) {}
+  ~UserException() throw() {}
+};
 
 #endif // CSCRIPT_EVAL_H
