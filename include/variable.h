@@ -266,40 +266,6 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-class Temporary : public RValue 
-{
-  Value m_value;
-
-public:
-
-  Temporary()
-  {
-  }
-
-  Temporary(Temporary const& rhs) :
-  m_value (rhs.m_value)
-  {
-  }
-
-  Temporary(Value const& value) :
-  m_value (value)
-  {
-  }
-
-  virtual RValue* Clone() const
-  {
-    return new Temporary(m_value);
-  }
-
-  Value const& GetValue() const
-  {
-    return m_value;
-  }
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
 class BoundValue
 {
 protected:
