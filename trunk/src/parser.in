@@ -188,6 +188,7 @@ primary_expression(R) ::= json_literal(A) .             { R = A; }
 primary_expression(R) ::= THIS .                        { R = p->AllocNode(this_expression); }
 primary_expression(R) ::= closure_declaration(A) .      { R = A; }
 primary_expression(R) ::= shell_command(A) .            { R = A; }
+primary_expression(R) ::= type_conversion(A) .          { R = A; }
 
 // Literals
 literal(R) ::= LIT_INTEGER(A) . { R = p->AllocNode(literal_value, Value(str2dec(String(A).c_str()))); }
@@ -240,6 +241,9 @@ new_expression(R) ::= NEW IDENTIFIER(A) LPAREN argument_list(B) RPAREN . {
 
 // Shell commands
 shell_command(R) ::= SHELLCMD(A) . { String cmd(A); R = p->AllocNode(shell_command, cmd.substr(1, cmd.length() - 2)); }
+
+// Type conversions
+type_conversion(R) ::= type(A) LPAREN expression(B) RPAREN . { R = p->AllocNode(type_conversion, A, B); }
 
 //////////////////////////////////////////////////////////////////////////
 //

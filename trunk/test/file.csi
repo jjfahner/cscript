@@ -32,7 +32,7 @@ var File =
   {
     Close();
     var f = fopen(filename, mode);
-    if(f === false)
+    if(f == null)
     {
       return false;
     }

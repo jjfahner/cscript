@@ -55,4 +55,6 @@ enum opcodes
   op_assmod,
 };
 
+String OpcodeToString(opcodes opcode);
+
 #endif // CSCRIPT_OPCODES_H

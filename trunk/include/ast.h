@@ -74,6 +74,7 @@ enum AstTypes
   default_case,
   new_expression,
   this_expression,
+  type_conversion,
   extern_declaration,
   extern_parameter,
   type_specifier,
