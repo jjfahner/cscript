@@ -58,21 +58,9 @@ public:
   Evaluator();
 
   //
-  // Retrieve current lexer
-  //
-  Lexer* GetLexer() const {
-    return m_lexer;
-  }
-
-  //
   // Evaluation of string/file
   //
   Value Eval(String code, bool isFileName = false);
-
-  //
-  // Evaluation of ast tree
-  //
-  void Eval(Object* astRoot);
 
   //
   // Reset the evaluator
@@ -80,14 +68,33 @@ public:
   void Reset();
 
   //
-  // Parse a string
+  // Run garbage collector
   //
-  void ParseText(char const* text);
+  void Collect();
+
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Public to allow access from parser
+  //
 
   //
-  // Parse a file
+  // Evaluation of ast tree
   //
-  void ParseFile(String const& filename);
+  void Eval(Object* astRoot);
+
+  //
+  // Set native call
+  //
+  void SetNativeCall(Object* node) {
+    m_native = node;
+  }
+
+  //
+  // Retrieve lexer
+  //
+  Lexer* GetLexer() const {
+    return m_lexer;
+  }
 
   //
   // Parse native call
@@ -109,22 +116,17 @@ public:
   void OnParseFailure();
   void OnSyntaxError();
 
-  //
-  // Run garbage collector
-  //
-  void Collect();
-
-  //
-  // Public members
-  //
-  // TODO move to protected
-  //
-  Reporter    m_reporter;
-  SourceFile* m_file;
-  Lexer*      m_lexer;
-  Object*     m_native;
-
 private:
+
+  //
+  // Parse a string
+  //
+  void ParseText(char const* text);
+
+  //
+  // Parse a file
+  //
+  void ParseFile(String const& filename);
 
   //
   // Error reporting
@@ -221,22 +223,20 @@ private:
   //
   bool OpenFile(String const& path, SourceFile& file);
 
-  //
-  // Scopes
-  //
-  NamespaceScope* m_global;
-  Scope* m_scope;
-
-  //
-  // Allocations
-  //
-  size_t        m_allocs;
-
-  //
-  // Temporaries
-  //
   typedef std::vector<RValue*> TempVec;
-  TempVec m_temporaries;
+
+  //
+  // Members
+  //
+  SourceFile*     m_file;
+  Lexer*          m_lexer;
+  Object*         m_native;
+  NamespaceScope* m_global;
+  Scope*          m_scope;
+  size_t          m_allocs;
+  TempVec         m_temporaries;
+  Reporter        m_reporter;
+
 
 };
 

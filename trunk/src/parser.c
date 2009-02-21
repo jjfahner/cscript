@@ -2217,7 +2217,7 @@ static void yy_reduce(
         break;
       case 142:
 #line 335 "..\\..\\src\\parser.in"
-{ p->m_native = p->AllocNode(function_declaration, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy118); }
+{ p->SetNativeCall(p->AllocNode(function_declaration, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy118)); }
 #line 2223 "..\\..\\src\\parser.c"
         break;
       case 143:

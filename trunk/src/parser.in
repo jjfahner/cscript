@@ -332,7 +332,7 @@ declaration_sequence(R) ::= declaration_sequence(A) declaration_statement(B) .  
 //
 
 // Native declaration
-native_declaration ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { p->m_native = p->AllocNode(function_declaration, String(A), B); }
+native_declaration ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { p->SetNativeCall(p->AllocNode(function_declaration, String(A), B)); }
 
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocNode(function_declaration, String(A),  B, C); }
