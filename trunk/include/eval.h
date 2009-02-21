@@ -286,7 +286,7 @@ Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value cons
 inline RValue& 
 Evaluator::MakeTemp(Value const& value)
 {
-  Temporary* temp = new Temporary(value);
+  RValue* temp = new ROVariable(value);
   return StoreTemp(temp);
 }
 
