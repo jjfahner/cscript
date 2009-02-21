@@ -69,7 +69,9 @@ public:
   //
   Value Eval(String code, bool isFileName = false);
 
+  //
   // Evaluation of ast tree
+  //
   void Eval(Object* astRoot);
 
   //
@@ -95,11 +97,11 @@ public:
   //
   // Allocate node
   //
-  Object* AllocNode(AstTypes type, 
-    Value const& a1 = Value(), 
-    Value const& a2 = Value(), 
-    Value const& a3 = Value(), 
-    Value const& a4 = Value());
+  Object* AllocNode(AstTypes type);
+  Object* AllocNode(AstTypes type, Value const& a1);
+  Object* AllocNode(AstTypes type, Value const& a1, Value const& a2);
+  Object* AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3);
+  Object* AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4);
 
   //
   // Error handlers
@@ -237,6 +239,49 @@ private:
   TempVec m_temporaries;
 
 };
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Node allocation
+//
+
+inline Object* 
+Evaluator::AllocNode(AstTypes type, Value const& a1)
+{
+  Object* obj = AllocNode(type);
+  (*obj)["a1"] = a1;
+  return obj;
+}
+
+inline Object* 
+Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2)
+{
+  Object* obj = AllocNode(type);
+  (*obj)["a1"] = a1;
+  (*obj)["a2"] = a2;
+  return obj;
+}
+
+inline Object* 
+Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3)
+{
+  Object* obj = AllocNode(type);
+  (*obj)["a1"] = a1;
+  (*obj)["a2"] = a2;
+  (*obj)["a3"] = a3;
+  return obj;
+}
+
+inline Object* 
+Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4)
+{
+  Object* obj = AllocNode(type);
+  (*obj)["a1"] = a1;
+  (*obj)["a2"] = a2;
+  (*obj)["a3"] = a3;
+  (*obj)["a4"] = a4;
+  return obj;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
