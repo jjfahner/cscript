@@ -134,7 +134,7 @@ m_file    (0),
 m_allocs  (0)
 {
   // Create global scope
-  m_global = new NamespaceScope(GetGlobalScope(), "__global_scope");
+  m_global = new NamespaceScope(GetGlobalScope(), "");
 
   // Native calls
   static bool nativeCallsRegistered = false;
@@ -153,7 +153,7 @@ void
 Evaluator::Reset()
 {
   // Create a new global scope
-  m_global = new NamespaceScope(GetGlobalScope(), "__global_scope");
+  m_global = new NamespaceScope(GetGlobalScope(), "");
 
   // Collect all remaining objects
   Collect();
@@ -542,6 +542,7 @@ Evaluator::EvalExpression(Object* node)
   case member_expression:     return EvalMemberExpression(node);  
   case closure_declaration:   return EvalClosure(node);
   case xml_expression:        return EvalXmlExpression(node);
+  case shell_command:         return EvalShellCommand(node);
   case function_member_expression:  return EvalFunctionMember(node);
   case function_index_expression:   return EvalFunctionIndex(node);
   }
@@ -1257,6 +1258,19 @@ Evaluator::EvalJsonLiteral(Object* node)
 
   // Done
   return MakeTemp(v);
+}
+
+RValue& 
+Evaluator::EvalShellCommand(Object* node)
+{
+  // Extract command
+  String command = Ast_A1(node).GetString();
+
+  // Execute the command
+  Value r = system(command.c_str());
+
+  // Done
+  return MakeTemp(r);
 }
 
 void 

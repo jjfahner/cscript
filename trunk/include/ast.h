@@ -41,6 +41,7 @@ enum AstTypes
   index_expression,
   function_call,
   literal_value,
+  shell_command,
   unqualified_id,
   qualified_id_g,
   qualified_id_l,
