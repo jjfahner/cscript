@@ -41,7 +41,7 @@ public:
 
   typedef bool          Bool;
   typedef int64         Int;
-  typedef String        String;
+  typedef std::string        String;
 
   static String TypeToString(Types);
   static Types StringToType(String);
@@ -257,7 +257,7 @@ inline T* ValueToType(Value const& v)
 
 Value::Bool ValBool(Value const& val);
 Value::Int ValInt(Value const& val);
-Value::String ValString(Value const& val);
+String ValString(Value const& val);
 
 Value ValNeg(Value const& lhs);
 Value ValNot(Value const& lhs);

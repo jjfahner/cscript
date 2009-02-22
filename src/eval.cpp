@@ -1327,11 +1327,11 @@ Evaluator::EvalJsonLiteral(Object* node)
       String key;
       if(Ast_A1(Ast_A1(child)).Type() == Value::tString)
       {
-        key = Ast_A1(Ast_A1(child));
+        key = Ast_A1(Ast_A1(child)).GetString();
       }
       else
       {
-        key = EvalExpression(Ast_A1(Ast_A1(child)));
+        key = EvalExpression(Ast_A1(Ast_A1(child))).GetString();
       }
 
       // Check for duplicate key

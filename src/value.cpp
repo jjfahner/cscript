@@ -23,7 +23,7 @@
 
 #include <typeinfo>
 
-/*static*/ String 
+/*static*/ Value::String 
 Value::TypeToString(Types type)
 {
   switch(type)
@@ -40,10 +40,10 @@ Value::TypeToString(Types type)
 /*static*/ Value::Types 
 Value::StringToType(String type)
 {
-  if(!stricmp(type.c_str(), "bool"))    return Value::tBool;
-  if(!stricmp(type.c_str(), "int"))     return Value::tInt;
-  if(!stricmp(type.c_str(), "string"))  return Value::tString;
-  if(!stricmp(type.c_str(), "object"))  return Value::tObject;
+  if(!strcmp_nocase(type.c_str(), "bool"))    return Value::tBool;
+  if(!strcmp_nocase(type.c_str(), "int"))     return Value::tInt;
+  if(!strcmp_nocase(type.c_str(), "string"))  return Value::tString;
+  if(!strcmp_nocase(type.c_str(), "object"))  return Value::tObject;
   throw std::runtime_error("Invalid type");
 }
 
