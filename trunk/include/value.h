@@ -23,7 +23,6 @@
 
 #include "cscript.h"
 
-enum AstTypes;
 class Object;
 
 class Value
@@ -224,10 +223,6 @@ private:
   Types     m_type;
   union 
   {
-    // For debugging purposes; never used
-    AstTypes  m_astType;
-
-    // Actual types
     String*   m_string;
     Int       m_int;
     Bool      m_bool;
