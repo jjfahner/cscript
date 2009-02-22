@@ -65,7 +65,7 @@
 %left BITAND .
 %left SEQ SNE .
 %left EQUALS NEQUALS .
-%left ST SE GT GE .
+%left LT LE GT GE .
 %left ADDOP SUBOP .
 %left MULOP DIVOP MODOP .
 %right ASSIGN ASSADD ASSSUB ASSMUL ASSDIV ASSMOD .
@@ -148,8 +148,8 @@ binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R 
 binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = p->AllocNode(binary_expression, op_bitand,  A, B); }
 binary_expression(R) ::= binary_expression(A) EQUALS  binary_expression(B). { R = p->AllocNode(binary_expression, op_eq,   A, B); }
 binary_expression(R) ::= binary_expression(A) NEQUALS binary_expression(B). { R = p->AllocNode(binary_expression, op_ne,   A, B); }
-binary_expression(R) ::= binary_expression(A) ST      binary_expression(B). { R = p->AllocNode(binary_expression, op_lt,   A, B); }
-binary_expression(R) ::= binary_expression(A) SE      binary_expression(B). { R = p->AllocNode(binary_expression, op_le,   A, B); }
+binary_expression(R) ::= binary_expression(A) LT      binary_expression(B). { R = p->AllocNode(binary_expression, op_lt,   A, B); }
+binary_expression(R) ::= binary_expression(A) LE      binary_expression(B). { R = p->AllocNode(binary_expression, op_le,   A, B); }
 binary_expression(R) ::= binary_expression(A) GT      binary_expression(B). { R = p->AllocNode(binary_expression, op_gt,   A, B); }
 binary_expression(R) ::= binary_expression(A) GE      binary_expression(B). { R = p->AllocNode(binary_expression, op_ge,   A, B); }
 binary_expression(R) ::= binary_expression(A) ADDOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_add,  A, B); }
@@ -216,19 +216,23 @@ nested_name_specifier(R) ::= NS_SEP IDENTIFIER(A) . { R = p->AllocNode(qualified
 nested_name_specifier(R) ::= NS_SEP IDENTIFIER(A) nested_name_specifier(B) . { R = p->AllocNode(qualified_id_g, String(A), B); }
 
 // List definition
-list_literal(R) ::= LBRACKET list_content(A) RBRACKET . { R = p->AllocNode(list_literal, A); }
-list_literal(R) ::= LBRACKET RBRACKET . { R = p->AllocNode(list_literal); }
-list_content(R) ::= list_entry(A) . { R = p->AllocNode(list_content, A); }
-list_content(R) ::= list_entry(A) COMMA list_content(B) . { R = p->AllocNode(list_content, A, B); }
-list_entry(R)   ::= expression(A) . { R = p->AllocNode(list_entry, A); }
-list_entry(R)   ::= expression(A) COLON expression(B) . { R = p->AllocNode(list_entry, B, A); }
+list_literal(R) ::= LBRACKET list_content(A) RBRACKET .       { R = p->AllocNode(list_literal, A); }
+list_literal(R) ::= LBRACKET RBRACKET .                       { R = p->AllocNode(list_literal); }
+list_content(R) ::= list_entry(A) .                           { R = p->AllocNode(list_content, A); }
+list_content(R) ::= list_entry(A)    COMMA list_content(B) .  { R = p->AllocNode(list_content, A, B); }
+list_entry(R)   ::= expression(A) .                           { R = p->AllocNode(list_entry, A); }
+list_entry(R)   ::= expression(A)    COLON expression(B) .    { R = p->AllocNode(list_entry, B, A); }
+list_entry(R)   ::= operator_decl(A) COLON expression(B) .    { R = p->AllocNode(list_entry, B, A); }
 
 // JSON definition
 json_literal(R) ::= LBRACE json_content(A) RBRACE . { R = p->AllocNode(json_literal, A); }
 //json_literal(R) ::= LBRACE RBRACE . { R = p->AllocNode(json_literal); }
+
 json_content(R) ::= json_entry(A) . { R = p->AllocNode(json_content, A); }
 json_content(R) ::= json_entry(A) COMMA json_content(B) . { R = p->AllocNode(json_content, A, B); }
-json_entry(R)   ::= IDENTIFIER(A) COLON expression(B) .   { R = p->AllocNode(json_entry, String(A), B); }
+
+json_entry(R)   ::= IDENTIFIER(A)     COLON expression(B) .   { R = p->AllocNode(json_entry, String(A), B); }
+json_entry(R)   ::= operator_decl(A)  COLON expression(B) .   { R = p->AllocNode(json_entry, A, B); }
 
 // New expression
 new_expression(R) ::= NEW IDENTIFIER(A) . { 
@@ -375,6 +379,33 @@ opt_parameters(R) ::= opt_parameters(A) COMMA opt_parameter(B) . { R = A; A->Add
 // there's no actual need for that.
 function_body(R) ::= statement(A) . { R = A; }
 
+// Operator declarations
+operator_decl(R) ::= OPERATOR LOGOR(A) .   { R = p->AllocNode(operator_declaration, op_logor, String(A)); }
+operator_decl(R) ::= OPERATOR LOGAND(A) .  { R = p->AllocNode(operator_declaration, op_logand, String(A)); }
+operator_decl(R) ::= OPERATOR BITOR(A) .   { R = p->AllocNode(operator_declaration, op_bitor, String(A)); }
+operator_decl(R) ::= OPERATOR BITXOR(A) .  { R = p->AllocNode(operator_declaration, op_bitxor, String(A)); }
+operator_decl(R) ::= OPERATOR BITAND(A) .  { R = p->AllocNode(operator_declaration, op_bitand, String(A)); }
+operator_decl(R) ::= OPERATOR SEQ(A) .     { R = p->AllocNode(operator_declaration, op_seq, String(A)); }
+operator_decl(R) ::= OPERATOR SNE(A) .     { R = p->AllocNode(operator_declaration, op_sne, String(A)); }
+operator_decl(R) ::= OPERATOR EQUALS(A) .  { R = p->AllocNode(operator_declaration, op_eq, String(A)); }
+operator_decl(R) ::= OPERATOR NEQUALS(A) . { R = p->AllocNode(operator_declaration, op_ne, String(A)); }
+operator_decl(R) ::= OPERATOR LT(A) .      { R = p->AllocNode(operator_declaration, op_lt, String(A)); }
+operator_decl(R) ::= OPERATOR LE(A) .      { R = p->AllocNode(operator_declaration, op_le, String(A)); }
+operator_decl(R) ::= OPERATOR GT(A) .      { R = p->AllocNode(operator_declaration, op_gt, String(A)); }
+operator_decl(R) ::= OPERATOR GE(A) .      { R = p->AllocNode(operator_declaration, op_ge, String(A)); }
+operator_decl(R) ::= OPERATOR ADDOP(A) .   { R = p->AllocNode(operator_declaration, op_add, String(A)); }
+operator_decl(R) ::= OPERATOR SUBOP(A) .   { R = p->AllocNode(operator_declaration, op_sub, String(A)); }
+operator_decl(R) ::= OPERATOR MULOP(A) .   { R = p->AllocNode(operator_declaration, op_mul, String(A)); }
+operator_decl(R) ::= OPERATOR DIVOP(A) .   { R = p->AllocNode(operator_declaration, op_div, String(A)); }
+operator_decl(R) ::= OPERATOR MODOP(A) .   { R = p->AllocNode(operator_declaration, op_mod, String(A)); }
+operator_decl(R) ::= OPERATOR ASSIGN(A) .  { R = p->AllocNode(operator_declaration, op_assign, String(A)); }
+operator_decl(R) ::= OPERATOR ASSADD(A) .  { R = p->AllocNode(operator_declaration, op_assadd, String(A)); }
+operator_decl(R) ::= OPERATOR ASSSUB(A) .  { R = p->AllocNode(operator_declaration, op_asssub, String(A)); }
+operator_decl(R) ::= OPERATOR ASSMUL(A) .  { R = p->AllocNode(operator_declaration, op_assmul, String(A)); }
+operator_decl(R) ::= OPERATOR ASSDIV(A) .  { R = p->AllocNode(operator_declaration, op_assdiv, String(A)); }
+operator_decl(R) ::= OPERATOR ASSMOD(A) .  { R = p->AllocNode(operator_declaration, op_assmod, String(A)); }
+operator_decl(R) ::= OPERATOR type(A) .    { R = p->AllocNode(operator_declaration, A); }
+
 //////////////////////////////////////////////////////////////////////////
 //
 // External function declaration
@@ -476,7 +507,7 @@ xml_elements(R) ::= xml_element(A) .                  { R = p->AllocNode(xml_ele
 xml_elements(R) ::= xml_elements(A) xml_element(B) .  { R = A; Ast_A1(R)->Add(B); }
 
 // Start of tag required to toggle parse mode in lexer
-xml_start_tag ::= ST . { p->GetLexer()->ToggleXml(true); }
+xml_start_tag ::= LT . { p->GetLexer()->ToggleXml(true); }
 
 // Tags
 xml_element(R) ::= XMLPRO IDENTIFIER(A) xml_attribute_list(B) XMLPRC .    { R = p->AllocNode(xml_processing_instruction, String(A), B); } 

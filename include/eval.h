@@ -184,6 +184,7 @@ private:
   RValue& EvalFunctionIndex(Object* node);
   RValue& EvalShellCommand(Object* node);
   RValue& EvalTypeConversion(Object* node);
+  RValue& EvalOperatorDeclaration(Object* node);
 
   //
   // Function handlers

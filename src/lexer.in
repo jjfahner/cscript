@@ -67,6 +67,7 @@ int parseNextToken(Char*& start, Char*& end)
   "namespace"               { return TOK_NAMESPACE; }
   "new"                     { return TOK_NEW; }
   "null"                    { return TOK_NULL; }
+  "operator"                { return TOK_OPERATOR; }
   "return"                  { return TOK_RETURN; }
   "string"                  { return TOK_STRING; }
   "switch"                  { return TOK_SWITCH; }
@@ -99,7 +100,7 @@ int parseNextToken(Char*& start, Char*& end)
   "!=="   { return TOK_SNE; }
   "=="    { return TOK_EQUALS; }
   "!="    { return TOK_NEQUALS; }
-  "<="    { return TOK_SE; }
+  "<="    { return TOK_LE; }
   ">="    { return TOK_GE; }
   "++"    { return TOK_ADDADD; }
   "--"    { return TOK_SUBSUB; }
@@ -121,7 +122,7 @@ int parseNextToken(Char*& start, Char*& end)
   "|"     { return TOK_BITOR; }
   "^"     { return TOK_BITXOR; }
   "&"     { return TOK_BITAND; }
-  "<"     { return TOK_ST; }
+  "<"     { return TOK_LT; }
   ">"     { return TOK_GT; }
   "+"     { return TOK_ADDOP; }
   "-"     { return TOK_SUBOP; }
