@@ -51,12 +51,25 @@ var Integer = {
   // Implicit conversion to string
   operator string : function() {
     return string(m_value);
+  },
+
+  // Function call operator
+  operator () : function(int a, int b) {
+    return a * b * m_value;
   }
 
 };
 
 var a = new Integer;
-a += a += 3;
+
+// Test addition and substraction
 a = a + 2 - 1;
-a = a + a;
-print(string(a));
+
+// Test assignment operators
+a += a += 3;
+
+// Invoke string conversion
+print(string(a) + "\n");
+
+// Invoke function call operator
+print(string(a(3,4)) + "\n");

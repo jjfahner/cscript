@@ -56,6 +56,7 @@ OpcodeToString(opcodes opcode)
   case op_assmul: return "*=";
   case op_assdiv: return "/=";
   case op_assmod: return "%=";
+  case op_function: return "()";
   default: throw std::runtime_error("Invalid operator");
   }
 }
