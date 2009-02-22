@@ -268,8 +268,8 @@ function main()
   assert("Variable initialization", b, 12);
 
   // Conditional operator
-  assert("Conditional", true  ? 1 : 2, 1);  
-  assert("Conditional", false ? 1 : 2, 2);
+  //assert("Conditional", true  ? 1 : 2, 1);  
+  //assert("Conditional", false ? 1 : 2, 2);
 
   // Associative arrays
   assert("Array", [1,2][0], 1);

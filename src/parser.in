@@ -124,7 +124,11 @@ expression_opt(R) ::= expression(A) . { R = A; }
 
 // Assignment
 assignment_expression(R) ::= conditional_expression(A) . { R = A; }
-assignment_expression(R) ::= binary_expression(A) assignment_operator(T) assignment_expression(B) . { R = p->AllocNode(assignment_expression, T, A, B); }
+assignment_expression(R) ::= binary_expression(A) assignment_operator(T) assignment_expression(B) . { 
+  Object* o = p->AllocNode(positional_arguments, new Object());
+  Ast_A1(o)->Add(B);
+  R = p->AllocNode(assignment_expression, T, A, o); 
+}
 
 // Assignment operator
 %type assignment_operator { opcodes }
@@ -137,7 +141,7 @@ assignment_operator(R) ::= ASSMOD . { R = op_assmod; }
 
 // Conditional
 conditional_expression(R) ::= binary_expression(A) . { R = A; }
-conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON assignment_expression(C) . { R = p->AllocNode(ternary_expression, A, B, C); }
+//conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON assignment_expression(C) . { R = p->AllocNode(ternary_expression, A, B, C); }
 
 // Binary expressions
 binary_expression(R) ::= unary_expression(A) . { R = A; }
@@ -183,23 +187,23 @@ postfix_expression(R) ::= FUNCTION LBRACKET expression(A) RBRACKET .			        {
 primary_expression(R) ::= literal(A) .                  { R = A; }
 primary_expression(R) ::= id_expression(A) .            { R = A; }
 primary_expression(R) ::= LPAREN expression(A) RPAREN . { R = A; }
-primary_expression(R) ::= list_literal(A) .             { R = A; }
-primary_expression(R) ::= json_literal(A) .             { R = A; }
 primary_expression(R) ::= THIS .                        { R = p->AllocNode(this_expression); }
 primary_expression(R) ::= closure_declaration(A) .      { R = A; }
 primary_expression(R) ::= shell_command(A) .            { R = A; }
 primary_expression(R) ::= type_conversion(A) .          { R = A; }
 
 // Literals
-literal(R) ::= LIT_INTEGER(A) . { R = p->AllocNode(literal_value, Value(str2dec(String(A).c_str()))); }
-literal(R) ::= LIT_HEX(A) .     { R = p->AllocNode(literal_value, Value(hex2dec(String(A).c_str()))); }
-literal(R) ::= LIT_BIN(A) .     { R = p->AllocNode(literal_value, Value(bin2dec(String(A).c_str()))); }
-literal(R) ::= LIT_ROM(A) .     { R = p->AllocNode(literal_value, Value(rom2dec(String(A).c_str()))); }
-literal(R) ::= LIT_REAL(A) .    { R = p->AllocNode(literal_value, Value(str2flt(String(A).c_str()))); } 
-literal(R) ::= LIT_STRING(A) .  { R = p->AllocNode(literal_value, Value(String(A))); }
-literal(R) ::= TRUE .           { R = p->AllocNode(literal_value, Value(true));    }
-literal(R) ::= FALSE .          { R = p->AllocNode(literal_value, Value(false));   }
-literal(R) ::= NULL .           { R = p->AllocNode(literal_value, Value());        }
+literal(R) ::= LIT_INTEGER(A) .   { R = p->AllocNode(literal_value, Value(str2dec(String(A).c_str()))); }
+literal(R) ::= LIT_HEX(A) .       { R = p->AllocNode(literal_value, Value(hex2dec(String(A).c_str()))); }
+literal(R) ::= LIT_BIN(A) .       { R = p->AllocNode(literal_value, Value(bin2dec(String(A).c_str()))); }
+literal(R) ::= LIT_ROM(A) .       { R = p->AllocNode(literal_value, Value(rom2dec(String(A).c_str()))); }
+literal(R) ::= LIT_REAL(A) .      { R = p->AllocNode(literal_value, Value(str2flt(String(A).c_str()))); } 
+literal(R) ::= LIT_STRING(A) .    { R = p->AllocNode(literal_value, Value(String(A))); }
+literal(R) ::= TRUE .             { R = p->AllocNode(literal_value, Value(true));    }
+literal(R) ::= FALSE .            { R = p->AllocNode(literal_value, Value(false));   }
+literal(R) ::= NULL .             { R = p->AllocNode(literal_value, Value());        }
+literal(R) ::= list_literal(A) .  { R = A; }
+literal(R) ::= json_literal(A) .  { R = A; }
 
 // Id expression
 id_expression(R) ::= unqualified_id(A) . { R = A; }
@@ -215,22 +219,25 @@ qualified_id(R) ::= IDENTIFIER(A) nested_name_specifier(B) . { R = p->AllocNode(
 nested_name_specifier(R) ::= NS_SEP IDENTIFIER(A) . { R = p->AllocNode(qualified_id_g, String(A)); }
 nested_name_specifier(R) ::= NS_SEP IDENTIFIER(A) nested_name_specifier(B) . { R = p->AllocNode(qualified_id_g, String(A), B); }
 
-// List definition
+// List literal
 list_literal(R) ::= LBRACKET list_content(A) RBRACKET .       { R = p->AllocNode(list_literal, A); }
 list_literal(R) ::= LBRACKET RBRACKET .                       { R = p->AllocNode(list_literal); }
+
 list_content(R) ::= list_entry(A) .                           { R = p->AllocNode(list_content, A); }
-list_content(R) ::= list_entry(A)    COMMA list_content(B) .  { R = p->AllocNode(list_content, A, B); }
+list_content(R) ::= list_entry(A) COMMA list_content(B) .     { R = p->AllocNode(list_content, A, B); }
+
 list_entry(R)   ::= expression(A) .                           { R = p->AllocNode(list_entry, A); }
 list_entry(R)   ::= expression(A)    COLON expression(B) .    { R = p->AllocNode(list_entry, B, A); }
 list_entry(R)   ::= operator_decl(A) COLON expression(B) .    { R = p->AllocNode(list_entry, B, A); }
 
-// JSON definition
+// JSON literal
 json_literal(R) ::= LBRACE json_content(A) RBRACE . { R = p->AllocNode(json_literal, A); }
-//json_literal(R) ::= LBRACE RBRACE . { R = p->AllocNode(json_literal); }
+
 json_content(R) ::= json_entry(A) . { R = p->AllocNode(json_content, A); }
 json_content(R) ::= json_entry(A) COMMA json_content(B) . { R = p->AllocNode(json_content, A, B); }
-json_entry(R)   ::= IDENTIFIER(A)     COLON expression(B) .   { R = p->AllocNode(json_entry, String(A), B); }
-json_entry(R)   ::= operator_decl(A)  COLON expression(B) .   { R = p->AllocNode(json_entry, A, B); }
+
+json_entry(R)   ::= IDENTIFIER(A)     COLON expression(B) .  { R = p->AllocNode(json_entry, String(A), B); }
+json_entry(R)   ::= operator_decl(A)  COLON expression(B) .  { R = p->AllocNode(json_entry, A, B); }
 
 // New expression
 new_expression(R) ::= NEW IDENTIFIER(A) . { 
