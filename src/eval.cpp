@@ -975,16 +975,28 @@ RValue&
 Evaluator::EvalFunctionCall(Object* node)
 {
   // Evaluate left-hand side
-  RValue& rval = EvalExpression(Ast_A1(node));
+  RValue& lhs = EvalExpression(Ast_A1(node));
   
   // Check whether returned type is an object
-  if(rval.Type() != Value::tObject)
+  if(lhs.Type() != Value::tObject)
   {
     throw ScriptException(node, "Function call on non-function object");
   }
+
+  // See whether the object overloads the function call operator
+  String opfun = "operator()";
+  if(lhs->ContainsKey(opfun))
+  {
+    // Retrieve function
+    Object* funObj = lhs->RVal(opfun).GetObject();
+    ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
+
+    // Invoke as function call
+    return EvalFunctionCall(node, fun, lhs.GetObject(), Ast_A2(node));
+  }
   
   // Cast result to function
-  Function* fun = ValueToType<Function>(rval.GetObject());
+  Function* fun = ValueToType<Function>(lhs.GetObject());
   if(fun == 0)
   {
     throw ScriptException(node, "Function call on non-function object");
@@ -992,7 +1004,7 @@ Evaluator::EvalFunctionCall(Object* node)
 
   // Add object context to arguments
   Object* owner = 0;
-  if(BoundValue* bval = dynamic_cast<BoundValue*>(&rval))
+  if(BoundValue* bval = dynamic_cast<BoundValue*>(&lhs))
   {
     owner = bval->GetBoundObject();
   }

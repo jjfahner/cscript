@@ -53,6 +53,7 @@ enum opcodes
   op_assmul,
   op_assdiv,
   op_assmod,
+  op_function
 };
 
 String OpcodeToString(opcodes opcode);
