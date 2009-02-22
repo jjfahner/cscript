@@ -549,21 +549,46 @@ RValue&
 Evaluator::EvalAssignment(Object* node)
 {
   // Evaluate left-hand side
-  LValue& lhs = EvalExpression(Ast_A2(node)).LVal();
+  RValue& lhs = EvalExpression(Ast_A2(node));
+
+  // Retrieve operator
+  opcodes opcode = (opcodes)Ast_A1(node).GetInt();
+
+  // Objects may overload operators
+  if(lhs.Type() == Value::tObject)
+  {
+    String opfun = "operator" + OpcodeToString(opcode);
+    if(lhs->ContainsKey(opfun))
+    {
+      Object* funObj = lhs->RVal(opfun).GetObject();
+      ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
+
+      Arguments args;
+      args.SetObject(lhs);
+      args.push_back(EvalExpression(Ast_A3(node)));
+
+      return EvalScriptCall(fun, args);
+    }
+  }
 
   // Evaluate right-hand side
-  RValue& rhs = EvalExpression(Ast_A3(node));
+  Value rhs = EvalExpression(Ast_A3(node));
+
+  // Convert type
+  ConvertInPlace(node, rhs, lhs.Type());
 
   // Perform assignment
-  switch(Ast_A1(node).GetInt())
+  switch(opcode)
   {
-  case op_assign: return lhs = rhs;
-  case op_assadd: return lhs = ValAdd(lhs, rhs);
-  case op_asssub: return lhs = ValSub(lhs, rhs);
-  case op_assmul: return lhs = ValMul(lhs, rhs);
-  case op_assdiv: return lhs = ValDiv(lhs, rhs); 
-  case op_assmod: return lhs = ValMod(lhs, rhs);
+  case op_assign: return lhs.LVal() = rhs;
+  case op_assadd: return lhs.LVal() = ValAdd(lhs, rhs);
+  case op_asssub: return lhs.LVal() = ValSub(lhs, rhs);
+  case op_assmul: return lhs.LVal() = ValMul(lhs, rhs);
+  case op_assdiv: return lhs.LVal() = ValDiv(lhs, rhs); 
+  case op_assmod: return lhs.LVal() = ValMod(lhs, rhs);
   }
+
+  // Unknown operator
   throw ScriptException(node, "Invalid assignment operator");
 }
 

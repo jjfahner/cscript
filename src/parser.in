@@ -227,10 +227,8 @@ list_entry(R)   ::= operator_decl(A) COLON expression(B) .    { R = p->AllocNode
 // JSON definition
 json_literal(R) ::= LBRACE json_content(A) RBRACE . { R = p->AllocNode(json_literal, A); }
 //json_literal(R) ::= LBRACE RBRACE . { R = p->AllocNode(json_literal); }
-
 json_content(R) ::= json_entry(A) . { R = p->AllocNode(json_content, A); }
 json_content(R) ::= json_entry(A) COMMA json_content(B) . { R = p->AllocNode(json_content, A, B); }
-
 json_entry(R)   ::= IDENTIFIER(A)     COLON expression(B) .   { R = p->AllocNode(json_entry, String(A), B); }
 json_entry(R)   ::= operator_decl(A)  COLON expression(B) .   { R = p->AllocNode(json_entry, A, B); }
 
