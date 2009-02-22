@@ -1,21 +1,41 @@
-
+//
+// Declare integer class
+//
 var Integer = {
   
-  // Value
+  // Initial value
   m_value : 0,
 
+  // Assignment
+  operator = : function(int rhs) {
+    m_value = rhs;
+    return this;
+  },
+
   // Addition
-  operator+ : function(int rhs) {
+  operator + : function(int rhs) {
     var res = new Integer;
     res.m_value = m_value + rhs;
     return res;
   },
   
+  // Addition
+  operator += : function(int rhs) {
+    m_value += rhs;
+    return this;
+  },
+
   // Subtraction
-  operator- : function(int rhs) {
+  operator - : function(int rhs) {
     var res = new Integer;
     res.m_value = m_value - rhs;
     return res;
+  },
+
+  // Subtraction
+  operator -= : function(int rhs) {
+    m_value -= rhs;
+    return this;
   },
 
   // Implicit conversion to bool
@@ -36,6 +56,7 @@ var Integer = {
 };
 
 var a = new Integer;
+a += a += 3;
 a = a + 2 - 1;
 a = a + a;
 print(string(a));
