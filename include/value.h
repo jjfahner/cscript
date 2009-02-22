@@ -39,12 +39,12 @@ public:
     tObject
   };
 
-  static String TypeToString(Types);
-  static Types StringToType(String);
-
   typedef bool          Bool;
   typedef int64         Int;
-  typedef std::string   String;
+  typedef String        String;
+
+  static String TypeToString(Types);
+  static Types StringToType(String);
 
   Value()
   {
