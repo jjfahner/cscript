@@ -563,29 +563,44 @@ Evaluator::EvalAssignment(Object* node)
       Object* funObj = lhs->RVal(opfun).GetObject();
       ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
 
-      Arguments args;
-      args.SetObject(lhs);
-      args.push_back(EvalExpression(Ast_A3(node)));
-
-      return EvalScriptCall(fun, args);
+      return EvalFunctionCall(node, fun, lhs.GetObject(), Ast_A3(node));
+// 
+//       Arguments args;
+//       args.SetObject(lhs);
+//       args.push_back(EvalExpression(Ast_A3(node)));
+// 
+//       return EvalScriptCall(fun, args);
     }
   }
 
   // Evaluate right-hand side
-  Value rhs = EvalExpression(Ast_A3(node));
+  Value rhs = EvalExpression(Ast_A1(Ast_A3(node))->RVal(0));
 
-  // Convert type
+  // Regular assignment doesn't need conversion
+  if(opcode == op_assign)
+  {
+    lhs.LVal() = rhs;
+    return lhs;
+  }
+
+  // Object doesn't support remaining operators
+  if(lhs.Type() == Value::tObject)
+  {
+    throw ScriptException(node, "Object doest't support operator " + 
+      OpcodeToString(opcode));
+  }
+
+  // Convert right-hand side to left-hand type
   ConvertInPlace(node, rhs, lhs.Type());
 
   // Perform assignment
   switch(opcode)
   {
-  case op_assign: return lhs.LVal() = rhs;
-  case op_assadd: return lhs.LVal() = ValAdd(lhs, rhs);
-  case op_asssub: return lhs.LVal() = ValSub(lhs, rhs);
-  case op_assmul: return lhs.LVal() = ValMul(lhs, rhs);
-  case op_assdiv: return lhs.LVal() = ValDiv(lhs, rhs); 
-  case op_assmod: return lhs.LVal() = ValMod(lhs, rhs);
+  case op_assadd: lhs.LVal() = ValAdd(lhs, rhs); return lhs;
+  case op_asssub: lhs.LVal() = ValSub(lhs, rhs); return lhs;
+  case op_assmul: lhs.LVal() = ValMul(lhs, rhs); return lhs;
+  case op_assdiv: lhs.LVal() = ValDiv(lhs, rhs); return lhs;
+  case op_assmod: lhs.LVal() = ValMod(lhs, rhs); return lhs;
   }
 
   // Unknown operator
@@ -1763,6 +1778,12 @@ Evaluator::ConvertInPlace(Object* node, Value& value, Value::Types newType)
       args.SetObject(value);
 
       value = EvalScriptCall(fun, args);
+      
+      if(value.Type() != newType)
+      {
+        throw ScriptException(node, "Conversion operator yields wrong type");
+      }
+
       return;
     }
   }

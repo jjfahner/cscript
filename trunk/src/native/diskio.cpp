@@ -140,7 +140,7 @@ NATIVE_CALL("fopen(string file, string mode)")
   if(!f->Open(args[0], args[1]))
   {
     delete f;
-    return false;
+    return Value();
   }
 
   // Return new file
@@ -153,7 +153,7 @@ NATIVE_CALL("fread(file, int length)")
   NativeFile* f = dynamic_cast<NativeFile*>(args[0].GetObject());
   if(f == 0)
   {
-    return false;
+    return Value();
   }
 
   // Read from file
