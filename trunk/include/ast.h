@@ -56,6 +56,7 @@ enum AstTypes
   parameter_list,
   namespace_declaration,
   variable_declaration,
+  operator_declaration,
   declarator_sequence,
   declaration_sequence,
   include_statement,

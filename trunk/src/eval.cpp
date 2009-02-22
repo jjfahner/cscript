@@ -538,6 +538,7 @@ Evaluator::EvalExpression(Object* node)
   case xml_expression:        return EvalXmlExpression(node);
   case shell_command:         return EvalShellCommand(node);
   case type_conversion:       return EvalTypeConversion(node);
+  case operator_declaration:  return EvalOperatorDeclaration(node);
   case function_member_expression:  return EvalFunctionMember(node);
   case function_index_expression:   return EvalFunctionIndex(node);
   }
@@ -832,6 +833,21 @@ Evaluator::EvalQualifiedId(Object* node)
       return rval;
     }
   }
+}
+
+RValue& 
+Evaluator::EvalOperatorDeclaration(Object* node)
+{
+  String oper;
+  if(Ast_A1(node).Type() == Value::tInt)
+  {
+    oper = "operator" + Ast_A2(node).GetString();
+  }
+  else
+  {
+    oper = "operator " + Ast_A2(Ast_A1(node)).GetString();
+  }
+  return MakeTemp(oper);
 }
 
 void 
@@ -1270,8 +1286,18 @@ Evaluator::EvalJsonLiteral(Object* node)
     Object* child = Ast_A1(node);
     while(child)
     {
-      // Retrieve and check key
-      String key = Ast_A1(Ast_A1(child));
+      // Retrieve key
+      String key;
+      if(Ast_A1(Ast_A1(child)).Type() == Value::tString)
+      {
+        key = Ast_A1(Ast_A1(child));
+      }
+      else
+      {
+        key = EvalExpression(Ast_A1(Ast_A1(child)));
+      }
+
+      // Check for duplicate key
       if(o->ContainsKey(key))
       {
         throw ScriptException(node, "Duplicate key in JSON literal");
