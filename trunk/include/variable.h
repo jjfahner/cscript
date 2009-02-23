@@ -37,11 +37,6 @@ public:
   virtual ~RValue() {}
 
   //
-  // Clone
-  //
-  virtual RValue* Clone() const = 0;
-
-  //
   // Wrappers for Value interface
   //
   Value::Types          Type()      const { return GetValue().Type();      }
@@ -224,11 +219,6 @@ public:
   {
   }
 
-  virtual RValue* Clone() const
-  {
-    return new ROVariable(m_value);
-  }
-
   virtual Value const& GetValue() const
   {
     return m_value;
@@ -245,11 +235,6 @@ public:
   RWVariable(Value const& value = Value()) :
   m_value (value)
   {
-  }
-
-  virtual RValue* Clone() const
-  {
-    return new RWVariable(m_value);
   }
 
   virtual Value const& GetValue() const
@@ -313,14 +298,6 @@ public:
   }
 
   //
-  // Clone
-  //
-  virtual RValue* Clone() const
-  {
-    return new BoundRValue(m_value, m_object);
-  }
-
-  //
   // Value retrieval
   //
   Value const& GetValue() const
@@ -353,14 +330,6 @@ public:
   BoundValue (object),
   m_value   (value)
   {
-  }
-
-  //
-  // Clone
-  //
-  virtual RValue* Clone() const
-  {
-    return new BoundLValue(m_value, m_object);
   }
 
   //

@@ -77,11 +77,6 @@ public:
   Object();
 
   //
-  // Clone the object
-  //
-  virtual Object* Clone(Object* into = 0) const;
-
-  //
   // Object type
   //
   virtual String GetTypeName() const;

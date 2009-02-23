@@ -107,21 +107,6 @@ public:
   }
 
   //
-  // Clone
-  //
-  virtual Object* Clone(Object* into = 0) const
-  {
-    // Create copy of function
-    ScriptFunction* s = new ScriptFunction(m_name, GetNode());
-
-    // Clone object into copy
-    Function::Clone(s);
-
-    // Done
-    return s;
-  }
-
-  //
   // Retrieve node
   //
   Object* GetNode() const
@@ -160,14 +145,6 @@ public:
   Function  (name)
   {
     (*this)["__ast"] = node;
-  }
-
-  //
-  // Clone
-  //
-  virtual Object* Clone(Object* into = 0) const
-  {
-    throw std::runtime_error("Cannot clone extern function");
   }
 
   //

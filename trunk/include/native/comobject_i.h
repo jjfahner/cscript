@@ -56,11 +56,6 @@ public:
   static Object* Create(IDispatch* p);
 
   //
-  // Clone
-  //
-  virtual Object* Clone(Object* into = 0);
-
-  //
   // Class type name
   //
   virtual String GetTypeName() const
@@ -169,11 +164,6 @@ public:
   ROComVariable(String name, DISPID dispid, ComObject const* inst);
 
   //
-  // Clone
-  //
-  virtual RValue* Clone() const;
-
-  //
   // Retrieve value
   //
   Value const& GetValue() const;
@@ -200,11 +190,6 @@ public:
   // Construction
   //
   RWComVariable(String name, DISPID dispid, ComObject const* inst);
-
-  //
-  // Clone
-  //
-  virtual RValue* Clone() const;
 
   //
   // Retrieve value
@@ -253,17 +238,5 @@ protected:
   DISPID       m_dispid;
 
 };
-
-inline RValue* 
-ROComVariable::Clone() const
-{
-  return new ROComVariable(m_name, m_dispid, m_inst);
-}
-
-inline RValue* 
-RWComVariable::Clone() const
-{
-  return new RWComVariable(m_name, m_dispid, m_inst);
-}
 
 #endif // CSCRIPT_COMCLASS_H

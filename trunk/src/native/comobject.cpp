@@ -217,14 +217,6 @@ ComObject::Create(IDispatch* pdisp)
   return new ComObject(pdisp);
 }
 
-Object* 
-ComObject::Clone(Object* into)
-{
-  Object* inst = Create(m_dispatch);
-  Object::Clone(inst);
-  return inst;
-}
-
 ComObject::ComObject(IDispatch* pdisp) : 
 m_dispatch  (pdisp),
 m_typeInfo  (0)

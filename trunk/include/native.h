@@ -47,14 +47,6 @@ public:
   NativeFunction(String decl, FunPtr funPtr);
 
   //
-  // Clone
-  //
-  virtual Object* Clone(Object* into = 0) const
-  {
-    throw std::runtime_error("Cannot clone native function");
-  }
-
-  //
   // Retrieve node
   //
   Object* GetNode() const
@@ -142,14 +134,6 @@ public:
   m_funPtr  (funPtr)
   {
     (*this)["__ast"] = ast;
-  }
-
-  //
-  // Clone
-  //
-  virtual Object* Clone(Object* into = 0) const
-  {
-    throw std::runtime_error("Cannot clone native method");
   }
 
   //
