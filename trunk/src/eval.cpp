@@ -777,7 +777,7 @@ Evaluator::EvalIndex(Object* node)
     }
     
     // Add value
-    val = lhs.GetObject()->Add(key, Value());
+    val = &lhs.GetObject()->Add(key, Value());
   }
   else
   {
@@ -787,7 +787,7 @@ Evaluator::EvalIndex(Object* node)
     // Retrieve value
     if(!lhs.GetObject()->Find(rhs, val))
     {
-      val = lhs->Add(rhs, Value());
+      val = &lhs->Add(rhs, Value());
     }
   }
   
@@ -1631,15 +1631,52 @@ Evaluator::EvalNewExpression(Object* node)
     throw ScriptException(node, "Cannot instantiate a non-object variable");
   }
 
-  // Create a clone
-  Object* inst = rval->GetObject()->Clone();
+  // Construct an instance from the source object
+  Object* inst = new Object();
+  
+  // Assign prototype object
+  (*inst)["prototype"] = rval->GetObject();
 
-  // Invoke constructor when instantiating a function
-  if(Function* fun = dynamic_cast<Function*>(inst))
+  // Copy members
+  Object::MemberIterator it, ie;
+  it = rval->GetObject()->Begin();
+  ie = rval->GetObject()->End();
+  for(; it != ie; ++it)
   {
+    // Don't copy functions
+    if(it->second->Type() == Value::tObject)
+    {
+      if(dynamic_cast<Function*>(it->second->GetObject()))
+      {
+        continue;
+      }
+    }
+    
+    // Copy this member
+    inst->Add(it->first, Value(*it->second));
+  }
+
+  // Find constructor
+  RValue* funObj;
+  if(inst->Find("constructor", funObj))
+  {
+    // Check whether it's a function
+    Function* fun = dynamic_cast<Function*>(funObj->GetObject());
+    if(funObj == 0)
+    {
+      throw ScriptException(node, "Class has invalid constructor");
+    }
+    
     // Evaluate constructor
     EvalFunctionCall(node, fun, inst, Ast_A2(node));
   }
+
+//   // Invoke constructor when instantiating a function
+//   if(Function* fun = dynamic_cast<Function*>(inst))
+//   {
+//     // Evaluate constructor
+//     EvalFunctionCall(node, fun, inst, Ast_A2(node));
+//   }
 
   // Return temporary
   return MakeTemp(inst);

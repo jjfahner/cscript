@@ -134,11 +134,14 @@ public:
   //
   virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner)
   {
+    // Find instance member
     if(m_inst->Find(name, ptr))
     {
       owner = m_inst;
       return true;
     }
+
+    // Look in parent scope
     return Scope::Lookup(name, ptr, owner);
   }
 

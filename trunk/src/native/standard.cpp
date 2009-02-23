@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include <native/standard.h>
 #include <eval.h>
+#include <scope.h>
 
 DEFINE_NATIVE_LINKAGE(Standard)
 
@@ -85,5 +86,17 @@ NATIVE_CALL("dump(fn)")
   }
 
   // Done
+  return Value();
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+NATIVE_CALL("lookup(name)")
+{
+  RValue* pValue;
+  if(evaluator->GetScope()->Lookup(args[0], pValue))
+  {
+    return *pValue;
+  }
   return Value();
 }

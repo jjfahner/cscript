@@ -83,41 +83,81 @@ Object::GetTypeName() const
   return type;
 }
 
+bool 
+Object::ContainsKey(Value const& key) const 
+{
+  RValue* pDummy;
+  return Find(key, pDummy);
+}
+
+bool 
+Object::Find(Value const& key, RValue*& pValue) const
+{
+  MemberMap::const_iterator it;
+  
+  // Find in own members
+  it = m_members.find(key);
+  if(it != m_members.end())
+  {
+    pValue = it->second;
+    return true;
+  }
+
+  // Find in prototype
+  it = m_members.find("prototype");
+  if(it != m_members.end())
+  {
+    return (*it->second)->Find(key, pValue);
+  }
+
+  // Failed
+  return false;
+}
+
 RValue& 
 Object::RVal(Value const& key)
 {
-  RValue*& rval = m_members[key];
-  if(rval == 0)
+  RValue* pValue;
+  if(Find(key, pValue))
   {
-    rval = new RWVariable();
+    return *pValue;
   }
-  return *rval;
+
+  pValue = new RWVariable();
+  m_members[key] = pValue;
+
+  return *pValue;
 }
 
 LValue& 
 Object::LVal(Value const& key)
 {
-  return RVal(key).LVal();
+  RValue*& pValue = m_members[key];
+  if(pValue == 0)
+  {
+    pValue = new RWVariable();
+  }
+  return pValue->LVal();
 }
 
 LValue& 
 Object::Add(Value const& value)
 {
-  LValue& lval = LVal(m_members.size());
-  lval = value;
-  return lval;
+  return Add(m_members.size(), value).LVal();
 }
 
-RValue* 
+LValue& 
 Object::Add(Value const& key, Value const& value)
 {
-  if(ContainsKey(key))
+  if(m_members.count(key))
   {
     throw std::runtime_error("Variable already declared");
   }
-  RValue* rval = new RWVariable(value);
-  m_members[key] = rval;
-  return rval;
+
+  LValue* lval = new RWVariable(value);
+  m_members[key] = lval;
+  
+  return *lval;
 }
 
 void 
