@@ -72,6 +72,13 @@ public:
   //
   void Collect();
 
+  //
+  // Retrieve current scope
+  //
+  Scope* GetScope() const {
+    return m_scope;
+  }
+
   //////////////////////////////////////////////////////////////////////////
   //
   // Public to allow access from parser

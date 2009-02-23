@@ -102,9 +102,7 @@ public:
   //
   // Is a certain key present
   //
-  virtual bool ContainsKey(Value const& key) const {
-    return m_members.count(key) != 0;
-  }
+  virtual bool ContainsKey(Value const& key) const;
 
   //
   // Iterator for members
@@ -142,14 +140,9 @@ public:
   LValue& Add(Value const& value);
 
   //
-  // Add members in member list
-  //
-  void AddMembers(Object* source);
-
-  //
   // Add a member
   //
-  virtual RValue* Add(Value const& key, Value const& value);
+  LValue& Add(Value const& key, Value const& value);
 
   //
   // Retrieve variable as rvalue
@@ -170,18 +163,14 @@ public:
   }
 
   //
+  // Add members in member list
+  //
+  void AddMembers(Object* source);
+
+  //
   // Find a member
   //
-  virtual bool Find(Value const& key, RValue*& pValue) const
-  {
-    MemberMap::const_iterator it = m_members.find(key);
-    if(it == m_members.end())
-    {
-      return false;
-    }
-    pValue = it->second;
-    return true;
-  }
+  virtual bool Find(Value const& key, RValue*& pValue) const;
 
   //
   // Remove a member

@@ -163,6 +163,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\test\integer.csc"
+				>
+			</File>
+			<File
 				RelativePath="..\..\test\socket.csi"
 				>
 			</File>

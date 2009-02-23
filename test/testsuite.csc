@@ -476,8 +476,10 @@ function main()
   assert("Function with static (2)", a(), 2);
 
   // Define function with member
-  var Class = function (a) {
-    b = "{a} {b}";
+  var Class = {
+    constructor : function(a) {
+      b = "{a} {b}";
+    }
   };
   Class.b = "world";
 
