@@ -3,8 +3,13 @@
 //
 var Integer = {
   
-  // Initial value
+  // Integer value
   m_value : 0,
+
+  // Constructor
+  constructor : function(int value = 0) {
+    m_value = value;
+  },
 
   // Assignment
   operator = : function(int rhs) {
@@ -60,7 +65,7 @@ var Integer = {
 
 };
 
-var a = new Integer;
+var a = new Integer(10);
 
 // Test addition and substraction
 a = a + 2 - 1;

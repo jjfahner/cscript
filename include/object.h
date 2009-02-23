@@ -97,7 +97,7 @@ public:
   //
   // Is a certain key present
   //
-  virtual bool ContainsKey(Value const& key) const;
+  virtual bool ContainsKey(Value const& key);
 
   //
   // Iterator for members
@@ -165,7 +165,7 @@ public:
   //
   // Find a member
   //
-  virtual bool Find(Value const& key, RValue*& pValue) const;
+  virtual bool Find(Value const& key, RValue*& pValue);
 
   //
   // Remove a member

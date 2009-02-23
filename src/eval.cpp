@@ -1637,32 +1637,13 @@ Evaluator::EvalNewExpression(Object* node)
   // Assign prototype object
   (*inst)["prototype"] = rval->GetObject();
 
-  // Copy members
-  Object::MemberIterator it, ie;
-  it = rval->GetObject()->Begin();
-  ie = rval->GetObject()->End();
-  for(; it != ie; ++it)
-  {
-    // Don't copy functions
-    if(it->second->Type() == Value::tObject)
-    {
-      if(dynamic_cast<Function*>(it->second->GetObject()))
-      {
-        continue;
-      }
-    }
-    
-    // Copy this member
-    inst->Add(it->first, Value(*it->second));
-  }
-
   // Find constructor
   RValue* funObj;
   if(inst->Find("constructor", funObj))
   {
     // Check whether it's a function
     Function* fun = dynamic_cast<Function*>(funObj->GetObject());
-    if(funObj == 0)
+    if(fun == 0)
     {
       throw ScriptException(node, "Class has invalid constructor");
     }
@@ -1670,13 +1651,6 @@ Evaluator::EvalNewExpression(Object* node)
     // Evaluate constructor
     EvalFunctionCall(node, fun, inst, Ast_A2(node));
   }
-
-//   // Invoke constructor when instantiating a function
-//   if(Function* fun = dynamic_cast<Function*>(inst))
-//   {
-//     // Evaluate constructor
-//     EvalFunctionCall(node, fun, inst, Ast_A2(node));
-//   }
 
   // Return temporary
   return MakeTemp(inst);
