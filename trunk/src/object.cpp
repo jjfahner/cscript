@@ -64,14 +64,14 @@ Object::GetTypeName() const
 }
 
 bool 
-Object::ContainsKey(Value const& key) const 
+Object::ContainsKey(Value const& key)
 {
   RValue* pDummy;
   return Find(key, pDummy);
 }
 
 bool 
-Object::Find(Value const& key, RValue*& pValue) const
+Object::Find(Value const& key, RValue*& pValue)
 {
   MemberMap::const_iterator it;
   
@@ -83,11 +83,18 @@ Object::Find(Value const& key, RValue*& pValue) const
     return true;
   }
 
-  // Find in prototype
+  // Find prototype
   it = m_members.find("prototype");
   if(it != m_members.end())
   {
-    return (*it->second)->Find(key, pValue);
+    // Lookup in prototype
+    if((*it->second)->Find(key, pValue))
+    {
+      // Clone value
+      pValue = new RWVariable(*pValue);
+      m_members[key] = pValue;
+      return true;
+    }
   }
 
   // Failed
