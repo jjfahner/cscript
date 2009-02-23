@@ -401,6 +401,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\timer.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\tokens.h"
 				>
 			</File>
@@ -465,6 +469,10 @@
 				</File>
 			</Filter>
 		</Filter>
+		<File
+			RelativePath="..\..\src\timer.cpp"
+			>
+		</File>
 		<File
 			RelativePath="..\..\TODO"
 			>

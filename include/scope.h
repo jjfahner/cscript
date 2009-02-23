@@ -38,7 +38,7 @@ public:
   //
   // Construction
   //
-  Scope(Scope* parent = 0) : m_parent (0)
+  Scope(Scope* parent = 0)
   {
     if(parent)
     {
@@ -49,18 +49,18 @@ public:
   //
   // Parent scope
   //
-  virtual Scope* GetParent() const
+  virtual Scope* GetParent()
   {
-    return m_parent;
+    RValue* parent;
+    if(Find("__parent", parent))
+    {
+      return dynamic_cast<Scope*>(parent->GetObject());
+    }
+    return 0;
   }
   virtual void SetParent(Scope* parent)
   {
-    if(m_parent)
-    {
-      delete m_members["__parent"];
-    }
-    m_parent = parent;
-    m_members["__parent"] = new ROVariable(parent);
+    GetLValue("__parent") = parent;
   }
 
   //
@@ -79,14 +79,17 @@ public:
   {
     ptr = 0;
     owner = 0;
+    
     if(Object::Find(name, ptr))
     {
       return true;
     }
-    if(m_parent)
+    
+    if(Scope* parent = GetParent())
     {
-      return m_parent->Lookup(name, ptr, owner);
+      return parent->Lookup(name, ptr, owner);
     }
+
     return false;
   }
 
@@ -96,11 +99,6 @@ protected:
   // Hide Find function, is replaced by Lookup
   //
   using Object::Find;
-
-  //
-  // MemberMap
-  //
-  Scope*    m_parent;
 
 };
 
@@ -176,12 +174,8 @@ public:
   }
 
   //
-  // Parent scope
+  // Set parent
   //
-  virtual Scope* GetParent() const
-  {
-    return m_parent;
-  }
   virtual void SetParent(Scope* parent)
   {
     // Parent mandatory for namespace scopes
@@ -191,16 +185,16 @@ public:
     }
 
     // Remove namespace scope from current parent
-    if(m_parent)
+    if(Scope* parent = GetParent())
     {
-      m_parent->Remove(m_name);
+      parent->Remove(m_name);
     }
 
-    // Delegate to scope impl
+    // Delegate to scope implementation
     Scope::SetParent(parent);
 
-    // Reinsert into parent
-    (*m_parent)[m_name] = this;
+    // Reinsert into new parent
+    parent->GetLValue(m_name) = this;
   }
 
   //

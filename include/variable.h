@@ -73,7 +73,7 @@ public:
   //
   // Convert RValue to LValue. Throws if not an LValue
   //
-  class LValue& LVal();
+  class LValue& GetLValue();
 
   //
   // Retrieve an enumerator for this variable
@@ -116,7 +116,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 inline LValue& 
-RValue::LVal()
+RValue::GetLValue()
 {
   LValue* lval = dynamic_cast<LValue*>(this);
   if(lval == 0)
