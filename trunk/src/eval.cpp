@@ -27,6 +27,7 @@
 #include "tokens.h"
 #include "map_iter.h"
 #include "native.h"
+#include "timer.h"
 
 #include <iostream>
 
@@ -297,8 +298,8 @@ Evaluator::ReportError(String text, Object* source)
 {
   if(source && source->ContainsKey("file"))
   {
-    std::cout << source->RVal("file").GetString() << "("
-              << source->RVal("line").GetInt()    << ") : ";
+    std::cout << source->GetRValue("file").GetString() << "("
+              << source->GetRValue("line").GetInt()    << ") : ";
   }
   std::cout << text << "\n";
 }
@@ -560,7 +561,7 @@ Evaluator::EvalAssignment(Object* node)
     String opfun = "operator" + OpcodeToString(opcode);
     if(lhs->ContainsKey(opfun))
     {
-      Object* funObj = lhs->RVal(opfun).GetObject();
+      Object* funObj = lhs->GetRValue(opfun).GetObject();
       ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
 
       return EvalFunctionCall(node, fun, lhs.GetObject(), Ast_A3(node));
@@ -574,12 +575,12 @@ Evaluator::EvalAssignment(Object* node)
   }
 
   // Evaluate right-hand side
-  Value rhs = EvalExpression(Ast_A1(Ast_A3(node))->RVal(0));
+  Value rhs = EvalExpression(Ast_A1(Ast_A3(node))->GetRValue(0));
 
   // Regular assignment doesn't need conversion
   if(opcode == op_assign)
   {
-    lhs.LVal() = rhs;
+    lhs.GetLValue() = rhs;
     return lhs;
   }
 
@@ -596,11 +597,11 @@ Evaluator::EvalAssignment(Object* node)
   // Perform assignment
   switch(opcode)
   {
-  case op_assadd: lhs.LVal() = ValAdd(lhs, rhs); return lhs;
-  case op_asssub: lhs.LVal() = ValSub(lhs, rhs); return lhs;
-  case op_assmul: lhs.LVal() = ValMul(lhs, rhs); return lhs;
-  case op_assdiv: lhs.LVal() = ValDiv(lhs, rhs); return lhs;
-  case op_assmod: lhs.LVal() = ValMod(lhs, rhs); return lhs;
+  case op_assadd: lhs.GetLValue() = ValAdd(lhs, rhs); return lhs;
+  case op_asssub: lhs.GetLValue() = ValSub(lhs, rhs); return lhs;
+  case op_assmul: lhs.GetLValue() = ValMul(lhs, rhs); return lhs;
+  case op_assdiv: lhs.GetLValue() = ValDiv(lhs, rhs); return lhs;
+  case op_assmod: lhs.GetLValue() = ValMod(lhs, rhs); return lhs;
   }
 
   // Unknown operator
@@ -622,7 +623,7 @@ Evaluator::EvalBinary(Object* node)
     String opfun = "operator" + OpcodeToString(opcode);
     if(lhs->ContainsKey(opfun))
     {
-      Object* funObj = lhs->RVal(opfun).GetObject();
+      Object* funObj = lhs->GetRValue(opfun).GetObject();
       ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
       
       Arguments args;
@@ -712,10 +713,10 @@ Evaluator::EvalPrefix(Object* node)
   switch(Ast_A1(node).GetInt())
   {
   case op_preinc:
-    lhs.LVal() = ValAdd(lhs, 1); 
+    lhs.GetLValue() = ValAdd(lhs, 1); 
     return lhs;
   case op_predec: 
-    lhs.LVal() = ValSub(lhs, 1); 
+    lhs.GetLValue() = ValSub(lhs, 1); 
     return lhs;
   case op_negate: 
     return MakeTemp(ValNeg(lhs));
@@ -729,7 +730,7 @@ RValue&
 Evaluator::EvalPostfix(Object* node)
 {
   // Evaluate lhs
-  LValue& lhs = EvalExpression(Ast_A2(node)).LVal();
+  LValue& lhs = EvalExpression(Ast_A2(node)).GetLValue();
 
   // Create temporary with result value
   RValue& result = MakeTemp(lhs);
@@ -754,7 +755,7 @@ Evaluator::EvalIndex(Object* node)
   switch(lhs.Type())
   {
   case Value::tNull:
-    lhs.LVal() = new Object();
+    lhs.GetLValue() = new Object();
     break;
   case Value::tObject:
     // Fine
@@ -792,7 +793,7 @@ Evaluator::EvalIndex(Object* node)
   }
   
   // Done
-  return StoreTemp(new BoundLValue(val->LVal(), lhs));
+  return StoreTemp(new BoundLValue(val->GetLValue(), lhs));
 }
 
 RValue&
@@ -800,7 +801,9 @@ Evaluator::EvalUnqualifiedId(Object* node)
 {
   RValue* ptr;
   Object* owner;
-  if(m_scope->Lookup(Ast_A1(node), ptr, owner))
+
+  String const& name = Ast_A1(node).GetString();
+  if(m_scope->Lookup(name, ptr, owner))
   {
     return owner ? StoreTemp(BoundValue::Create(*ptr, owner)) : *ptr;
   }
@@ -848,11 +851,11 @@ Evaluator::EvalQualifiedId(Object* node)
     if(!scope->ContainsKey(name))
     {
       throw ScriptException(node, "Namespace '" + scope->GetName() + 
-        "' does not contain a member '" + name + "'");
+                      "' does not contain a member '" + name + "'");
     }
 
     // Retrieve node
-    RValue& rval = scope->RVal(name);
+    RValue& rval = scope->GetRValue(name);
 
     // If nested, descend, else retrieve value
     if(Ast_A2(cur))
@@ -893,10 +896,16 @@ Evaluator::EvalOperatorDeclaration(Object* node)
 void 
 Evaluator::EvalNamespace(Object* node)
 {
-  // Create namespace scope
-  AutoScope as(this, new NamespaceScope(FindNamespace(m_scope), Ast_A1(node)));
+  // Find current namespace
+  NamespaceScope* curNS = FindNamespace(m_scope);
 
-  // Evaluate declarations
+  // Determine namespace name
+  String const& name = Ast_A1(node);
+
+  // Create namespace scope
+  AutoScope as(this, new NamespaceScope(curNS, name));
+
+  // Evaluate declarations in scope
   if(Ast_A2(node))
   {
     EvalStatement(Ast_A2(node));
@@ -1003,7 +1012,7 @@ Evaluator::EvalFunctionCall(Object* node)
   if(lhs->ContainsKey(opfun))
   {
     // Retrieve function
-    Object* funObj = lhs->RVal(opfun).GetObject();
+    Object* funObj = lhs->GetRValue(opfun).GetObject();
     ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
 
     // Invoke as function call
@@ -1307,6 +1316,12 @@ Evaluator::EvalListLiteral(Object* node)
         key = EvalExpression(Ast_A2(Ast_A1(child)));
       }
 
+      // Check for duplicate key in object, ignore prototype
+      if(o->ContainsKey(key, false))
+      {
+        throw ScriptException(node, "Duplicate key in list literal");
+      }
+
       // Insert into member variables
       (*o)[key] = element;
 
@@ -1349,8 +1364,8 @@ Evaluator::EvalJsonLiteral(Object* node)
         key = EvalExpression(Ast_A1(Ast_A1(child))).GetString();
       }
 
-      // Check for duplicate key
-      if(o->ContainsKey(key))
+      // Check for duplicate key in object, ignore prototype
+      if(o->ContainsKey(key, false))
       {
         throw ScriptException(node, "Duplicate key in JSON literal");
       }
@@ -1484,7 +1499,7 @@ Evaluator::EvalForeachStatement(Object* node)
   }
 
   // Convert to lvalue
-  LValue& var = rval->LVal();
+  LValue& var = rval->GetLValue();
 
   // Evaluate expression
   RValue& rhs = EvalExpression(Ast_A2(node));
@@ -1667,7 +1682,7 @@ Evaluator::EvalMemberExpression(Object* node)
   }
 
   // Lookup right-hand side
-  RValue* rval = &object->RVal(Ast_A1(Ast_A2(node)));
+  RValue* rval = &object->GetRValue(Ast_A1(Ast_A2(node)));
 
   // Construct bound member
   if(LValue* lval = dynamic_cast<LValue*>(rval))
@@ -1782,7 +1797,7 @@ Evaluator::ConvertInPlace(Object* node, Value& value, Value::Types newType)
     String opfun = "operator " + Value::TypeToString(newType);
     if(value->ContainsKey(opfun))
     {
-      Object* funObj = value->RVal(opfun).GetObject();
+      Object* funObj = value->GetRValue(opfun).GetObject();
       ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
 
       Arguments args;
@@ -1859,17 +1874,17 @@ CreateXmlObject(XmlNodeTypes nodeType, Object* parentNode = 0)
   Object* childNode = new Object();
 
   // Create members
-  childNode->LVal("nodeType")     = (Value::Int)nodeType;
-  childNode->LVal("nodeName")     = XmlNodeName(nodeType);
-  childNode->LVal("nodeTypeName") = XmlNodeName(nodeType);
+  childNode->GetLValue("nodeType")     = (Value::Int)nodeType;
+  childNode->GetLValue("nodeName")     = XmlNodeName(nodeType);
+  childNode->GetLValue("nodeTypeName") = XmlNodeName(nodeType);
 
   // Append to parent node
   if(parentNode)
   {
-    childNode->LVal("parentNode") = parentNode;
+    childNode->GetLValue("parentNode") = parentNode;
     Object* coll = nodeType == xmlAttribute ?
-      parentNode->LVal("attributes").GetObject() :
-      parentNode->LVal("childNodes").GetObject() ;
+      parentNode->GetLValue("attributes").GetObject() :
+      parentNode->GetLValue("childNodes").GetObject() ;
     coll->Add(childNode);
   }
 
@@ -1878,10 +1893,10 @@ CreateXmlObject(XmlNodeTypes nodeType, Object* parentNode = 0)
   {
   case xmlDocument:
   case xmlElement:
-    childNode->LVal("childNodes") = new Object();
+    childNode->GetLValue("childNodes") = new Object();
     // Intentional fallthrough
   case xmlProcessingInstruction:
-    childNode->LVal("attributes") = new Object();
+    childNode->GetLValue("attributes") = new Object();
     break;
   }
 
@@ -1907,10 +1922,10 @@ SetNodeName(Object* ast, Object* node)
     qname = lname;
   }
 
-  node->LVal("nodeName")      = lname;
-  node->LVal("localName")     = lname;
-  node->LVal("qualifiedName") = qname;
-  node->LVal("namespace")     = ns;
+  node->GetLValue("nodeName")      = lname;
+  node->GetLValue("localName")     = lname;
+  node->GetLValue("qualifiedName") = qname;
+  node->GetLValue("namespace")     = ns;
 }
 
 void 
@@ -1923,7 +1938,7 @@ AddXmlAttributes(Object* ast, Object* node)
   {
     Object* attr = CreateXmlObject(xmlAttribute, node);
     SetNodeName(Ast_A1(*it), attr);
-    attr->LVal("value") = Ast_A2(*it);
+    attr->GetLValue("value") = Ast_A2(*it);
   }
 }
 
@@ -1949,7 +1964,7 @@ Evaluator::EvalXmlExpression(Object* node)
     {
     case xml_processing_instruction:
       tmp = CreateXmlObject(xmlProcessingInstruction, cur);
-      tmp->LVal("nodeName") = Ast_A1(*it).GetString();
+      tmp->GetLValue("nodeName") = Ast_A1(*it).GetString();
       if(Ast_A2(*it))
       {
         AddXmlAttributes(Ast_A2(*it), tmp);
@@ -1971,7 +1986,7 @@ Evaluator::EvalXmlExpression(Object* node)
       {
         throw ScriptException(node, "Invalid xml structure");
       }
-      cur = cur->RVal("parentNode").GetObject();
+      cur = cur->GetRValue("parentNode").GetObject();
       break;
 
     case xml_closed_tag:
@@ -1985,8 +2000,8 @@ Evaluator::EvalXmlExpression(Object* node)
 
     case xml_text:
       tmp = CreateXmlObject(xmlText, cur);
-      tmp->LVal("data")   = Ast_A1(*it).GetString();
-      tmp->LVal("length") = Ast_A1(*it).GetString().length();
+      tmp->GetLValue("data")   = Ast_A1(*it).GetString();
+      tmp->GetLValue("length") = Ast_A1(*it).GetString().length();
       break;
 
     default:

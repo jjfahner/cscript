@@ -245,7 +245,15 @@ ComObject::~ComObject()
 }
 
 bool 
-ComObject::Find(Value const& name, RValue*& ptr) const
+ComObject::ContainsKey(Value const& key, bool checkProto)
+{
+  // Lazy as I am: use the implementation of Find for ContainsKey
+  RValue* pDummy;
+  return Find(key, pDummy, checkProto);
+}
+
+bool 
+ComObject::Find(Value const& name, RValue*& ptr, bool checkProto)
 {
   // Find method info
   DISPID dispid;
@@ -261,13 +269,9 @@ ComObject::Find(Value const& name, RValue*& ptr) const
     return false;
   }
 
-  // We'll need a non-const version of the members array
-  MemberMap& members = const_cast<MemberMap&>(m_members);
-
-  // Lookup the variable
-  if(members.count(properName))
+  // Find in current member list
+  if(Find(properName, ptr, checkProto))
   {
-    ptr = members[properName];
     return true;
   }
 
@@ -301,7 +305,7 @@ ComObject::Find(Value const& name, RValue*& ptr) const
   }
 
   // Add to member variables
-  members[properName] = ptr;
+  Add(properName, ptr);
 
   // Done
   return true;

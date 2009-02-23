@@ -64,26 +64,14 @@ public:
   }
 
   //
-  // Requires finalization
+  // Is a certain key present
   //
-  virtual bool FinalizeRequired() const
-  {
-    return false;
-  }
+  virtual bool ContainsKey(Value const& key, bool checkProto = true);
 
   //
-  // Number of instance variables
+  // Find a member
   //
-  virtual size_t GetVarCount() const
-  {
-    // TODO
-    return 0;
-  }
-
-  //
-  // Retrieve a variable
-  //
-  virtual bool Find(Value const& name, RValue*& ptr) const;
+  virtual bool Find(Value const& key, RValue*& pValue, bool checkProto = true);
 
   //
   // Raw method invocation

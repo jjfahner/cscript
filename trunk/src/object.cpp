@@ -28,6 +28,9 @@
 // Global object list
 static Objects g_objects;
 
+// Literals
+static const Value g_prototype("prototype");
+
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ Objects const& 
@@ -64,16 +67,40 @@ Object::GetTypeName() const
 }
 
 bool 
-Object::ContainsKey(Value const& key)
+Object::ContainsKey(Value const& key, bool checkProto)
 {
-  RValue* pDummy;
-  return Find(key, pDummy);
+  MemberMap::const_iterator it;
+
+  // Find in own members
+  if(m_members.count(key))
+  {
+    return true;
+  }
+
+  // Prototype checking
+  if(!checkProto)
+  {
+    return false;
+  }
+
+  // Find prototype object
+  it = m_members.find(g_prototype);
+  if(it == m_members.end())
+  {
+    return false;
+  }
+
+  // Lookup in prototype
+  return (*it->second)->ContainsKey(key, true);
 }
 
 bool 
-Object::Find(Value const& key, RValue*& pValue)
+Object::Find(Value const& key, RValue*& pValue, bool checkProto)
 {
   MemberMap::const_iterator it;
+
+  // Initialize return value
+  pValue = 0;
   
   // Find in own members
   it = m_members.find(key);
@@ -83,73 +110,86 @@ Object::Find(Value const& key, RValue*& pValue)
     return true;
   }
 
-  // Find prototype
-  it = m_members.find("prototype");
-  if(it != m_members.end())
+  // Prototype checking
+  if(!checkProto)
   {
-    // Lookup in prototype
-    if((*it->second)->Find(key, pValue))
-    {
-      // Clone value
-      pValue = new RWVariable(*pValue);
-      m_members[key] = pValue;
-      return true;
-    }
+    return false;
+  }
+  
+  // Find prototype
+  it = m_members.find(g_prototype);
+  if(it == m_members.end())
+  {
+    return false;
+  }
+  
+  // Lookup in prototype
+  if(!(*it->second)->Find(key, pValue, true))
+  {
+    return false;
   }
 
-  // Failed
-  return false;
+  // Clone value
+  pValue = new RWVariable(*pValue);
+  m_members[key] = pValue;
+
+  // Done
+  return true;
 }
 
 RValue& 
-Object::RVal(Value const& key)
+Object::GetRValue(Value const& key)
 {
   RValue* pValue;
-  if(Find(key, pValue))
+  if(!Find(key, pValue))
   {
-    return *pValue;
+    pValue = new RWVariable();
+    m_members[key] = pValue;
   }
-
-  pValue = new RWVariable();
-  m_members[key] = pValue;
 
   return *pValue;
 }
 
 LValue& 
-Object::LVal(Value const& key)
+Object::GetLValue(Value const& key)
 {
-  RValue*& pValue = m_members[key];
-  if(pValue == 0)
-  {
-    pValue = new RWVariable();
-  }
-  return pValue->LVal();
+  return GetRValue(key).GetLValue();
 }
 
-LValue& 
+RValue& 
 Object::Add(Value const& value)
 {
-  return Add(m_members.size(), value).LVal();
+  return Add(m_members.size(), value).GetLValue();
 }
 
-LValue& 
+RValue& 
 Object::Add(Value const& key, Value const& value)
 {
-  if(m_members.count(key))
+  return Add(key, new RWVariable(value));
+}
+
+RValue& 
+Object::Add(Value const& key, RValue* value)
+{
+  // Insert new variable
+  typedef std::pair<MemberIterator, bool> InsertResult;
+  InsertResult const& res = m_members.insert(std::make_pair(key, value));
+
+  // Check insert result
+  if(!res.second)
   {
+    delete value;
     throw std::runtime_error("Variable already declared");
   }
 
-  LValue* lval = new RWVariable(value);
-  m_members[key] = lval;
-  
-  return *lval;
+  // Done
+  return *value;
 }
 
 void 
 Object::AddMembers(Object* source)
 {
+  // Copy members
   MemberIterator it = source->Begin();
   MemberIterator ie = source->End();
   for(; it != ie; ++it)
@@ -161,6 +201,7 @@ Object::AddMembers(Object* source)
 void 
 Object::Remove(Value const& key)
 {
+  // Erase from members
   MemberIterator it = m_members.find(key);
   if(it != m_members.end())
   {

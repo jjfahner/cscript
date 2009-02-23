@@ -30,8 +30,6 @@
 class Object;
 class RValue;
 class LValue;
-class Function;
-class Variable;
 
 //
 // List of root objects
@@ -82,22 +80,13 @@ public:
   virtual String GetTypeName() const;
 
   //////////////////////////////////////////////////////////////////////////
+  //
+  // Iterators
+  //
 
   typedef MemberMap::iterator                         MemberIterator;
   typedef map_iterator_t<MemberMap, key_accessor>     KeyIterator;
   typedef map_iterator_t<MemberMap, pointer_accessor> ValueIterator;
-
-  //
-  // Member count
-  //
-  size_t Count() const {
-    return m_members.size();
-  }
-
-  //
-  // Is a certain key present
-  //
-  virtual bool ContainsKey(Value const& key);
 
   //
   // Iterator for members
@@ -129,43 +118,65 @@ public:
     return ValueIterator(m_members.end());
   }
 
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Members
+  //
+
+  //
+  // Member count
+  //
+  size_t Count() const {
+    return m_members.size();
+  }
+
+  //
+  // Is a certain key present
+  //
+  virtual bool ContainsKey(Value const& key, bool checkProto = true);
+
+  //
+  // Find a member
+  //
+  virtual bool Find(Value const& key, RValue*& pValue, bool checkProto = true);
+
   //
   // Add new item to end
   //
-  LValue& Add(Value const& value);
+  RValue& Add(Value const& value);
 
   //
   // Add a member
   //
-  LValue& Add(Value const& key, Value const& value);
+  RValue& Add(Value const& key, Value const& value);
+
+  //
+  // Add a member with a custom RValue-derived type
+  //
+  RValue& Add(Value const& key, RValue* value);
 
   //
   // Retrieve variable as rvalue
   //
-  virtual RValue& RVal(Value const& key);
+  virtual RValue& GetRValue(Value const& key);
 
   //
   // Retrieve variable as lvalue
   //
-  virtual LValue& LVal(Value const& key);
+  virtual LValue& GetLValue(Value const& key);
 
   //
   // Use index operator to retrieve lvalue
   //
   LValue& operator [] (Value const& key)
   {
-    return LVal(key);
+    return GetLValue(key);
   }
 
   //
   // Add members in member list
   //
   void AddMembers(Object* source);
-
-  //
-  // Find a member
-  //
-  virtual bool Find(Value const& key, RValue*& pValue);
 
   //
   // Remove a member
@@ -175,16 +186,18 @@ public:
 protected:
 
   //
-  // Protected construction
-  //
-  Object(Object const&);
-  Object& operator = (Object const&);
-
-  //
   // Virtual destruction
   //
   friend class ObjectDeleter;
   virtual ~Object();
+
+private:
+
+  //
+  // Protected construction
+  //
+  Object(Object const&);
+  Object& operator = (Object const&);
 
   //
   // Object members

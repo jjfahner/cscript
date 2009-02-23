@@ -17,3 +17,9 @@ JSON: Because of a parsing conflict with empty compound statements, JSON
 initializers cannot currently be empty. Not a problem, since the same effect
 can be achieved using an empty list initializer []. Still, it would be nicer
 to fix this.
+
+Members inserted into Object through the Add function are only checked for
+duplicates against the m_members map. This means that it is possible to add
+members that exists in the prototype, as long as they haven't been referred
+to before Add() is called. It would be nice to think more carefully about
+what the semantics should be here.
