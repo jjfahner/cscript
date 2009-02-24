@@ -55,8 +55,8 @@ Timer::Ticks()
 # ifdef WIN32
   return GetTickCount();
 # else
-  struct time_t t;
+  timeval t;
   gettimeofday(&t, 0);
-  return t.tv_sec * 1000000 + t.tv_usec;
+  return (t.tv_sec * 1000000 + t.tv_usec) / 1000;
 # endif
 }
