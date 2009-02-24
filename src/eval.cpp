@@ -215,7 +215,7 @@ Evaluator::ParseFile(String const& filename)
   // Try block for file pointer stacking
   try
   {
-    ParseText((char const*)file.GetData());
+    ParseText((char const*)file.GetData(), true);
     m_file = prevfile;
   }
   catch(...)
@@ -226,7 +226,7 @@ Evaluator::ParseFile(String const& filename)
 }
 
 void 
-Evaluator::ParseText(char const* text)
+Evaluator::ParseText(char const* text, bool showTimes)
 {
   // Create lexer for file
   Lexer lexer(*this);
@@ -242,6 +242,9 @@ Evaluator::ParseText(char const* text)
   // Try block for parser memory management
   try 
   {
+    // Start a timer
+    Timer timer(showTimes);
+
     Token token;
     token.Init();
 
@@ -259,6 +262,18 @@ Evaluator::ParseText(char const* text)
 
     // Remove lexer
     m_lexer = prevlexer;
+
+    // Retrieve root node
+    Object* root = m_resultNode;
+
+    // Show parse time
+    if(showTimes)
+    {
+      std::cout << "Parsed code in " << timer.Elapsed() << " ms\n\n";
+    }
+
+    // Evaluate code
+    Eval(root);
   }
   catch(...)
   {
@@ -309,10 +324,10 @@ Evaluator::AllocNode(AstTypes type)
 {
   // Create node
   Object* obj = new Object;
-  (*obj)["type"] = type;
+  (*obj)[0] = type;
 
   // Set file position
-  if(m_file /*&& m_debug*/)
+  if(false && m_file /*&& m_debug*/)
   {
     (*obj)["file"] = m_file->GetPath();
     (*obj)["line"] = m_lexer->GetLine();
@@ -332,10 +347,10 @@ Evaluator::ParseNativeCall(String const& declaration)
     m_reporter.Reset();
 
     // Reset native call pointer
-    m_native = 0;
+    m_resultNode = 0;
 
     // Parse code
-    ParseText((String("__native ") + declaration).c_str());
+    ParseText((String("__native ") + declaration).c_str(), false);
 
     // Check error count
     if(m_reporter.GetErrorCount())
@@ -344,7 +359,7 @@ Evaluator::ParseNativeCall(String const& declaration)
     }
 
     // Done
-    return m_native;
+    return m_resultNode;
   }
   catch(...)
   {
@@ -389,7 +404,7 @@ Evaluator::Eval(String text, bool isFileName)
     }
     else
     {
-      ParseText(text.c_str());
+      ParseText(text.c_str(), true);
     }
 
     // Check error count
@@ -453,9 +468,6 @@ Evaluator::Eval(Object* astRoot)
 
   // Perform evaluation of ast tree
   EvalStatement(astRoot);
-
-  // Run garbage collector again
-  Collect();
 }
 
 

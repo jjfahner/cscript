@@ -75,8 +75,8 @@ main ::= translation_unit .
 
 // Translation unit
 translation_unit ::= .
-translation_unit ::= native_declaration(A) . { if(A) p->Eval(A); }
-translation_unit ::= statement_sequence(A) . { if(A) p->Eval(A); }
+translation_unit ::= native_declaration(A) . { if(A) p->SetResultNode(A); }
+translation_unit ::= statement_sequence(A) . { if(A) p->SetResultNode(A); }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
@@ -345,7 +345,7 @@ declaration_sequence(R) ::= declaration_sequence(A) declaration_statement(B) .  
 //
 
 // Native declaration
-native_declaration ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { p->SetNativeCall(p->AllocNode(function_declaration, String(A), B)); }
+native_declaration(R) ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { R = p->AllocNode(function_declaration, String(A), B); }
 
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocNode(function_declaration, String(A),  B, C); }

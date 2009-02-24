@@ -119,19 +119,19 @@ enum ParameterTypes
 #include "variable.h"
 
 inline AstTypes Ast_Type(Object* obj) {
-  return (AstTypes)(*obj)["type"].GetInt();
+  return (AstTypes)(*obj)[0].GetInt();
 }
 inline LValue& Ast_A1(Object* arg) {
-  return ((*arg)["a1"]);
+  return ((*arg)[1]);
 }
 inline LValue& Ast_A2(Object* arg) {
-  return ((*arg)["a2"]);
+  return ((*arg)[2]);
 }
 inline LValue& Ast_A3(Object* arg) {
-  return ((*arg)["a3"]);
+  return ((*arg)[3]);
 }
 inline LValue& Ast_A4(Object* arg) {
-  return ((*arg)["a4"]);
+  return ((*arg)[4]);
 }
 
 #endif // CSCRIPT_AST_H
