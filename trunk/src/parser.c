@@ -1803,7 +1803,7 @@ static void yy_reduce(
       case 2:
       case 3:
 #line 78 "..\\..\\src\\parser.in"
-{ if(yymsp[0].minor.yy258) p->Eval(yymsp[0].minor.yy258); }
+{ if(yymsp[0].minor.yy258) p->SetResultNode(yymsp[0].minor.yy258); }
 #line 1809 "..\\..\\src\\parser.c"
         break;
       case 4:
@@ -2365,7 +2365,7 @@ static void yy_reduce(
         break;
       case 145:
 #line 348 "..\\..\\src\\parser.in"
-{ p->SetNativeCall(p->AllocNode(function_declaration, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy258)); }
+{ yygotominor.yy258 = p->AllocNode(function_declaration, String(yymsp[-3].minor.yy0), yymsp[-1].minor.yy258); }
 #line 2371 "..\\..\\src\\parser.c"
         break;
       case 146:

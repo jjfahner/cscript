@@ -20,8 +20,10 @@
 //////////////////////////////////////////////////////////////////////////
 #include <timer.h>
 
-#ifdef WIN32
+#if defined(WIN32)
 #include <windows.h>
+#elif defined(__GNUC__)
+#include <sys/time.h>
 #else
 #error Not implemented on this platform
 #endif
@@ -51,8 +53,10 @@ Timer::Reset()
 Timer::Ticks()
 {
 # ifdef WIN32
-  return GetTickCount64();
+  return GetTickCount();
 # else
-  return 0;
+  struct time_t t;
+  gettimeofday(&t, 0);
+  return t.tv_sec * 1000000 + t.tv_usec;
 # endif
 }

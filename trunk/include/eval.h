@@ -90,10 +90,10 @@ public:
   void Eval(Object* astRoot);
 
   //
-  // Set native call
+  // Set result node from parsing
   //
-  void SetNativeCall(Object* node) {
-    m_native = node;
+  void SetResultNode(Object* node) {
+    m_resultNode = node;
   }
 
   //
@@ -128,7 +128,7 @@ private:
   //
   // Parse a string
   //
-  void ParseText(char const* text);
+  void ParseText(char const* text, bool showTimes);
 
   //
   // Parse a file
@@ -244,13 +244,12 @@ private:
   //
   SourceFile*     m_file;
   Lexer*          m_lexer;
-  Object*         m_native;
+  Object*         m_resultNode;
   NamespaceScope* m_global;
   Scope*          m_scope;
   size_t          m_allocs;
   TempVec         m_temporaries;
   Reporter        m_reporter;
-
 
 };
 
@@ -263,7 +262,7 @@ inline Object*
 Evaluator::AllocNode(AstTypes type, Value const& a1)
 {
   Object* obj = AllocNode(type);
-  (*obj)["a1"] = a1;
+  (*obj)[1] = a1;
   return obj;
 }
 
@@ -271,8 +270,8 @@ inline Object*
 Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2)
 {
   Object* obj = AllocNode(type);
-  (*obj)["a1"] = a1;
-  (*obj)["a2"] = a2;
+  (*obj)[1] = a1;
+  (*obj)[2] = a2;
   return obj;
 }
 
@@ -280,9 +279,9 @@ inline Object*
 Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3)
 {
   Object* obj = AllocNode(type);
-  (*obj)["a1"] = a1;
-  (*obj)["a2"] = a2;
-  (*obj)["a3"] = a3;
+  (*obj)[1] = a1;
+  (*obj)[2] = a2;
+  (*obj)[3] = a3;
   return obj;
 }
 
@@ -290,10 +289,10 @@ inline Object*
 Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4)
 {
   Object* obj = AllocNode(type);
-  (*obj)["a1"] = a1;
-  (*obj)["a2"] = a2;
-  (*obj)["a3"] = a3;
-  (*obj)["a4"] = a4;
+  (*obj)[1] = a1;
+  (*obj)[2] = a2;
+  (*obj)[3] = a3;
+  (*obj)[4] = a4;
   return obj;
 }
 
