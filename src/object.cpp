@@ -26,24 +26,28 @@
 #include <typeinfo>
 
 // Global object list
-static Objects g_objects;
+typedef std::vector<Object*> ObjectVec;
+static ObjectVec g_objects;
 
 // Literals
 static const Value g_prototype("prototype");
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ Objects const& 
+/*static*/ ObjectVec const& 
 Object::GetObjects()
 {
   return g_objects;
 }
 
-//////////////////////////////////////////////////////////////////////////
-
-Object::Object() 
+Object::Object()
 {
-  g_objects.insert(this);
+  m_collect = true;
+
+  size_t reserve = (g_objects.size() + 1023) / 1024 * 1024;
+  g_objects.reserve(reserve);
+  
+  g_objects.push_back(this);
 }
 
 Object::~Object()
@@ -211,118 +215,100 @@ Object::Remove(Value const& key)
 }
 
 //////////////////////////////////////////////////////////////////////////
-//
-// Helpers for garbage collector
-//
-
-class ObjectDeleter
-{
-public:
-
-  void operator () (Object* ptr) const
-  {
-    try 
-    {
-      delete ptr;
-    }
-    catch(...) 
-    {
-      // TODO
-    }
-  }
-
-};
-
-template <typename T, typename U>
-void erase_from(T& cont, U from, U const& to) {
-  for(; from != to; ++from) {
-    cont.erase(*from);
-  }
-}
-
-//////////////////////////////////////////////////////////////////////////
 /*
 
-The collection algorithm follows the classic tricolor method, with one
-important modification: the traditional algorithm specifies that every
-object is part of one set, whereas in this implementation, objects that
-are reachable are temporarily in both the white and the grey set.
+Collection is fairly simple: all objects start life as collectible,
+and are inserted at the end of g_objects. Collection then proceeds
+as follows:
 
-Invariants:
-
-- White objects may be candidates for collection.
-- Grey objects are reachable and may point to white objects.
-- Black objects are reachable and may not point to white objects.
-- Any object is either grey/white, or it is black.
-
-Algorithm:
-
-1.  Consider all objects white.
-2.  Consider root objects grey.
-3.  Let the black set be empty.
-3.  For each grey object:
-4.    Remove the grey object from the white set.
-5.    Insert the grey object into the black set.
-6.    Add objects referred to by the now black object to the grey set.
-7.  Move black objects to the global list.
-8.  Delete white objects.
+1. Add root objects to the grey set.
+2. For each object in the grey set:
+   a. Mark object non-collectible
+   b. Append all referred objects to the grey set
+3. Repeat 2. until grey set is empty.
+4. For each object in g_objects:
+   If collectible, delete it.
+   Else, copy it to the first available empty slot,
+   and mark it collectible for the next cycle.
+5. Resize g_objects to fit the remaining set.
 
 */
 //////////////////////////////////////////////////////////////////////////
 
-void 
-MarkObjects(Objects& white, Objects& grey, Objects& black)
+/*static*/ void
+Object::Collect(Objects roots)
 {
-  // Walk stack until empty
+  ObjectVec grey, next;
+  ObjectVec::iterator bit, bie, bci;
+
+  // Copy objects into grey set
+  grey.reserve(roots.size());
+  for(Objects::iterator it = roots.begin(), ie = roots.end(); it != ie; ++it)
+  {
+    grey.push_back(*it);
+  }
+
+  // Mark objects
   while(grey.size())
   {
-    // Remove entry from grey list
-    Object* obj = *grey.begin();
-    grey.erase(grey.begin());
+    bit = grey.begin();
+    bie = grey.end();
 
-    // Avoid repeating cycles
-    if(black.count(obj))
+    for(; bit != bie; ++bit)
     {
-      continue;
+      // Set object as non-collectible
+      Object* obj = *bit;
+      obj->m_collect = false;
+
+      // Iterate over members
+      Object::MemberIterator mi, me;
+      mi = obj->Begin();
+      me = obj->End();
+      for(; mi != me; ++mi)
+      {
+        // Check key content
+        if(mi->first.Type() == Value::tObject)
+        {
+          Object* obj = mi->first.GetObject();
+          if(obj->m_collect)
+          {
+            next.push_back(obj);
+          }
+        }
+
+        // Check value content
+        if(mi->second->Type() == Value::tObject)
+        {
+          Object* obj = mi->second->GetObject();
+          if(obj->m_collect)
+          {
+            next.push_back(obj);
+          }
+        }
+      }
     }
 
-    // Move from white to black
-    white.erase(obj);
-    black.insert(obj);
+    // Swap to next grey set
+    grey.swap(next);
+    next.clear();
+  }
 
-    // Walk object members
-    Object::MemberIterator it = obj->Begin();
-    Object::MemberIterator ie = obj->End();
-    for(; it != ie; ++it)
+  // Now delete objects
+  size_t pos = 0, ins = 0, len = g_objects.size();
+  for(; pos < len; ++pos)
+  {
+    Object*& obj = g_objects[pos];
+    if(obj->m_collect)
     {
-      if(it->first.Type() == Value::tObject)
-      {
-        grey.insert(it->first.GetObject());
-      }
-      if(it->second->Type() == Value::tObject)
-      {
-        grey.insert(it->second->GetObject());
-      }
+      delete obj;
+    }
+    else
+    {
+      obj->m_collect = true;
+      g_objects[ins++] = obj;
     }
   }
-}
 
-/*static*/ void 
-Object::Collect(Objects grey)
-{
-  Objects black;
-  Objects white;
-  Objects final;
-  
-  // Move globals into white set
-  white.swap(g_objects);
-
-  // Move reachable objects into black set
-  MarkObjects(white, grey, black);
-
-  // Move black list to global list
-  black.swap(g_objects);
-
-  // Delete white objects
-  std::for_each(white.begin(), white.end(), ObjectDeleter());
+  // Resize the array
+  g_objects.resize(ins);
 }

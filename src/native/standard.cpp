@@ -21,6 +21,7 @@
 #include <native/standard.h>
 #include <eval.h>
 #include <scope.h>
+#include <timer.h>
 
 DEFINE_NATIVE_LINKAGE(Standard)
 
@@ -77,8 +78,8 @@ NATIVE_CALL("dump(fn)")
   invargs.push_back(Value());
 
   // Pass all objects to function
-  Objects::const_iterator it = Object::GetObjects().begin();
-  Objects::const_iterator ie = Object::GetObjects().end();
+  ObjectVec::const_iterator it = Object::GetObjects().begin();
+  ObjectVec::const_iterator ie = Object::GetObjects().end();
   for(; it != ie; ++it)
   {
     invargs[0] = *it;
@@ -99,4 +100,11 @@ NATIVE_CALL("lookup(name)")
     return *pValue;
   }
   return Value();
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+NATIVE_CALL("ticks()")
+{
+  return (Value::Int) Timer::Ticks();
 }

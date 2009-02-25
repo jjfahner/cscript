@@ -259,6 +259,7 @@ Evaluator::ParseText(char const* text, bool showTimes)
 
     // Destroy parser
     CScriptParseFree(pParser, free);
+    pParser = 0;
 
     // Remove lexer
     m_lexer = prevlexer;
@@ -278,7 +279,10 @@ Evaluator::ParseText(char const* text, bool showTimes)
   catch(...)
   {
     // Destroy parser
-    CScriptParseFree(pParser, free);
+    if(pParser)
+    {
+      CScriptParseFree(pParser, free);
+    }
 
     // Remove lexer
     m_lexer = prevlexer;

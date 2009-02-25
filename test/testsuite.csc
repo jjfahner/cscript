@@ -521,7 +521,9 @@ var countBefore = object_count();
 
 // Run garbage collector
 print("Collecting...\n");
+var time = ticks();
 collect();
+time = ticks() - time;
 
 // Store number of objects after collection
 var countAfter = object_count();
@@ -530,5 +532,6 @@ var countAfter = object_count();
 print("Program contained " + countProgram + " objects before execution\n");
 print("Program contained " + countBefore  + " objects after execution\n");
 print("Program contained " + countAfter   + " objects after collection\n");
+print("Collected " + (countBefore - countAfter) + " objects in " + time + " ms\n");
 
 // EOF
