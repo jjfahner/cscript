@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_VARIABLE_H
 #define CSCRIPT_VARIABLE_H
 
-#include "object.h"
+#include <value.h>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -129,77 +129,6 @@ RValue::GetLValue()
 
 //////////////////////////////////////////////////////////////////////////
 
-class Enumerator : public Object
-{
-public:
-
-  //
-  // Setup virtual destruction
-  //
-  virtual ~Enumerator() {}
-
-  //
-  // Reset enumerator to first entry
-  //
-  virtual void Reset() = 0;
-
-  //
-  // Retrieve next value
-  //
-  virtual bool GetNext(Value& value) = 0;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
-class ObjectEnumerator : public Enumerator
-{
-  typedef Object::ValueIterator Iterator;
-
-  Object*  m_obj;
-  Iterator m_cur;
-
-public:
-
-  ObjectEnumerator(Object* object) :
-  m_obj (object)
-  {
-    // Initialize iterator
-    Reset();
-  }
-
-  virtual void Reset()
-  {
-    // Set iterator to start
-    m_cur = m_obj->ValueBegin();
-  }
-
-  virtual bool GetNext(Value& value)
-  {
-    // Check current position
-    if(m_cur == m_obj->ValueEnd())
-    {
-      return false;
-    }
-
-    // Retrieve value from iterator
-    value = *m_cur;
-
-    // Advance to next position
-    ++m_cur;
-
-    // Succeeded
-    return true;
-  }
-
-};
-
-inline Enumerator* 
-RValue::GetEnumerator() const
-{
-  return new ObjectEnumerator(GetValue());
-}
-
 //////////////////////////////////////////////////////////////////////////
 //
 // MemberMap
@@ -247,6 +176,48 @@ public:
   {
     m_value = rhs;
   }
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class MemberVariable : public LValue, public Value
+{
+public:
+
+  //
+  // Empty construction
+  //
+  MemberVariable() 
+  {
+  }
+
+  //
+  // Construction from value
+  //
+  MemberVariable(Value const& v) : Value(v) {}
+
+  //
+  // Implementation of RValue::GetValue
+  //
+  Value const& GetValue() const 
+  { 
+    return *this; 
+  }
+
+  //
+  // Implementation of LValue::SetValue
+  //
+  void SetValue(Value const& v) { *this = v; }
+
+  //
+  // Resolve ambiguity between Value and RValue members
+  //
+  using Value::operator =;
+  using Value::GetObject;
+  using Value::operator ->;
+  using Value::GetGCObject;
+  using Value::Type;
 
 };
 

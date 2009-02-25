@@ -34,6 +34,7 @@
 #include "object.h"
 #include "function.h"
 #include "variable.h"
+#include "enumerator.h"
 
 class ComTypeInfo;
 class ComMemberFunction;

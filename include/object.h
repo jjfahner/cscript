@@ -24,6 +24,7 @@
 #include <gc.h>
 #include <value.h>
 #include <map_iter.h>
+#include <variable.h>
 
 #include <map>
 
@@ -34,7 +35,7 @@ class LValue;
 //
 // Member map
 //
-typedef std::map<Value, RValue*> MemberMap;
+typedef std::map<Value, MemberVariable> MemberMap;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -59,9 +60,9 @@ public:
   // Iterators
   //
 
-  typedef MemberMap::iterator                         MemberIterator;
-  typedef map_iterator_t<MemberMap, key_accessor>     KeyIterator;
-  typedef map_iterator_t<MemberMap, pointer_accessor> ValueIterator;
+  typedef MemberMap::iterator                       MemberIterator;
+  typedef map_iterator_t<MemberMap, key_accessor>   KeyIterator;
+  typedef map_iterator_t<MemberMap, value_accessor> ValueIterator;
 
   //
   // Iterator for members
@@ -159,11 +160,6 @@ public:
   virtual void Remove(Value const& key);
 
 protected:
-
-  //
-  // Virtual destruction
-  //
-  virtual ~Object();
 
   //
   // Protected construction forms

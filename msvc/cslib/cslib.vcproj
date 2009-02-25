@@ -488,6 +488,10 @@
 			</Filter>
 		</Filter>
 		<File
+			RelativePath="..\..\include\enumerator.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\TODO"
 			>
 		</File>

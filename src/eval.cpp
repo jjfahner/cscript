@@ -18,16 +18,17 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "eval.h"
-#include "ast.h"
-#include "scope.h"
-#include "function.h"
-#include "srcfile.h"
-#include "lexer.h"
-#include "tokens.h"
-#include "map_iter.h"
-#include "native.h"
-#include "timer.h"
+#include <eval.h>
+#include <ast.h>
+#include <scope.h>
+#include <function.h>
+#include <srcfile.h>
+#include <lexer.h>
+#include <tokens.h>
+#include <map_iter.h>
+#include <native.h>
+#include <timer.h>
+#include <enumerator.h>
 
 #include <iostream>
 
