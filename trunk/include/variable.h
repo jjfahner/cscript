@@ -222,6 +222,7 @@ public:
   using Value::GetGCObject;
   using Value::operator =;
   using Value::operator ->;
+  using RValue::operator Object *;
 
 };
 
