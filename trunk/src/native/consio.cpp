@@ -71,13 +71,13 @@ void PrintValue(Value const& val)
     sep = ",";
     PrintValue(it->first);
     std::cout << ":";
-    if(it->second->Type() == Value::tObject)
+    if(it->second.Type() == Value::tObject)
     {
-      std::cout << it->second->GetObject()->GetTypeName();
+      std::cout << it->second.GetObject()->GetTypeName();
     }
     else
     {
-      PrintValue(it->second->GetValue());
+      PrintValue(it->second.GetValue());
     }
   }
 

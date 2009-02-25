@@ -30,15 +30,6 @@ static const String g_prototype("prototype");
 
 //////////////////////////////////////////////////////////////////////////
 
-Object::~Object()
-{
-  MemberMap::iterator it = m_members.begin();
-  for(; it != m_members.end(); ++it)
-  {
-    delete it->second;
-  }
-}
-
 String 
 Object::GetTypeName() const
 {
@@ -75,13 +66,13 @@ Object::ContainsKey(Value const& key, bool checkProto)
   }
 
   // Lookup in prototype
-  return (*it->second)->ContainsKey(key, true);
+  return it->second->ContainsKey(key, true);
 }
 
 bool 
 Object::Find(Value const& key, RValue*& pValue, bool checkProto)
 {
-  MemberMap::const_iterator it;
+  MemberMap::iterator it;
 
   // Initialize return value
   pValue = 0;
@@ -90,7 +81,7 @@ Object::Find(Value const& key, RValue*& pValue, bool checkProto)
   it = m_members.find(key);
   if(it != m_members.end())
   {
-    pValue = it->second;
+    pValue = &it->second;
     return true;
   }
 
@@ -108,14 +99,14 @@ Object::Find(Value const& key, RValue*& pValue, bool checkProto)
   }
   
   // Lookup in prototype
-  if(!(*it->second)->Find(key, pValue, true))
+  if(!it->second->Find(key, pValue, true))
   {
     return false;
   }
 
   // Clone value
-  pValue = new RWVariable(*pValue);
-  m_members[key] = pValue;
+  pValue = &m_members.insert(std::make_pair(key, pValue->GetValue())).first->second;
+  
 
   // Done
   return true;
@@ -127,8 +118,7 @@ Object::GetRValue(Value const& key)
   RValue* pValue;
   if(!Find(key, pValue))
   {
-    pValue = new RWVariable();
-    m_members[key] = pValue;
+    pValue = &m_members[key];
   }
 
   return *pValue;
@@ -143,17 +133,11 @@ Object::GetLValue(Value const& key)
 RValue& 
 Object::Add(Value const& value)
 {
-  return Add(m_members.size(), value).GetLValue();
+  return Add(m_members.size(), value);
 }
 
 RValue& 
 Object::Add(Value const& key, Value const& value)
-{
-  return Add(key, new RWVariable(value));
-}
-
-RValue& 
-Object::Add(Value const& key, RValue* value)
 {
   // Insert new variable
   typedef std::pair<MemberIterator, bool> InsertResult;
@@ -167,7 +151,15 @@ Object::Add(Value const& key, RValue* value)
   }
 
   // Done
-  return *value;
+  return res.first->second;
+}
+
+RValue& 
+Object::Add(Value const& key, RValue* value)
+{
+  throw std::runtime_error("Custom object members are currently not implemented");
+
+  //return Add(key, value);
 }
 
 void 
@@ -178,7 +170,7 @@ Object::AddMembers(Object* source)
   MemberIterator ie = source->End();
   for(; it != ie; ++it)
   {
-    Add(it->second->GetValue());
+    Add(it->second.GetValue());
   }
 }
 
@@ -189,7 +181,6 @@ Object::Remove(Value const& key)
   MemberIterator it = m_members.find(key);
   if(it != m_members.end())
   {
-    delete it->second;
     m_members.erase(it);
   }
 }
@@ -210,7 +201,7 @@ Object::MarkObjects(GC::ObjectVec& grey)
     }
 
     // Check value content
-    if(GC::Object* o = mi->second->GetGCObject())
+    if(GC::Object* o = mi->second.GetGCObject())
     {
       grey.push_back(o);
     }
