@@ -23,6 +23,18 @@
 
 #include <typeinfo>
 
+GCObject* 
+Value::GetGCObject() const
+{
+  switch(m_type)
+  {
+  case tObject:
+    return m_object;
+  default:
+    return 0;
+  }
+}
+
 /*static*/ Value::String 
 Value::TypeToString(Types type)
 {

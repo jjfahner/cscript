@@ -45,7 +45,7 @@ NATIVE_CALL("collect()")
 
 NATIVE_CALL("object_count()")
 {
-  return Object::GetObjects().size();
+  return GCObject::ObjectCount();
 };
 
 NATIVE_CALL("exit(int exitcode = 0)")
@@ -64,30 +64,6 @@ NATIVE_CALL("quit(int exitcode = 0)")
 
   // Never executed
   throw std::runtime_error("exit() failed");
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-NATIVE_CALL("dump(fn)")
-{
-  // Retrieve function
-  Function* fun = dynamic_cast<Function*>(args[0].GetObject());
-
-  // Prepare arguments
-  Arguments invargs;
-  invargs.push_back(Value());
-
-  // Pass all objects to function
-  ObjectVec::const_iterator it = Object::GetObjects().begin();
-  ObjectVec::const_iterator ie = Object::GetObjects().end();
-  for(; it != ie; ++it)
-  {
-    invargs[0] = *it;
-    fun->Execute(evaluator, invargs);
-  }
-
-  // Done
-  return Value();
 }
 
 //////////////////////////////////////////////////////////////////////////

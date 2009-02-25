@@ -39,12 +39,13 @@ public:
   //
   // Wrappers for Value interface
   //
-  Value::Types          Type()      const { return GetValue().Type();      }
-  bool                  Empty()     const { return GetValue().Empty();     }
-  Value::Bool           GetBool()   const { return GetValue().GetBool();   }
-  Value::Int            GetInt()    const { return GetValue().GetInt();    }
-  Value::String const&  GetString() const { return GetValue().GetString(); }
-  Object*               GetObject() const { return GetValue().GetObject(); }
+  Value::Types          Type()        const { return GetValue().Type();      }
+  bool                  Empty()       const { return GetValue().Empty();     }
+  Value::Bool           GetBool()     const { return GetValue().GetBool();   }
+  Value::Int            GetInt()      const { return GetValue().GetInt();    }
+  Value::String const&  GetString()   const { return GetValue().GetString(); }
+  Object*               GetObject()   const { return GetValue().GetObject(); }
+  GCObject*             GetGCObject() const { return GetValue().GetGCObject(); }
 
   //
   // Conversion to boolean checks emptyness, not boolean value
