@@ -19,22 +19,25 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include <cscript.h>
-#include <gcobject.h>
 #include <variable.h>
 #include <object.h>
+#include <gc.h>
 
-// Global object list
-static ObjectVec g_objects;
-
-//////////////////////////////////////////////////////////////////////////
+namespace GC
+{
+  //
+  // Global object list
+  //
+  static ObjectVec g_objects;
+}
 
 /*static*/ size_t 
-GCObject::ObjectCount()
+GC::ObjectCount()
 {
   return g_objects.size();
 }
 
-GCObject::GCObject()
+GC::Object::Object()
 {
   // Set collectible
   m_collect = true;
@@ -69,7 +72,7 @@ and mark it collectible for the next cycle.
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ void
-GCObject::Collect(ObjectVec const& roots)
+GC::Collect(ObjectVec const& roots)
 {
   ObjectVec grey, next;
   ObjectVec::iterator bit, bie, bci;
@@ -86,24 +89,24 @@ GCObject::Collect(ObjectVec const& roots)
     for(; bit != bie; ++bit)
     {
       // Set object as non-collectible
-      GCObject* gcObj = *bit;
+      GC::Object* gcObj = *bit;
       gcObj->m_collect = false;
 
       // Complex object
-      Object* obj = dynamic_cast<Object*>(gcObj);
+      ::Object* obj = dynamic_cast<::Object*>(gcObj);
       if(obj == 0)
       {
         continue;
       }
 
       // Iterate over members
-      Object::MemberIterator mi, me;
+      ::Object::MemberIterator mi, me;
       mi = obj->Begin();
       me = obj->End();
       for(; mi != me; ++mi)
       {
         // Check key content
-        if(GCObject* o = mi->first.GetGCObject())
+        if(GC::Object* o = mi->first.GetGCObject())
         {
           if(o->m_collect)
           {
@@ -112,7 +115,7 @@ GCObject::Collect(ObjectVec const& roots)
         }
 
         // Check value content
-        if(GCObject* o = mi->second->GetGCObject())
+        if(GC::Object* o = mi->second->GetGCObject())
         {
           if(o->m_collect)
           {
@@ -131,7 +134,7 @@ GCObject::Collect(ObjectVec const& roots)
   size_t pos = 0, ins = 0, len = g_objects.size();
   for(; pos < len; ++pos)
   {
-    GCObject*& obj = g_objects[pos];
+    GC::Object*& obj = g_objects[pos];
     if(obj->m_collect)
     {
       delete obj;

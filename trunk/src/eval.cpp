@@ -374,7 +374,7 @@ Evaluator::ParseNativeCall(String const& declaration)
 void 
 Evaluator::Collect()
 {
-  ObjectVec valid;
+  GC::ObjectVec valid;
 
   // Insert root object in scope
   valid.push_back(m_scope ? m_scope : m_global);
@@ -389,7 +389,7 @@ Evaluator::Collect()
   }
 
   // Collect invalid objects
-  GCObject::Collect(valid);
+  GC::Collect(valid);
 }
 
 Value 
