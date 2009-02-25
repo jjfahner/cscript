@@ -93,7 +93,8 @@ GC::Collect(ObjectVec const& roots)
       gcObj->m_collect = false;
 
       // Complex object
-      ::Object* obj = dynamic_cast<::Object*>(gcObj);
+      typedef ::Object CXObject;
+      CXObject* obj = dynamic_cast<CXObject*>(gcObj);
       if(obj == 0)
       {
         continue;
