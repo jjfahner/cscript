@@ -28,6 +28,11 @@ class Timer
 public:
 
   //
+  // Current clock
+  //
+  static uint64 Ticks();
+
+  //
   // Construction
   //
   Timer(bool autoStart = true);
@@ -43,11 +48,6 @@ public:
   void Reset();
 
 private:
-
-  //
-  // Current clock
-  //
-  static uint64 Ticks();
 
   //
   // Members

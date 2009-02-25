@@ -23,6 +23,7 @@
 
 #include <map>
 #include <set>
+#include <vector>
 
 #include "value.h"
 #include "map_iter.h"
@@ -32,8 +33,9 @@ class RValue;
 class LValue;
 
 //
-// List of root objects
+// Object lists
 //
+typedef std::vector<Object*> ObjectVec;
 typedef std::set<Object*> Objects;
 
 //
@@ -62,7 +64,7 @@ public:
   //
   // Retrieve list of all objects
   //
-  static Objects const& GetObjects();
+  static ObjectVec const& GetObjects();
 
   //////////////////////////////////////////////////////////////////////////
   //
@@ -203,6 +205,7 @@ private:
   // Object members
   //
   MemberMap m_members;
+  bool      m_collect;
 
 };
 
