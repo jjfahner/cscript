@@ -213,11 +213,15 @@ public:
   //
   // Resolve ambiguity between Value and RValue members
   //
-  using Value::operator =;
-  using Value::GetObject;
-  using Value::operator ->;
-  using Value::GetGCObject;
   using Value::Type;
+  using Value::Empty;
+  using Value::GetBool;
+  using Value::GetInt;
+  using Value::GetString;
+  using Value::GetObject;
+  using Value::GetGCObject;
+  using Value::operator =;
+  using Value::operator ->;
 
 };
 
