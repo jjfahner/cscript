@@ -25,30 +25,10 @@
 #include <algorithm>
 #include <typeinfo>
 
-// Global object list
-typedef std::vector<Object*> ObjectVec;
-static ObjectVec g_objects;
-
 // Literals
 static const Value g_prototype("prototype");
 
 //////////////////////////////////////////////////////////////////////////
-
-/*static*/ ObjectVec const& 
-Object::GetObjects()
-{
-  return g_objects;
-}
-
-Object::Object()
-{
-  m_collect = true;
-
-  size_t reserve = (g_objects.size() + 1023) / 1024 * 1024;
-  g_objects.reserve(reserve);
-  
-  g_objects.push_back(this);
-}
 
 Object::~Object()
 {
@@ -214,101 +194,3 @@ Object::Remove(Value const& key)
   }
 }
 
-//////////////////////////////////////////////////////////////////////////
-/*
-
-Collection is fairly simple: all objects start life as collectible,
-and are inserted at the end of g_objects. Collection then proceeds
-as follows:
-
-1. Add root objects to the grey set.
-2. For each object in the grey set:
-   a. Mark object non-collectible
-   b. Append all referred objects to the grey set
-3. Repeat 2. until grey set is empty.
-4. For each object in g_objects:
-   If collectible, delete it.
-   Else, copy it to the first available empty slot,
-   and mark it collectible for the next cycle.
-5. Resize g_objects to fit the remaining set.
-
-*/
-//////////////////////////////////////////////////////////////////////////
-
-/*static*/ void
-Object::Collect(Objects roots)
-{
-  ObjectVec grey, next;
-  ObjectVec::iterator bit, bie, bci;
-
-  // Copy objects into grey set
-  grey.reserve(roots.size());
-  for(Objects::iterator it = roots.begin(), ie = roots.end(); it != ie; ++it)
-  {
-    grey.push_back(*it);
-  }
-
-  // Mark objects
-  while(grey.size())
-  {
-    bit = grey.begin();
-    bie = grey.end();
-
-    for(; bit != bie; ++bit)
-    {
-      // Set object as non-collectible
-      Object* obj = *bit;
-      obj->m_collect = false;
-
-      // Iterate over members
-      Object::MemberIterator mi, me;
-      mi = obj->Begin();
-      me = obj->End();
-      for(; mi != me; ++mi)
-      {
-        // Check key content
-        if(mi->first.Type() == Value::tObject)
-        {
-          Object* obj = mi->first.GetObject();
-          if(obj->m_collect)
-          {
-            next.push_back(obj);
-          }
-        }
-
-        // Check value content
-        if(mi->second->Type() == Value::tObject)
-        {
-          Object* obj = mi->second->GetObject();
-          if(obj->m_collect)
-          {
-            next.push_back(obj);
-          }
-        }
-      }
-    }
-
-    // Swap to next grey set
-    grey.swap(next);
-    next.clear();
-  }
-
-  // Now delete objects
-  size_t pos = 0, ins = 0, len = g_objects.size();
-  for(; pos < len; ++pos)
-  {
-    Object*& obj = g_objects[pos];
-    if(obj->m_collect)
-    {
-      delete obj;
-    }
-    else
-    {
-      obj->m_collect = true;
-      g_objects[ins++] = obj;
-    }
-  }
-
-  // Resize the array
-  g_objects.resize(ins);
-}

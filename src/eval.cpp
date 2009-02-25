@@ -374,22 +374,22 @@ Evaluator::ParseNativeCall(String const& declaration)
 void 
 Evaluator::Collect()
 {
-  Objects valid;
+  ObjectVec valid;
 
   // Insert root object in scope
-  valid.insert(m_scope ? m_scope : m_global);
+  valid.push_back(m_scope ? m_scope : m_global);
 
   // Append temporaries
   for(size_t i = 0; i < m_temporaries.size(); ++i)
   {
     if(m_temporaries[i]->Type() == Value::tObject)
     {
-      valid.insert(m_temporaries[i]->GetObject());
+      valid.push_back(m_temporaries[i]->GetObject());
     }
   }
 
   // Collect invalid objects
-  Object::Collect(valid);
+  GCObject::Collect(valid);
 }
 
 Value 

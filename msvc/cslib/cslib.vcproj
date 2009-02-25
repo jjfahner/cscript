@@ -217,6 +217,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\gcobject.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lexer.cpp"
 				>
 			</File>
@@ -376,6 +380,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\function.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\gcobject.h"
 				>
 			</File>
 			<File

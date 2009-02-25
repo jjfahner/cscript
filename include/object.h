@@ -21,22 +21,15 @@
 #ifndef CSCRIPT_OBJECT_H
 #define CSCRIPT_OBJECT_H
 
-#include <map>
-#include <set>
-#include <vector>
+#include <gcobject.h>
+#include <value.h>
+#include <map_iter.h>
 
-#include "value.h"
-#include "map_iter.h"
+#include <map>
 
 class Object;
 class RValue;
 class LValue;
-
-//
-// Object lists
-//
-typedef std::vector<Object*> ObjectVec;
-typedef std::set<Object*> Objects;
 
 //
 // Member map
@@ -47,34 +40,14 @@ typedef std::map<Value, RValue*> MemberMap;
 //
 // Object class
 //
-class Object 
+class Object : public GCObject
 {
 public:
-
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Static members
-  //
-
-  //
-  // Invoke garbage collection.
-  //
-  static void Collect(Objects valid);
-
-  //
-  // Retrieve list of all objects
-  //
-  static ObjectVec const& GetObjects();
-
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Instance members
-  //
 
   //
   // Construction
   //
-  Object();
+  Object() {}
 
   //
   // Object type
@@ -190,16 +163,15 @@ protected:
   //
   // Virtual destruction
   //
-  friend class ObjectDeleter;
   virtual ~Object();
-
-private:
 
   //
   // Protected construction
   //
-  Object(Object const&);
-  Object& operator = (Object const&);
+  Object(Object const&) {}
+  Object& operator = (Object const&) {}
+
+private:
 
   //
   // Object members

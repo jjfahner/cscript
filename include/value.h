@@ -24,6 +24,7 @@
 #include "cscript.h"
 
 class Object;
+class GCObject;
 
 class Value
 {
@@ -169,6 +170,8 @@ public:
   {
     return GetObject();
   }
+
+  GCObject* GetGCObject() const;
 
   //
   // Set value
