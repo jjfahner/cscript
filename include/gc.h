@@ -24,43 +24,61 @@
 #include <cscript.h>
 #include <vector>
 
-class GCObject;
-
-typedef std::vector<GCObject*> ObjectVec;
-
-class GCObject
+namespace GC
 {
-public:
+  //
+  // Forward declare Object class
+  //
+  class Object;
 
   //
-  // Run garbage collector
+  // Vector of collectable objects
   //
-  static void Collect(ObjectVec const& roots);
+  typedef std::vector<Object*> ObjectVec;
+
+  //
+  // Invoke collection cycle
+  //
+  void Collect(ObjectVec const& roots);
 
   //
   // Current number of objects
   //
-  static size_t ObjectCount();
+  size_t ObjectCount();
 
   //
-  // Virtual destruction
+  // Base class for collectible objects
   //
-  virtual ~GCObject() {}
+  class Object
+  {
+  public:
 
-protected:
+    //
+    // Virtual destruction
+    //
+    virtual ~Object() {}
 
-  //
-  // Construction
-  //
-  GCObject();
+  protected:
 
-private:
+    //
+    // Construction
+    //
+    Object();
 
-  //
-  // Whether to collect an object
-  //
-  bool m_collect;
+  private:
 
-};
+    //
+    // Allow the collector access
+    //
+    friend void GC::Collect(ObjectVec const&);
+
+    //
+    // Whether to collect this object
+    //
+    bool m_collect;
+
+  };
+
+} // namespace GC
 
 #endif // CSCRIPT_GCOBJECT_H

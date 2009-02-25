@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_OBJECT_H
 #define CSCRIPT_OBJECT_H
 
-#include <gcobject.h>
+#include <gc.h>
 #include <value.h>
 #include <map_iter.h>
 
@@ -40,7 +40,7 @@ typedef std::map<Value, RValue*> MemberMap;
 //
 // Object class
 //
-class Object : public GCObject
+class Object : public GC::Object
 {
 public:
 
@@ -166,7 +166,7 @@ protected:
   virtual ~Object();
 
   //
-  // Protected construction
+  // Protected construction forms
   //
   Object(Object const&) {}
   Object& operator = (Object const&) {}
@@ -177,7 +177,6 @@ private:
   // Object members
   //
   MemberMap m_members;
-  bool      m_collect;
 
 };
 

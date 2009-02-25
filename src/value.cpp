@@ -23,7 +23,7 @@
 
 #include <typeinfo>
 
-GCObject* 
+GC::Object* 
 Value::GetGCObject() const
 {
   switch(m_type)

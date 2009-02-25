@@ -45,7 +45,7 @@ public:
   Value::Int            GetInt()      const { return GetValue().GetInt();    }
   Value::String const&  GetString()   const { return GetValue().GetString(); }
   Object*               GetObject()   const { return GetValue().GetObject(); }
-  GCObject*             GetGCObject() const { return GetValue().GetGCObject(); }
+  GC::Object*           GetGCObject() const { return GetValue().GetGCObject(); }
 
   //
   // Conversion to boolean checks emptyness, not boolean value

@@ -217,7 +217,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\gcobject.cpp"
+				RelativePath="..\..\src\gc.cpp"
 				>
 			</File>
 			<File
@@ -383,7 +383,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\gcobject.h"
+				RelativePath="..\..\include\gc.h"
 				>
 			</File>
 			<File

@@ -22,7 +22,7 @@
 #define CSCRIPT_VALUE_H
 
 #include <cscript.h>
-#include <gcobject.h>
+#include <gc.h>
 
 class Object;
 
@@ -47,7 +47,7 @@ public:
   static String TypeToString(Types);
   static Types StringToType(String);
 
-  class GCString : public String, public GCObject
+  class GCString : public String, public GC::Object
   {
   public:
     GCString(char const* str)   : String(str) {}
@@ -174,7 +174,7 @@ public:
     return GetObject();
   }
 
-  GCObject* GetGCObject() const;
+  GC::Object* GetGCObject() const;
 
   //
   // Set value

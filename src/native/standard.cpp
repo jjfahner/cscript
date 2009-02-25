@@ -45,7 +45,7 @@ NATIVE_CALL("collect()")
 
 NATIVE_CALL("object_count()")
 {
-  return GCObject::ObjectCount();
+  return GC::ObjectCount();
 };
 
 NATIVE_CALL("exit(int exitcode = 0)")
