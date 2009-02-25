@@ -39,7 +39,7 @@ GC::ObjectCount()
 
 GC::Object::Object()
 {
-  // Set collectible
+  // Set collectable
   m_collect = true;
 
   // Reserve space efficiently
@@ -53,19 +53,19 @@ GC::Object::Object()
 //////////////////////////////////////////////////////////////////////////
 /*
 
-Collection is fairly simple: all objects start life as collectible,
+Collection is fairly simple: all objects start life as collectable,
 and are inserted at the end of g_objects. Collection then proceeds
 as follows:
 
 1. Add root objects to the grey set.
 2. For each object in the grey set:
-a. Mark object non-collectible
+a. Mark object non-collectable
 b. Append all referred objects to the grey set
 3. Repeat 2. until grey set is empty.
 4. For each object in g_objects:
-If collectible, delete it.
+If collectable, delete it.
 Else, copy it to the first available empty slot,
-and mark it collectible for the next cycle.
+and mark it collectable for the next cycle.
 5. Resize g_objects to fit the remaining set.
 
 */
@@ -75,54 +75,27 @@ and mark it collectible for the next cycle.
 GC::Collect(ObjectVec const& roots)
 {
   ObjectVec grey, next;
-  ObjectVec::iterator bit, bie, bci;
+  ObjectVec::iterator it, ie;
 
-  // Copy objects into grey set
+  // Start with the root objects
   grey = roots;
 
-  // Mark objects
+  // Run until no more objects are grey
   while(grey.size())
   {
-    bit = grey.begin();
-    bie = grey.end();
-
-    for(; bit != bie; ++bit)
+    // Mark reachable objects
+    it = grey.begin();
+    ie = grey.end();
+    for(; it != ie; ++it)
     {
-      // Set object as non-collectible
-      GC::Object* gcObj = *bit;
-      gcObj->m_collect = false;
-
-      // Complex object
-      typedef ::Object CXObject;
-      CXObject* obj = dynamic_cast<CXObject*>(gcObj);
-      if(obj == 0)
+      // Skip objects that have been seen before
+      if((*it)->m_collect)
       {
-        continue;
-      }
+        // Set object as non-collectable
+        (*it)->m_collect = false;
 
-      // Iterate over members
-      ::Object::MemberIterator mi, me;
-      mi = obj->Begin();
-      me = obj->End();
-      for(; mi != me; ++mi)
-      {
-        // Check key content
-        if(GC::Object* o = mi->first.GetGCObject())
-        {
-          if(o->m_collect)
-          {
-            next.push_back(o);
-          }
-        }
-
-        // Check value content
-        if(GC::Object* o = mi->second->GetGCObject())
-        {
-          if(o->m_collect)
-          {
-            next.push_back(o);
-          }
-        }
+        // Mark subobjects
+        (*it)->MarkObjects(next);
       }
     }
 
@@ -131,7 +104,7 @@ GC::Collect(ObjectVec const& roots)
     next.clear();
   }
 
-  // Now delete objects
+  // Now delete objects and compact array
   size_t pos = 0, ins = 0, len = g_objects.size();
   for(; pos < len; ++pos)
   {

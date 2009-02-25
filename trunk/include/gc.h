@@ -47,7 +47,7 @@ namespace GC
   size_t ObjectCount();
 
   //
-  // Base class for collectible objects
+  // Base class for collectable objects
   //
   class Object
   {
@@ -64,6 +64,11 @@ namespace GC
     // Construction
     //
     Object();
+
+    //
+    // Mark subobjects
+    //
+    virtual void MarkObjects(ObjectVec& grey) {}
 
   private:
 

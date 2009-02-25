@@ -194,3 +194,25 @@ Object::Remove(Value const& key)
   }
 }
 
+void 
+Object::MarkObjects(GC::ObjectVec& grey)
+{
+  // Iterate over members
+  MemberIterator mi, me;
+  mi = Begin();
+  me = End();
+  for(; mi != me; ++mi)
+  {
+    // Check key content
+    if(GC::Object* o = mi->first.GetGCObject())
+    {
+      grey.push_back(o);
+    }
+
+    // Check value content
+    if(GC::Object* o = mi->second->GetGCObject())
+    {
+      grey.push_back(o);
+    }
+  }
+}
