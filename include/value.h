@@ -21,10 +21,10 @@
 #ifndef CSCRIPT_VALUE_H
 #define CSCRIPT_VALUE_H
 
-#include "cscript.h"
+#include <cscript.h>
+#include <gcobject.h>
 
 class Object;
-class GCObject;
 
 class Value
 {
@@ -42,10 +42,17 @@ public:
 
   typedef bool          Bool;
   typedef int64         Int;
-  typedef std::string        String;
+  typedef std::string   String;
 
   static String TypeToString(Types);
   static Types StringToType(String);
+
+  class GCString : public String, public GCObject
+  {
+  public:
+    GCString(char const* str)   : String(str) {}
+    GCString(String const& str) : String(str) {}
+  };
 
   Value()
   {
@@ -87,13 +94,13 @@ public:
   Value(String val)
   {
     m_type = tString;
-    m_string = new String(val);
+    m_string = new GCString(val);
   }
 
   Value(char const* val)
   {
     m_type = tString;
-    m_string = new String(val);
+    m_string = new GCString(val);
   }
 
   Value(Object* obj)
@@ -109,10 +116,6 @@ public:
 
   void Clear()
   {
-    if(m_type == tString)
-    {
-      delete m_string;
-    }
     m_type = tNull;
     m_int  = 0;
   }
@@ -181,10 +184,10 @@ public:
     Clear();
     switch(rhs.m_type)
     {
-    case tBool:   m_bool   = rhs.m_bool; break;
-    case tInt:    m_int    = rhs.m_int; break;
-    case tString: m_string = new String(*rhs.m_string); break;
-    case tObject: m_object = rhs.m_object; break;
+    case tBool:   m_bool   = rhs.m_bool;    break;
+    case tInt:    m_int    = rhs.m_int;     break;
+    case tString: m_string = rhs.m_string;  break;
+    case tObject: m_object = rhs.m_object;  break;
     }
     m_type = rhs.m_type;
   }
@@ -226,7 +229,7 @@ private:
   Types     m_type;
   union 
   {
-    String*   m_string;
+    GCString* m_string;
     Int       m_int;
     Bool      m_bool;
     Object*   m_object;

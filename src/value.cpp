@@ -28,10 +28,9 @@ Value::GetGCObject() const
 {
   switch(m_type)
   {
-  case tObject:
-    return m_object;
-  default:
-    return 0;
+  case tString: return m_string;
+  case tObject: return m_object;
+  default:      return 0;
   }
 }
 
@@ -82,8 +81,11 @@ ValCmp(Value const& lhs, Value const& rhs)
     return int(lhs.GetInt() - rhs.GetInt());
 
   case Value::tString: 
-    return strcmp(lhs.GetString().c_str(), 
-      rhs.GetString().c_str());
+    {
+      char const* lptr = lhs.GetString().c_str();
+      char const* rptr = rhs.GetString().c_str();
+      return strcmp(lptr, rptr);
+    }
 
   case Value::tObject: 
     return int(lhs.GetObject() - rhs.GetObject());

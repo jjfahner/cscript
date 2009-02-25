@@ -26,7 +26,7 @@
 #include <typeinfo>
 
 // Literals
-static const Value g_prototype("prototype");
+static const String g_prototype("prototype");
 
 //////////////////////////////////////////////////////////////////////////
 
