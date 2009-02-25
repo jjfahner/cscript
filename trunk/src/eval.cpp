@@ -248,6 +248,9 @@ Evaluator::ParseText(char const* text, bool showTimes)
     Token token;
     token.Init();
 
+    // Reset result node
+    m_resultNode = 0;
+
     // Run parser loop
     while(lexer.Lex(token))
     {
@@ -264,13 +267,17 @@ Evaluator::ParseText(char const* text, bool showTimes)
     // Remove lexer
     m_lexer = prevlexer;
 
-    // Retrieve root node
-    Object* root = m_resultNode;
-
     // Show parse time
     if(showTimes)
     {
       std::cout << "Parsed code in " << timer.Elapsed() << " ms\n\n";
+    }
+
+    // Retrieve root node
+    Object* root = m_resultNode;
+    if(root == 0)
+    {
+      throw std::runtime_error("Failed to parse input. The format is invalid.");
     }
 
     // Evaluate code
