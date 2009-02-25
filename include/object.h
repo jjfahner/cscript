@@ -171,6 +171,11 @@ protected:
   Object(Object const&) {}
   Object& operator = (Object const&) {}
 
+  //
+  // Mark subobjects
+  //
+  virtual void MarkObjects(GC::ObjectVec& grey);
+
 private:
 
   //
