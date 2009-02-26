@@ -507,11 +507,10 @@ Evaluator::EvalStatement(Object* node)
   case while_statement:       EvalWhileStatement(node);     break;
   case return_statement:      EvalReturnStatement(node);    break;
   case switch_statement:      EvalSwitchStatement(node);    break;
+  case unset_statement:       EvalUnsetStatement(node);     break;
 
   case break_statement:       throw BreakException(node);
   case continue_statement:    throw ContinueException(node);
-  case throw_statement:       throw UserException(node, 
-                                  EvalExpression(Ast_A1(node)));
 
   case declarator_sequence:
     EvalStatement(Ast_A1(node));
@@ -566,6 +565,8 @@ Evaluator::EvalExpression(Object* node)
   case operator_declaration:  return EvalOperatorDeclaration(node);
   case function_member_expression:  return EvalFunctionMember(node);
   case function_index_expression:   return EvalFunctionIndex(node);
+  case throw_expression:      
+    throw UserException(node, EvalExpression(Ast_A1(node)));
   }
   throw ScriptException(node, "Invalid expression type");
 }
@@ -898,6 +899,21 @@ Evaluator::EvalQualifiedId(Object* node)
     {
       // Found it
       return rval;
+    }
+  }
+}
+
+void 
+Evaluator::EvalUnsetStatement(Object* node)
+{
+  if(Ast_Type(Ast_A1(node)) == unqualified_id)
+  {
+    String name = Ast_A1(Ast_A1(node)).GetString();
+    Object* pOwner;
+    RValue* pValue;
+    if(m_scope->Lookup(name, pValue, pOwner, true))
+    {
+      pOwner->Remove(name);
     }
   }
 }

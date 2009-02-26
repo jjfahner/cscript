@@ -36,9 +36,9 @@
 //
 // Lexer-specific tokens
 //
-#define TOK_COMMENT       80
-#define TOK_NEWLINE       81
-#define TOK_WHITESPACE    82
+#define TOK_COMMENT       180
+#define TOK_NEWLINE       181
+#define TOK_WHITESPACE    182
 
 //
 // Define token structure

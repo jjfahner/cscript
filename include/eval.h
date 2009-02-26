@@ -173,6 +173,7 @@ private:
   void EvalReturnStatement(Object* node);
   void EvalExternDecl(Object* node);
   void EvalTryStatement(Object* node);
+  void EvalUnsetStatement(Object* node);
 
   //
   // Expression handlers
