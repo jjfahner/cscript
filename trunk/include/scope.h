@@ -69,25 +69,29 @@ public:
   virtual bool Lookup(String const& name, RValue*& ptr)
   {
     Object* owner;
-    return Lookup(name, ptr, owner);
+    return Lookup(name, ptr, owner, false);
   }
 
   //
   // Retrieve a variable with owner
   //
-  virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner)
+  virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner, bool scopeIsOwner = false)
   {
     ptr = 0;
     owner = 0;
     
     if(Object::Find(name, ptr))
     {
+      if(scopeIsOwner)
+      {
+        owner = this;
+      }
       return true;
     }
     
     if(Scope* parent = GetParent())
     {
-      return parent->Lookup(name, ptr, owner);
+      return parent->Lookup(name, ptr, owner, scopeIsOwner);
     }
 
     return false;
@@ -130,7 +134,7 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner)
+  virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner, bool scopeIsOwner = false)
   {
     // Find instance member
     if(m_inst->Find(name, ptr))
@@ -140,7 +144,7 @@ public:
     }
 
     // Look in parent scope
-    return Scope::Lookup(name, ptr, owner);
+    return Scope::Lookup(name, ptr, owner, scopeIsOwner);
   }
 
 protected:

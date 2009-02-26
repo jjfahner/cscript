@@ -513,8 +513,12 @@ function main()
 collect();
 var countProgram = object_count();
 
+var print = function(arg) {};
+
 // Invoke main program
-main();
+for(var i = 0; i < 10; ++i) main();
+
+unset print;
 
 // Run garbage collector
 print("Collecting...\n");

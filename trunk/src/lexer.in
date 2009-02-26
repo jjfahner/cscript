@@ -75,6 +75,7 @@ int parseNextToken(Char*& start, Char*& end)
   "throw"                   { return TOK_THROW; }
   "true"                    { return TOK_TRUE; }
   "try"                     { return TOK_TRY; }
+  "unset"                   { return TOK_UNSET; }
   "var"                     { return TOK_VAR; }
   "while"                   { return TOK_WHILE; }
 
