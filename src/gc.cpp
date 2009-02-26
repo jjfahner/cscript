@@ -21,6 +21,7 @@
 #include <cscript.h>
 #include <variable.h>
 #include <object.h>
+#include <timer.h>
 #include <gc.h>
 
 namespace GC
@@ -71,18 +72,27 @@ and mark it collectable for the next cycle.
 */
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ void
+/*static*/ GC::CollectInfo 
 GC::Collect(ObjectVec const& roots)
 {
   ObjectVec grey, next;
   ObjectVec::iterator it, ie;
 
+  // Init collect information
+  CollectInfo ci;
+  memset(&ci, 0, sizeof(ci));
+  ci.m_numObjects = g_objects.size();
+
   // Start with the root objects
   grey = roots;
 
   // Run until no more objects are grey
+  ci.m_markPhase = Timer::Ticks();
   while(grey.size())
   {
+    // Next cycle
+    ++ci.m_numCycles;
+
     // Mark reachable objects
     it = grey.begin();
     ie = grey.end();
@@ -104,7 +114,11 @@ GC::Collect(ObjectVec const& roots)
     next.clear();
   }
 
+  // Record time for marking
+  ci.m_markPhase = Timer::Ticks() - ci.m_markPhase;
+
   // Now delete objects and compact array
+  ci.m_deletePhase = Timer::Ticks();
   size_t pos = 0, ins = 0, len = g_objects.size();
   for(; pos < len; ++pos)
   {
@@ -122,4 +136,13 @@ GC::Collect(ObjectVec const& roots)
 
   // Resize the array
   g_objects.resize(ins);
+
+  // Record time for deletion
+  ci.m_deletePhase = Timer::Ticks() - ci.m_deletePhase;
+
+  // Record number collected
+  ci.m_numCollected = ci.m_numObjects - g_objects.size();
+
+  // Done
+  return ci;
 }

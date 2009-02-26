@@ -39,8 +39,22 @@ NATIVE_CALL("reset()")
 
 NATIVE_CALL("collect()")
 {
-  evaluator->Collect();
-  return Value();
+  // Perform collection
+  GC::CollectInfo const& ci = evaluator->Collect();
+
+  // Create result object
+  Object* obj = new Object();
+  evaluator->MakeTemp(obj);
+
+  // Copy fields
+  obj->GetLValue("markPhase")     = (Value::Int) ci.m_markPhase;
+  obj->GetLValue("deletePhase")   = (Value::Int) ci.m_deletePhase;
+  obj->GetLValue("numCycles")     = (Value::Int) ci.m_numCycles;
+  obj->GetLValue("numObjects")    = (Value::Int) ci.m_numObjects;
+  obj->GetLValue("numCollected")  = (Value::Int) ci.m_numCollected;
+
+  // Done
+  return obj;
 }
 
 NATIVE_CALL("object_count()")

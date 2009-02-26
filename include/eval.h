@@ -25,6 +25,7 @@
 #include "report.h"
 #include "variable.h"
 #include "ast.h"
+#include <gc.h>
 
 #include <vector>
 
@@ -70,7 +71,7 @@ public:
   //
   // Run garbage collector
   //
-  void Collect();
+  GC::CollectInfo Collect();
 
   //
   // Retrieve current scope
@@ -122,6 +123,11 @@ public:
   //
   void OnParseFailure();
   void OnSyntaxError();
+
+  //
+  // Create a temporary
+  //
+  RValue& MakeTemp(Value const& value);
 
 private:
 
@@ -217,11 +223,6 @@ private:
   void EvalPositionalArguments(Object* node, Function* fun, Object* arglist, Arguments& args);
   void EvalNamedArguments(Object* node, Function* fun, Object* arglist, Arguments& args);
 
-  //
-  // Create a temporary
-  //
-  RValue& MakeTemp(Value const& value);
-  
   //
   // Store a temporary
   //
