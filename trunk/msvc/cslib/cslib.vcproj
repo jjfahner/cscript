@@ -371,6 +371,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\enumerator.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\error.h"
 				>
 			</File>
@@ -487,10 +491,6 @@
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath="..\..\include\enumerator.h"
-			>
-		</File>
 		<File
 			RelativePath="..\..\TODO"
 			>

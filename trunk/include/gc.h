@@ -37,9 +37,21 @@ namespace GC
   typedef std::vector<Object*> ObjectVec;
 
   //
+  // Collect results
+  //
+  struct CollectInfo
+  {
+    uint64 m_markPhase;
+    uint64 m_deletePhase;
+    uint64 m_numCycles;
+    uint64 m_numObjects;
+    uint64 m_numCollected;
+  };
+
+  //
   // Invoke collection cycle
   //
-  void Collect(ObjectVec const& roots);
+  CollectInfo Collect(ObjectVec const& roots);
 
   //
   // Current number of objects
@@ -75,7 +87,7 @@ namespace GC
     //
     // Allow the collector access
     //
-    friend void GC::Collect(ObjectVec const&);
+    friend CollectInfo GC::Collect(ObjectVec const&);
 
     //
     // Whether to collect this object

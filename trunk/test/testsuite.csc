@@ -516,22 +516,9 @@ var countProgram = object_count();
 // Invoke main program
 main();
 
-// Store number of objects after main program
-var countBefore = object_count();
-
 // Run garbage collector
 print("Collecting...\n");
-var time = ticks();
-collect();
-time = ticks() - time;
-
-// Store number of objects after collection
-var countAfter = object_count();
-
-// Output object stats
-print("Program contained " + countProgram + " objects before execution\n");
-print("Program contained " + countBefore  + " objects after execution\n");
-print("Program contained " + countAfter   + " objects after collection\n");
-print("Collected " + (countBefore - countAfter) + " objects in " + time + " ms\n");
+var ci = collect();
+print(ci);
 
 // EOF

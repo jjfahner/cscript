@@ -379,7 +379,7 @@ Evaluator::ParseNativeCall(String const& declaration)
   }
 }
 
-void 
+GC::CollectInfo
 Evaluator::Collect()
 {
   GC::ObjectVec valid;
@@ -397,7 +397,7 @@ Evaluator::Collect()
   }
 
   // Collect invalid objects
-  GC::Collect(valid);
+  return GC::Collect(valid);
 }
 
 Value 
