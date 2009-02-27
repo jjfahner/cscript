@@ -186,7 +186,7 @@ bool
 Lexer::LexComment()
 {
   // Single-line comment
-  if(*++m_strptr == '/')
+  if(*m_strptr == '#' || *++m_strptr == '/')
   {
     while(*m_strptr && *m_strptr != '\n')
     {
