@@ -511,13 +511,19 @@ function main()
 
 // Cleanup any garbage objects and store current count
 collect();
-var countProgram = object_count();
 
+// Replace print
+var tprint = print;
 var print = function(arg) {};
 
 // Invoke main program
-for(var i = 0; i < 10; ++i) main();
+for(var i = 0; i < 10; ++i) 
+{
+  tprint("Iteration {i}\n");
+  main();
+}
 
+// Restore print
 unset print;
 
 // Run garbage collector

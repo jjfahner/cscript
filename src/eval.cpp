@@ -243,9 +243,6 @@ Evaluator::ParseText(char const* text, bool showTimes)
   // Try block for parser memory management
   try 
   {
-    // Start a timer
-    Timer timer(showTimes);
-
     Token token;
     token.Init();
 
@@ -267,12 +264,6 @@ Evaluator::ParseText(char const* text, bool showTimes)
 
     // Remove lexer
     m_lexer = prevlexer;
-
-    // Show parse time
-    if(showTimes)
-    {
-      std::cout << "Parsed code in " << timer.Elapsed() << " ms\n\n";
-    }
 
     // Retrieve root node
     Object* root = m_resultNode;
