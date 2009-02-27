@@ -241,10 +241,14 @@ Evaluator::ParseText(char const* text, bool showTimes)
 
   // Allocate parser
   void *pParser = CScriptParseAlloc(malloc);
+
+  // Enable debugging
+# ifdef _DEBUG
   if(m_debugParser)
   {
     CScriptParseTrace(stdout, "Parser: ");
   }
+#endif
 
   // Try block for parser memory management
   try 

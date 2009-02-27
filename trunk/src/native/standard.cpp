@@ -101,8 +101,10 @@ NATIVE_CALL("ticks()")
 
 //////////////////////////////////////////////////////////////////////////
 
+#ifdef _DEBUG
 NATIVE_CALL("dbgparser(bool enable)")
 {
   evaluator->DebugParser(args[0].GetBool());
   return Value();
 }
+#endif
