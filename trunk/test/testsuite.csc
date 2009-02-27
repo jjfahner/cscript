@@ -1,3 +1,4 @@
+#!/home/jfa/src/cscript/build/src/cscript
 //////////////////////////////////////////////////////////////////////////
 //
 // This file is © 2007 - 2009 JJ Fahner <jan-jaap@jan-jaap.net>
