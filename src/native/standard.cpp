@@ -98,3 +98,11 @@ NATIVE_CALL("ticks()")
 {
   return (Value::Int) Timer::Ticks();
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+NATIVE_CALL("dbgparser(bool enable)")
+{
+  evaluator->DebugParser(args[0].GetBool());
+  return Value();
+}

@@ -118,7 +118,7 @@ int parseNextToken(Char*& start, Char*& end)
   ";"     { return TOK_SEMICOLON; }
   ","     { return TOK_COMMA; }
   "="     { return TOK_ASSIGN; }
-  /*"?"     { return TOK_QUESTION; }*/
+  "?"     { return TOK_QUESTION; }
   ":"     { return TOK_COLON; }
   "|"     { return TOK_BITOR; }
   "^"     { return TOK_BITXOR; }

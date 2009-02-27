@@ -38,6 +38,7 @@
 void *CScriptParseAlloc(void *(*mallocProc)(size_t));
 void CScriptParseFree(void *p, void (*freeProc)(void*));
 void CScriptParse(void*, int,Token, Evaluator*);
+void CScriptParseTrace(FILE*, char*);
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -133,7 +134,8 @@ Evaluator::GetGlobalScope()
 Evaluator::Evaluator() :
 m_scope   (0),
 m_file    (0),
-m_allocs  (0)
+m_allocs  (0),
+m_debugParser(0)
 {
   // Create global scope
   m_global = new NamespaceScope(GetGlobalScope(), "");
@@ -239,6 +241,10 @@ Evaluator::ParseText(char const* text, bool showTimes)
 
   // Allocate parser
   void *pParser = CScriptParseAlloc(malloc);
+  if(m_debugParser)
+  {
+    CScriptParseTrace(stdout, "Parser: ");
+  }
 
   // Try block for parser memory management
   try 

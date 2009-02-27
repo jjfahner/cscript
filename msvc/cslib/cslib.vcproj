@@ -234,7 +234,7 @@
 						Name="VCCustomBuildTool"
 						Description="Generating lexer..."
 						CommandLine="..\..\tools\re2c.exe -iswb --no-generation-date -o ..\..\src\lexer.c ..\..\src\lexer.in&#x0D;&#x0A;"
-						AdditionalDependencies="..\..\src\cscript.in"
+						AdditionalDependencies="..\..\src\parser.in"
 						Outputs="..\..\src\lexer.c"
 					/>
 				</FileConfiguration>

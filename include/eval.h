@@ -105,6 +105,13 @@ public:
   }
 
   //
+  // Enable parser debugging
+  //
+  void DebugParser(bool debug) {
+    m_debugParser = true;
+  }
+
+  //
   // Parse native call
   //
   Object* ParseNativeCall(String const& declaration);
@@ -252,6 +259,7 @@ private:
   size_t          m_allocs;
   TempVec         m_temporaries;
   Reporter        m_reporter;
+  bool            m_debugParser;
 
 };
 
