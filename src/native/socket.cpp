@@ -30,7 +30,10 @@ DEFINE_NATIVE_LINKAGE(Socket)
 #	pragma comment(lib, "ws2_32.lib")
 # undef GetObject
 #else
+#	include <sys/socket.h>
+#	include <netinet/in.h>
 #	include <netdb.h>
+#	include <unistd.h>
 #	define INVALID_SOCKET (-1)
 #	define SD_BOTH SHUT_RDWR
 #	define SOCKET_ERROR (-1)
