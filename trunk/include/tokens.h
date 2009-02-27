@@ -34,13 +34,6 @@
 #include "cscript.h"
 
 //
-// Lexer-specific tokens
-//
-#define TOK_COMMENT       180
-#define TOK_NEWLINE       181
-#define TOK_WHITESPACE    182
-
-//
 // Define token structure
 //
 struct Token

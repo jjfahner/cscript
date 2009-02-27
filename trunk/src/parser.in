@@ -58,6 +58,7 @@
 }
 
 // Precedence rules for binary operators
+%nonassoc COMMENT NEWLINE WHITESPACE .
 %right ASSIGN ASSADD ASSSUB ASSMUL ASSDIV ASSMOD .
 %nonassoc QUESTION .
 %left LOGOR .

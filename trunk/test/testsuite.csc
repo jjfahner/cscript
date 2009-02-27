@@ -524,5 +524,6 @@ unset print;
 print("Collecting...\n");
 var ci = collect();
 print(ci);
+print("\n");
 
 // EOF
