@@ -7,9 +7,6 @@ Fix ast line numbers. Currently they are determined when a node is finally
 allocated, but by then the lexer points to the last line that makes up the
 node, instead of the first line.
 
-Consider implicitly converting condition values to boolean for statements
-like if, while and for.
-
 COM: When building type information, store all FUNCDESC instances for 
 dispatch ids of properties. Then enable the argument count check in Invoke.
 

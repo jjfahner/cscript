@@ -709,7 +709,7 @@ Evaluator::EvalBinary(Object* node)
 RValue&
 Evaluator::EvalTernary(Object* node)
 {
-  if(EvalExpression(Ast_A1(node)).GetBool())
+  if(ValBool(EvalExpression(Ast_A1(node))))
   {
     return EvalExpression(Ast_A2(node));
   }
@@ -1477,15 +1477,8 @@ Evaluator::EvalForStatement(Object* node)
   // Evaluate loop
   for(;;)
   {
-    // Evaluate condition
-    RValue const& cond = EvalExpression(Ast_A2(node));
-    if(cond.Type() != Value::tBool)
-    {
-      throw ScriptException(Ast_A2(node), "Expression does not yield a boolean value");
-    }
-
     // Check condition
-    if(!EvalExpression(Ast_A2(node)).GetBool())
+    if(!ValBool(EvalExpression(Ast_A2(node))))
     {
       break;
     }
@@ -1577,13 +1570,7 @@ Evaluator::EvalForeachStatement(Object* node)
 void
 Evaluator::EvalIfStatement(Object* node)
 {
-  RValue const& cond = EvalExpression(Ast_A1(node));
-  if(cond.Type() != Value::tBool)
-  {
-    throw ScriptException(Ast_A1(node), "Expression does not yield a boolean value");
-  }
-
-  if(cond.GetBool())
+  if(ValBool(EvalExpression(Ast_A1(node))))
   {
     EvalStatement(Ast_A2(node));
   }
@@ -1598,13 +1585,7 @@ Evaluator::EvalWhileStatement(Object* node)
 {
   for(;;)
   {
-    RValue const& cond = EvalExpression(Ast_A1(node));
-    if(cond.Type() != Value::tBool)
-    {
-      throw ScriptException(Ast_A1(node), "Expression does not yield a boolean value");
-    }
-
-    if(!cond.GetBool())
+    if(!ValBool(EvalExpression(Ast_A1(node))))
     {
       break;
     }
