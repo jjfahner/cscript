@@ -18,9 +18,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include <object.h>
-#include <variable.h>
-#include <function.h>
+#include "object.h"
+#include "variable.h"
+#include "function.h"
 
 #include <algorithm>
 #include <typeinfo>

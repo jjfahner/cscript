@@ -18,8 +18,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include <function.h>
-#include <eval.h>
+#include "function.h"
+#include "eval.h"
 
 Value 
 ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)

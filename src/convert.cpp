@@ -18,7 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include <convert.h>
+#include "convert.h"
 
 int32 
 str2dec(char const* src)
