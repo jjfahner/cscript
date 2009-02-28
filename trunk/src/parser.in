@@ -34,6 +34,8 @@
 #include <tokens.h>
 #include <convert.h>
 
+#include <cassert>
+
 #pragma warning(disable:4065)
 
 } 
