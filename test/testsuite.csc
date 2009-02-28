@@ -471,12 +471,13 @@ function main()
 
   // Test function members
   a = function() { return ++f; };
-  a.f = 0;
+  a["f"] = 0;
   assert("Function with static (1)", a(), 1);
   assert("Function with static (2)", a(), 2);
 
   // Define function with member
   var Class = {
+    b : "",
     constructor : function(a) {
       b = "{a} {b}";
     }
