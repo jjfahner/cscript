@@ -30,6 +30,7 @@
 #include <timer.h>
 #include <enumerator.h>
 
+#include <list>
 #include <iostream>
 
 //
@@ -595,7 +596,7 @@ Evaluator::EvalAssignment(Object* node)
   }
 
   // Evaluate right-hand side
-  Value rhs = EvalExpression(Ast_A1(Ast_A3(node))->GetRValue(0));
+  Value rhs = EvalExpression(Ast_A3(node));
 
   // Regular assignment doesn't need conversion
   if(opcode == op_assign)
@@ -654,16 +655,16 @@ Evaluator::EvalBinary(Object* node)
   if(opcode == op_logor)
   {
     // TODO type conversion
-    return MakeTemp(ValBool(lhs) || ValBool(Ast_A1(Ast_A3(node))->GetRValue(0)));
+    return MakeTemp(ValBool(lhs) || EvalExpression(Ast_A3(node)));
   }
   if(opcode == op_logand)
   {
     // TODO type conversion
-    return MakeTemp(ValBool(lhs) && ValBool(Ast_A1(Ast_A3(node))->GetRValue(0)));
+    return MakeTemp(ValBool(lhs) && EvalExpression(Ast_A3(node)));
   }
   
   // Evaluate right-hand side
-  Value rhs = EvalExpression(Ast_A1(Ast_A3(node))->GetRValue(0));
+  Value rhs = EvalExpression(Ast_A3(node));
 
   // Comparison without implicit type conversion
   if(opcode == op_seq)
@@ -1081,14 +1082,7 @@ Evaluator::EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* 
   args.SetParameters(fun->GetParameters());
 
   // Evaluate arguments
-  if(Ast_Type(arguments) == positional_arguments)
-  {
-    EvalPositionalArguments(node, fun, Ast_A1(arguments), args);
-  }
-  else
-  {
-    EvalNamedArguments(node, fun, Ast_A1(arguments), args);
-  }
+  EvalArguments(node, fun, arguments, args);
 
   // Evaluate function
   try
@@ -1151,11 +1145,27 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 }
 
 void 
-Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist, Arguments& args)
+Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments& args)
 {
+  // Flatten list
+  std::list<Object*> arglist;
+  while(argptr)
+  {
+    if(Ast_Type(argptr) == positional_arguments)
+    {
+      arglist.push_back(Ast_A1(argptr));
+      argptr = Ast_A2(argptr);
+    }
+    else
+    {
+      arglist.push_back(argptr);
+      argptr = 0;
+    }
+  }
+
   // Retrieve argument list
-  Object::ValueIterator ai = arglist->ValueBegin();
-  Object::ValueIterator ae = arglist->ValueEnd();
+  std::list<Object*>::iterator ai = arglist.begin();
+  std::list<Object*>::iterator ae = arglist.end();
 
   // No formal parameter list
   if(fun->GetParameters() == 0)
@@ -1163,7 +1173,7 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist,
     // Evaluate arguments
     for(; ai != ae; ++ai)
     {
-      args.push_back(EvalExpression(ai->GetObject()));
+      args.push_back(EvalExpression(*ai));
     }
 
     // Done
@@ -1202,7 +1212,7 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist,
       {
         // Evaluate argument value. ATTN: this dereference
         // is intentional; variadic arguments are by value.
-        Value val = EvalExpression(ai->GetObject());
+        Value val = EvalExpression(*ai);
 
         // Append to list
         va->Add(val);
@@ -1228,7 +1238,7 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist,
     else
     {
       // Evaluate argument
-      value = EvalExpression(ai->GetObject());
+      value = EvalExpression(*ai);
     }
 
     // Handle byref/byval
@@ -1252,73 +1262,6 @@ Evaluator::EvalPositionalArguments(Object* node, Function* fun, Object* arglist,
     if(ai != ae)
     {
       ++ai;
-    }
-  }
-}
-
-void 
-Evaluator::EvalNamedArguments(Object* node, Function* fun, Object* arglist, Arguments& args)
-{
-  // TODO: validate superfluous/duplicate arguments
-  // TODO: implement type conversions
-
-  // Enumerate parameters
-  Object::ValueIterator pi = fun->GetParameters()->ValueEnd();
-  Object::ValueIterator pe = fun->GetParameters()->ValueEnd();
-  for(; pi != pe; ++pi)
-  {
-    // Extract parameter and name
-    Object* par = pi->GetObject();
-    String parname = Ast_A2(par);
-
-    // Cannot supply named arguments for variadic parameter
-    if(Ast_A2(par).GetInt() == ptVariadic)
-    {
-      // Variadic is always last in list - add empty list and stop
-//      args.push_back(Value::stAssoc);
-      break;
-    }
-
-    // Find named argument for parameter
-    // Retrieve argument list
-    Object::ValueIterator ai = arglist->ValueBegin();
-    Object::ValueIterator ae = arglist->ValueEnd();
-    for(; ai != ae; ++ai)
-    {
-      if(Ast_A1(ai->GetObject()).GetString() == parname)
-      {
-        break;
-      }
-    }
-
-    // Evaluate argument
-    Value value;
-    if(ai != ae)
-    {
-      // Fill in positional argument
-      value = EvalExpression(Ast_A2(ai->GetObject()));
-    }
-    else if(Ast_A3(par))
-    {
-      // Evaluate default value
-      value = EvalExpression(Ast_A3(par));
-    }
-    else
-    {
-      // Missing argument
-      throw ScriptException(node, "No value specified for parameter '" + parname + "'");
-    }
-
-    // Assign by value/by ref
-    if(Ast_A4(par) && Ast_A4(par).GetInt() == ptByRef)
-    {
-      // TODO validate type is correct for byref?
-      args.push_back(value);
-    }
-    else
-    {
-      // TODO execute conversion to type
-      args.push_back(value);
     }
   }
 }
