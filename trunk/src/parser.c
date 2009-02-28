@@ -7,10 +7,10 @@
 #line 30 "..\\..\\src\\parser.in"
 
 
-#include "ast.h"
-#include "eval.h"
-#include "tokens.h"
-#include "convert.h"
+#include <ast.h>
+#include <eval.h>
+#include <tokens.h>
+#include <convert.h>
 
 #pragma warning(disable:4065)
 

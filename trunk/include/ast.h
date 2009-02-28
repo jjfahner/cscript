@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_AST_H
 #define CSCRIPT_AST_H
 
-#include "opcodes.h"
+#include <opcodes.h>
 
 //
 // Ast node types
@@ -116,8 +116,8 @@ enum ParameterTypes
 // Ast accessors
 //
 
-#include "object.h"
-#include "variable.h"
+#include <object.h>
+#include <variable.h>
 
 inline AstTypes Ast_Type(Object* obj) {
   return (AstTypes)(*obj)[0].GetInt();

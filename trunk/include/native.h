@@ -21,8 +21,8 @@
 #ifndef CSCRIPT_NATIVE_CALLS_H
 #define CSCRIPT_NATIVE_CALLS_H
 
-#include "cscript.h"
-#include "function.h"
+#include <cscript.h>
+#include <function.h>
 
 class Evaluator;
 class Arguments;

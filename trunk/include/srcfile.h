@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_SRCFILE_H
 #define CSCRIPT_SRCFILE_H
 
-#include "cscript.h"
+#include <cscript.h>
 
 class Path
 {

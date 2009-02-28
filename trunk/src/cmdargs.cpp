@@ -18,7 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "cmdargs.h"
+#include <cmdargs.h>
 
 CmdArgs::CmdArgs(int argc, Char** argv)
 {

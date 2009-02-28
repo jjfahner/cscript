@@ -26,8 +26,8 @@
 #include <vector>
 #include <map>
 
-#include "parser.h"
-#include "cscript.h"
+#include <parser.h>
+#include <cscript.h>
 
 struct NCC {
   bool operator () (String const& l, String const& r) const {

@@ -21,11 +21,11 @@
 #ifndef CSCRIPT_FUNCTION_H
 #define CSCRIPT_FUNCTION_H
 
-#include "cscript.h"
-#include "object.h"
-#include "variable.h"
-#include "args.h"
-#include "ast.h"
+#include <cscript.h>
+#include <object.h>
+#include <variable.h>
+#include <args.h>
+#include <ast.h>
 
 class Evaluator;
 

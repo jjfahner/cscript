@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_SOCKET_H
 #define CSCRIPT_SOCKET_H
 
-#include "native.h"
+#include <native.h>
 
 DECLARE_NATIVE_LINKAGE(Socket)
 

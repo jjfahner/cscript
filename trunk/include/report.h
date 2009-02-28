@@ -21,8 +21,8 @@
 #ifndef CSCRIPT_REPORT_H
 #define CSCRIPT_REPORT_H
 
-#include "cscript.h"
-#include "error.h"
+#include <cscript.h>
+#include <error.h>
 
 //
 // File position

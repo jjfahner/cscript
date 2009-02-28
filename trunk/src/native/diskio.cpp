@@ -19,8 +19,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include <native/diskio.h>
-#include "args.h"
-#include "object.h"
+#include <args.h>
+#include <object.h>
 
 DEFINE_NATIVE_LINKAGE(Diskio)
 

@@ -942,9 +942,9 @@ Regex::MatchTypeString(MatchTypes type)
 //
 // Native call interface
 //
-#include "native.h"
-#include "value.h"
-#include "cscript.h"
+#include <native.h>
+#include <value.h>
+#include <cscript.h>
 
 NATIVE_CALL("match(string pattern, string data, int offset = 0)")
 {
