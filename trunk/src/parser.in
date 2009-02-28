@@ -177,7 +177,7 @@ unary_expression(R) ::= NOT unary_expression(A) .    { R = p->AllocNode(prefix_e
 postfix_expression(R) ::= primary_expression(A) .                                 { R = A; }
 postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = p->AllocNode(postfix_expression, op_postinc, A); }
 postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = p->AllocNode(postfix_expression, op_postdec, A); }
-postfix_expression(R) ::= postfix_expression(A) LPAREN argument_list(B) RPAREN .  { R = p->AllocNode(function_call, A, B); }
+postfix_expression(R) ::= postfix_expression(A) LPAREN arguments(B) RPAREN .      { R = p->AllocNode(function_call, A, B); }
 postfix_expression(R) ::= postfix_expression(A) DOT unqualified_id(B).            { R = p->AllocNode(member_expression, A, B); }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET RBRACKET.                { R = p->AllocNode(index_expression, A); }
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocNode(index_expression, A, B); }
@@ -241,13 +241,8 @@ json_entry(R)   ::= IDENTIFIER(A)     COLON expression(B) .  { R = p->AllocNode(
 json_entry(R)   ::= operator_decl(A)  COLON expression(B) .  { R = p->AllocNode(json_entry, A, B); }
 
 // New expression
-new_expression(R) ::= NEW IDENTIFIER(A) . { 
-  R = p->AllocNode(new_expression, String(A), 
-    p->AllocNode(positional_arguments, new Object)); 
-}
-new_expression(R) ::= NEW IDENTIFIER(A) LPAREN argument_list(B) RPAREN . { 
-  R = p->AllocNode(new_expression, String(A), B); 
-}
+new_expression(R) ::= NEW IDENTIFIER(A) . { R = p->AllocNode(new_expression, String(A)); }
+new_expression(R) ::= NEW IDENTIFIER(A) LPAREN arguments(B) RPAREN . { R = p->AllocNode(new_expression, String(A), B); }
 
 // Shell commands
 shell_command(R) ::= SHELLCMD(A) . { String cmd(A); R = p->AllocNode(shell_command, cmd.substr(1, cmd.length() - 2)); }
@@ -270,24 +265,16 @@ type(R) ::= TYPE(A) .   { R = p->AllocNode(type_specifier, Value::tObject, Strin
 // Argument list
 //
 
-// Positional argument
-positional_argument(R) ::= expression(A) . { R = A; }
+// Argument
+argument(R) ::= expression(A) . { R = A; }
 
 // Argument list containing 1 or more positional arguments
-positional_argument_list(R) ::= positional_argument(A) . { R = A; }
-positional_argument_list(R) ::= positional_argument(A) COMMA positional_argument_list(B) . { R = p->AllocNode(positional_arguments, A, B); }
-
-// Named argument
-named_argument(R) ::= IDENTIFIER(A) COLON expression(B) . { R = p->AllocNode(named_argument, String(A), B); }
-
-// Argument list containing 1 or more named arguments
-named_argument_list(R) ::= named_argument(A) . { R = new Object; R->Add(A); }
-named_argument_list(R) ::= named_argument_list(A) COMMA named_argument(B) . { R = A; A->Add(B); }
+argument_list(R) ::= argument(A) . { R = A; }
+argument_list(R) ::= argument(A) COMMA argument_list(B) . { R = p->AllocNode(arguments, A, B); }
 
 // Argument list
-argument_list(R) ::= .                              { R = 0; }
-argument_list(R) ::= positional_argument_list(A) .  { R = A; }
-argument_list(R) ::= named_argument_list(A) .       { R = p->AllocNode(named_arguments, A); }
+arguments(R) ::= .                  { R = 0; }
+arguments(R) ::= argument_list(A) . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //

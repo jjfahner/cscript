@@ -79,9 +79,7 @@ enum AstTypes
   extern_declaration,
   extern_parameter,
   type_specifier,
-  positional_arguments,
-  named_arguments,
-  named_argument,
+  arguments,
   try_statement,
   catch_block,
   finally_block,
@@ -134,5 +132,115 @@ inline LValue& Ast_A3(Object* arg) {
 inline LValue& Ast_A4(Object* arg) {
   return ((*arg)[4]);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ast recursor. Recurse through right-recursive ast structure.
+//
+
+class AstIterator
+{
+  Object*   m_root;
+  Object*   m_iter;
+  AstTypes  m_type;
+
+public:
+
+  AstIterator() :
+  m_root (0),
+  m_iter (0),
+  m_type (invalid)
+  {
+  }
+
+  AstIterator(AstIterator const& rhs) :
+  m_root (rhs.m_root),
+  m_iter (rhs.m_iter),
+  m_type (rhs.m_type)
+  {
+  }
+
+  AstIterator(Object* root, AstTypes recursionType) :
+  m_root (root),
+  m_iter (root),
+  m_type (recursionType)
+  {
+  }
+
+  friend bool operator == (AstIterator const& lhs, AstIterator const& rhs)
+  {
+    if(lhs.m_root && rhs.m_root && lhs.m_root != rhs.m_root)
+    {
+      throw std::runtime_error("Comparing iterators from different subtrees");
+    }
+    return lhs.m_iter == rhs.m_iter;
+  }
+
+  friend bool operator != (AstIterator const& lhs, AstIterator const& rhs)
+  {
+    return !(lhs == rhs);
+  }
+
+  bool AtEnd() const
+  {
+    return m_iter == 0;
+  }
+
+  Object* GetValue() const
+  {
+    if(m_iter == 0)
+    {
+      throw std::runtime_error("Dereferencing invalid ast iterator");
+    }
+
+    if(Ast_Type(m_iter) == m_type)
+    {
+      return Ast_A1(m_iter);
+    }
+    
+    return m_iter;
+  }
+
+  Object* operator * () const
+  {
+    return GetValue();
+  }
+
+  Object* operator -> () const
+  {
+    return GetValue();
+  }
+
+  void Next()
+  {
+    if(m_iter == 0)
+    {
+      throw std::runtime_error("Dereferencing invalid ast iterator");
+    }
+
+    if(Ast_Type(m_iter) == m_type)
+    {
+      m_iter = Ast_A2(m_iter);
+    }
+    else
+    {
+      m_iter = 0;
+    }
+  }
+
+  AstIterator const& operator ++ () 
+  {
+    Next();
+    return *this;
+  }
+
+  AstIterator operator ++ (int)
+  {
+    AstIterator temp(*this);
+    Next();
+    return temp;
+  }
+
+};
 
 #endif // CSCRIPT_AST_H
