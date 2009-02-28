@@ -26,7 +26,6 @@
 #include <vector>
 #include <map>
 
-#include <parser.h>
 #include <cscript.h>
 
 struct NCC {
