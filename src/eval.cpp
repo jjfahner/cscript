@@ -1147,25 +1147,9 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 void 
 Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments& args)
 {
-  // Flatten list
-  std::list<Object*> arglist;
-  while(argptr)
-  {
-    if(Ast_Type(argptr) == positional_arguments)
-    {
-      arglist.push_back(Ast_A1(argptr));
-      argptr = Ast_A2(argptr);
-    }
-    else
-    {
-      arglist.push_back(argptr);
-      argptr = 0;
-    }
-  }
-
-  // Retrieve argument list
-  std::list<Object*>::iterator ai = arglist.begin();
-  std::list<Object*>::iterator ae = arglist.end();
+  // Make iterator for argument list
+  AstIterator ai(argptr, arguments);
+  AstIterator ae;
 
   // No formal parameter list
   if(fun->GetParameters() == 0)
