@@ -7310,7 +7310,7 @@ _ACEOF
 
 
 
-ac_config_files="$ac_config_files Makefile README makerpm re2c.1 re2c.spec run_tests.sh config_w32.h htdocs/manual.html"
+ac_config_files="$ac_config_files Makefile README makerpm re2c.1 re2c.spec run_tests.sh config_w32.h"
 
 ac_config_commands="$ac_config_commands default-1"
 
@@ -7908,7 +7908,6 @@ do
     "re2c.spec") CONFIG_FILES="$CONFIG_FILES re2c.spec" ;;
     "run_tests.sh") CONFIG_FILES="$CONFIG_FILES run_tests.sh" ;;
     "config_w32.h") CONFIG_FILES="$CONFIG_FILES config_w32.h" ;;
-    "htdocs/manual.html") CONFIG_FILES="$CONFIG_FILES htdocs/manual.html" ;;
     "default-1") CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
