@@ -21,17 +21,15 @@
 #ifndef CSCRIPT_TOKENS_H
 #define CSCRIPT_TOKENS_H
 
-#pragma once
+//
+// Include main header
+//
+#include <cscript.h>
 
 //
 // Include lemon-generated symbols
 //
 #include <parser.h>
-
-//
-// Include main header
-//
-#include <cscript.h>
 
 //
 // Define token structure

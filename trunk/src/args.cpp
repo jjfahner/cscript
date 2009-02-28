@@ -18,10 +18,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include <args.h>
-#include <object.h>
-#include <variable.h>
-#include <ast.h>
+#include "args.h"
+#include "object.h"
+#include "variable.h"
+#include "ast.h"
 
 Value const& 
 Arguments::at(String const& name) const

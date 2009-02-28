@@ -18,11 +18,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include <cscript.h>
-#include <variable.h>
-#include <object.h>
-#include <timer.h>
-#include <gc.h>
+#include "cscript.h"
+#include "variable.h"
+#include "object.h"
+#include "timer.h"
+#include "gc.h"
 
 namespace GC
 {

@@ -29,10 +29,10 @@
 //
 %include {
 
-#include <ast.h>
-#include <eval.h>
-#include <tokens.h>
-#include <convert.h>
+#include "ast.h"
+#include "eval.h"
+#include "tokens.h"
+#include "convert.h"
 
 #include <cassert>
 
@@ -500,8 +500,8 @@ throw_expression(R) ::= THROW assignment_expression(A) . { R = p->AllocNode(thro
 xml_expression(R) ::= xml_elements(A) . { R = p->AllocNode(xml_expression, A); p->GetLexer()->ToggleXml(false); }
 
 // Element sequence
-xml_elements(R) ::= xml_element(A) .                  { R = p->AllocNode(xml_elements, new Object); Ast_A1(R)->Add(A); }
-xml_elements(R) ::= xml_elements(A) xml_element(B) .  { R = A; Ast_A1(R)->Add(B); }
+xml_elements(R) ::= xml_element(A) .                  { R = A; }
+xml_elements(R) ::= xml_element(A) xml_elements(B) .  { R = p->AllocNode(xml_elements, A, B); }
 
 // Start of tag required to toggle parse mode in lexer
 xml_start_tag ::= LT . { p->GetLexer()->ToggleXml(true); }
@@ -513,9 +513,10 @@ xml_element(R) ::= xml_start_tag xml_name(A) xml_attributes(B) DIVOP GT . { R = 
 xml_element(R) ::= xml_start_tag DIVOP xml_name(A) GT .                   { R = p->AllocNode(xml_close_tag,  A); }
 xml_element(R) ::= XMLTEXT(A) .                                           { R = p->AllocNode(xml_text, String(A)); }
 
+
 // Attribute sequence
-xml_attribute_list(R) ::= xml_attribute(A) .                       { R = p->AllocNode(xml_attributes, new Object); Ast_A1(R)->Add(A); }
-xml_attribute_list(R) ::= xml_attribute_list(A) xml_attribute(B) . { R = A; Ast_A1(R)->Add(B); }
+xml_attribute_list(R) ::= xml_attribute(A) .                       { R = A; }
+xml_attribute_list(R) ::= xml_attribute(A) xml_attribute_list(B) . { R = p->AllocNode(xml_attributes, A, B); }
 
 // Optional attribute sequence
 xml_attributes(R) ::= .                       { R = 0; }

@@ -18,8 +18,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include <value.h>
-#include <object.h>
+#include "value.h"
+#include "object.h"
 
 #include <typeinfo>
 
