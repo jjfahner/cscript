@@ -7,18 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcproj", 
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cslib", "cslib\cslib.vcproj", "{C5B69C5A-34E5-4030-BE15-F7B47B7BC4BA}"
-	ProjectSection(ProjectDependencies) = postProject
-		{18C5E289-8D90-400D-9F80-766F174CEDC9} = {18C5E289-8D90-400D-9F80-766F174CEDC9}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "re2c", "..\tools\re2c\re2c.vcproj", "{18C5E289-8D90-400D-9F80-766F174CEDC9}"
-	ProjectSection(ProjectDependencies) = postProject
-		{12F3EDD5-7110-4E41-81CE-B4EE8D910A7B} = {12F3EDD5-7110-4E41-81CE-B4EE8D910A7B}
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{FD78ACD2-31A1-4D83-B61B-8991FB88908D}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lemon", "..\tools\lemon\lemon.vcproj", "{12F3EDD5-7110-4E41-81CE-B4EE8D910A7B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,20 +22,8 @@ Global
 		{C5B69C5A-34E5-4030-BE15-F7B47B7BC4BA}.Debug|Win32.Build.0 = Debug|Win32
 		{C5B69C5A-34E5-4030-BE15-F7B47B7BC4BA}.Release|Win32.ActiveCfg = Release|Win32
 		{C5B69C5A-34E5-4030-BE15-F7B47B7BC4BA}.Release|Win32.Build.0 = Release|Win32
-		{18C5E289-8D90-400D-9F80-766F174CEDC9}.Debug|Win32.ActiveCfg = Release|Win32
-		{18C5E289-8D90-400D-9F80-766F174CEDC9}.Debug|Win32.Build.0 = Release|Win32
-		{18C5E289-8D90-400D-9F80-766F174CEDC9}.Release|Win32.ActiveCfg = Release|Win32
-		{18C5E289-8D90-400D-9F80-766F174CEDC9}.Release|Win32.Build.0 = Release|Win32
-		{12F3EDD5-7110-4E41-81CE-B4EE8D910A7B}.Debug|Win32.ActiveCfg = Release|Win32
-		{12F3EDD5-7110-4E41-81CE-B4EE8D910A7B}.Debug|Win32.Build.0 = Release|Win32
-		{12F3EDD5-7110-4E41-81CE-B4EE8D910A7B}.Release|Win32.ActiveCfg = Release|Win32
-		{12F3EDD5-7110-4E41-81CE-B4EE8D910A7B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{18C5E289-8D90-400D-9F80-766F174CEDC9} = {FD78ACD2-31A1-4D83-B61B-8991FB88908D}
-		{12F3EDD5-7110-4E41-81CE-B4EE8D910A7B} = {FD78ACD2-31A1-4D83-B61B-8991FB88908D}
 	EndGlobalSection
 EndGlobal
