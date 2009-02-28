@@ -18,10 +18,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include "native.h"
-#include "eval.h"
-#include "function.h"
-#include "scope.h"
+#include <native.h>
+#include <eval.h>
+#include <function.h>
+#include <scope.h>
 
 #include <list>
 #include <algorithm>

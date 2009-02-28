@@ -591,12 +591,6 @@ Evaluator::EvalAssignment(Object* node)
       ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
 
       return EvalFunctionCall(node, fun, lhs.GetObject(), Ast_A3(node));
-// 
-//       Arguments args;
-//       args.SetObject(lhs);
-//       args.push_back(EvalExpression(Ast_A3(node)));
-// 
-//       return EvalScriptCall(fun, args);
     }
   }
 

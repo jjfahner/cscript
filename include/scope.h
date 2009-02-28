@@ -21,10 +21,10 @@
 #ifndef CSCRIPT_SCOPE_H
 #define CSCRIPT_SCOPE_H
 
-#include "cscript.h"
-#include "value.h"
-#include "variable.h"
-#include "function.h"
+#include <cscript.h>
+#include <value.h>
+#include <variable.h>
+#include <function.h>
 
 //////////////////////////////////////////////////////////////////////////
 //

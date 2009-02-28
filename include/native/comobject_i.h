@@ -29,12 +29,12 @@
 // #$%@ Windows defines!!!
 #undef GetObject
 
-#include "comtype.h"
-#include "args.h"
-#include "object.h"
-#include "function.h"
-#include "variable.h"
-#include "enumerator.h"
+#include <native/comtype.h>
+#include <args.h>
+#include <object.h>
+#include <function.h>
+#include <variable.h>
+#include <enumerator.h>
 
 class ComTypeInfo;
 class ComMemberFunction;

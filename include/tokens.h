@@ -26,12 +26,12 @@
 //
 // Include lemon-generated symbols
 //
-#include "parser.h"
+#include <parser.h>
 
 //
 // Include main header
 //
-#include "cscript.h"
+#include <cscript.h>
 
 //
 // Define token structure

@@ -21,7 +21,7 @@
 #ifndef CSCRIPT_CMDARGS_H
 #define CSCRIPT_CMDARGS_H
 
-#include "cscript.h"
+#include <cscript.h>
 #include <map>
 #include <algorithm>
 

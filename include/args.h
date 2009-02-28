@@ -21,8 +21,8 @@
 #ifndef CSCRIPT_ARGS_H
 #define CSCRIPT_ARGS_H
 
-#include "cscript.h"
-#include "value.h"
+#include <cscript.h>
+#include <value.h>
 
 #include <vector>
 

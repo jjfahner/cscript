@@ -21,10 +21,10 @@
 #ifndef CSCRIPT_EVAL_H
 #define CSCRIPT_EVAL_H
 
-#include "cscript.h"
-#include "report.h"
-#include "variable.h"
-#include "ast.h"
+#include <cscript.h>
+#include <report.h>
+#include <variable.h>
+#include <ast.h>
 #include <gc.h>
 
 #include <vector>
