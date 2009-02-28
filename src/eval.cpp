@@ -575,11 +575,11 @@ Evaluator::EvalExpression(Object* node)
 RValue&
 Evaluator::EvalAssignment(Object* node)
 {
-  // Evaluate left-hand side
-  RValue& lhs = EvalExpression(Ast_A2(node));
-
   // Retrieve operator
   opcodes opcode = (opcodes)Ast_A1(node).GetInt();
+
+  // Evaluate left-hand side
+  RValue& lhs = EvalExpression(Ast_A2(node));
 
   // Objects may overload operators
   if(lhs.Type() == Value::tObject)
@@ -631,11 +631,11 @@ Evaluator::EvalAssignment(Object* node)
 RValue&
 Evaluator::EvalBinary(Object* node)
 {
-  // Evaluate left-hand side
-  RValue& lhs = EvalExpression(Ast_A2(node));
-
   // Retrieve operator
   opcodes opcode = (opcodes)Ast_A1(node).GetInt();
+
+  // Evaluate left-hand side
+  RValue& lhs = EvalExpression(Ast_A2(node));
 
   // Handle object
   if(lhs.Type() == Value::tObject)
@@ -645,12 +645,8 @@ Evaluator::EvalBinary(Object* node)
     {
       Object* funObj = lhs->GetRValue(opfun).GetObject();
       ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
-      
-      Arguments args;
-      args.SetObject(lhs);
-      args.push_back(EvalExpression(Ast_A3(node)));
-      
-      return EvalScriptCall(fun, args);
+
+      return EvalFunctionCall(node, fun, lhs.GetObject(), Ast_A3(node));
     }
   }
 
@@ -658,16 +654,16 @@ Evaluator::EvalBinary(Object* node)
   if(opcode == op_logor)
   {
     // TODO type conversion
-    return MakeTemp(ValBool(lhs) || ValBool(EvalExpression(Ast_A3(node))));
+    return MakeTemp(ValBool(lhs) || ValBool(Ast_A1(Ast_A3(node))->GetRValue(0)));
   }
   if(opcode == op_logand)
   {
     // TODO type conversion
-    return MakeTemp(ValBool(lhs) && ValBool(EvalExpression(Ast_A3(node))));
+    return MakeTemp(ValBool(lhs) && ValBool(Ast_A1(Ast_A3(node))->GetRValue(0)));
   }
   
   // Evaluate right-hand side
-  Value rhs = EvalExpression(Ast_A3(node));
+  Value rhs = EvalExpression(Ast_A1(Ast_A3(node))->GetRValue(0));
 
   // Comparison without implicit type conversion
   if(opcode == op_seq)

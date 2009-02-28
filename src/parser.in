@@ -127,11 +127,8 @@ expression_opt(R) ::= expression(A) . { R = A; }
 // Assignment
 assignment_expression(R) ::= conditional_expression(A) . { R = A; }
 assignment_expression(R) ::= throw_expression(A) .       { R = A; }
-assignment_expression(R) ::= binary_expression(A) assignment_operator(T) assignment_expression(B) . { 
-  Object* o = p->AllocNode(positional_arguments, new Object());
-  Ast_A1(o)->Add(B);
-  R = p->AllocNode(assignment_expression, T, A, o); 
-}
+assignment_expression(R) ::= binary_expression(A) assignment_operator(B) 
+                             assignment_expression(C) .  { R = p->AllocNode(assignment_expression, B, A, p->AllocArgs(C)); }
 
 // Assignment operator
 %type assignment_operator { opcodes }
@@ -144,28 +141,29 @@ assignment_operator(R) ::= ASSMOD . { R = op_assmod; }
 
 // Conditional
 conditional_expression(R) ::= binary_expression(A) . { R = A; }
-conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON assignment_expression(C) . { R = p->AllocNode(ternary_expression, A, B, C); }
+conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON 
+                              assignment_expression(C) . { R = p->AllocNode(ternary_expression, A, B, C); }
 
 // Binary expressions
 binary_expression(R) ::= unary_expression(A) . { R = A; }
-binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = p->AllocNode(binary_expression, op_logor,   A, B); }
-binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = p->AllocNode(binary_expression, op_logand,  A, B); }
-binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = p->AllocNode(binary_expression, op_bitor,   A, B); }
-binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R = p->AllocNode(binary_expression, op_bitxor,  A, B); }
-binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = p->AllocNode(binary_expression, op_bitand,  A, B); }
-binary_expression(R) ::= binary_expression(A) EQUALS  binary_expression(B). { R = p->AllocNode(binary_expression, op_eq,   A, B); }
-binary_expression(R) ::= binary_expression(A) NEQUALS binary_expression(B). { R = p->AllocNode(binary_expression, op_ne,   A, B); }
-binary_expression(R) ::= binary_expression(A) LT      binary_expression(B). { R = p->AllocNode(binary_expression, op_lt,   A, B); }
-binary_expression(R) ::= binary_expression(A) LE      binary_expression(B). { R = p->AllocNode(binary_expression, op_le,   A, B); }
-binary_expression(R) ::= binary_expression(A) GT      binary_expression(B). { R = p->AllocNode(binary_expression, op_gt,   A, B); }
-binary_expression(R) ::= binary_expression(A) GE      binary_expression(B). { R = p->AllocNode(binary_expression, op_ge,   A, B); }
-binary_expression(R) ::= binary_expression(A) ADDOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_add,  A, B); }
-binary_expression(R) ::= binary_expression(A) SUBOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_sub,  A, B); }
-binary_expression(R) ::= binary_expression(A) MULOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_mul,  A, B); }
-binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_div,  A, B); }
-binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_mod,  A, B); }
-binary_expression(R) ::= binary_expression(A) SEQ     binary_expression(B). { R = p->AllocNode(binary_expression, op_seq,  A, B); }
-binary_expression(R) ::= binary_expression(A) SNE     binary_expression(B). { R = p->AllocNode(binary_expression, op_sne,  A, B); }
+binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = p->AllocNode(binary_expression, op_logor,   A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = p->AllocNode(binary_expression, op_logand,  A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = p->AllocNode(binary_expression, op_bitor,   A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R = p->AllocNode(binary_expression, op_bitxor,  A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = p->AllocNode(binary_expression, op_bitand,  A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) EQUALS  binary_expression(B). { R = p->AllocNode(binary_expression, op_eq,      A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) NEQUALS binary_expression(B). { R = p->AllocNode(binary_expression, op_ne,      A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) LT      binary_expression(B). { R = p->AllocNode(binary_expression, op_lt,      A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) LE      binary_expression(B). { R = p->AllocNode(binary_expression, op_le,      A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) GT      binary_expression(B). { R = p->AllocNode(binary_expression, op_gt,      A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) GE      binary_expression(B). { R = p->AllocNode(binary_expression, op_ge,      A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) ADDOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_add,     A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) SUBOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_sub,     A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) MULOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_mul,     A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_div,     A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_mod,     A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) SEQ     binary_expression(B). { R = p->AllocNode(binary_expression, op_seq,     A, p->AllocArgs(B)); }
+binary_expression(R) ::= binary_expression(A) SNE     binary_expression(B). { R = p->AllocNode(binary_expression, op_sne,     A, p->AllocArgs(B)); }
 
 // Unary expression
 unary_expression(R) ::= postfix_expression(A) .      { R = A; } 

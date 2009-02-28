@@ -124,6 +124,7 @@ public:
   Object* AllocNode(AstTypes type, Value const& a1, Value const& a2);
   Object* AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3);
   Object* AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4);
+  Object* AllocArgs(Object* arg);
 
   //
   // Error handlers
@@ -304,6 +305,14 @@ Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value cons
   (*obj)[3] = a3;
   (*obj)[4] = a4;
   return obj;
+}
+
+inline Object* 
+Evaluator::AllocArgs(Object* arg)
+{
+  Object* args = new Object;
+  args->Add(arg);
+  return AllocNode(positional_arguments, args);
 }
 
 inline RValue& 
