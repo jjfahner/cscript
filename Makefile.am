@@ -1,3 +1,3 @@
-SUBDIRS = tools src
+SUBDIRS = src
 EXTRA_DIST = autogen.sh
 
