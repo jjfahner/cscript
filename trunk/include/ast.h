@@ -186,6 +186,16 @@ public:
     return m_iter == 0;
   }
 
+  operator bool () const
+  {
+    return !AtEnd();
+  }
+
+  bool operator ! () const
+  {
+    return AtEnd();
+  }
+
   Object* GetValue() const
   {
     if(m_iter == 0)

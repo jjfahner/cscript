@@ -20,7 +20,7 @@ function enumNodes(node, level = 0)
   {
     for(var att in node.attributes)
     {
-	    print(" " + att.qualifiedName + "=" + att.value);	
+	    print(" " + att.qualifiedName + "=\"" + att.value + "\"");	
     }
   }
 

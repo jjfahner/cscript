@@ -655,12 +655,12 @@ Evaluator::EvalBinary(Object* node)
   if(opcode == op_logor)
   {
     // TODO type conversion
-    return MakeTemp(ValBool(lhs) || EvalExpression(Ast_A3(node)));
+    return MakeTemp(ValBool(lhs) || ValBool(EvalExpression(Ast_A3(node))));
   }
   if(opcode == op_logand)
   {
     // TODO type conversion
-    return MakeTemp(ValBool(lhs) && EvalExpression(Ast_A3(node)));
+    return MakeTemp(ValBool(lhs) && ValBool(EvalExpression(Ast_A3(node))));
   }
   
   // Evaluate right-hand side
@@ -1620,8 +1620,15 @@ Evaluator::EvalMemberExpression(Object* node)
     throw std::runtime_error("Left-hand side does not yield an object");
   }
 
+  // Determine name
+  String name = Ast_A1(Ast_A2(node)).GetString();
+
   // Lookup right-hand side
-  RValue* rval = &object->GetRValue(Ast_A1(Ast_A2(node)));
+  RValue* rval;
+  if(!object->Find(name, rval))
+  {
+    throw ScriptException(node, "Object has no member '" + name + "'");
+  }
 
   // Construct bound member
   if(LValue* lval = dynamic_cast<LValue*>(rval))
@@ -1871,13 +1878,12 @@ void
 AddXmlAttributes(Object* ast, Object* node)
 {
   // Walk through list
-  Object::ValueIterator it = Ast_A1(ast)->ValueBegin();
-  Object::ValueIterator ie = Ast_A1(ast)->ValueEnd();
-  for(; it != ie; ++it)
+  AstIterator it(ast, xml_attributes);
+  for(; it; ++it)
   {
     Object* attr = CreateXmlObject(xmlAttribute, node);
     SetNodeName(Ast_A1(*it), attr);
-    attr->GetLValue("value") = Ast_A2(*it);
+    attr->GetLValue("value") = Ast_A2(*it).GetString();
   }
 }
 
@@ -1885,9 +1891,7 @@ RValue&
 Evaluator::EvalXmlExpression(Object* node)
 {
   // Retrieve ast element list
-  Object* list = Ast_A1(Ast_A1(node));
-  Object::ValueIterator it = list->ValueBegin();
-  Object::ValueIterator ie = list->ValueEnd();
+  AstIterator it(Ast_A1(node), xml_elements);
 
   // Create document element
   Object* doc = CreateXmlObject(xmlDocument);
@@ -1897,7 +1901,7 @@ Evaluator::EvalXmlExpression(Object* node)
   Object* tmp;
 
   // Walk through list
-  for(; it != ie; ++it)
+  for(; it; ++it)
   {
     switch(Ast_Type(*it))
     {

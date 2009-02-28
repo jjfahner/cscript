@@ -513,7 +513,6 @@ xml_element(R) ::= xml_start_tag xml_name(A) xml_attributes(B) DIVOP GT . { R = 
 xml_element(R) ::= xml_start_tag DIVOP xml_name(A) GT .                   { R = p->AllocNode(xml_close_tag,  A); }
 xml_element(R) ::= XMLTEXT(A) .                                           { R = p->AllocNode(xml_text, String(A)); }
 
-
 // Attribute sequence
 xml_attribute_list(R) ::= xml_attribute(A) .                       { R = A; }
 xml_attribute_list(R) ::= xml_attribute(A) xml_attribute_list(B) . { R = p->AllocNode(xml_attributes, A, B); }
