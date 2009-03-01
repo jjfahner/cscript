@@ -83,8 +83,8 @@ eos ::= EOF .
 
 // Translation unit
 translation_unit ::= .
-translation_unit ::= native_declaration(A) . { if(A) p->SetResultNode(A); }
-translation_unit ::= statement_sequence(A) . { if(A) p->SetResultNode(A); }
+translation_unit ::= native_declaration(A) eos . { if(A) p->SetResultNode(A); }
+translation_unit ::= statement_sequence(A) eos . { if(A) p->SetResultNode(A); }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
