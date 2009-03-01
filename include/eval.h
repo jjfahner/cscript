@@ -169,8 +169,9 @@ private:
   //
   void EvalStatementSeq(Object* node);
   void EvalNamespace(Object* node);
-  void EvalVarDecl(Object* node);
-  void EvalFunDecl(Object* node);
+  void EvalVariableDeclaration(Object* node);
+  void EvalFunctionDeclaration(Object* node);
+  void EvalNativeDeclaration(Object* node);
   void EvalIncludeStatement(Object* node);
   void EvalForStatement(Object* node);
   void EvalForeachStatement(Object* node);
@@ -178,7 +179,7 @@ private:
   void EvalSwitchStatement(Object* node);
   void EvalIfStatement(Object* node);
   void EvalReturnStatement(Object* node);
-  void EvalExternDecl(Object* node);
+  void EvalExternDeclaration(Object* node);
   void EvalTryStatement(Object* node);
   void EvalUnsetStatement(Object* node);
 

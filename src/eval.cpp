@@ -325,10 +325,10 @@ Evaluator::OnSyntaxError()
 void 
 Evaluator::ReportError(String text, Object* source)
 {
-  if(source && source->ContainsKey("file"))
+  if(source && source->ContainsKey(10))
   {
-    std::cout << source->GetRValue("file").GetString() << "("
-              << source->GetRValue("line").GetInt()    << ") : ";
+    std::cout << source->GetRValue(10).GetString() << "("
+              << source->GetRValue(11).GetInt()    << ") : ";
   }
   std::cout << text << "\n";
 }
@@ -341,10 +341,10 @@ Evaluator::AllocNode(AstTypes type)
   (*obj)[0] = type;
 
   // Set file position
-  if(false && m_file /*&& m_debug*/)
+  if(m_file /*&& m_debug*/)
   {
-    (*obj)["file"] = m_file->GetPath();
-    (*obj)["line"] = m_lexer->GetLine();
+    (*obj)[10] = m_file->GetPath();
+    (*obj)[11] = m_lexer->GetLine();
   }
 
   // Done
@@ -374,6 +374,11 @@ Evaluator::ParseNativeCall(String const& declaration)
 
     // Done
     return m_resultNode;
+  }
+  catch(std::runtime_error const& e)
+  {
+    std::cout << e.what() << "\n";
+    throw;
   }
   catch(...)
   {
@@ -494,22 +499,23 @@ Evaluator::EvalStatement(Object* node)
   {
   case empty_statement:       break;
 
-  case translation_unit:      EvalStatement(Ast_A1(node));  break;
-  case statement_sequence:    EvalStatementSeq(node);       break;
-  case expression_statement:  EvalExpression(Ast_A1(node)); break;
-  case namespace_declaration: EvalNamespace(node);          break;
-  case variable_declaration:  EvalVarDecl(node);            break;
-  case function_declaration:  EvalFunDecl(node);            break;
-  case extern_declaration:    EvalExternDecl(node);         break;
-  case try_statement:         EvalTryStatement(node);       break;
-  case include_statement:     EvalIncludeStatement(node);   break;
-  case for_statement:         EvalForStatement(node);       break;
-  case foreach_statement:     EvalForeachStatement(node);   break;
-  case if_statement:          EvalIfStatement(node);        break;
-  case while_statement:       EvalWhileStatement(node);     break;
-  case return_statement:      EvalReturnStatement(node);    break;
-  case switch_statement:      EvalSwitchStatement(node);    break;
-  case unset_statement:       EvalUnsetStatement(node);     break;
+  case translation_unit:      EvalStatement(Ast_A1(node));    break;
+  case statement_sequence:    EvalStatementSeq(node);         break;
+  case expression_statement:  EvalExpression(Ast_A1(node));   break;
+  case namespace_declaration: EvalNamespace(node);            break;
+  case variable_declaration:  EvalVariableDeclaration(node);  break;
+  case function_declaration:  EvalFunctionDeclaration(node);  break;
+  case native_declaration:    EvalNativeDeclaration(node);    break;
+  case extern_declaration:    EvalExternDeclaration(node);    break;
+  case try_statement:         EvalTryStatement(node);         break;
+  case include_statement:     EvalIncludeStatement(node);     break;
+  case for_statement:         EvalForStatement(node);         break;
+  case foreach_statement:     EvalForeachStatement(node);     break;
+  case if_statement:          EvalIfStatement(node);          break;
+  case while_statement:       EvalWhileStatement(node);       break;
+  case return_statement:      EvalReturnStatement(node);      break;
+  case switch_statement:      EvalSwitchStatement(node);      break;
+  case unset_statement:       EvalUnsetStatement(node);       break;
 
   case break_statement:       throw BreakException(node);
   case continue_statement:    throw ContinueException(node);
@@ -945,7 +951,7 @@ Evaluator::EvalNamespace(Object* node)
 }
 
 void
-Evaluator::EvalVarDecl(Object* node)
+Evaluator::EvalVariableDeclaration(Object* node)
 {
   // Determine right-hand value
   Value value;
@@ -965,7 +971,7 @@ Evaluator::EvalVarDecl(Object* node)
 }
 
 void
-Evaluator::EvalFunDecl(Object* node)
+Evaluator::EvalFunctionDeclaration(Object* node)
 {
   Function* fun = new ScriptFunction(Ast_A1(node), node);
   
@@ -974,6 +980,16 @@ Evaluator::EvalFunDecl(Object* node)
   (*fun)["scope"]  = FindNamespace(m_scope);
 
   m_scope->Add(Ast_A1(node).GetString(), fun);
+}
+
+void
+Evaluator::EvalNativeDeclaration(Object* node)
+{
+  Function* fun = new ScriptFunction(Ast_A1(node), node);
+
+  (*fun)["name"]   = fun->GetName();
+  (*fun)["parent"] = m_scope;
+  (*fun)["scope"]  = FindNamespace(m_scope);
 }
 
 RValue& 
@@ -1021,7 +1037,7 @@ Evaluator::EvalFunctionIndex(Object* node)
 }
 
 void 
-Evaluator::EvalExternDecl(Object* node)
+Evaluator::EvalExternDeclaration(Object* node)
 {
   m_scope->Add(Ast_A1(node).GetString(), 
     new ExternFunction(Ast_A1(node), node));
@@ -1065,8 +1081,15 @@ Evaluator::EvalFunctionCall(Object* node)
     owner = bval->GetBoundObject();
   }
 
+  // Determine arguments
+  Object* args = 0;
+  if(Ast_A2(node))
+  {
+    args = Ast_A2(node);
+  }
+
   // Continue in overload
-  return EvalFunctionCall(node, fun, owner, Ast_A2(node));
+  return EvalFunctionCall(node, fun, owner, args);
 }
 
 RValue& 

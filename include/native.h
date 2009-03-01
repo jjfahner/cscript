@@ -133,7 +133,7 @@ public:
   Function  (name),
   m_funPtr  (funPtr)
   {
-    (*this)["__ast"] = ast;
+    Add("__ast", ast);
   }
 
   //
@@ -141,7 +141,12 @@ public:
   //
   Object* GetNode() const
   {
-    return const_cast<NativeMethod&>(*this)["__ast"].GetObject();
+    RValue* pValue;
+    if(!Find("__ast", pValue) || pValue->Type() != Value::tObject)
+    {
+      throw std::runtime_error("Missing declaration for native method");
+    }
+    return pValue->GetObject();
   }
 
   //
