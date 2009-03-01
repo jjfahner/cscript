@@ -4,7 +4,7 @@ AM_CPPFLAGS = -I. -I$(top_srcdir)/include -Iinclude -I$(top_srcdir)/src
 
 noinst_LIBRARIES = libcs.a
 
-BUILT_SOURCES = parser.c parser.h lexer.c
+BUILT_SOURCES = parser.c lexer.c
 
 libcs_a_SOURCES = eval.cpp args.cpp convert.cpp error.cpp gc.cpp function.cpp lexer.cpp native.cpp object.cpp opcodes.cpp report.cpp srcfile.cpp timer.cpp value.cpp
 
@@ -15,10 +15,10 @@ cscript_SOURCES = cmdargs.cpp main.cpp
 cscript_LDADD = libcs.a native/libcsnative.a
 
 LEMDIR = ${srcdir}/../tools/posix
-parser.c parser.h: parser.in
+parser.c: parser.in
 	cp ${LEMDIR}/lempar.c ${srcdir}
 	${LEMDIR}/lemon ${srcdir}/parser.in
 
 RE2CDIR = ${srcdir}/../tools/posix
-lexer.c: lexer.in
+lexer.c: lexer.in parser.c
 	${RE2CDIR}/re2c -iswb --no-generation-date -o ${srcdir}/lexer.c ${srcdir}/lexer.in
