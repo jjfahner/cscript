@@ -105,8 +105,16 @@ public:
 
   Value(Object* obj)
   {
-    m_type = tObject;
-    m_object = obj;
+    if(obj == 0)
+    {
+      m_type = tNull;
+      m_int = 0;
+    }
+    else
+    {
+      m_type = tObject;
+      m_object = obj;
+    }
   }
 
   ~Value()
