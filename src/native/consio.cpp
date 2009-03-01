@@ -21,6 +21,8 @@
 #include <native/consio.h>
 #include <eval.h>
 
+#include <set>
+#include <list>
 #include <iostream>
 
 DEFINE_NATIVE_LINKAGE(Consio)
@@ -95,4 +97,68 @@ NATIVE_CALL("read()")
   String line;
   std::cin >> line;
   return Value(line);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+void print_ast(Object& node, std::set<Object*>& done, int level)
+{
+  for(int i = 0; i < level; ++i)
+  {
+    std::cout << "  ";
+  }
+
+  std::list<Object*> next;
+
+  std::cout << std::ios::hex << &node;
+  for(int i = 0; i < 5; ++i)
+  {
+    if(node.ContainsKey(i))
+    {
+      Value const& v = node[i];
+      std::cout << " [" << i << "] : ";
+      switch(v.Type())
+      {
+      case Value::tNull:
+        std::cout << "<null>";
+        break;
+      case Value::tBool:
+        std::cout << v.GetBool();
+        break;
+      case Value::tInt:
+        std::cout << v.GetInt();
+        break;
+      case Value::tString:
+        std::cout << '"' << v.GetString() << '"';
+        break;
+      case Value::tObject:
+        next.push_back(v.GetObject());
+        std::cout << std::ios::hex << v.GetObject();
+        break;
+      }
+    }
+  }
+  std::cout << "\n";
+
+  std::list<Object*>::iterator it, ie;
+  it = next.begin();
+  ie = next.end();
+  for(; it != ie; ++it)
+  {
+    if(!done.count(*it))
+    {
+      done.insert(*it);
+      print_ast(**it, done, level + 1);
+    }
+  }
+}
+
+NATIVE_CALL("print_ast(node)")
+{
+  Object* root = args[0].GetObject();
+
+  std::set<Object*> done;
+  print_ast(*root, done, 0);
+
+  return Value();
 }
