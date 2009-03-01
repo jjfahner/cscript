@@ -195,7 +195,7 @@ Evaluator::OpenFile(String const& path, SourceFile& file)
   return false;
 }
 
-void
+Value
 Evaluator::ParseFile(String const& filename)
 {
   SourceFile file;
@@ -217,9 +217,10 @@ Evaluator::ParseFile(String const& filename)
   m_file = &file;
 
   // Try block for file pointer stacking
+  Value result;
   try
   {
-    ParseText((char const*)file.GetData(), true);
+    result = ParseText((char const*)file.GetData(), true);
     m_file = prevfile;
   }
   catch(...)
@@ -227,9 +228,11 @@ Evaluator::ParseFile(String const& filename)
     m_file = prevfile;
     throw;
   }
+
+  return result;
 }
 
-void 
+Value
 Evaluator::ParseText(char const* text, bool showTimes)
 {
   // Create lexer for file
@@ -264,6 +267,10 @@ Evaluator::ParseText(char const* text, bool showTimes)
     while(lexer.Lex(token))
     {
       CScriptParse(pParser, token.m_type, token, this);
+      if(token.m_type == TOK_EOF)
+      {
+        break;
+      }
     }
 
     // Empty token to finalize parse
@@ -284,7 +291,7 @@ Evaluator::ParseText(char const* text, bool showTimes)
     }
 
     // Evaluate code
-    Eval(root);
+    return Eval(root);
   }
   catch(...)
   {
@@ -419,18 +426,11 @@ Evaluator::Eval(String text, bool isFileName)
     // every statement in the code
     if(isFileName)
     {
-      ParseFile(text);
+      return ParseFile(text);
     }
     else
     {
-      ParseText(text.c_str(), true);
-    }
-
-    // Check error count
-    if(m_reporter.GetErrorCount())
-    {
-      ReportError("Aborted");
-      return Value();
+      return ParseText(text.c_str(), true);
     }
   }
   // Return statement
@@ -476,7 +476,7 @@ Evaluator::Eval(String text, bool isFileName)
   return Value();
 }
 
-void
+Value
 Evaluator::Eval(Object* astRoot)
 {
   // Place global scope on the scope stack
@@ -486,22 +486,22 @@ Evaluator::Eval(Object* astRoot)
   MakeTemp(astRoot);
 
   // Perform evaluation of ast tree
-  EvalStatement(astRoot);
+  return EvalStatement(astRoot);
 }
 
 
-void 
+Value
 Evaluator::EvalStatement(Object* node)
 {
   VecRestore<TempVec> vr(m_temporaries);
 
+  Value result;
   switch(Ast_Type(node))
   {
   case empty_statement:       break;
 
   case translation_unit:      EvalStatement(Ast_A1(node));    break;
   case statement_sequence:    EvalStatementSeq(node);         break;
-  case expression_statement:  EvalExpression(Ast_A1(node));   break;
   case namespace_declaration: EvalNamespace(node);            break;
   case variable_declaration:  EvalVariableDeclaration(node);  break;
   case function_declaration:  EvalFunctionDeclaration(node);  break;
@@ -520,6 +520,10 @@ Evaluator::EvalStatement(Object* node)
   case break_statement:       throw BreakException(node);
   case continue_statement:    throw ContinueException(node);
 
+  case expression_statement:  
+    result = EvalExpression(Ast_A1(node));   
+    break;
+  
   case declarator_sequence:
     EvalStatement(Ast_A1(node));
     EvalStatement(Ast_A2(node));
@@ -541,8 +545,12 @@ Evaluator::EvalStatement(Object* node)
     }
     break;
 
-  default: throw ScriptException(node, "Invalid node type");
+  default: 
+    throw ScriptException(node, "Invalid node type");
   }
+
+  // Done
+  return result;
 }
 
 RValue&
@@ -1836,6 +1844,7 @@ XmlNodeName(XmlNodeTypes nodeType)
   default:                        throw std::runtime_error("Invalid XML node type");
   }
 }
+
 Object* 
 CreateXmlObject(XmlNodeTypes nodeType, Object* parentNode = 0)
 {
@@ -1876,18 +1885,17 @@ CreateXmlObject(XmlNodeTypes nodeType, Object* parentNode = 0)
 void 
 SetNodeName(Object* ast, Object* node)
 {
-  String qname;
-  String lname;
+  String lname = Ast_A1(ast).GetString();
+
   String ns;
+  String qname;
   if(Ast_Type(ast) == xml_qname)
   {
-    lname = Ast_A2(ast).GetString();
-    ns    = Ast_A1(ast).GetString();
+    ns    = Ast_A2(ast).GetString();
     qname = ns + ":" + lname;
   }
   else
   {
-    lname = Ast_A1(ast).GetString();
     qname = lname;
   }
 
@@ -1913,9 +1921,6 @@ AddXmlAttributes(Object* ast, Object* node)
 RValue& 
 Evaluator::EvalXmlExpression(Object* node)
 {
-  // Retrieve ast element list
-  AstIterator it(Ast_A1(node), xml_elements);
-
   // Create document element
   Object* doc = CreateXmlObject(xmlDocument);
 
@@ -1924,6 +1929,7 @@ Evaluator::EvalXmlExpression(Object* node)
   Object* tmp;
 
   // Walk through list
+  AstIterator it(Ast_A1(node), xml_elements);
   for(; it; ++it)
   {
     switch(Ast_Type(*it))
@@ -1939,12 +1945,13 @@ Evaluator::EvalXmlExpression(Object* node)
 
     case xml_open_tag:
       tmp = CreateXmlObject(xmlElement, cur);
-      cur = tmp;
       SetNodeName(Ast_A1(*it), cur);
       if(Ast_A2(*it))
       {
         AddXmlAttributes(Ast_A2(*it), tmp);
       }
+      cur = tmp;
+      std::cout << "Recurse into " << cur->GetRValue("nodeName").GetString() << "\n";
       break;
 
     case xml_close_tag:
@@ -1952,7 +1959,12 @@ Evaluator::EvalXmlExpression(Object* node)
       {
         throw ScriptException(node, "Invalid xml structure");
       }
+//       if(Ast_A1(*it).GetString() != cur->GetRValue("nodeName").GetString())
+//       {
+//         throw ScriptException(node, "Invalid xml close tag");
+//       }
       cur = cur->GetRValue("parentNode").GetObject();
+      std::cout << "Recurse out\n";
       break;
 
     case xml_closed_tag:

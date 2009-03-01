@@ -60,7 +60,7 @@
 }
 
 // Precedence rules for binary operators
-%nonassoc COMMENT NEWLINE WHITESPACE .
+%nonassoc EOF COMMENT NEWLINE WHITESPACE .
 %right ASSIGN ASSADD ASSSUB ASSMUL ASSDIV ASSMOD .
 %nonassoc QUESTION .
 %left LOGOR .
@@ -76,6 +76,10 @@
 
 // Start symbol
 main ::= translation_unit .
+
+// End of statement
+eos ::= SEMICOLON .
+eos ::= EOF .
 
 // Translation unit
 translation_unit ::= .
@@ -284,23 +288,23 @@ arguments(R) ::= argument_list(A) . { R = A; }
 //
 
 // Expression statement
-expression_statement(R) ::= SEMICOLON .               { R = p->AllocNode(empty_statement); }
-expression_statement(R) ::= expression(A) SEMICOLON . { R = p->AllocNode(expression_statement, A); }
+expression_statement(R) ::= eos .               { R = p->AllocNode(empty_statement); }
+expression_statement(R) ::= expression(A) eos . { R = p->AllocNode(expression_statement, A); }
 
 // Compound statement
 compound_statement(R) ::= LBRACE RBRACE .                       { R = p->AllocNode(compound_statement); }
 compound_statement(R) ::= LBRACE statement_sequence(A) RBRACE . { R = p->AllocNode(compound_statement, A); }
 
 // Include statement
-include_statement(R) ::= INCLUDE LIT_STRING(A) SEMICOLON .      { R = p->AllocNode(include_statement, String(A)); }
+include_statement(R) ::= INCLUDE LIT_STRING(A) eos . { R = p->AllocNode(include_statement, String(A)); }
 
 // Return statement - leaves return expression on the stack
-return_statement(R) ::= RETURN expression(A) SEMICOLON . { R = p->AllocNode(return_statement, A); }
-return_statement(R) ::= RETURN SEMICOLON .               { R = p->AllocNode(return_statement);    }
+return_statement(R) ::= RETURN expression(A) eos . { R = p->AllocNode(return_statement, A); }
+return_statement(R) ::= RETURN eos .               { R = p->AllocNode(return_statement);    }
 
 // Break/continue
-break_statement(R)    ::= BREAK SEMICOLON .    { R = p->AllocNode(break_statement); }
-continue_statement(R) ::= CONTINUE SEMICOLON . { R = p->AllocNode(continue_statement); }
+break_statement(R)    ::= BREAK eos .    { R = p->AllocNode(break_statement); }
+continue_statement(R) ::= CONTINUE eos . { R = p->AllocNode(continue_statement); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -312,7 +316,7 @@ declaration_statement(R) ::= function_declaration(A) .  { R = A; }
 declaration_statement(R) ::= vardecl_statement(A) .     { R = A; }
 declaration_statement(R) ::= namespace_declaration(A) . { R = A; }
 
-vardecl_statement(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
+vardecl_statement(R) ::= variable_declaration(A) eos . { R = A; }
 
 variable_declaration(R) ::= VAR declarator_sequence(A) . { R = A; }
 
@@ -328,7 +332,7 @@ namespace_declaration(R) ::= NAMESPACE IDENTIFIER(A) LBRACE declaration_sequence
 declaration_sequence(R) ::= declaration_statement(A) .                          { R = p->AllocNode(declaration_sequence, A); }
 declaration_sequence(R) ::= declaration_sequence(A) declaration_statement(B) .  { R = p->AllocNode(declaration_sequence, A, B); }
 
-unset_statement(R) ::= UNSET id_expression(A) SEMICOLON . { R = p->AllocNode(unset_statement, A); }
+unset_statement(R) ::= UNSET id_expression(A) eos . { R = p->AllocNode(unset_statement, A); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -409,7 +413,7 @@ operator_decl(R) ::= OPERATOR LPAREN RPAREN . { R = p->AllocNode(operator_declar
 //
 
 extern_declaration(R) ::= EXTERN LIT_STRING(A) type(B) IDENTIFIER(C) 
-  LPAREN parameter_list(D) RPAREN SEMICOLON . 
+  LPAREN parameter_list(D) RPAREN eos . 
 { 
   R = p->AllocNode(extern_declaration, String(C), D, String(A), B); 
 }
@@ -420,11 +424,11 @@ extern_declaration(R) ::= EXTERN LIT_STRING(A) type(B) IDENTIFIER(C)
 //
 
 // For statement - main structure
-for_statement(R) ::= FOR LPAREN for_init_statement(A) expression(B) SEMICOLON expression_opt(C) RPAREN statement(D) . { R = p->AllocNode(for_statement, A, B, C, D); }
+for_statement(R) ::= FOR LPAREN for_init_statement(A) expression(B) eos expression_opt(C) RPAREN statement(D) . { R = p->AllocNode(for_statement, A, B, C, D); }
 
 // For init statement
-for_init_statement(R) ::= expression_statement(A) .           { R = A; }
-for_init_statement(R) ::= variable_declaration(A) SEMICOLON . { R = A; }
+for_init_statement(R) ::= expression_statement(A) .     { R = A; }
+for_init_statement(R) ::= variable_declaration(A) eos . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -526,4 +530,4 @@ xml_attribute(R) ::= xml_name(A) ASSIGN LIT_STRING(B) . { R = p->AllocNode(xml_a
 
 // Names
 xml_name(R) ::= IDENTIFIER(A) .                      { R = p->AllocNode(xml_uname, String(A)); }
-xml_name(R) ::= IDENTIFIER(A) COLON IDENTIFIER(B) .  { R = p->AllocNode(xml_qname, String(A), String(B)); }
+xml_name(R) ::= IDENTIFIER(A) COLON IDENTIFIER(B) .  { R = p->AllocNode(xml_qname, String(B), String(A)); }

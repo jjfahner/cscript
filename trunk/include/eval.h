@@ -88,7 +88,7 @@ public:
   //
   // Evaluation of ast tree
   //
-  void Eval(Object* astRoot);
+  Value Eval(Object* astRoot);
 
   //
   // Set result node from parsing
@@ -141,12 +141,12 @@ private:
   //
   // Parse a string
   //
-  void ParseText(char const* text, bool showTimes);
+  Value ParseText(char const* text, bool showTimes);
 
   //
   // Parse a file
   //
-  void ParseFile(String const& filename);
+  Value ParseFile(String const& filename);
 
   //
   // Error reporting
@@ -162,7 +162,7 @@ private:
   // Evaluation of expression/statement
   //
   RValue& EvalExpression(Object* node);
-  void    EvalStatement(Object* node);
+  Value   EvalStatement(Object* node);
 
   //
   // Statement handlers
