@@ -109,12 +109,12 @@ public:
   //
   // Is a certain key present
   //
-  virtual bool ContainsKey(Value const& key, bool checkProto = true);
+  virtual bool ContainsKey(Value const& key, bool checkProto = true) const;
 
   //
   // Find a member
   //
-  virtual bool Find(Value const& key, RValue*& pValue, bool checkProto = true);
+  virtual bool Find(Value const& key, RValue*& pValue, bool checkProto = true) const;
 
   //
   // Add new item to end
@@ -177,7 +177,7 @@ private:
   //
   // Object members
   //
-  MemberMap m_members;
+  mutable MemberMap m_members;
 
 };
 
