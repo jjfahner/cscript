@@ -27,9 +27,9 @@ DEFINE_NATIVE_LINKAGE(Standard)
 
 //////////////////////////////////////////////////////////////////////////
 
-NATIVE_CALL("eval(string code)")
+NATIVE_CALL("eval(string code, bool isFile = false)")
 {
-  return evaluator->Eval(args[0].GetString());
+  return evaluator->Eval(args[0].GetString(), args[1].GetBool());
 }
 
 NATIVE_CALL("reset()")
