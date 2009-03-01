@@ -83,9 +83,7 @@ function sockets()
   try
   {
     // Connect socket
-    var sock = new Socket;
-    sock.m_socket = 1;
-
+    var sock = CreateSocket();
     sock.Connect("jan-jaap.net", 80);
 
     // Build request
@@ -98,10 +96,10 @@ function sockets()
     sock.Send(req, strlen(req));
 
     // Receive response
-    var r = sock.Recv(100000, 5);
+    var r = sock.Receive(100000, 5);
 
     // Disconnect socket
-    sock.Close();
+    sock.Disconnect();
 
     // Succeeded
     return true;

@@ -336,7 +336,7 @@ unset_statement(R) ::= UNSET id_expression(A) SEMICOLON . { R = p->AllocNode(uns
 //
 
 // Native declaration
-native_declaration(R) ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { R = p->AllocNode(function_declaration, String(A), B); }
+native_declaration(R) ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { R = p->AllocNode(native_declaration, String(A), B); }
 
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocNode(function_declaration, String(A),  B, C); }

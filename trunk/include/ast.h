@@ -52,6 +52,7 @@ enum AstTypes
   json_content,
   json_entry,
   function_declaration,
+  native_declaration,
   parameter,
   parameter_list,
   namespace_declaration,
