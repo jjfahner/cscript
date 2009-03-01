@@ -348,7 +348,7 @@ Evaluator::AllocNode(AstTypes type)
   (*obj)[0] = type;
 
   // Set file position
-  if(m_file /*&& m_debug*/)
+  if(false && m_file /*&& m_debug*/)
   {
     (*obj)[10] = m_file->GetPath();
     (*obj)[11] = m_lexer->GetLine();
