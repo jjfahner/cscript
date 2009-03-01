@@ -42,7 +42,7 @@ Object::GetTypeName() const
 }
 
 bool 
-Object::ContainsKey(Value const& key, bool checkProto)
+Object::ContainsKey(Value const& key, bool checkProto) const
 {
   MemberMap::const_iterator it;
 
@@ -70,7 +70,7 @@ Object::ContainsKey(Value const& key, bool checkProto)
 }
 
 bool 
-Object::Find(Value const& key, RValue*& pValue, bool checkProto)
+Object::Find(Value const& key, RValue*& pValue, bool checkProto) const
 {
   MemberMap::iterator it;
 
