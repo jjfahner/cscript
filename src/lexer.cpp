@@ -80,7 +80,8 @@ Lexer::Lex(Token& token)
     // End of input
     if(m_strptr == 0 || *m_strptr == 0)
     {
-      return false;
+      token.m_type = TOK_EOF;
+      return true;
     }
 
     // Parse next token
@@ -223,6 +224,7 @@ Lexer::LexXml(Token& token)
   Char* ptr = m_strptr;
   while(*ptr && *ptr != '<' && *ptr != ';')
   {
+    if(*ptr == '\n') ++m_line;
     ++ptr;
   }
   if(ptr != m_strptr)
