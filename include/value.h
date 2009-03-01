@@ -237,10 +237,10 @@ private:
   Types     m_type;
   union 
   {
-    GCString* m_string;
-    Int       m_int;
-    Bool      m_bool;
-    Object*   m_object;
+    String* m_string;
+    Int     m_int;
+    Bool    m_bool;
+    Object* m_object;
   };
 
 };
