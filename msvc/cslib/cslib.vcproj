@@ -244,7 +244,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating lexer..."
-						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\re2c.exe -iswb --no-generation-date -o lexer.c lexer.in"
+						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\re2c.exe -iswb --no-generation-date -o lexer.c lexer.in&#x0D;&#x0A;"
 						AdditionalDependencies="..\..\include\parser.h"
 						Outputs="..\..\src\lexer.c"
 					/>
@@ -281,7 +281,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating parser..."
-						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe parser.in &amp;&amp; move parser.h ..\include"
+						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe parser.in &amp;&amp; move parser.h ..\include&#x0D;&#x0A;"
 						Outputs="..\..\src\parser.c;..\..\include\parser.h"
 					/>
 				</FileConfiguration>

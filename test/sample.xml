@@ -1,23 +1,23 @@
 <?xml version="1.0"?>
 <nutrition>
 
-<daily-values>
-	<total-fat units="g">65</total-fat>
-	<saturated-fat units="g">20</saturated-fat>
+<dailyvalues>
+	<totalfat units="g">65</totalfat>
+	<saturatedfat units="g">20</saturatedfat>
 	<cholesterol units="mg">300</cholesterol>
 	<sodium units="mg">2400</sodium>
 	<carb units="g">300</carb>
 	<fiber units="g">25</fiber>
 	<protein units="g">50</protein>
-</daily-values>
+</dailyvalues>
 
 <food>
 	<name>Avocado Dip</name>
 	<mfr>Sunnydale</mfr>
 	<serving units="g">29</serving>
 	<calories total="110" fat="100"/>
-	<total-fat>11</total-fat>
-	<saturated-fat>3</saturated-fat>
+	<totalfat>11</totalfat>
+	<saturatedfat>3</saturatedfat>
 	<cholesterol>5</cholesterol>
 	<sodium>210</sodium>
 	<carb>2</carb>
@@ -38,8 +38,8 @@
 	<mfr>Thompson</mfr>
 	<serving units="g">104</serving>
 	<calories total="300" fat="35"/>
-	<total-fat>4</total-fat>
-	<saturated-fat>1</saturated-fat>
+	<totalfat>4</totalfat>
+	<saturatedfat>1</saturatedfat>
 	<cholesterol>0</cholesterol>
 	<sodium>510</sodium>
 	<carb>54</carb>
@@ -60,8 +60,8 @@
 	<mfr>Armitage</mfr>
 	<serving units="g">115</serving>
 	<calories total="370" fat="290"/>
-	<total-fat>32</total-fat>
-	<saturated-fat>15</saturated-fat>
+	<totalfat>32</totalfat>
+	<saturatedfat>15</saturatedfat>
 	<cholesterol>65</cholesterol>
 	<sodium>1100</sodium>
 	<carb>8</carb>
@@ -82,8 +82,8 @@
 	<mfr>Lakeson</mfr>
 	<serving units="g">198</serving>
 	<calories total="410" fat="200"/>
-	<total-fat>22</total-fat>
-	<saturated-fat>9</saturated-fat>
+	<totalfat>22</totalfat>
+	<saturatedfat>9</saturatedfat>
 	<cholesterol>25</cholesterol>
 	<sodium>810</sodium>
 	<carb>42</carb>
@@ -104,8 +104,8 @@
 	<mfr>Fresh Quick</mfr>
 	<serving units=" cup">1.5</serving>
 	<calories total="20" fat="0"/>
-	<total-fat>0</total-fat>
-	<saturated-fat>0</saturated-fat>
+	<totalfat>0</totalfat>
+	<saturatedfat>0</saturatedfat>
 	<cholesterol>0</cholesterol>
 	<sodium>15</sodium>
 	<carb>5</carb>
@@ -126,8 +126,8 @@
 	<mfr>Goodpath</mfr>
 	<serving units="g">50</serving>
 	<calories total="70" fat="40"/>
-	<total-fat>4.5</total-fat>
-	<saturated-fat>1.5</saturated-fat>
+	<totalfat>4.5</totalfat>
+	<saturatedfat>1.5</saturatedfat>
 	<cholesterol>215</cholesterol>
 	<sodium>65</sodium>
 	<carb>1</carb>
@@ -148,8 +148,8 @@
 	<mfr>Ferreira</mfr>
 	<serving units="tbsp">2</serving>
 	<calories total="200" fat="90"/>
-	<total-fat>10</total-fat>
-	<saturated-fat>2</saturated-fat>
+	<totalfat>10</totalfat>
+	<saturatedfat>2</saturatedfat>
 	<cholesterol>0</cholesterol>
 	<sodium>20</sodium>
 	<carb>23</carb>
@@ -170,8 +170,8 @@
 	<mfr>Lees</mfr>
 	<serving units="g">28</serving>
 	<calories total="150" fat="90"/>
-	<total-fat>10</total-fat>
-	<saturated-fat>3</saturated-fat>
+	<totalfat>10</totalfat>
+	<saturatedfat>3</saturatedfat>
 	<cholesterol>0</cholesterol>
 	<sodium>180</sodium>
 	<carb>15</carb>
@@ -192,8 +192,8 @@
 	<mfr>Gardenproducts</mfr>
 	<serving units="g">96</serving>
 	<calories total="160" fat="45"/>
-	<total-fat>5</total-fat>
-	<saturated-fat>0</saturated-fat>
+	<totalfat>5</totalfat>
+	<saturatedfat>0</saturatedfat>
 	<cholesterol>0</cholesterol>
 	<sodium>420</sodium>
 	<carb>10</carb>
@@ -214,8 +214,8 @@
 	<mfr>Lyndon's</mfr>
 	<serving units="g">39</serving>
 	<calories total="220" fat="170"/>
-	<total-fat>19</total-fat>
-	<saturated-fat>14</saturated-fat>
+	<totalfat>19</totalfat>
+	<saturatedfat>14</saturatedfat>
 	<cholesterol>25</cholesterol>
 	<sodium>10</sodium>
 	<carb>16</carb>
@@ -232,27 +232,3 @@
 </food>
 
 </nutrition>
-
-<!--
-<food>
-	<name></name>
-	<mfr></mfr>
-	<serving units="g"></serving>
-	<calories total="" fat=""/>
-	<total-fat></total-fat>
-	<saturated-fat></saturated-fat>
-	<cholesterol></cholesterol>
-	<sodium></sodium>
-	<carb></carb>
-	<fiber></fiber>
-	<protein></protein>
-	<vitamins>
-		<a></a>
-		<c></c>
-	</vitamins>
-	<minerals>
-		<ca></ca>
-		<fe></fe>
-	</minerals>
-</food>
--->

@@ -1,11 +1,2 @@
-var Foo = {
-
-  m_value : 1,
-
-  operator == : function(int rhs) {
-    return m_value == rhs;
-  }
-};
-
-var f = new Foo;
-print(f == 1);
+var xml = eval("sample.xml", true);
+print(xml);
