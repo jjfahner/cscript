@@ -1,0 +1,48 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
+
+int 
+XmlLexer::ParseNextToken(char*& start, char*& end)
+{
+  char* qptr = 0;
+  
+  if(*start == 0)
+  {
+    return 0;
+  }
+  
+  /*!re2c
+  re2c:define:YYCTYPE  = "char";
+  re2c:define:YYCURSOR = end;
+  re2c:define:YYMARKER = qptr;
+  re2c:yyfill:enable   = 0;
+  re2c:yych:conversion = 1;
+  re2c:indent:top      = 1;
+  
+  [A-Z_a-z][A-Z_a-z-.0-9]*    { return XML_NAME;    }
+  "/>"                        { return XML_SL_GT;   }
+  "</"                        { return XML_LT_SL;   }
+  "<"                         { return XML_LT;      }
+  ">"                         { return XML_GT;      }
+  "="                         { return XML_EQ;      }
+  
+  */
+}
