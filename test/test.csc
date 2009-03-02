@@ -1,2 +1,1 @@
-var xml = eval("sample.xml", true);
-print(xml);
+parseXml("d:\\source\\cscript\\test\\sample.xml");

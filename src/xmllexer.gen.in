@@ -20,24 +20,26 @@
 //////////////////////////////////////////////////////////////////////////
 
 int 
-XmlLexer::ParseNextToken(char*& start, char*& end)
+XmlLexer::ParseNextToken()
 {
-  char* qptr = 0;
-  
-  if(*start == 0)
-  {
-    return 0;
-  }
-  
   /*!re2c
-  re2c:define:YYCTYPE  = "char";
-  re2c:define:YYCURSOR = end;
-  re2c:define:YYMARKER = qptr;
-  re2c:yyfill:enable   = 0;
-  re2c:yych:conversion = 1;
-  re2c:indent:top      = 1;
   
+  re2c:define:YYCTYPE   = "char";
+  re2c:define:YYCURSOR  = m_cursor;
+  re2c:define:YYMARKER  = m_marker;
+  re2c:define:YYLIMIT   = m_bufend;
+  re2c:define:YYFILL    = FillInputBuffer;
+  re2c:yyfill:enable    = 1;
+  re2c:yych:conversion  = 1;
+  re2c:indent:top       = 1;
+  
+  [ \t\r\n]+                  { return XML_WS;      }
+  ["][^"]*["]                 { return XML_STRING;  }
+    
   [A-Z_a-z][A-Z_a-z-.0-9]*    { return XML_NAME;    }
+  
+  "<?"                        { return XML_PRO_I;   }
+  "?>"                        { return XML_PRO_E;   }
   "/>"                        { return XML_SL_GT;   }
   "</"                        { return XML_LT_SL;   }
   "<"                         { return XML_LT;      }

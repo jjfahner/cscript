@@ -108,3 +108,25 @@ NATIVE_CALL("dbgparser(bool enable)")
   return Value();
 }
 #endif
+
+//////////////////////////////////////////////////////////////////////////
+
+#include <xmlparser.h>
+#include <fstream>
+
+NATIVE_CALL("parseXml(string file)")
+{
+  // Open file
+  std::ifstream is(args[0].GetString().c_str());
+  if(!is.is_open())
+  {
+    throw std::runtime_error("Failed to open file");
+  }
+
+  // Run parser
+  XmlParser parser;
+  parser.Parse(is);
+
+  // Done
+  return Value();
+}

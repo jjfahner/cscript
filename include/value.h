@@ -26,6 +26,17 @@
 
 class Object;
 
+//
+// Garbage collected string. Don't put on stack!!!
+//
+class GCString : public String, public GC::Object
+{
+public:
+  GCString() {}
+  GCString(char const* str)   : String(str) {}
+  GCString(String const& str) : String(str) {}
+};
+
 class Value
 {
 public:
@@ -46,13 +57,6 @@ public:
 
   static String TypeToString(Types);
   static Types StringToType(String);
-
-  class GCString : public String, public GC::Object
-  {
-  public:
-    GCString(char const* str)   : String(str) {}
-    GCString(String const& str) : String(str) {}
-  };
 
   Value()
   {

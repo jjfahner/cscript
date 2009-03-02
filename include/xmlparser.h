@@ -21,6 +21,8 @@
 #ifndef CSCRIPT_XML_PARSER_H
 #define CSCRIPT_XML_PARSER_H
 
+#include <iosfwd>
+
 class XmlParser
 {
 public:
@@ -28,7 +30,7 @@ public:
   //
   // Parse contents of stream
   //
-  void Parse();
+  void Parse(std::istream& is);
 
   //
   // Error conditions raised by lemon
