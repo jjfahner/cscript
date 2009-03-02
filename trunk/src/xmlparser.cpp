@@ -98,6 +98,9 @@ XmlParser::Parse(std::istream& is)
   // Allocate parser
   XmlParserImpl parser(this);
 
+  // Start document
+  startDocument();
+
   // Parse tokens
   XmlToken token;
   while(lexer.Lex(token))
@@ -112,9 +115,14 @@ XmlParser::Parse(std::istream& is)
     parser(token.m_type, token);
   }
 
-  // Empty token to finalize parse
-  parser();
+  // Finish document
+  endDocument();
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Error handlers
+//
 
 void 
 XmlParser::OnParseFailure()
@@ -126,4 +134,51 @@ void
 XmlParser::OnSyntaxError()
 {
   throw std::runtime_error("XmlParser: Syntax error");
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Content handlers
+//
+
+void 
+XmlParser::startDocument()
+{
+
+}
+
+void
+XmlParser::endDocument()
+{
+
+}
+
+void 
+XmlParser::processingInstruction(XmlName const& name)
+{
+  std::cout << "<?" << *name.m_localName << "?>";
+}
+
+void 
+XmlParser::startElement(XmlName const& name)
+{
+  std::cout << "<" << *name.m_localName << ">";
+}
+
+void 
+XmlParser::endElement(XmlName const& name)
+{
+  std::cout << "</" << *name.m_localName << ">";
+}
+
+void 
+XmlParser::ignorableWhitespace(GCString* text)
+{
+  std::cout << *text;
+}
+
+void 
+XmlParser::characters(GCString* text)
+{
+  std::cout << *text;
 }
