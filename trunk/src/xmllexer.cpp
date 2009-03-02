@@ -24,8 +24,144 @@
 #include "xmlparser.gen.h"
 #include "xmllexer.gen.c"
 
-void
-XmlLexer::Lex()
-{
+#include <istream>
 
+XmlLexer::XmlLexer(std::istream& stream) :
+m_stream  (stream),
+m_bufend  (m_buffer + bufsize),
+m_cursor  (m_buffer + bufsize),
+m_marker  (0),
+m_tokpos  (0),
+m_inNode  (false)
+{
+}
+
+bool 
+XmlLexer::AtEof()
+{
+  // Check buffer
+  if(m_cursor != m_bufend)
+  {
+    return false;
+  }
+
+  // Try to fill buffer
+  FillInputBuffer(bufsize);
+
+  // Check buffer size again
+  return m_cursor == m_bufend;
+}
+
+bool
+XmlLexer::Lex(XmlToken& token)
+{
+  // Record start pos
+  m_tokpos = m_cursor;
+
+  // Create token string buffer
+  token.m_text = new GCString();
+  m_token = token.m_text;
+
+  // Refill buffer
+  if(AtEof())
+  {
+    token.m_type = XML_EOF;
+    return true;
+  }
+
+  // Handle node content
+  if(!m_inNode)
+  {
+    // Try to parse a text node
+    token.m_type = ParseTextNode();
+    if(token.m_type)
+    {
+      return true;
+    }
+  }
+
+  // Retrieve next token
+  token.m_type = ParseNextToken();
+
+  // Append parse data
+  m_token->append(m_tokpos, m_cursor - m_tokpos);
+
+  // Do special handling
+  switch(token.m_type)
+  {
+    // Start of element
+  case XML_PRO_I:
+  case XML_LT_SL:
+  case XML_LT:
+    m_inNode = true;
+    break;
+  
+    // End of element
+  case XML_PRO_E:
+  case XML_SL_GT:
+  case XML_GT:
+    m_inNode = false;
+    break;
+
+    // Whitespace
+  case XML_WS:
+    if(m_inNode) return Lex(token);
+    break;
+  }
+
+  // Done
+  return true;
+}
+
+int 
+XmlLexer::ParseTextNode()
+{
+  // Walk through input buffer
+  while(!AtEof() && *m_cursor != '<')
+  {
+    ++m_cursor;
+  }
+
+  // Done
+  return m_token->length() ? XML_TEXT : 0;
+}
+
+void 
+XmlLexer::FillInputBuffer(size_t size)
+{
+  // Append currently parsed data to token
+  if(m_cursor > m_tokpos)
+  {
+    m_token->append(m_tokpos, m_cursor - m_tokpos);
+  }
+
+  // Move remainder to start of buffer
+  if(m_cursor < m_bufend)
+  {
+    size_t avail = m_bufend - m_cursor;
+    memmove(m_buffer, m_cursor, avail);
+    m_bufend = m_cursor + avail;
+  }
+  else
+  {
+    m_bufend = m_buffer;
+  }
+
+  // Reset buffer pointer
+  m_cursor = m_buffer;
+  m_tokpos = m_buffer;
+
+  // Check for end of file
+  if(m_stream.eof())
+  {
+    return;
+  }
+
+  // Read from stream
+  size_t offset = m_cursor - m_buffer;
+  size_t length = bufsize - offset;
+  m_stream.read(m_buffer + offset, length);
+
+  // Determine new buffer end
+  m_bufend = m_cursor + m_stream.gcount();
 }
