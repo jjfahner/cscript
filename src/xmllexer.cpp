@@ -116,14 +116,41 @@ XmlLexer::Lex(XmlToken& token)
 int 
 XmlLexer::ParseTextNode()
 {
-  // Walk through input buffer
-  while(!AtEof() && *m_cursor != '<')
+  bool foundLt = false;  
+  while(!foundLt && !AtEof())
   {
-    ++m_cursor;
+    // Remember start position
+    char const* start = m_cursor;
+    
+    // Walk through available data
+    while(m_cursor != m_bufend) 
+    {
+      bool space = isspace(*m_cursor) != 0;
+
+      // End of non-empty whitepace
+      if(!space && start != m_cursor)
+      {
+        m_token->append(start, m_cursor - start);
+        return XML_WS;
+      }
+
+      // Start of next tag
+      if(*m_cursor == '<')
+      {
+        foundLt = true;
+        break;
+      }
+      
+      // Proceeed
+      ++m_cursor;
+    }
+    
+    // Append up to here
+    m_token->append(start, m_cursor - start);
   }
 
   // Done
-  return m_token->length() ? XML_TEXT : 0;
+  return m_token->empty() ? 0 : XML_TEXT;
 }
 
 void 

@@ -23,9 +23,20 @@
 
 #include <iosfwd>
 
+class GCString;
+
 class XmlParser
 {
 public:
+
+  //
+  // XML qualified name
+  //
+  struct XmlName
+  {
+    GCString* m_namespace;
+    GCString* m_localName;
+  };
 
   //
   // Parse contents of stream
@@ -33,10 +44,37 @@ public:
   void Parse(std::istream& is);
 
   //
-  // Error conditions raised by lemon
+  // Error conditions raised by parser
   //
   void OnParseFailure();
   void OnSyntaxError();
+
+  //
+  // Called for the document
+  //
+  void startDocument();
+  void endDocument();
+
+  //
+  // Called for a processing instruction
+  //
+  void processingInstruction(XmlName const& name);
+
+  //
+  // Called when an element is parsed
+  //
+  void startElement(XmlName const& name);
+  void endElement(XmlName const& name);
+
+  //
+  // Called for ignorable whitespace
+  //
+  void ignorableWhitespace(GCString* text);
+
+  //
+  // Called when a text data is parsed
+  //
+  void characters(GCString* text);
 
 };
 

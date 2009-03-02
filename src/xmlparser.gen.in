@@ -29,12 +29,10 @@
 //
 %include {
 
-#include <xmlparser.h>
 #include <cassert>
+#include <xmlparser.h>
 
 #pragma warning(disable:4065)
-
-class Object;
 
 } 
 //
@@ -47,7 +45,6 @@ class Object;
 %token_prefix     XML_
 %token_type       { XmlToken }
 %extra_argument   { XmlParser* p }
-%default_type     { Object* }
 
 // Error handlers
 %parse_failure {
@@ -61,30 +58,140 @@ class Object;
 
 //////////////////////////////////////////////////////////////////////////
 
-document ::= node_list .
+//
+// The root element of this grammar
+//
+document ::= prolog element misc .
 
-node_list ::= node .
-node_list ::= node_list node .
+//
+// The document prolog
+//
+prolog ::= processing_instruction misc .
 
-//node_list_opt ::= .
-//node_list_opt ::= node_list .
+//
+// The particles for misc
+//
+misc_particle ::= whitespace .
+misc_particle ::= processing_instruction .
 
-node ::= PRO_I name attribute_list_opt PRO_E .
-node ::= LT name attribute_list_opt GT .
-node ::= LT name attribute_list_opt SL_GT.
-node ::= LT_SL name GT .
-node ::= TEXT .
+//
+// Left-recursive list of misc particles
+//
+misc_list ::= misc_particle .
+misc_list ::= misc_list misc_particle .
 
-attribute ::= name EQ STRING .
+//
+// Misc definition
+//
+misc ::= .
+misc ::= misc_list .
 
+//
+// Element definition
+//
+element ::= closed_element .
+element ::= start_element content end_element .
+
+//
+// Possible content particles
+//
+content_particle ::= whitespace .
+content_particle ::= text .
+content_particle ::= element .
+
+//
+// Left-recursive list of content particles
+//
+content_list ::= content_particle .
+content_list ::= content_list content_particle .
+
+//
+// Content, may be empty
+//
+content ::= .
+content ::= content_list .
+
+//
+// Processing instruction
+//
+processing_instruction ::= PRO_I name(A) attribute_list_opt PRO_E . 
+{ 
+  p->processingInstruction(A); 
+}
+
+//
+// Start element
+//
+start_element ::= LT name(A) attribute_list_opt GT .
+{
+  p->startElement(A);
+}
+
+//
+// Element close
+//
+end_element ::= LT_SL name(A) GT .
+{
+  p->endElement(A);
+}
+
+//
+// Closed element
+//
+closed_element ::= LT name(A) attribute_list_opt SL_GT .
+{
+  p->startElement(A);
+  p->endElement(A);
+}
+
+//
+// Text node
+//
+text ::= TEXT(A) .
+{
+  p->characters(A.m_text);
+}
+
+//
+// Ignorable whitespace
+//
+whitespace ::= WS(A) .
+{
+  p->ignorableWhitespace(A.m_text);
+}
+
+//
+// Attribute
+//
+attribute ::= name(A) EQ STRING(B) . 
+{
+  //p->OnAttribute(A, B.m_text);
+}
+
+//
+// Attribute recursion
+//
 attribute_list ::= attribute .
-attribute_list ::= attribute attribute_list .
+attribute_list ::= attribute_list attribute .
 
+//
+// Optional attribute list
+//
 attribute_list_opt ::= .
 attribute_list_opt ::= attribute_list .
 
-name ::= uname .
-name ::= qname .
+//
+// XML names
+//
+%type name { XmlParser::XmlName }
 
-uname ::= NAME .
-qname ::= NS COLON NAME .
+name(R) ::= NAME(A) .
+{
+  R.m_localName = A.m_text;
+}
+
+name(R) ::= NAME(A) COLON NAME(B) .
+{
+  R.m_namespace = A.m_text;
+  R.m_localName = B.m_text;
+}
