@@ -18,8 +18,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#ifndef CSCRIPT_LEXER_H
-#define CSCRIPT_LEXER_H
+#ifndef CSCRIPT_CSLEXER_H
+#define CSCRIPT_CSLEXER_H
 
 #include <cscript.h>
 
@@ -81,4 +81,4 @@ private:
 
 };
 
-#endif // #ifndef CSCRIPT_LEXER_H
+#endif // #ifndef CSCRIPT_CSLEXER_H

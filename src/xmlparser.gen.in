@@ -1,0 +1,85 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
+
+//
+// Lemon language definition for cscript xml parser
+//
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Include section
+//
+%include {
+
+#include <cassert>
+
+#pragma warning(disable:4065)
+
+class Object;
+
+} 
+//
+// End inclusion block
+//
+//////////////////////////////////////////////////////////////////////////
+
+// Set prefix for tokens
+%name             XmlParse
+%token_prefix     XML_
+%token_type       { Token }
+%extra_argument   { XmlParser* p }
+%default_type     { Object* }
+
+// Error handlers
+%parse_failure {
+  p->OnParseFailure();
+}
+%syntax_error {
+  p->OnSyntaxError();
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+document ::= node_list .
+
+node_list ::= node .
+node_list ::= node node_list .
+
+//node_list_opt ::= .
+//node_list_opt ::= node_list .
+
+node ::= LT name attribute_list_opt GT .
+node ::= LT name attribute_list_opt SL_GT.
+node ::= LT_SL name GT .
+
+attribute ::= name EQ STRING .
+
+attribute_list ::= attribute .
+attribute_list ::= attribute attribute_list .
+
+attribute_list_opt ::= .
+attribute_list_opt ::= attribute_list .
+
+name ::= uname .
+name ::= qname .
+
+uname ::= NAME .
+qname ::= NS COLON NAME .

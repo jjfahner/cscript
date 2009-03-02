@@ -27,11 +27,6 @@
 #include <cscript.h>
 
 //
-// Include lemon-generated symbols
-//
-#include <parser.h>
-
-//
 // Define token structure
 //
 struct Token
@@ -52,7 +47,5 @@ struct Token
     return String(m_text, m_size);
   }
 };
-
-
 
 #endif // #ifndef CSCRIPT_TOKENS_H

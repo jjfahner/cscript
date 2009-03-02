@@ -23,12 +23,13 @@
 #include "scope.h"
 #include "function.h"
 #include "srcfile.h"
-#include "lexer.h"
+#include "cslexer.h"
 #include "tokens.h"
 #include "map_iter.h"
 #include "native.h"
 #include "timer.h"
 #include "enumerator.h"
+#include "csparser.gen.h"
 
 #include <list>
 #include <iostream>
@@ -220,7 +221,7 @@ Evaluator::ParseFile(String const& filename)
   Value result;
   try
   {
-    result = ParseText((char const*)file.GetData(), true);
+    result = ParseText((char const*)file.GetData());
     m_file = prevfile;
   }
   catch(...)
@@ -233,7 +234,7 @@ Evaluator::ParseFile(String const& filename)
 }
 
 Value
-Evaluator::ParseText(char const* text, bool showTimes)
+Evaluator::ParseText(char const* text, bool doEval)
 {
   // Create lexer for file
   Lexer lexer(*this);
@@ -283,15 +284,14 @@ Evaluator::ParseText(char const* text, bool showTimes)
     // Remove lexer
     m_lexer = prevlexer;
 
-    // Retrieve root node
-    Object* root = m_resultNode;
-    if(root == 0)
+    // Done?
+    if(!doEval)
     {
-      throw std::runtime_error("Failed to parse input. The format is invalid.");
+      return Value();
     }
 
     // Evaluate code
-    return Eval(root);
+    return Eval(m_resultNode);
   }
   catch(...)
   {
@@ -430,7 +430,7 @@ Evaluator::Eval(String text, bool isFileName)
     }
     else
     {
-      return ParseText(text.c_str(), true);
+      return ParseText(text.c_str());
     }
   }
   // Return statement
@@ -993,11 +993,7 @@ Evaluator::EvalFunctionDeclaration(Object* node)
 void
 Evaluator::EvalNativeDeclaration(Object* node)
 {
-  Function* fun = new ScriptFunction(Ast_A1(node), node);
-
-  (*fun)["name"]   = fun->GetName();
-  (*fun)["parent"] = m_scope;
-  (*fun)["scope"]  = FindNamespace(m_scope);
+  m_resultNode = node;
 }
 
 RValue& 

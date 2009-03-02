@@ -141,7 +141,7 @@ private:
   //
   // Parse a string
   //
-  Value ParseText(char const* text, bool showTimes);
+  Value ParseText(char const* text, bool doEval = true);
 
   //
   // Parse a file
