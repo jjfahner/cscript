@@ -117,11 +117,6 @@ public:
     }
   }
 
-  ~Value()
-  {
-    Clear();
-  }
-
   void Clear()
   {
     m_type = tNull;
