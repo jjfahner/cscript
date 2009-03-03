@@ -14,48 +14,57 @@ var xmlNotation = 12;
 
 var indent = "  ";
 
-function enumNodes(node, level = 0)
+function enumNodes(node)
 {
-  for(var i = 0; i < level; ++i)
+  if(node.nodeType == xmlDocument)
   {
-    print(indent);
+    for(var elm in node.childNodes)
+    {
+      enumNodes(elm);
+    }
+    return;
   }
 
   if(node.nodeType == xmlElement)
   {
-    print(node.qualifiedName + " (" + node.nodeTypeName + ")");
-  }
-  else if(node.nodeType == xmlText)
-  {
-    print(node.data);
-  }
-  else
-  {
-    print(node.nodeName + " (" + node.nodeTypeName + ")");
-  }
-  
-  if(node.nodeType == xmlDocument || 
-     node.nodeType == xmlElement  )
-  {
+    print("<");
+    print(node.qualifiedName);
+    
     for(var att in node.attributes)
     {
-	    print(" " + att.qualifiedName + "=\"" + att.value + "\"");	
+	    print(" ");
+      print(att.qualifiedName);
+      print("=");
+      print(att.value);
     }
+    
+    if(count(node.childNodes))
+    {
+      print(">");
+      for(var elm in node.childNodes)
+      {
+	      enumNodes(elm);
+      }
+      print("</");
+      print(node.qualifiedName);
+      print(">");
+    }
+    else
+    {
+      print("/>");
+    }
+
+    return;
   }
 
-  print("\n");
-
-  if(node.nodeType == xmlDocument || 
-     node.nodeType == xmlElement  )
+  if(node.nodeType == xmlText)
   {
-    for(var elm in node.childNodes)
-    {
-	    enumNodes(elm, level + 1);
-    }
+    print(node.data);
+    return;
   }
 }
 
 var xml = parseXml("d:\\source\\cscript\\test\\sample.xml");
 print("Tree contains " + xml.nodeCount + " nodes\n");
-//enumNodes(xml);
+enumNodes(xml);
 print(collect());

@@ -64,13 +64,18 @@ public:
   //
   // Called for a processing instruction
   //
-  void processingInstruction(XmlName const& name);
+  void processingInstruction(XmlName const& target, GCString* data);
 
   //
   // Called when an element is parsed
   //
   void startElement(XmlName const& name);
   void endElement(XmlName const& name);
+
+  //
+  // Called when an attribute is parsed
+  //
+  void attribute(XmlName const& name, GCString* value);
 
   //
   // Called for ignorable whitespace

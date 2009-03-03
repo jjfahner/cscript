@@ -81,7 +81,7 @@ namespace GC
     //
     // Construction
     //
-    Object();
+    Object(bool autoRegister = true);
 
     //
     // Copy construction
@@ -92,6 +92,11 @@ namespace GC
     // Assignment
     //
     Object& operator = (Object&) { return *this; }
+
+    //
+    // Register the object for collection
+    //
+    void Register() const;
 
     //
     // Mark subobjects
@@ -110,8 +115,8 @@ namespace GC
     //
     // Whether to collect this object
     //
-    bool m_collect;
-    bool m_pinned;
+    mutable bool m_collect;
+    mutable bool m_pinned;
 
   };
 
