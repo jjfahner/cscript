@@ -30,6 +30,23 @@ class XmlParser
 {
 public:
 
+  enum XmlNodeTypes
+  {
+    xmlUnknown = 0,
+    xmlElement = 1,
+    xmlAttribute = 2, 	
+    xmlText = 3,
+    xmlCDATASection = 4,
+    xmlEntityReference = 5, 	
+    xmlEntity = 6,
+    xmlProcessingInstruction = 7,
+    xmlComment = 8,
+    xmlDocument = 9,
+    xmlDocumentType = 10,
+    xmlDocumentFragment = 11,
+    xmlNotation = 12
+  };
+
   //
   // XML qualified name
   //

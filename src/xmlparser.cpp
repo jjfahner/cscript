@@ -75,7 +75,7 @@ enum XmlNodeTypes
 };
 
 static const GCString*
-XmlNodeName(XmlNodeTypes nodeType)
+XmlNodeName(XmlParser::XmlNodeTypes nodeType)
 {
   switch(nodeType)
   {
