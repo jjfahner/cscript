@@ -128,7 +128,7 @@ public:
 
   ~Value()
   {
-    if(m_type == tString && m_string->m_refs < 2)
+    if(m_type == tString && m_string->m_refs < 2 && !m_string->IsPinned())
     {
       delete m_string;
     }
@@ -136,7 +136,7 @@ public:
 
   void Clear()
   {
-    if(m_type == tString && m_string->m_refs < 2)
+    if(m_type == tString && m_string->m_refs < 2 && !m_string->IsPinned())
     {
       delete m_string;
     }
