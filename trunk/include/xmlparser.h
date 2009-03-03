@@ -51,6 +51,11 @@ public:
   void OnSyntaxError();
 
   //
+  // Create a node
+  //
+  Object* createNode(enum XmlNodeTypes);
+
+  //
   // Called for the document
   //
   void startDocument();
@@ -81,6 +86,7 @@ private:
 
   Object* m_document;
   Object* m_curNode;
+  size_t  m_nodeCount;
 
 };
 

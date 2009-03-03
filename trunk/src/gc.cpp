@@ -29,19 +29,39 @@ namespace GC
   //
   // Global object list
   //
-  static ObjectVec g_objects;
+  static ObjectVec& GetObjects()
+  {
+    static ObjectVec g_objects;
+    return g_objects;
+  }
 }
 
 /*static*/ size_t 
 GC::ObjectCount()
 {
-  return g_objects.size();
+  return GetObjects().size();
+}
+
+void 
+GC::Pin(Object* obj)
+{
+  obj->m_pinned = true;
+}
+
+void 
+GC::Unpin(Object* obj)
+{
+  obj->m_pinned = false;
 }
 
 GC::Object::Object()
 {
+  // Store reference to objects list
+  static ObjectVec& g_objects = GetObjects();
+
   // Set collectable
   m_collect = true;
+  m_pinned = false;
 
   // Reserve space efficiently
   size_t reserve = (g_objects.size() + 1023) / 1024 * 1024;
@@ -78,10 +98,13 @@ GC::Collect(ObjectVec const& roots)
   ObjectVec grey, next;
   ObjectVec::iterator it, ie;
 
+  // Store reference to objects list
+  static ObjectVec& g_objects = GetObjects();
+
   // Init collect information
   CollectInfo ci;
   memset(&ci, 0, sizeof(ci));
-  ci.m_numObjects = g_objects.size();
+  ci.m_numRemaining = g_objects.size();
 
   // Start with the root objects
   grey = roots;
@@ -123,7 +146,7 @@ GC::Collect(ObjectVec const& roots)
   for(; pos < len; ++pos)
   {
     GC::Object*& obj = g_objects[pos];
-    if(obj->m_collect)
+    if(obj->m_collect && !obj->m_pinned)
     {
       delete obj;
     }
@@ -141,7 +164,8 @@ GC::Collect(ObjectVec const& roots)
   ci.m_deletePhase = Timer::Ticks() - ci.m_deletePhase;
 
   // Record number collected
-  ci.m_numCollected = ci.m_numObjects - g_objects.size();
+  ci.m_numCollected = ci.m_numRemaining - g_objects.size();
+  ci.m_numRemaining = g_objects.size();
 
   // Done
   return ci;

@@ -22,20 +22,9 @@
 #define CSCRIPT_VALUE_H
 
 #include <cscript.h>
-#include <gc.h>
+#include <gcstring.h>
 
 class Object;
-
-//
-// Garbage collected string. Don't put on stack!!!
-//
-class GCString : public String, public GC::Object
-{
-public:
-  GCString() {}
-  GCString(char const* str)   : String(str) {}
-  GCString(String const& str) : String(str) {}
-};
 
 class Value
 {
@@ -107,7 +96,13 @@ public:
     m_string = new GCString(val);
   }
 
-  Value(GCString* str)
+  Value(GCString const& str)
+  {
+    m_type = tString;
+    m_string = &str;
+  }
+
+  Value(GCString const* str)
   {
     m_type = tString;
     m_string = str;
@@ -160,7 +155,7 @@ public:
     return GetInt();
   }
 
-  String const& GetString() const
+  GCString const& GetString() const
   {
     AssertType(tString);
     return *m_string;
@@ -242,10 +237,10 @@ private:
   Types     m_type;
   union 
   {
-    String* m_string;
-    Int     m_int;
-    Bool    m_bool;
-    Object* m_object;
+    GCString const* m_string;
+    Int             m_int;
+    Bool            m_bool;
+    Object*         m_object;
   };
 
 };

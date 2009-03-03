@@ -42,6 +42,8 @@ void CScriptParseFree(void *p, void (*freeProc)(void*));
 void CScriptParse(void*, int,Token, Evaluator*);
 void CScriptParseTrace(FILE*, char*);
 
+/*static*/ const GCString& Scope::parentName = *new GCString("__parent", true);
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Autoscoping implementation
@@ -833,7 +835,7 @@ Evaluator::EvalUnqualifiedId(Object* node)
   RValue* ptr;
   Object* owner;
 
-  String const& name = Ast_A1(node).GetString();
+  Value const& name = Ast_A1(node).GetString();
   if(m_scope->Lookup(name, ptr, owner))
   {
     return owner ? StoreTemp(BoundValue::Create(*ptr, owner)) : *ptr;
@@ -1649,13 +1651,13 @@ Evaluator::EvalMemberExpression(Object* node)
   }
 
   // Determine name
-  String name = Ast_A1(Ast_A2(node)).GetString();
+  Value const& name = Ast_A1(Ast_A2(node));
 
   // Lookup right-hand side
   RValue* rval;
   if(!object->Find(name, rval))
   {
-    throw ScriptException(node, "Object has no member '" + name + "'");
+    throw ScriptException(node, "Object has no member '" + name.GetString() + "'");
   }
 
   // Construct bound member

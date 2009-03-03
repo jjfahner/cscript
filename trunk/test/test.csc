@@ -1,22 +1,41 @@
+var xmlUnknown = 0;
+var xmlElement = 1;
+var xmlAttribute = 2; 	
+var xmlText = 3;
+var xmlCDATASection = 4;
+var xmlEntityReference = 5; 	
+var xmlEntity = 6;
+var xmlProcessingInstruction = 7;
+var xmlComment = 8;
+var xmlDocument = 9;
+var xmlDocumentType = 10;
+var xmlDocumentFragment = 11;
+var xmlNotation = 12;
+
+var indent = "  ";
+
 function enumNodes(node, level = 0)
 {
   for(var i = 0; i < level; ++i)
   {
-    print("  ");
+    print(indent);
   }
 
-  if(node.nodeTypeName == "#element")
+  if(node.nodeType == xmlElement)
   {
     print(node.qualifiedName + " (" + node.nodeTypeName + ")");
+  }
+  else if(node.nodeType == xmlText)
+  {
+    print(node.data);
   }
   else
   {
     print(node.nodeName + " (" + node.nodeTypeName + ")");
   }
   
-  if(node.nodeTypeName == "#document" || 
-     node.nodeTypeName == "#element"  ||
-     node.nodeTypeName == "#processing-instruction" )
+  if(node.nodeType == xmlDocument || 
+     node.nodeType == xmlElement  )
   {
     for(var att in node.attributes)
     {
@@ -26,8 +45,8 @@ function enumNodes(node, level = 0)
 
   print("\n");
 
-  if(node.nodeTypeName == "#document" || 
-     node.nodeTypeName == "#element"  )
+  if(node.nodeType == xmlDocument || 
+     node.nodeType == xmlElement  )
   {
     for(var elm in node.childNodes)
     {
@@ -36,4 +55,7 @@ function enumNodes(node, level = 0)
   }
 }
 
-enumNodes(parseXml("d:\\source\\cscript\\test\\sample.xml"));
+var xml = parseXml("d:\\source\\cscript\\test\\sample.xml");
+print("Tree contains " + xml.nodeCount + " nodes\n");
+//enumNodes(xml);
+print(collect());
