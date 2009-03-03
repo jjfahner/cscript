@@ -125,8 +125,5 @@ NATIVE_CALL("parseXml(string file)")
 
   // Run parser
   XmlParser parser;
-  parser.Parse(is);
-
-  // Done
-  return Value();
+  return parser.Parse(is);
 }

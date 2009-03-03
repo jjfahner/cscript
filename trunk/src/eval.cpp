@@ -1641,7 +1641,8 @@ RValue&
 Evaluator::EvalMemberExpression(Object* node)
 {
   // Retrieve left-hand side
-  Object* object = ValueToType<Object>(EvalExpression(Ast_A1(node)));
+  RValue& lhs = EvalExpression(Ast_A1(node));
+  Object* object = ValueToType<Object>(lhs);
   if(object == 0)
   {
     throw std::runtime_error("Left-hand side does not yield an object");
