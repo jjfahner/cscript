@@ -24,6 +24,7 @@
 #include <iosfwd>
 
 class GCString;
+class Object;
 
 class XmlParser
 {
@@ -41,7 +42,7 @@ public:
   //
   // Parse contents of stream
   //
-  void Parse(std::istream& is);
+  Object* Parse(std::istream& is);
 
   //
   // Error conditions raised by parser
@@ -75,6 +76,11 @@ public:
   // Called when a text data is parsed
   //
   void characters(GCString* text);
+
+private:
+
+  Object* m_document;
+  Object* m_curNode;
 
 };
 

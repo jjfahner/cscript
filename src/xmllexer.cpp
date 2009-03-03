@@ -116,6 +116,7 @@ XmlLexer::Lex(XmlToken& token)
 int 
 XmlLexer::ParseTextNode()
 {
+  bool space = true;
   bool foundLt = false;  
   while(!foundLt && !AtEof())
   {
@@ -125,15 +126,6 @@ XmlLexer::ParseTextNode()
     // Walk through available data
     while(m_cursor != m_bufend) 
     {
-      bool space = isspace(*m_cursor) != 0;
-
-      // End of non-empty whitepace
-      if(!space && start != m_cursor)
-      {
-        m_token->append(start, m_cursor - start);
-        return XML_WS;
-      }
-
       // Start of next tag
       if(*m_cursor == '<')
       {
@@ -141,6 +133,12 @@ XmlLexer::ParseTextNode()
         break;
       }
       
+      // End of non-empty whitepace
+      if(space && !isspace(*m_cursor))
+      {
+        space = false;
+      }
+
       // Proceeed
       ++m_cursor;
     }
@@ -150,7 +148,15 @@ XmlLexer::ParseTextNode()
   }
 
   // Done
-  return m_token->empty() ? 0 : XML_TEXT;
+  if(m_token->empty())
+  {
+    return 0;
+  }
+  if(space)
+  {
+    return XML_WS;
+  }
+  return XML_TEXT;
 }
 
 void 
@@ -167,15 +173,16 @@ XmlLexer::FillInputBuffer(size_t size)
   {
     size_t avail = m_bufend - m_cursor;
     memmove(m_buffer, m_cursor, avail);
+    m_cursor = m_buffer;
     m_bufend = m_cursor + avail;
   }
   else
   {
+    m_cursor = m_buffer;
     m_bufend = m_buffer;
   }
 
-  // Reset buffer pointer
-  m_cursor = m_buffer;
+  // Reset token start
   m_tokpos = m_buffer;
 
   // Check for end of file
@@ -185,10 +192,10 @@ XmlLexer::FillInputBuffer(size_t size)
   }
 
   // Read from stream
-  size_t offset = m_cursor - m_buffer;
+  size_t offset = m_bufend - m_buffer;
   size_t length = bufsize - offset;
   m_stream.read(m_buffer + offset, length);
 
   // Determine new buffer end
-  m_bufend = m_cursor + m_stream.gcount();
+  m_bufend += m_stream.gcount();
 }

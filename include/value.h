@@ -107,6 +107,12 @@ public:
     m_string = new GCString(val);
   }
 
+  Value(GCString* str)
+  {
+    m_type = tString;
+    m_string = str;
+  }
+
   Value(Object* obj)
   {
     if(obj == 0)
