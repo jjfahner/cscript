@@ -28,7 +28,7 @@ Value::GetGCObject() const
 {
   switch(m_type)
   {
-  case tString: return static_cast<GCString*>(m_string);
+  case tString: return const_cast<GCString*>(m_string);
   case tObject: return m_object;
   default:      return 0;
   }

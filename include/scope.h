@@ -35,6 +35,8 @@ class Scope : public Object
 {
 public:
 
+  static const GCString& parentName;
+
   //
   // Construction
   //
@@ -60,13 +62,13 @@ public:
   }
   virtual void SetParent(Scope* parent)
   {
-    GetLValue("__parent") = parent;
+    GetLValue(parentName) = parent;
   }
 
   //
   // Retrieve a variable without owner
   //
-  virtual bool Lookup(String const& name, RValue*& ptr)
+  virtual bool Lookup(Value const& name, RValue*& ptr)
   {
     Object* owner;
     return Lookup(name, ptr, owner, false);
@@ -75,7 +77,7 @@ public:
   //
   // Retrieve a variable with owner
   //
-  virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner, bool scopeIsOwner = false)
+  virtual bool Lookup(Value const& name, RValue*& ptr, Object*& owner, bool scopeIsOwner = false)
   {
     ptr = 0;
     owner = 0;
@@ -134,7 +136,7 @@ public:
   //
   // Retrieve a variable
   //
-  virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner, bool scopeIsOwner = false)
+  virtual bool Lookup(Value const& name, RValue*& ptr, Object*& owner, bool scopeIsOwner = false)
   {
     // Find instance member
     if(m_inst->Find(name, ptr))

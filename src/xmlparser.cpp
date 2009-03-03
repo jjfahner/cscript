@@ -28,6 +28,72 @@
 #include "xmlparser.gen.h"
 #include "xmlparser.gen.c"
 
+GCSTR(str_nodeType,       "nodeType");
+GCSTR(str_nodeName,       "nodeName");
+GCSTR(str_nodeTypeName,   "nodeTypeName");
+GCSTR(str_childNodes,     "childNodes");
+GCSTR(str_attributes,     "attributes");
+GCSTR(str_parentNode,     "parentNode");
+GCSTR(str_target,         "target");
+GCSTR(str_nodeCount,      "nodeCount");
+GCSTR(str_localName,      "localName");
+GCSTR(str_qualifiedName,  "qualifiedName");
+GCSTR(str_namespace,      "namespace");
+GCSTR(str_data,           "data");
+
+GCSTR(str_xmlElement,               "#element");
+GCSTR(str_xmlAttribute,             "#attribute");
+GCSTR(str_xmlText,                  "#text");
+GCSTR(str_xmlCDATASection,          "#cdata-section");
+GCSTR(str_xmlEntityReference,       "#entity-reference");
+GCSTR(str_xmlEntity,                "#entity");
+GCSTR(str_xmlProcessingInstruction, "#processing-instruction");
+GCSTR(str_xmlComment,               "#comment");
+GCSTR(str_xmlDocument,              "#document");
+GCSTR(str_xmlDocumentType,          "#document-type");
+GCSTR(str_xmlDocumentFragment,      "#document-fragment");
+GCSTR(str_xmlNotation,              "#notation");
+
+//////////////////////////////////////////////////////////////////////////
+
+enum XmlNodeTypes
+{
+  xmlUnknown = 0,
+  xmlElement = 1,
+  xmlAttribute = 2, 	
+  xmlText = 3,
+  xmlCDATASection = 4,
+  xmlEntityReference = 5, 	
+  xmlEntity = 6,
+  xmlProcessingInstruction = 7,
+  xmlComment = 8,
+  xmlDocument = 9,
+  xmlDocumentType = 10,
+  xmlDocumentFragment = 11,
+  xmlNotation = 12
+};
+
+static const GCString*
+XmlNodeName(XmlNodeTypes nodeType)
+{
+  switch(nodeType)
+  {
+  case xmlElement:                return str_xmlElement;
+  case xmlAttribute:              return str_xmlAttribute;
+  case xmlText:                   return str_xmlText;
+  case xmlCDATASection:           return str_xmlCDATASection;
+  case xmlEntityReference:        return str_xmlEntityReference;
+  case xmlEntity:                 return str_xmlEntity;
+  case xmlProcessingInstruction:  return str_xmlProcessingInstruction;
+  case xmlComment:                return str_xmlComment;
+  case xmlDocument:               return str_xmlDocument;
+  case xmlDocumentType:           return str_xmlDocumentType;
+  case xmlDocumentFragment:       return str_xmlDocumentFragment;
+  case xmlNotation:               return str_xmlNotation;
+  default:                        throw std::runtime_error("Invalid XML node type");
+  }
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Lemon parser wrapper
@@ -47,7 +113,11 @@ public:
     m_hParser = XmlParseAlloc(malloc);
     if(debug)
     {
+#ifdef _DEBUG
       XmlParseTrace(stdout, "XmlParse: ");
+#else
+      throw std::runtime_error("Cannot debug parser in release build");
+#endif
     }
   }
 
@@ -131,7 +201,7 @@ XmlParser::Parse(std::istream& is)
 void 
 XmlParser::OnParseFailure()
 {
-  throw std::runtime_error("XmlParser: Failed to parse input");
+  throw std::runtime_error("XmlParser: Parse error");
 }
 
 void 
@@ -145,15 +215,47 @@ XmlParser::OnSyntaxError()
 // Content handlers
 //
 
+Object*
+XmlParser::createNode(XmlNodeTypes type)
+{
+  Object* node = new Object();
+  (*node)[str_nodeType]     = (int)type;
+  (*node)[str_nodeName]     = XmlNodeName(type);
+  (*node)[str_nodeTypeName] = XmlNodeName(type);
+
+  // Add child nodes and attributes
+  switch(type)
+  {
+  case xmlDocument:
+  case xmlDocumentFragment:
+  case xmlElement:
+    (*node)[str_childNodes]   = new Object();
+    (*node)[str_attributes]   = new Object();
+    break;
+  }
+
+  // Attach to parent node
+  if(m_curNode)
+  {
+    (*node)[str_parentNode] = m_curNode;
+    (*m_curNode)[str_childNodes].GetObject()->Add(node);
+  }
+
+  // Done
+  ++m_nodeCount;
+  return node;
+}
+
 void 
 XmlParser::startDocument()
 {
+  // Initialize state
+  m_document = 0;
+  m_curNode  = 0;
+  m_nodeCount = 0;
+
   // Create document
-  m_document = new Object();
-  (*m_document)["nodeTypeName"] = "#document";
-  (*m_document)["nodeName"]     = "#document";
-  (*m_document)["childNodes"]   = new Object();
-  (*m_document)["attributes"]   = new Object();
+  m_document = createNode(xmlDocument);
 
   // Set as current node
   m_curNode = m_document;
@@ -162,10 +264,14 @@ XmlParser::startDocument()
 void
 XmlParser::endDocument()
 {
+  // Check that we've reached the root
   if(m_curNode != m_document)
   {
     throw std::runtime_error("Invalid document structure");
   }
+
+  // Store node count
+  (*m_document)["nodeCount"] = m_nodeCount;
 }
 
 //#define XMLPARSER_DEBUG
@@ -177,13 +283,8 @@ XmlParser::processingInstruction(XmlName const& name)
   std::cout << "<?" << *name.m_localName << "?>";
 #endif
 
-  Object* node = new Object();
-  (*node)["nodeTypeName"] = "#processing-instruction";
-  (*node)["nodeName"]     = "#processing-instruction";
-  (*node)["target"]       = name.m_localName;
-  (*node)["attributes"]   = new Object();
-
-  (*m_curNode)["childNodes"].GetObject()->Add(node);
+  Object* node = createNode(xmlProcessingInstruction);
+  (*node)["target"] = name.m_localName;
 }
 
 void 
@@ -194,18 +295,10 @@ XmlParser::startElement(XmlName const& name)
 #endif
 
   // Create element
-  Object* node = new Object();
-  (*node)["nodeTypeName"]   = "#element";
-  (*node)["nodeName"]       = name.m_localName;
-  (*node)["localName"]      = name.m_localName;
-  (*node)["qualifiedName"]  = name.m_localName;
-  (*node)["namespace"]      = name.m_namespace;
-  (*node)["childNodes"]     = new Object();
-  (*node)["attributes"]     = new Object();
-
-  // Add to parent node
-  (*node)["parentNode"] = m_curNode;
-  (*m_curNode)["childNodes"].GetObject()->Add(node);
+  Object* node = createNode(xmlElement);
+  (*node)[str_localName]      = name.m_localName;
+  (*node)[str_qualifiedName]  = name.m_localName;
+  (*node)[str_namespace]      = name.m_namespace;
 
   // Set as current element
   m_curNode = node;
@@ -236,12 +329,8 @@ XmlParser::ignorableWhitespace(GCString* text)
   std::cout << *text;
 #endif
 
-  Object* node = new Object();
-  (*node)["nodeTypeName"] = "#text";
-  (*node)["nodeName"]     = "#text";
-  (*node)["data"]         = text;
-
-  (*m_curNode)["childNodes"].GetObject()->Add(Value(text));
+  Object* node = createNode(xmlText);
+  (*node)[str_data] = text;
 }
 
 void 
@@ -251,10 +340,6 @@ XmlParser::characters(GCString* text)
   std::cout << *text;
 #endif
 
-  Object* node = new Object();
-  (*node)["nodeTypeName"] = "#text";
-  (*node)["nodeName"]     = "#text";
-  (*node)["data"]         = text;
-
-  (*m_curNode)["childNodes"].GetObject()->Add(Value(text));
+  Object* node = createNode(xmlText);
+  (*node)[str_data] = text;
 }

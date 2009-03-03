@@ -44,7 +44,7 @@ namespace GC
     uint64 m_markPhase;
     uint64 m_deletePhase;
     uint64 m_numCycles;
-    uint64 m_numObjects;
+    uint64 m_numRemaining;
     uint64 m_numCollected;
   };
 
@@ -57,6 +57,12 @@ namespace GC
   // Current number of objects
   //
   size_t ObjectCount();
+
+  //
+  // Pin an object to avoid it being collected
+  //
+  void Pin(Object* obj);
+  void Unpin(Object* obj);
 
   //
   // Base class for collectable objects
@@ -78,6 +84,16 @@ namespace GC
     Object();
 
     //
+    // Copy construction
+    //
+    Object(Object&) {}
+
+    //
+    // Assignment
+    //
+    Object& operator = (Object&) { return *this; }
+
+    //
     // Mark subobjects
     //
     virtual void MarkObjects(ObjectVec& grey) {}
@@ -88,11 +104,14 @@ namespace GC
     // Allow the collector access
     //
     friend CollectInfo GC::Collect(ObjectVec const&);
+    friend void GC::Pin(Object* obj);
+    friend void GC::Unpin(Object* obj);
 
     //
     // Whether to collect this object
     //
     bool m_collect;
+    bool m_pinned;
 
   };
 

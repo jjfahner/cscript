@@ -50,7 +50,7 @@ NATIVE_CALL("collect()")
   obj->GetLValue("markPhase")     = (Value::Int) ci.m_markPhase;
   obj->GetLValue("deletePhase")   = (Value::Int) ci.m_deletePhase;
   obj->GetLValue("numCycles")     = (Value::Int) ci.m_numCycles;
-  obj->GetLValue("numObjects")    = (Value::Int) ci.m_numObjects;
+  obj->GetLValue("numRemaining")  = (Value::Int) ci.m_numRemaining;
   obj->GetLValue("numCollected")  = (Value::Int) ci.m_numCollected;
 
   // Done
