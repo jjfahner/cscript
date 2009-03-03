@@ -24,6 +24,8 @@
 #include <cscript.h>
 #include <gc.h>
 
+class Value;
+
 //
 // Garbage collected string class
 //
@@ -34,26 +36,28 @@ public:
   //
   // Empty string
   //
-  GCString() {}
+  GCString() : GC::Object(false), m_refs(0) 
+  {
+  }
 
   //
   // String from literal
   //
-  GCString(char const* str) : String(str) 
+  GCString(char const* str) : GC::Object(false), String(str), m_refs(0)
   {
   }
 
   //
   // Construct from regular string
   //
-  GCString(String const& str) : String(str) 
+  GCString(String const& str) : GC::Object(false), String(str), m_refs(0)
   {
   }
 
   //
   // Construct from literal, pin in gc
   //
-  GCString(char const* str, bool) : String(str) 
+  GCString(char const* str, bool) : GC::Object(false), String(str), m_refs(0)
   { 
     GC::Pin(this); 
   }
@@ -61,10 +65,27 @@ public:
   //
   // Construct from regular string, pin in gc
   //
-  GCString(String const& str, bool) : String(str) 
+  GCString(String const& str, bool) : GC::Object(false), String(str), m_refs(0)
   {
     GC::Pin(this);  
   }
+
+private:
+
+  friend class Value;
+
+  void AddRef() const
+  {
+    if(++m_refs == 2)
+    {
+      Register();
+    }
+  }
+
+  //
+  // References
+  //
+  mutable size_t m_refs;
 
 };
 

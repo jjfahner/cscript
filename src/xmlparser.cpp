@@ -40,6 +40,7 @@ GCSTR(str_localName,      "localName");
 GCSTR(str_qualifiedName,  "qualifiedName");
 GCSTR(str_namespace,      "namespace");
 GCSTR(str_data,           "data");
+GCSTR(str_value,          "value");
 
 GCSTR(str_xmlElement,               "#element");
 GCSTR(str_xmlAttribute,             "#attribute");
@@ -238,7 +239,14 @@ XmlParser::createNode(XmlNodeTypes type)
   if(m_curNode)
   {
     (*node)[str_parentNode] = m_curNode;
-    (*m_curNode)[str_childNodes].GetObject()->Add(node);
+    if(type == xmlAttribute)
+    {
+      (*m_curNode)[str_attributes].GetObject()->Add(node);
+    }
+    else
+    {
+      (*m_curNode)[str_childNodes].GetObject()->Add(node);
+    }
   }
 
   // Done
@@ -277,14 +285,16 @@ XmlParser::endDocument()
 //#define XMLPARSER_DEBUG
 
 void 
-XmlParser::processingInstruction(XmlName const& name)
+XmlParser::processingInstruction(XmlName const& target, GCString* data)
 {
 #ifdef XMLPARSER_DEBUG
-  std::cout << "<?" << *name.m_localName << "?>";
+  std::cout << "<?" << *target.m_localName << "?>";
 #endif
 
+  // Create processing instruction
   Object* node = createNode(xmlProcessingInstruction);
-  (*node)["target"] = name.m_localName;
+  (*node)[str_target] = target.m_localName;
+  (*node)[str_data]   = data;
 }
 
 void 
@@ -323,12 +333,28 @@ XmlParser::endElement(XmlName const& name)
 }
 
 void 
+XmlParser::attribute(XmlName const& name, GCString* value)
+{
+#ifdef XMLPARSER_DEBUG
+  std::cout << " " << *name.m_localName << "=" << *value;
+#endif
+
+  // Add attribute to current node
+  Object* node = createNode(xmlAttribute);
+  (*node)[str_localName]      = name.m_localName;
+  (*node)[str_qualifiedName]  = name.m_localName;
+  (*node)[str_namespace]      = name.m_namespace;
+  (*node)[str_value]          = value;
+}
+
+void 
 XmlParser::ignorableWhitespace(GCString* text)
 {
 #ifdef XMLPARSER_DEBUG
   std::cout << *text;
 #endif
 
+  // Create text node
   Object* node = createNode(xmlText);
   (*node)[str_data] = text;
 }
@@ -340,6 +366,7 @@ XmlParser::characters(GCString* text)
   std::cout << *text;
 #endif
 
+  // Create text node
   Object* node = createNode(xmlText);
   (*node)[str_data] = text;
 }

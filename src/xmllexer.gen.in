@@ -34,10 +34,12 @@ XmlLexer::ParseNextToken()
   re2c:indent:top       = 1;
   
   [ \t\r\n]+                  { return XML_WS;      }
-  ["][^"]*["]                 { return XML_STRING;  }
+  ["]                         { return XML_STRING;  }
+  [']                         { return XML_STRING;  }
     
   [A-Z_a-z][A-Z_a-z-.0-9]*    { return XML_NAME;    }
   
+  "<?xml"                     { return XML_DECL;    }
   "<?"                        { return XML_PRO_I;   }
   "?>"                        { return XML_PRO_E;   }
   "/>"                        { return XML_SL_GT;   }

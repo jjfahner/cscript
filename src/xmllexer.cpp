@@ -24,7 +24,7 @@
 #include "xmlparser.gen.h"
 #include "xmllexer.gen.c"
 
-#include <istream>
+#include <iostream>
 
 XmlLexer::XmlLexer(std::istream& stream) :
 m_stream  (stream),
@@ -52,8 +52,20 @@ XmlLexer::AtEof()
   return m_cursor == m_bufend;
 }
 
-bool
+//#define XMLPARSER_DEBUG
+
+bool 
 XmlLexer::Lex(XmlToken& token)
+{
+  bool result = LexImpl(token);
+#ifdef XMLPARSER_DEBUG
+  std::cout << "Lexer: " << token.m_type << "'" << *token.m_text << "'\n";
+#endif
+  return result;
+}
+
+bool
+XmlLexer::LexImpl(XmlToken& token)
 {
   // Record start pos
   m_tokpos = m_cursor;
@@ -80,7 +92,7 @@ XmlLexer::Lex(XmlToken& token)
     }
   }
 
-  // Retrieve next token
+  // Retrieve next tokn
   token.m_type = ParseNextToken();
 
   // Append parse data
@@ -90,6 +102,7 @@ XmlLexer::Lex(XmlToken& token)
   switch(token.m_type)
   {
     // Start of element
+  case XML_DECL:
   case XML_PRO_I:
   case XML_LT_SL:
   case XML_LT:
@@ -106,6 +119,11 @@ XmlLexer::Lex(XmlToken& token)
     // Whitespace
   case XML_WS:
     if(m_inNode) return Lex(token);
+    break;
+
+    // Strings
+  case XML_STRING:
+    token.m_type = ParseString();
     break;
   }
 
@@ -157,6 +175,46 @@ XmlLexer::ParseTextNode()
     return XML_WS;
   }
   return XML_TEXT;
+}
+
+int 
+XmlLexer::ParseString()
+{
+  // Determine quote type and reset
+  char quote = m_token->at(0);
+  m_token->clear();
+
+  // Parse string
+  while(!AtEof())
+  {
+    // Where to start copying
+    char const* ptr = m_cursor;
+
+    // Walk through currently available data
+    while(m_cursor != m_bufend) 
+    {
+      if(*m_cursor == quote)
+      {
+        break;
+      }
+      ++m_cursor;
+    }
+
+    // Copy into string
+    m_token->append(ptr, m_cursor - ptr);
+
+    // End of string
+    if(*m_cursor == quote)
+    {
+      ++m_cursor;
+      return XML_STRING;
+    }
+  }
+
+  // TODO notify unterminated string constant
+
+  // Failed
+  return XML_EOF;
 }
 
 void 

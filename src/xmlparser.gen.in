@@ -66,7 +66,12 @@ document ::= prolog element misc .
 //
 // The document prolog
 //
-prolog ::= processing_instruction misc .
+prolog ::= xmldecl misc .
+
+//
+// XML declaration
+//
+xmldecl ::= DECL attribute_list_opt PRO_E .
 
 //
 // The particles for misc
@@ -114,21 +119,28 @@ content ::= content_list .
 //
 // Processing instruction
 //
-processing_instruction ::= PRO_I name(A) attribute_list_opt PRO_E . 
+processing_instruction ::= PRO_I name(A) PRO_DATA(B) PRO_E . 
 { 
-  p->processingInstruction(A); 
+  p->processingInstruction(A, B.m_text); 
+}
+
+//
+// Start of element
+//
+%type element_prolog { XmlParser::XmlName }
+element_prolog(R) ::= LT name(A) .
+{
+  p->startElement(A);
+  R = A;
 }
 
 //
 // Start element
 //
-start_element ::= LT name(A) attribute_list_opt GT .
-{
-  p->startElement(A);
-}
+start_element ::= element_prolog attribute_list_opt GT  .
 
 //
-// Element close
+// End element
 //
 end_element ::= LT_SL name(A) GT .
 {
@@ -138,9 +150,8 @@ end_element ::= LT_SL name(A) GT .
 //
 // Closed element
 //
-closed_element ::= LT name(A) attribute_list_opt SL_GT .
+closed_element ::= element_prolog(A) attribute_list_opt SL_GT .
 {
-  p->startElement(A);
   p->endElement(A);
 }
 
@@ -165,7 +176,7 @@ whitespace ::= WS(A) .
 //
 attribute ::= name(A) EQ STRING(B) . 
 {
-  //p->OnAttribute(A, B.m_text);
+  p->attribute(A, B.m_text);
 }
 
 //
