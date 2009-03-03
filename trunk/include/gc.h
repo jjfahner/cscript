@@ -76,6 +76,13 @@ namespace GC
     //
     virtual ~Object() {}
 
+    //
+    // Is the object pinned?
+    //
+    bool IsPinned() const {
+      return m_pinned;
+    }
+
   protected:
 
     //

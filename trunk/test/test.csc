@@ -27,15 +27,11 @@ function enumNodes(node)
 
   if(node.nodeType == xmlElement)
   {
-    print("<");
-    print(node.qualifiedName);
+    print("<" + node.qualifiedName);
     
     for(var att in node.attributes)
     {
-	    print(" ");
-      print(att.qualifiedName);
-      print("=");
-      print(att.value);
+	    print(" " + att.qualifiedName + "\"=\"" + att.value);
     }
     
     if(count(node.childNodes))
@@ -45,9 +41,7 @@ function enumNodes(node)
       {
 	      enumNodes(elm);
       }
-      print("</");
-      print(node.qualifiedName);
-      print(">");
+      print("</" + node.qualifiedName + ">");
     }
     else
     {
