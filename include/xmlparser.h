@@ -21,10 +21,9 @@
 #ifndef CSCRIPT_XML_PARSER_H
 #define CSCRIPT_XML_PARSER_H
 
-#include <iosfwd>
-
 class GCString;
 class Object;
+class LexStream;
 
 class XmlParser
 {
@@ -59,7 +58,7 @@ public:
   //
   // Parse contents of stream
   //
-  Object* Parse(std::istream& is);
+  Object* Parse(LexStream&);
 
   //
   // Error conditions raised by parser

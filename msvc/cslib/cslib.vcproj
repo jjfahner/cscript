@@ -275,6 +275,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lexstream.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\native.cpp"
 				>
 			</File>
@@ -443,6 +447,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\gcstring.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\lexstream.h"
 				>
 			</File>
 			<File

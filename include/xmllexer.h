@@ -24,6 +24,8 @@
 #include <value.h>
 #include <iosfwd>
 
+class LexStream;
+
 struct XmlToken
 {
   size_t    m_type;
@@ -38,12 +40,12 @@ public:
   //
   // Construction
   //
-  XmlLexer(std::istream& is);
+  XmlLexer(LexStream& stream);
 
   //
   // At end of input
   //
-  bool AtEof();
+  bool Eof();
 
   //
   // Retrieve next token
@@ -73,24 +75,9 @@ private:
   int ParseNextToken();
 
   //
-  // This function is called by re2c to refill the buffer
-  //
-  void FillInputBuffer(size_t);
-
-  //
-  // Buffer size
-  //
-  enum { bufsize = 1024 };
-
-  //
   // Members
   //
-  std::istream& m_stream;
-  char          m_buffer[bufsize];
-  char const*   m_cursor;
-  char const*   m_bufend;
-  char const*   m_marker;
-  char const*   m_tokpos;
+  LexStream&    m_stream;
   GCString*     m_token;
   bool          m_inNode;
 

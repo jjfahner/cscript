@@ -88,28 +88,24 @@ public:
   {
     m_type = tString;
     m_string = new GCString(val);
-    m_string->AddRef();
   }
 
   Value(char const* val)
   {
     m_type = tString;
     m_string = new GCString(val);
-    m_string->AddRef();
   }
 
   Value(GCString const& str)
   {
     m_type = tString;
     m_string = &str;
-    m_string->AddRef();
   }
 
   Value(GCString const* str)
   {
     m_type = tString;
-    m_string = str ? str : new GCString();
-    m_string->AddRef();
+    m_string = str;
   }
 
   Value(Object* obj)
@@ -126,20 +122,8 @@ public:
     }
   }
 
-  ~Value()
-  {
-    if(m_type == tString && m_string->m_refs < 2 && !m_string->IsPinned())
-    {
-      delete m_string;
-    }
-  }
-
   void Clear()
   {
-    if(m_type == tString && m_string->m_refs < 2 && !m_string->IsPinned())
-    {
-      delete m_string;
-    }
     m_type = tNull;
     m_int  = 0;
   }
@@ -205,16 +189,15 @@ public:
   //
   void SetValue(Value const& rhs)
   {
-    switch(m_type = rhs.m_type)
+    Clear();
+    switch(rhs.m_type)
     {
     case tBool:   m_bool   = rhs.m_bool;    break;
     case tInt:    m_int    = rhs.m_int;     break;
+    case tString: m_string = rhs.m_string;  break;
     case tObject: m_object = rhs.m_object;  break;
-    case tString: 
-      m_string = rhs.m_string; 
-      m_string->AddRef(); 
-      break;
     }
+    m_type = rhs.m_type;
   }
 
   //
