@@ -24,16 +24,16 @@
 #include <cscript.h>
 
 struct Token;
-class Evaluator;
+class LexStream;
 
-class Lexer 
+class CSLexer 
 {
 public:
 
   //
   // Construction
   //
-  Lexer(Evaluator& parser);
+  CSLexer(LexStream& stream);
 
   //
   // Lex from string
@@ -52,32 +52,28 @@ public:
     return m_line;
   }
 
-  //
-  // Toggle xml parse mode
-  //
-  void ToggleXml(bool enable = true) {
-    m_parseXml = enable ? 1 : 0;
-  }
-
 private:
 
+  //
+  // Generated from cslexer.gen.in
+  //
+  int ParseNextToken();
+  
   //
   // Specialized lexing
   //
   bool LexString(Token& token);
-  bool LexXml(Token& token);
-  bool LexComment();
+  bool LexComment(int type);
 
   //
   // MemberMap
   //
-  Evaluator& m_evaluator;
+  LexStream&  m_stream;
   Char*   m_source;
   size_t  m_length;
   Char*   m_strptr;
   int32   m_line;
   int     m_string;
-  int     m_parseXml;
 
 };
 

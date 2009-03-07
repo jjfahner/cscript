@@ -21,30 +21,29 @@
 #include "cslexer.h"
 #include "tokens.h"
 #include "eval.h"
+#include "lexstream.h"
 
 #include "csparser.gen.h"
-#include "csparser.gen.c"
 #include "cslexer.gen.c"
 
 #include <fstream>
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Lexer implementation
+// CSLexer implementation
 //
 
-Lexer::Lexer(Evaluator& evaluator) :
-m_evaluator (evaluator),
+CSLexer::CSLexer(LexStream& stream) :
+m_stream  (stream),
 m_strptr  (0),
 m_line    (0),
-m_string  (0),
-m_parseXml(0)
+m_string  (0)
 {
 }
 
 
 void 
-Lexer::SetText(Char* text)
+CSLexer::SetText(Char* text)
 {
   m_source = text;
   m_strptr = text;
@@ -52,20 +51,13 @@ Lexer::SetText(Char* text)
 }
 
 bool
-Lexer::Lex(Token& token)
+CSLexer::Lex(Token& token)
 {
-  // XML parser
-  if(m_parseXml == 2 && LexXml(token))
-  {
-    return true;
-  }
-
   // String interpolation
   if(m_string == 1 || m_string == 3)
   {
-    token.m_type = TOK_ADDOP;
-    token.m_text = "+";
-    token.m_size = 1;
+    token.m_type = CS_ADDOP;
+    token.m_text = new GCString("+");
     m_string = m_string == 1 ? 2 : 4;
     return true;
   }
@@ -75,61 +67,49 @@ Lexer::Lex(Token& token)
     return LexString(token);
   }
 
+  // Prepare token
+  token.m_type = 0;
+  token.m_text = new GCString();
+
   // Parse next token
   for(;;)
   {
     // End of input
-    if(m_strptr == 0 || *m_strptr == 0)
+    if(m_stream.Eof())
     {
-      token.m_type = TOK_EOF;
+      token.m_type = CS_EOF;
       return true;
     }
 
+    // Start lexer
+    token.m_text->clear();
+    m_stream.Start(token.m_text);
+
     // Parse next token
-    Char* start = m_strptr;
-    Char* end   = start;
-    int type = parseNextToken(start, end);
-    
+    token.m_type = ParseNextToken();
+
     // Depending on token, do specialized parsing
-    switch(type)
+    switch(token.m_type)
     {
-    case 0:               return false;
-    case TOK_WHITESPACE:  m_strptr = end; continue;
-    case TOK_LIT_STRING:  m_strptr = end; return LexString(token);
-    case TOK_NEWLINE:     m_strptr = end; ++m_line; continue;
-    case TOK_COMMENT:     LexComment(); continue;
+    case CS_NEWLINE:    ++m_line; continue;
+    case CS_WHITESPACE: continue;
+    case CS_LIT_STRING: return LexString(token);
+    case CS_SLCOMMENT:  LexComment(CS_SLCOMMENT); continue;
+    case CS_MLCOMMENT:  LexComment(CS_MLCOMMENT); continue;
+    default:            m_stream.Flush(); break;
     }
-
-    // Switch to next state for xml parser
-    if(m_parseXml == 1 && type == TOK_GT)
-    {
-      m_parseXml = 2;
-    }
-    
-    // No token check
-    if(end == 0)
-    {
-      return false;
-    }
-
-    // Copy into token
-    token.m_type = type;
-    token.m_text = start;
-    token.m_size = end - start;
-
-    // Move pointer
-    m_strptr = end;
-
+ 
     // End of embedded variable
     if(m_string == 2)
     {
-      if(*m_strptr++ != '}')
+      if(*m_stream.m_cursor != '}')
       {
         // TODO
         return false;
       }
+      ++m_stream.m_cursor;
       m_string = 3;
-      token.m_type = TOK_IDENTIFIER;
+      token.m_type = CS_IDENTIFIER;
     }
 
     // Done
@@ -138,105 +118,110 @@ Lexer::Lex(Token& token)
 }
 
 bool 
-Lexer::LexString(Token& token)
+CSLexer::LexString(Token& token)
 {
-  Char* dst = m_strptr;
-  Char  wch;
+  // Restart stream
+  token.m_type = CS_LIT_STRING;
+  m_stream.Start(token.m_text);
 
-  // Init token
-  token.m_type = TOK_LIT_STRING;
-  token.m_text = m_strptr;
-  token.m_size = 0;
-
-  // Parse string, translating escapes in-place
-  for(;; ++m_strptr, ++dst)
+  // Parse to end of string
+  while(true)
   {
-    switch(*m_strptr)
+    while(m_stream.m_cursor < m_stream.m_bufend)
     {
-    case 0:     
+      if(*m_stream.m_cursor == '"')
+      {
+        m_stream.Flush();
+        ++m_stream.m_cursor;
+        return true; // TODO escape characters
+      }
+      ++m_stream.m_cursor;
+    }
+    if(m_stream.FillBuffer() == 0)
+    {
       throw std::runtime_error("Unterminated string constant");
-    
-    case '"':
-      token.m_size = dst - token.m_text;
-      ++m_strptr;
-      return true;
-
-    case '\\':
-      switch(wch = *++m_strptr)
-      {
-      case 'r': wch = '\r'; break;
-      case 'n': wch = '\n'; break;
-      case 't': wch = '\t'; break;
-      case 'b': wch = '\b'; break;
-      }
-      *dst = wch;
-      break;
-
-    case '{':
-      m_string = 1;
-      token.m_size = dst - token.m_text;
-      ++m_strptr;
-      return true;
-
-    default:
-      *dst = *m_strptr;
-      break;
     }
   }
+// 
+// 
+//   // Parse string, translating escapes in-place
+//   char const*& cur = m_stream.m_cursor;
+//   char const*& end = m_stream.m_bufend;
+//   for(;; ++cur, )
+//   {
+//     switch(*m_strptr)
+//     {
+//     case 0:     
+//       throw std::runtime_error("Unterminated string constant");
+//     
+//     case '"':
+//       token.m_size = dst - token.m_text;
+//       ++m_strptr;
+//       return true;
+// 
+//     case '\\':
+//       switch(wch = *++m_strptr)
+//       {
+//       case 'r': wch = '\r'; break;
+//       case 'n': wch = '\n'; break;
+//       case 't': wch = '\t'; break;
+//       case 'b': wch = '\b'; break;
+//       }
+//       *dst = wch;
+//       break;
+// 
+//     case '{':
+//       m_string = 1;
+//       token.m_size = dst - token.m_text;
+//       ++m_strptr;
+//       return true;
+// 
+//     default:
+//       *dst = *m_strptr;
+//       break;
+//     }
+//   }
 }
 
 bool 
-Lexer::LexComment()
+CSLexer::LexComment(int type)
 {
-  // Single-line comment
-  if(*m_strptr == '#' || *++m_strptr == '/')
+  if(type == CS_SLCOMMENT)
   {
-    while(*m_strptr && *m_strptr != '\n')
+    while(true)
     {
-      ++m_strptr;
+      while(m_stream.m_cursor < m_stream.m_bufend)
+      {
+        if(*m_stream.m_cursor == '\n')
+        {
+          ++m_stream.m_cursor;
+          return true;
+        }
+        ++m_stream.m_cursor;
+      }
+      if(m_stream.FillBuffer() == 0)
+      {
+        return true;
+      }
     }
   }
-  else // Multiline comment
+  else
   {
-    while(*m_strptr)
+    while(true)
     {
-      if(*m_strptr == '\n')
+      while(m_stream.m_bufend - m_stream.m_cursor >= 2)
       {
-        ++m_line;
+        if(*m_stream.m_cursor == '*' && *(m_stream.m_cursor+1) == '/')
+        {
+          m_stream.m_cursor += 2;
+          return true;
+        }
+        ++m_stream.m_cursor;
       }
-      else if(*m_strptr == '*' && *(m_strptr+1) == '/')
+      if(m_stream.FillBuffer() < 2)
       {
-        m_strptr += 2;
-        break;
+        throw std::runtime_error("Unexpected end of file");
       }
-      ++m_strptr;
     }
   }
-  return true;
-}
-
-bool 
-Lexer::LexXml(Token& token)
-{
-  // Reset state
-  m_parseXml = 1;
-
-  // Non-tag content
-  Char* ptr = m_strptr;
-  while(*ptr && *ptr != '<' && *ptr != ';')
-  {
-    if(*ptr == '\n') ++m_line;
-    ++ptr;
-  }
-  if(ptr != m_strptr)
-  {
-    token.m_size = ptr - m_strptr;
-    token.m_text = m_strptr;
-    token.m_type = TOK_XMLTEXT;
-    m_strptr = ptr;
-    return true;
-  }
-
-  // No xml text found
-  return false;
 }

@@ -235,6 +235,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\src\csparser.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\csparser.gen.in"
 				>
 				<FileConfiguration
@@ -242,7 +246,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Generating cs parser..."
+						Description="Generating cscript parser..."
 						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe csparser.gen.in &amp;&amp; move csparser.gen.h ..\include&#x0D;&#x0A;"
 						Outputs="..\..\src\csparser.gen.c;..\..\include\csparser.gen.h"
 					/>
@@ -426,6 +430,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\csparser.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\enumerator.h"
 				>
 			</File>
@@ -447,6 +455,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\gcstring.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\lemon.h"
 				>
 			</File>
 			<File

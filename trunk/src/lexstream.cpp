@@ -70,6 +70,12 @@ LexStream::FillBuffer(size_t minRead)
     Flush();
   }
 
+  // Check for end of file
+  if(m_stream.eof())
+  {
+    return m_bufend - m_cursor;
+  }
+
   // Move remainder to start of buffer
   if(m_cursor < m_bufend)
   {
@@ -86,12 +92,6 @@ LexStream::FillBuffer(size_t minRead)
 
   // Reset token start
   m_token = m_buffer; 
-
-  // Check for end of file
-  if(m_stream.eof())
-  {
-    return m_bufend - m_cursor;
-  }
 
   // Read from stream
   size_t offset = m_bufend - m_buffer;

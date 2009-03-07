@@ -52,6 +52,11 @@ public:
   //
   static String DirectoryPart(String const& path);
 
+  //
+  // Current working directory
+  //
+  static String WorkingDirectory();
+
 };
 
 //////////////////////////////////////////////////////////////////////////

@@ -30,9 +30,9 @@
 %include {
 
 #include "ast.h"
-#include "eval.h"
 #include "tokens.h"
 #include "convert.h"
+#include "csparser.h"
 
 #include <cassert>
 
@@ -45,10 +45,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 // Set prefix for tokens
-%name             CScriptParse
-%token_prefix     TOK_
+%name             CSParse
+%token_prefix     CS_
 %token_type       { Token }
-%extra_argument   { Evaluator* p }
+%extra_argument   { CSParser* p }
 %default_type     { Object* }
 
 // Error handlers
@@ -60,7 +60,7 @@
 }
 
 // Precedence rules for binary operators
-%nonassoc EOF COMMENT NEWLINE WHITESPACE .
+%nonassoc EOF COMMENT MLCOMMENT SLCOMMENT NEWLINE WHITESPACE .
 %right ASSIGN ASSADD ASSSUB ASSMUL ASSDIV ASSMOD .
 %nonassoc QUESTION .
 %left LOGOR .
@@ -83,8 +83,8 @@ eos ::= EOF .
 
 // Translation unit
 translation_unit ::= .
-translation_unit ::= native_declaration(A) eos . { if(A) p->SetResultNode(A); }
-translation_unit ::= statement_sequence(A) eos . { if(A) p->SetResultNode(A); }
+translation_unit ::= native_declaration(A) . { if(A) p->SetRoot(A); }
+translation_unit ::= statement_sequence(A) . { if(A) p->SetRoot(A); }
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
@@ -124,7 +124,7 @@ statement(R) ::= error .                    { R = 0; }
 
 // Expression
 expression(R) ::= assignment_expression(A) . { R = A; }
-expression(R) ::= xml_expression(A)        . { R = A; }
+// expression(R) ::= xml_expression(A)        . { R = A; }
 
 // Optional expression
 expression_opt(R) ::= .               { R = 0; }
@@ -296,7 +296,7 @@ compound_statement(R) ::= LBRACE RBRACE .                       { R = p->AllocNo
 compound_statement(R) ::= LBRACE statement_sequence(A) RBRACE . { R = p->AllocNode(compound_statement, A); }
 
 // Include statement
-include_statement(R) ::= INCLUDE LIT_STRING(A) eos . { R = p->AllocNode(include_statement, String(A)); }
+include_statement(R) ::= INCLUDE expression(A) eos . { R = p->AllocNode(include_statement, A); }
 
 // Return statement - leaves return expression on the stack
 return_statement(R) ::= RETURN expression(A) eos . { R = p->AllocNode(return_statement, A); }
@@ -340,7 +340,7 @@ unset_statement(R) ::= UNSET id_expression(A) eos . { R = p->AllocNode(unset_sta
 //
 
 // Native declaration
-native_declaration(R) ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN . { R = p->AllocNode(native_declaration, String(A), B); }
+native_declaration(R) ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN eos. { R = p->AllocNode(native_declaration, String(A), B); }
 
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocNode(function_declaration, String(A),  B, C); }
@@ -495,39 +495,3 @@ catch_block(R) ::= CATCH LPAREN IDENTIFIER(A) RPAREN compound_statement(B) . { R
 finally_block(R) ::= FINALLY compound_statement(A) . { R = p->AllocNode(finally_block, A); }
 
 throw_expression(R) ::= THROW assignment_expression(A) . { R = p->AllocNode(throw_expression, A); }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// XML literals
-//
-
-xml_expression(R) ::= xml_elements(A) . { R = p->AllocNode(xml_expression, A); p->GetLexer()->ToggleXml(false); }
-
-// Element sequence
-xml_elements(R) ::= xml_element(A) .                  { R = A; }
-xml_elements(R) ::= xml_element(A) xml_elements(B) .  { R = p->AllocNode(xml_elements, A, B); }
-
-// Start of tag required to toggle parse mode in lexer
-xml_start_tag ::= LT . { p->GetLexer()->ToggleXml(true); }
-
-// Tags
-xml_element(R) ::= XMLPRO IDENTIFIER(A) xml_attribute_list(B) XMLPRC .    { R = p->AllocNode(xml_processing_instruction, String(A), B); } 
-xml_element(R) ::= xml_start_tag xml_name(A) xml_attributes(B) GT .       { R = p->AllocNode(xml_open_tag,   A, B); } 
-xml_element(R) ::= xml_start_tag xml_name(A) xml_attributes(B) DIVOP GT . { R = p->AllocNode(xml_closed_tag, A, B); }
-xml_element(R) ::= xml_start_tag DIVOP xml_name(A) GT .                   { R = p->AllocNode(xml_close_tag,  A); }
-xml_element(R) ::= XMLTEXT(A) .                                           { R = p->AllocNode(xml_text, String(A)); }
-
-// Attribute sequence
-xml_attribute_list(R) ::= xml_attribute(A) .                       { R = A; }
-xml_attribute_list(R) ::= xml_attribute(A) xml_attribute_list(B) . { R = p->AllocNode(xml_attributes, A, B); }
-
-// Optional attribute sequence
-xml_attributes(R) ::= .                       { R = 0; }
-xml_attributes(R) ::= xml_attribute_list(A) . { R = A; }
-
-// Attribute
-xml_attribute(R) ::= xml_name(A) ASSIGN LIT_STRING(B) . { R = p->AllocNode(xml_attribute, A, String(B)); }
-
-// Names
-xml_name(R) ::= IDENTIFIER(A) .                      { R = p->AllocNode(xml_uname, String(A)); }
-xml_name(R) ::= IDENTIFIER(A) COLON IDENTIFIER(B) .  { R = p->AllocNode(xml_qname, String(B), String(A)); }
