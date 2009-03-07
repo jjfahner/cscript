@@ -64,6 +64,7 @@ CSLexer::Lex(Token& token)
   if(m_string == 4)
   {
     m_string = 0;
+    token.m_text = new GCString();
     return LexString(token);
   }
 
@@ -122,65 +123,71 @@ CSLexer::LexString(Token& token)
 {
   // Restart stream
   token.m_type = CS_LIT_STRING;
-  m_stream.Start(token.m_text);
+  m_stream.Start();
 
-  // Parse to end of string
+//   // Parse to end of string
+//   while(true)
+//   {
+//     while(m_stream.m_cursor < m_stream.m_bufend)
+//     {
+//       if(*m_stream.m_cursor == '"')
+//       {
+//         m_stream.Flush();
+//         ++m_stream.m_cursor;
+//         return true; // TODO escape characters
+//       }
+//       ++m_stream.m_cursor;
+//     }
+//     if(m_stream.FillBuffer() == 0)
+//     {
+//       throw std::runtime_error("Unterminated string constant");
+//     }
+//   }
+// 
+// 
+  // Parse string, translating escapes in-place
+  char const*& cur = m_stream.m_cursor;
+  char const*& end = m_stream.m_bufend;
+  char wch;
   while(true)
   {
-    while(m_stream.m_cursor < m_stream.m_bufend)
+    while(end - cur)
     {
-      if(*m_stream.m_cursor == '"')
+      switch(*cur)
       {
-        m_stream.Flush();
-        ++m_stream.m_cursor;
-        return true; // TODO escape characters
+      case '"':
+        ++cur;
+        return true;
+
+      case '\\':
+        switch(wch = *++cur)
+        {
+        case 'r': wch = '\r'; break;
+        case 'n': wch = '\n'; break;
+        case 't': wch = '\t'; break;
+        case 'b': wch = '\b'; break;
+        }
+        *token.m_text += wch;
+        break;
+
+      case '{':
+        m_string = 1;
+        ++cur;
+        return true;
+
+      default:
+        *token.m_text += *cur;
+        break;
       }
-      ++m_stream.m_cursor;
+
+      ++cur;
     }
+
     if(m_stream.FillBuffer() == 0)
     {
       throw std::runtime_error("Unterminated string constant");
     }
   }
-// 
-// 
-//   // Parse string, translating escapes in-place
-//   char const*& cur = m_stream.m_cursor;
-//   char const*& end = m_stream.m_bufend;
-//   for(;; ++cur, )
-//   {
-//     switch(*m_strptr)
-//     {
-//     case 0:     
-//       throw std::runtime_error("Unterminated string constant");
-//     
-//     case '"':
-//       token.m_size = dst - token.m_text;
-//       ++m_strptr;
-//       return true;
-// 
-//     case '\\':
-//       switch(wch = *++m_strptr)
-//       {
-//       case 'r': wch = '\r'; break;
-//       case 'n': wch = '\n'; break;
-//       case 't': wch = '\t'; break;
-//       case 'b': wch = '\b'; break;
-//       }
-//       *dst = wch;
-//       break;
-// 
-//     case '{':
-//       m_string = 1;
-//       token.m_size = dst - token.m_text;
-//       ++m_strptr;
-//       return true;
-// 
-//     default:
-//       *dst = *m_strptr;
-//       break;
-//     }
-//   }
 }
 
 bool 

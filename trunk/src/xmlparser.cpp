@@ -106,7 +106,11 @@ typedef LemonParser<
   XmlToken, 
   XmlParseAlloc, 
   XmlParseFree, 
+#ifdef _DEBUG
   XmlParseTrace, 
+#else
+  0,
+#endif
   XmlParse> XmlParserImpl;
 
 //////////////////////////////////////////////////////////////////////////
