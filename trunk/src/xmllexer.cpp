@@ -56,6 +56,13 @@ XmlLexer::LexImpl(XmlToken& token)
   token.m_text = new GCString();
   m_token = token.m_text;
 
+  // End of input
+  if(m_stream.Eof())
+  {
+    token.m_type = XML_EOF;
+    return true;
+  }
+
   // Start next token
   m_stream.Start(m_token);
 
@@ -113,9 +120,14 @@ int
 XmlLexer::ParseTextNode()
 {
   bool space = true;
-  bool foundLt = false;  
-  while(!foundLt && !m_stream.Eof())
+  bool foundLt = false;
+  while(!foundLt)
   {
+    if(m_stream.FillBuffer() == 0)
+    {
+      break;
+    }
+    
     while(m_stream.m_cursor != m_stream.m_bufend) 
     {
       // Start of next tag
