@@ -22,6 +22,7 @@
 #include <eval.h>
 #include <scope.h>
 #include <timer.h>
+#include <lexstream.h>
 
 DEFINE_NATIVE_LINKAGE(Standard)
 
@@ -123,7 +124,10 @@ NATIVE_CALL("parseXml(string file)")
     throw std::runtime_error("Failed to open file");
   }
 
+  // Create lexer stream
+  LexStream ls(is);
+
   // Run parser
   XmlParser parser;
-  return parser.Parse(is);
+  return parser.Parse(ls);
 }

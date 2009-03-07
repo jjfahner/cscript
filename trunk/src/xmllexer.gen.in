@@ -25,11 +25,12 @@ XmlLexer::ParseNextToken()
   /*!re2c
   
   re2c:define:YYCTYPE   = "char";
-  re2c:define:YYCURSOR  = m_cursor;
-  re2c:define:YYMARKER  = m_marker;
-  re2c:define:YYLIMIT   = m_bufend;
-  re2c:define:YYFILL    = FillInputBuffer;
+  re2c:define:YYCURSOR  = m_stream.m_cursor;
+  re2c:define:YYMARKER  = m_stream.m_marker;
+  re2c:define:YYLIMIT   = m_stream.m_bufend;
+  re2c:define:YYFILL    = m_stream.FillBuffer;
   re2c:yyfill:enable    = 1;
+  re2c:yyfill:parameter = 1;
   re2c:yych:conversion  = 1;
   re2c:indent:top       = 1;
   

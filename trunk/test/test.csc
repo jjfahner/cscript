@@ -31,7 +31,7 @@ function enumNodes(node)
     
     for(var att in node.attributes)
     {
-	    print(" " + att.qualifiedName + "\"=\"" + att.value);
+	    print(" " + att.qualifiedName + "=\"" + att.value + "\"");
     }
     
     if(count(node.childNodes))

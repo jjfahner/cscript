@@ -22,6 +22,7 @@
 #include <xmlparser.h>
 #include <xmllexer.h>
 #include <object.h>
+#include <lexstream.h>
 
 #include <iostream>
 
@@ -162,13 +163,13 @@ private:
 //
 
 Object*
-XmlParser::Parse(std::istream& is)
+XmlParser::Parse(LexStream& stream)
 {
   // Create lexer
-  XmlLexer lexer(is);
+  XmlLexer lexer(stream);
 
   // Allocate parser
-  XmlParserImpl parser(this);
+  XmlParserImpl parser(this, true);
 
   // Start document
   startDocument();
@@ -282,7 +283,7 @@ XmlParser::endDocument()
   (*m_document)["nodeCount"] = m_nodeCount;
 }
 
-//#define XMLPARSER_DEBUG
+#define XMLPARSER_DEBUG
 
 void 
 XmlParser::processingInstruction(XmlName const& target, GCString* data)

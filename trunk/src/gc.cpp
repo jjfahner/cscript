@@ -54,30 +54,10 @@ GC::Unpin(Object* obj)
   obj->m_pinned = false;
 }
 
-GC::Object::Object(bool autoRegister)
-{
-  // Set collectable
-  m_collect = false;
-  m_pinned = false;
-
-  // Register in global list
-  if(autoRegister)
-  {
-    Register();
-  }
-}
-
-void 
-GC::Object::Register() const
+GC::Object::Object()
 {
   // Store reference to objects list
   static ObjectVec& g_objects = GetObjects();
-
-  // If collectable, don't re-register
-  if(m_collect)
-  {
-    return;
-  }
 
   // Set collectable
   m_collect = true;
@@ -88,7 +68,7 @@ GC::Object::Register() const
   g_objects.reserve(reserve);
 
   // Add object to object list
-  g_objects.push_back(const_cast<Object*>(this));
+  g_objects.push_back(this);
 }
 
 //////////////////////////////////////////////////////////////////////////

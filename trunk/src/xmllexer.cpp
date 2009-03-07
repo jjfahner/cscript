@@ -20,36 +20,21 @@
 //////////////////////////////////////////////////////////////////////////
 #include <cscript.h>
 #include <xmllexer.h>
+#include <lexstream.h>
 
 #include "xmlparser.gen.h"
 #include "xmllexer.gen.c"
 
-#include <iostream>
-
-XmlLexer::XmlLexer(std::istream& stream) :
+XmlLexer::XmlLexer(LexStream& stream) :
 m_stream  (stream),
-m_bufend  (m_buffer + bufsize),
-m_cursor  (m_buffer + bufsize),
-m_marker  (0),
-m_tokpos  (0),
 m_inNode  (false)
 {
 }
 
 bool 
-XmlLexer::AtEof()
+XmlLexer::Eof()
 {
-  // Check buffer
-  if(m_cursor != m_bufend)
-  {
-    return false;
-  }
-
-  // Try to fill buffer
-  FillInputBuffer(bufsize);
-
-  // Check buffer size again
-  return m_cursor == m_bufend;
+  return m_stream.Eof();
 }
 
 //#define XMLPARSER_DEBUG
@@ -67,19 +52,12 @@ XmlLexer::Lex(XmlToken& token)
 bool
 XmlLexer::LexImpl(XmlToken& token)
 {
-  // Record start pos
-  m_tokpos = m_cursor;
-
   // Create token string buffer
   token.m_text = new GCString();
   m_token = token.m_text;
 
-  // Refill buffer
-  if(AtEof())
-  {
-    token.m_type = XML_EOF;
-    return true;
-  }
+  // Start next token
+  m_stream.Start(m_token);
 
   // Handle node content
   if(!m_inNode)
@@ -96,7 +74,7 @@ XmlLexer::LexImpl(XmlToken& token)
   token.m_type = ParseNextToken();
 
   // Append parse data
-  m_token->append(m_tokpos, m_cursor - m_tokpos);
+  m_stream.Flush();
 
   // Do special handling
   switch(token.m_type)
@@ -136,44 +114,44 @@ XmlLexer::ParseTextNode()
 {
   bool space = true;
   bool foundLt = false;  
-  while(!foundLt && !AtEof())
+  while(!foundLt && !m_stream.Eof())
   {
-    // Remember start position
-    char const* start = m_cursor;
-    
-    // Walk through available data
-    while(m_cursor != m_bufend) 
+    while(m_stream.m_cursor != m_stream.m_bufend) 
     {
       // Start of next tag
-      if(*m_cursor == '<')
+      if(*m_stream.m_cursor == '<')
       {
         foundLt = true;
         break;
       }
       
       // End of non-empty whitepace
-      if(space && !isspace(*m_cursor))
+      if(space && !isspace(*m_stream.m_cursor))
       {
         space = false;
       }
 
       // Proceeed
-      ++m_cursor;
+      ++m_stream.m_cursor;
     }
-    
-    // Append up to here
-    m_token->append(start, m_cursor - start);
   }
 
-  // Done
+  // Flush rest of token
+  m_stream.Flush();
+
+  // Empty token
   if(m_token->empty())
   {
     return 0;
   }
+
+  // Only whitespace
   if(space)
   {
     return XML_WS;
   }
+
+  // XML text
   return XML_TEXT;
 }
 
@@ -185,28 +163,26 @@ XmlLexer::ParseString()
   m_token->clear();
 
   // Parse string
-  while(!AtEof())
+  while(!m_stream.Eof())
   {
     // Where to start copying
-    char const* ptr = m_cursor;
+    char const* ptr = m_stream.m_cursor;
 
     // Walk through currently available data
-    while(m_cursor != m_bufend) 
+    while(m_stream.m_cursor != m_stream.m_bufend) 
     {
-      if(*m_cursor == quote)
+      if(*m_stream.m_cursor == quote)
       {
         break;
       }
-      ++m_cursor;
+      ++m_stream.m_cursor;
     }
 
-    // Copy into string
-    m_token->append(ptr, m_cursor - ptr);
-
     // End of string
-    if(*m_cursor == quote)
+    if(*m_stream.m_cursor == quote)
     {
-      ++m_cursor;
+      m_stream.Flush();
+      ++m_stream.m_cursor;
       return XML_STRING;
     }
   }
@@ -215,45 +191,4 @@ XmlLexer::ParseString()
 
   // Failed
   return XML_EOF;
-}
-
-void 
-XmlLexer::FillInputBuffer(size_t size)
-{
-  // Append currently parsed data to token
-  if(m_cursor > m_tokpos)
-  {
-    m_token->append(m_tokpos, m_cursor - m_tokpos);
-  }
-
-  // Move remainder to start of buffer
-  if(m_cursor < m_bufend)
-  {
-    size_t avail = m_bufend - m_cursor;
-    memmove(m_buffer, m_cursor, avail);
-    m_cursor = m_buffer;
-    m_bufend = m_cursor + avail;
-  }
-  else
-  {
-    m_cursor = m_buffer;
-    m_bufend = m_buffer;
-  }
-
-  // Reset token start
-  m_tokpos = m_buffer;
-
-  // Check for end of file
-  if(m_stream.eof())
-  {
-    return;
-  }
-
-  // Read from stream
-  size_t offset = m_bufend - m_buffer;
-  size_t length = bufsize - offset;
-  m_stream.read(m_buffer + offset, length);
-
-  // Determine new buffer end
-  m_bufend += m_stream.gcount();
 }
