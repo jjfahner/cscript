@@ -29,10 +29,15 @@
 #include "native.h"
 #include "timer.h"
 #include "enumerator.h"
+#include "lexstream.h"
+#include "csparser.h"
+
 #include "csparser.gen.h"
 
 #include <list>
 #include <iostream>
+#include <strstream>
+#include <fstream>
 
 //
 // Parser functions
@@ -137,7 +142,6 @@ Evaluator::GetGlobalScope()
 
 Evaluator::Evaluator() :
 m_scope   (0),
-m_file    (0),
 m_allocs  (0),
 m_debugParser(0)
 {
@@ -167,168 +171,87 @@ Evaluator::Reset()
   Collect();
 }
 
+inline bool open_file(String const& path, std::ifstream& file)
+{
+  file.open(path.c_str());
+  return file.is_open();
+}
+
 bool 
-Evaluator::OpenFile(String const& path, SourceFile& file)
+Evaluator::OpenFile(String const& filename, std::ifstream& file)
 {
   // Open file using unaltered path
-  if(file.Open(path))
+  if(open_file(filename, file))
   {
     return true;
   }
 
   // If using an absolute path, give up
-  if(Path::IsAbsolute(path))
+  if(Path::IsAbsolute(filename))
   {
     return false;
   }
 
-  // Combine with path of current script
-  if(m_file)
+  // Try the working directory
+  String path = Path::Combine(Path::WorkingDirectory(), filename);
+  if(open_file(path, file))
   {
-    String altpath;
-    altpath = Path::DirectoryPart(m_file->GetPath());
-    altpath = Path::Combine(altpath, path);
-    if(file.Open(altpath))
-    {
-      return true;
-    }
+    m_fileNames.push_back(path);
+    return true;
   }
 
-  // TODO Combine with current path
+  // TODO search in env/path?
+
+  // Failed to open file
   return false;
 }
 
 Value
 Evaluator::ParseFile(String const& filename)
 {
-  SourceFile file;
-
-  // Try to open the file
-  if(!OpenFile(filename, file))
+  // Construct string stream
+  std::ifstream is;
+  if(!OpenFile(filename, is))
   {
-    throw std::runtime_error("Failed to open file");
+    throw std::runtime_error("Failed to open file '" + filename + "'");
   }
 
-  // Check type
-  if(file.GetType() != SourceFile::source)
-  {
-    throw std::runtime_error("Invalid file");
-  }
+  // Construct lexer stream
+  LexStream ls(is);
 
-  // Push file on stack
-  SourceFile* prevfile = m_file;
-  m_file = &file;
+  // Create parser
+  CSParser parser;
 
-  // Try block for file pointer stacking
-  Value result;
-  try
-  {
-    result = ParseText((char const*)file.GetData());
-    m_file = prevfile;
-  }
-  catch(...)
-  {
-    m_file = prevfile;
-    throw;
-  }
+  // Parse source code
+  Object* root = parser.Parse(ls);
 
-  return result;
+  // Return parsed code
+  return Eval(root);
 }
 
 Value
 Evaluator::ParseText(char const* text, bool doEval)
 {
-  // Create lexer for file
-  Lexer lexer(*this);
-  lexer.SetText((char*)text);
+  // Construct string stream
+  std::istrstream is(text, strlen(text));
+  
+  // Construct lexer stream
+  LexStream ls(is);
 
-  // Push lexer on stack
-  Lexer* prevlexer = m_lexer;
-  m_lexer = &lexer;
+  // Create parser
+  CSParser parser;
 
-  // Allocate parser
-  void *pParser = CScriptParseAlloc(malloc);
+  // Parse source code
+  Object* root = parser.Parse(ls);
 
-  // Enable debugging
-# ifdef _DEBUG
-  if(m_debugParser)
+  // Return parsed code
+  if(!doEval)
   {
-    CScriptParseTrace(stdout, "Parser: ");
+    return root;
   }
-#endif
 
-  // Try block for parser memory management
-  try 
-  {
-    Token token;
-    token.Init();
-
-    // Reset result node
-    m_resultNode = 0;
-
-    // Run parser loop
-    while(lexer.Lex(token))
-    {
-      CScriptParse(pParser, token.m_type, token, this);
-      if(token.m_type == TOK_EOF)
-      {
-        break;
-      }
-    }
-
-    // Empty token to finalize parse
-    CScriptParse(pParser, 0, Token(), this);
-
-    // Destroy parser
-    CScriptParseFree(pParser, free);
-    pParser = 0;
-
-    // Remove lexer
-    m_lexer = prevlexer;
-
-    // Done?
-    if(!doEval)
-    {
-      return Value();
-    }
-
-    // Evaluate code
-    return Eval(m_resultNode);
-  }
-  catch(...)
-  {
-    // Destroy parser
-    if(pParser)
-    {
-      CScriptParseFree(pParser, free);
-    }
-
-    // Remove lexer
-    m_lexer = prevlexer;
-
-    // Rethrow exception
-    throw;
-  }
-}
-
-void 
-Evaluator::OnParseFailure()
-{
-  FilePos pos;
-  pos.m_file = m_file ? m_file->GetPath() : "";
-  pos.m_line = m_lexer->GetLine();
-  m_reporter.ReportError(E0012, &pos);
-  throw std::runtime_error("Aborted");
-}
-
-void 
-Evaluator::OnSyntaxError()
-{
-  FilePos pos;
-  pos.m_file = m_file ? m_file->GetPath() : "";
-  pos.m_line = m_lexer->GetLine();
-  m_reporter.ReportError(E0013, &pos);
-  throw std::runtime_error("Aborted");
+  // Evaluate code
+  return Eval(root);
 }
 
 void 
@@ -340,24 +263,6 @@ Evaluator::ReportError(String text, Object* source)
               << source->GetRValue(11).GetInt()    << ") : ";
   }
   std::cout << text << "\n";
-}
-
-Object* 
-Evaluator::AllocNode(AstTypes type)
-{
-  // Create node
-  Object* obj = new Object;
-  (*obj)[0] = type;
-
-  // Set file position
-  if(false && m_file /*&& m_debug*/)
-  {
-    (*obj)[10] = m_file->GetPath();
-    (*obj)[11] = m_lexer->GetLine();
-  }
-
-  // Done
-  return obj;
 }
 
 Object* 
@@ -373,7 +278,7 @@ Evaluator::ParseNativeCall(String const& declaration)
     m_resultNode = 0;
 
     // Parse code
-    ParseText((String("__native ") + declaration).c_str(), false);
+    Value result = ParseText((String("__native ") + declaration).c_str(), false);
 
     // Check error count
     if(m_reporter.GetErrorCount())
@@ -382,7 +287,7 @@ Evaluator::ParseNativeCall(String const& declaration)
     }
 
     // Done
-    return m_resultNode;
+    return result.GetObject();
   }
   catch(std::runtime_error const& e)
   {
@@ -1412,7 +1317,11 @@ Evaluator::EvalReturnStatement(Object* node)
 void 
 Evaluator::EvalIncludeStatement(Object* node)
 {
-  ParseFile(Ast_A1(node));
+  // Evaluate include expression
+  RValue const& rval = EvalExpression(Ast_A1(node));
+
+  // Parse include file
+  ParseFile(ValString(rval.GetValue()));
 }
 
 void 

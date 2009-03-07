@@ -23,7 +23,7 @@
 #include <xmllexer.h>
 #include <object.h>
 #include <lexstream.h>
-
+#include <lemon.h>
 #include <iostream>
 
 #include "xmlparser.gen.h"
@@ -101,61 +101,13 @@ XmlNodeName(XmlParser::XmlNodeTypes nodeType)
 // Lemon parser wrapper
 //
 
-class XmlParserImpl
-{
-public:
-
-  //
-  // Allocate parser
-  //
-  XmlParserImpl(XmlParser* pParser, bool debug = false) :
-  m_pParser (pParser),
-  m_hParser (0)
-  {
-    m_hParser = XmlParseAlloc(malloc);
-    if(debug)
-    {
-#ifdef _DEBUG
-      XmlParseTrace(stdout, "XmlParse: ");
-#else
-      throw std::runtime_error("Cannot debug parser in release build");
-#endif
-    }
-  }
-
-  //
-  // Free parser
-  //
-  ~XmlParserImpl()
-  {
-    if(m_hParser)
-    {
-      XmlParseFree(m_hParser, free);
-    }
-  }
-
-  //
-  // Parse next token
-  //
-  void operator () (int type, XmlToken token)
-  {
-    XmlParse(m_hParser, type, token, m_pParser);
-  }
-
-  //
-  // Flush parser
-  //
-  void operator () ()
-  {
-    XmlParse(m_hParser, 0, XmlToken(), m_pParser);
-  }
-
-private:
-
-  XmlParser*  m_pParser;
-  void*       m_hParser;
-
-};
+typedef LemonParser<
+  XmlParser, 
+  XmlToken, 
+  XmlParseAlloc, 
+  XmlParseFree, 
+  XmlParseTrace, 
+  XmlParse> XmlParserImpl;
 
 //////////////////////////////////////////////////////////////////////////
 //

@@ -25,26 +25,19 @@
 // Include main header
 //
 #include <cscript.h>
+#include <gcstring.h>
 
 //
 // Define token structure
 //
 struct Token
 {
-  Char const* m_text;
-  size_t      m_size;
-  int         m_type;
+  int       m_type;
+  GCString* m_text;
 
-  void Init()
+  operator String const& () const
   {
-    m_text = 0;
-    m_size = 0;
-    m_type = 0;
-  }
-
-  operator String () const
-  {
-    return String(m_text, m_size);
+    return *m_text;
   }
 };
 

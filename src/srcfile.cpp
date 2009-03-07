@@ -22,6 +22,13 @@
 #include "srcfile.h"
 #include <fstream>
 
+#if defined(_MSC_VER)
+#include <windows.h>
+#elif defined(__GNUC__)
+#include <unistd.h>
+#else
+#error Unknown compiler system
+#endif
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef WIN32
@@ -34,7 +41,11 @@
 /*static*/ bool 
 Path::Exists(String const& filename)
 {
-  return true; //_access(filename.c_str(), 0) == 0;
+#if defined(_MSC_VER)
+  return GetFileAttributes(filename.c_str()) != INVALID_FILE_ATTRIBUTES;
+#elif defined(__GNUC__)
+  return access(filename.c_str(), 0) == 0;
+#endif
 }
 
 /*static*/ bool 
@@ -42,7 +53,7 @@ Path::IsAbsolute(String const& filename)
 {
 #ifdef WIN32
   return filename[0] == '\\' || filename[1] == ':';
-#else
+#elif defined(__GNUC__)
   return filename[0] == '/';
 #endif
 }
@@ -63,6 +74,18 @@ Path::DirectoryPart(String const& path)
   size_t rpos = path.find_last_of(PATH_SEPARATORS);
   if(rpos == String::npos) return "";
   return path.substr(0, rpos);
+}
+
+String 
+Path::WorkingDirectory()
+{
+  char buf[1024];
+#ifdef WIN32
+  GetCurrentDirectory(1024, buf);
+#else
+  getcwd(buf, 1024);
+#endif
+  return buf;
 }
 
 //////////////////////////////////////////////////////////////////////////

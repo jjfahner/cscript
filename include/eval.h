@@ -28,9 +28,10 @@
 #include <gc.h>
 
 #include <vector>
+#include <iosfwd>
 
 class Object;
-class Lexer;
+class CSLexer;
 class Scope;
 class Function;
 class ScriptFunction;
@@ -98,13 +99,6 @@ public:
   }
 
   //
-  // Retrieve lexer
-  //
-  Lexer* GetLexer() const {
-    return m_lexer;
-  }
-
-  //
   // Enable parser debugging
   //
   void DebugParser(bool debug) {
@@ -115,15 +109,6 @@ public:
   // Parse native call
   //
   Object* ParseNativeCall(String const& declaration);
-
-  //
-  // Allocate node
-  //
-  Object* AllocNode(AstTypes type);
-  Object* AllocNode(AstTypes type, Value const& a1);
-  Object* AllocNode(AstTypes type, Value const& a1, Value const& a2);
-  Object* AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3);
-  Object* AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4);
 
   //
   // Error handlers
@@ -244,15 +229,15 @@ private:
   //
   // Open a file
   //
-  bool OpenFile(String const& path, SourceFile& file);
+  bool OpenFile(String const& filename, std::ifstream& file);
 
   typedef std::vector<RValue*> TempVec;
+
+  typedef std::vector<String> StringVec;
 
   //
   // Members
   //
-  SourceFile*     m_file;
-  Lexer*          m_lexer;
   Object*         m_resultNode;
   NamespaceScope* m_global;
   Scope*          m_scope;
@@ -260,51 +245,9 @@ private:
   TempVec         m_temporaries;
   Reporter        m_reporter;
   bool            m_debugParser;
+  StringVec       m_fileNames;
 
 };
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Node allocation
-//
-
-inline Object* 
-Evaluator::AllocNode(AstTypes type, Value const& a1)
-{
-  Object* obj = AllocNode(type);
-  (*obj)[1] = a1;
-  return obj;
-}
-
-inline Object* 
-Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2)
-{
-  Object* obj = AllocNode(type);
-  (*obj)[1] = a1;
-  (*obj)[2] = a2;
-  return obj;
-}
-
-inline Object* 
-Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3)
-{
-  Object* obj = AllocNode(type);
-  (*obj)[1] = a1;
-  (*obj)[2] = a2;
-  (*obj)[3] = a3;
-  return obj;
-}
-
-inline Object* 
-Evaluator::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4)
-{
-  Object* obj = AllocNode(type);
-  (*obj)[1] = a1;
-  (*obj)[2] = a2;
-  (*obj)[3] = a3;
-  (*obj)[4] = a4;
-  return obj;
-}
 
 inline RValue& 
 Evaluator::MakeTemp(Value const& value)
