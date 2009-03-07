@@ -41,7 +41,7 @@ public:
   //
   // Must be invoked each time before invoking re2c
   //
-  void Start(std::string* lexeme);
+  void Start(std::string* lexeme = 0);
 
   //
   // Flush any parsed data to the current lexeme

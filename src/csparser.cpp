@@ -33,7 +33,11 @@ typedef LemonParser<
   Token, 
   CSParseAlloc, 
   CSParseFree, 
+#ifdef _DEBUG
   CSParseTrace, 
+#else
+  0,
+#endif
   CSParse> CSParserImpl;
 
 //////////////////////////////////////////////////////////////////////////
