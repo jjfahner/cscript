@@ -169,7 +169,7 @@ XmlParser::Parse(LexStream& stream)
   XmlLexer lexer(stream);
 
   // Allocate parser
-  XmlParserImpl parser(this, true);
+  XmlParserImpl parser(this);
 
   // Start document
   startDocument();
@@ -283,7 +283,7 @@ XmlParser::endDocument()
   (*m_document)["nodeCount"] = m_nodeCount;
 }
 
-#define XMLPARSER_DEBUG
+//#define XMLPARSER_DEBUG
 
 void 
 XmlParser::processingInstruction(XmlName const& target, GCString* data)
