@@ -84,7 +84,7 @@ public:
     m_int  = (Int) val;
   }
 
-  Value(String val)
+  Value(String const& val)
   {
     m_type = tString;
     m_string = new GCString(val);
@@ -140,14 +140,20 @@ public:
 
   Bool GetBool() const
   {
-    AssertType(tBool);
-    return m_bool;
+    if(m_type == tBool)
+    {
+      return m_bool;
+    }
+    throw std::runtime_error("Value is not of type bool");
   }
 
   Int GetInt() const
   {
-    AssertType(tInt);
-    return m_int;
+    if(m_type == tInt)
+    {
+      return m_int;
+    }
+    throw std::runtime_error("Value is not of type int");
   }
 
   operator Int () const
@@ -157,8 +163,11 @@ public:
 
   GCString const& GetString() const
   {
-    AssertType(tString);
-    return *m_string;
+    if(m_type == tString)
+    {
+      return *m_string;
+    }
+    throw std::runtime_error("Value is not of type string");
   }
 
   operator String const& () const
@@ -168,8 +177,11 @@ public:
 
   Object* GetObject() const
   {
-    AssertType(tObject);
-    return m_object;
+    if(m_type == tObject)
+    {
+      return m_object;
+    }
+    throw std::runtime_error("Value is not of type object");
   }
 
   Object* operator -> () const
@@ -221,17 +233,6 @@ private:
   // when a Value is constructed from an invalid pointer type
   //
   Value(void*);
-
-  //
-  // Type check
-  //
-  void AssertType(Types type) const
-  {
-    if(m_type != type)
-    {
-      throw std::runtime_error("Value is not of expected type");
-    }
-  }
 
   // Member data
   Types     m_type;

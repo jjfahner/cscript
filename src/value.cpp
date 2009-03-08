@@ -81,11 +81,8 @@ ValCmp(Value const& lhs, Value const& rhs)
     return int(lhs.GetInt() - rhs.GetInt());
 
   case Value::tString: 
-    {
-      char const* lptr = lhs.GetString().c_str();
-      char const* rptr = rhs.GetString().c_str();
-      return strcmp(lptr, rptr);
-    }
+    return strcmp(lhs.GetString().c_str(), 
+                  rhs.GetString().c_str());
 
   case Value::tObject: 
     return int(lhs.GetObject() - rhs.GetObject());
