@@ -30,6 +30,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 
+void CSParseTraceDummy(FILE*, char*) {}
+
 typedef LemonParser<
   CSParser, 
   Token, 
@@ -38,7 +40,7 @@ typedef LemonParser<
 #ifdef _DEBUG
   CSParseTrace, 
 #else
-  0,
+  CSParseTraceDummy,
 #endif
   CSParse> CSParserImpl;
 

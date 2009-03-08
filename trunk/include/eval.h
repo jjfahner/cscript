@@ -126,7 +126,7 @@ private:
   //
   // Parse a string
   //
-  Value ParseText(char const* text, bool executeImmediate = true);
+  Value ParseText(String const& text, bool executeImmediate = true);
 
   //
   // Parse a file

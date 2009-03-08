@@ -6,7 +6,24 @@ noinst_LIBRARIES = libcs.a
 
 BUILT_SOURCES = csparser.gen.c cslexer.gen.c xmlparser.gen.c xmllexer.gen.c
 
-libcs_a_SOURCES = eval.cpp args.cpp convert.cpp error.cpp gc.cpp function.cpp cslexer.cpp native.cpp object.cpp opcodes.cpp report.cpp srcfile.cpp timer.cpp value.cpp xmllexer.cpp xmlparser.cpp
+libcs_a_SOURCES = args.cpp \
+                  convert.cpp \
+		  cslexer.cpp \
+		  csparser.cpp \
+		  error.cpp \
+		  eval.cpp \
+		  gc.cpp \
+		  function.cpp \
+		  lexstream.cpp \
+		  native.cpp \
+		  object.cpp \
+		  opcodes.cpp \
+		  report.cpp \
+		  srcfile.cpp \
+		  timer.cpp \
+		  value.cpp \
+		  xmllexer.cpp \
+		  xmlparser.cpp
 
 libcs_a_LIBADD = native/libcsnative.a
 
