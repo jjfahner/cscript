@@ -128,7 +128,7 @@ XmlParser::Parse(LexStream& stream)
   m_lexer = &lexer;
 
   // Allocate parser
-  XmlParserImpl parser(this, "XML Parser: ", true);
+  XmlParserImpl parser(this, "XML Parser: ");
 
   // Start document
   startDocument();
