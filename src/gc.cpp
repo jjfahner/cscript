@@ -24,16 +24,13 @@
 #include "timer.h"
 #include "gc.h"
 
-namespace GC
+//
+// Global object list
+//
+static GC::ObjectVec& GetObjects()
 {
-  //
-  // Global object list
-  //
-  static ObjectVec& GetObjects()
-  {
-    static ObjectVec g_objects;
-    return g_objects;
-  }
+  static GC::ObjectVec g_objects;
+  return g_objects;
 }
 
 /*static*/ size_t 
@@ -45,23 +42,30 @@ GC::ObjectCount()
 void 
 GC::Pin(Object* obj)
 {
-  obj->m_pinned = true;
+  if(!obj->m_complex)
+  {
+    static_cast<SimpleObject*>(obj)->m_pinned = true;
+  }
 }
 
 void 
 GC::Unpin(Object* obj)
 {
-  obj->m_pinned = false;
+  if(!obj->m_complex)
+  {
+    static_cast<SimpleObject*>(obj)->m_pinned = false;
+  }
 }
 
-GC::Object::Object()
+GC::Object::Object(bool complex)
 {
   // Store reference to objects list
   static ObjectVec& g_objects = GetObjects();
 
   // Set collectable
   m_collect = true;
-  m_pinned = false;
+  m_pinned  = false;
+  m_complex = complex;
 
   // Reserve space efficiently
   size_t reserve = (g_objects.size() + 1023) / 1024 * 1024;
@@ -121,14 +125,17 @@ GC::Collect(ObjectVec const& roots)
     ie = grey.end();
     for(; it != ie; ++it)
     {
-      // Skip objects that have been seen before
-      if((*it)->m_collect)
+      Object* obj = *it;
+      if(obj->m_collect)
       {
         // Set object as non-collectable
-        (*it)->m_collect = false;
+        obj->m_collect = false;
 
         // Mark subobjects
-        (*it)->MarkObjects(next);
+        if(obj->m_complex)
+        {
+          static_cast<ComplexObject*>(obj)->MarkObjects(next);
+        }
       }
     }
 

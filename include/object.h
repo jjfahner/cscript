@@ -41,7 +41,7 @@ typedef std::map<Value, MemberVariable> MemberMap;
 //
 // Object class
 //
-class Object : public GC::Object
+class Object : public GC::ComplexObject
 {
 public:
 
