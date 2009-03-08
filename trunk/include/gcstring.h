@@ -27,7 +27,7 @@
 //
 // Garbage collected string class
 //
-class GCString : public GC::Object, public String
+class GCString : public GC::SimpleObject, public String
 {
 public:
   

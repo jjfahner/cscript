@@ -24,8 +24,10 @@
 #include <cscript.h>
 #include <vector>
 
-namespace GC
+class GC
 {
+public:
+
   //
   // Forward declare Object class
   //
@@ -51,25 +53,27 @@ namespace GC
   //
   // Invoke collection cycle
   //
-  CollectInfo Collect(ObjectVec const& roots);
+  static CollectInfo Collect(ObjectVec const& roots);
 
   //
   // Current number of objects
   //
-  size_t ObjectCount();
+  static size_t ObjectCount();
 
   //
   // Pin an object to avoid it being collected
   //
-  void Pin(Object* obj);
-  void Unpin(Object* obj);
+  static void Pin(Object* obj);
+  static void Unpin(Object* obj);
 
+  //////////////////////////////////////////////////////////////////////////
   //
   // Base class for collectable objects
   //
+
   class Object
   {
-  public:
+  protected:
 
     //
     // Virtual destruction
@@ -77,51 +81,97 @@ namespace GC
     virtual ~Object() {}
 
     //
-    // Is the object pinned?
+    // Assignment
     //
-    bool IsPinned() const {
-      return m_pinned;
-    }
+    Object& operator = (Object&) { return *this; }
 
+  private:
+
+    //
+    // Friends
+    //
+    friend class GC;
+    friend class SimpleObject;
+    friend class ComplexObject;
+
+    //
+    // Construction
+    //
+    Object(bool complex);
+
+    //
+    // Copy construction not allowed
+    //
+    Object(Object&);
+
+    //
+    // Members
+    //
+    unsigned m_complex : 1;
+    unsigned m_collect : 1;
+    unsigned m_pinned  : 1;
+
+  };
+
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Simple 
+  //
+
+  class SimpleObject : public Object
+  {
   protected:
 
     //
     // Construction
     //
-    Object();
+    SimpleObject() : Object(false) {}
 
     //
     // Copy construction
     //
-    Object(Object&) {}
+    SimpleObject(SimpleObject const&) : Object(false) {}
+
+  private:
 
     //
-    // Assignment
+    // Friends
     //
-    Object& operator = (Object&) { return *this; }
+    friend class GC;
+    
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  //
+  // Complex objects
+  //
+  
+  class ComplexObject : public Object
+  {
+  protected:
+
+    //
+    // Construction
+    //
+    ComplexObject() : Object(true) {}
+
+    //
+    // Copy construction
+    //
+    ComplexObject(ComplexObject const&) : Object(true) {}
 
     //
     // Mark subobjects
     //
     virtual void MarkObjects(ObjectVec& grey) {}
 
-  private:
-
     //
-    // Allow the collector access
+    // Friends
     //
-    friend CollectInfo GC::Collect(ObjectVec const&);
-    friend void GC::Pin(Object* obj);
-    friend void GC::Unpin(Object* obj);
-
-    //
-    // Whether to collect this object
-    //
-    bool m_collect;
-    bool m_pinned;
+    friend class GC;
 
   };
 
-} // namespace GC
+}; // class GC
 
 #endif // CSCRIPT_GCOBJECT_H
