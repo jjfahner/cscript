@@ -36,7 +36,7 @@
 
 #include <list>
 #include <iostream>
-#include <strstream>
+#include <sstream>
 #include <fstream>
 
 //
@@ -237,10 +237,10 @@ Evaluator::ParseFile(String const& filename, bool executeImmediate)
 }
 
 Value
-Evaluator::ParseText(char const* text, bool executeImmediate)
+Evaluator::ParseText(String const& text, bool executeImmediate)
 {
   // Construct string stream
-  std::istrstream is(text, strlen(text));
+  std::istringstream is(text);
   
   // Construct lexer stream
   LexStream ls(is);

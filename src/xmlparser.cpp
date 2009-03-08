@@ -103,6 +103,7 @@ XmlNodeName(XmlParser::XmlNodeTypes nodeType)
 // Lemon parser wrapper
 //
 
+void XmlParseTraceDummy(FILE*, char*) {}
 typedef LemonParser<
   XmlParser, 
   XmlToken, 
@@ -111,7 +112,7 @@ typedef LemonParser<
 #ifdef _DEBUG
   XmlParseTrace, 
 #else
-  0,
+  XmlParseTraceDummy,
 #endif
   XmlParse> XmlParserImpl;
 
