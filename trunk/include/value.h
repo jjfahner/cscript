@@ -47,79 +47,70 @@ public:
   static String TypeToString(Types);
   static Types StringToType(String);
 
-  Value()
+  Value() :
+  m_type (tNull),
+  m_int  (0)
   {
-    m_type = tNull;
-    m_int = 0;
   }
 
-  Value(Value const& rhs)
+  Value(Value const& rhs) :
+  m_type (rhs.m_type),
+  m_int  (rhs.m_int)
   {
-    m_type = tNull;
-    m_int  = 0;
-    *this = rhs;
   }
 
-  Value(Bool val)
+  Value(Bool val) :
+  m_type (tBool),
+  m_bool (val)
   {
-    m_type = tBool;
-    m_bool = val;
   }
 
-  Value(Int val)
+  Value(Int val) :
+  m_type (tInt),
+  m_int  (val)
   {
-    m_type = tInt;
-    m_int = val;
   }
   
-  Value(int val)
+  Value(int val) :
+  m_type (tInt),
+  m_int  (val)
   {
-    m_type = tInt;
-    m_int = val;
   }
 
-  Value(size_t val)
+  Value(size_t val) :
+  m_type (tInt),
+  m_int  ((Int)val)
   {
-    m_type = tInt;
-    m_int  = (Int) val;
   }
 
-  Value(String const& val)
+  Value(String const& val) :
+  m_type    (tString),
+  m_string  (new GCString(val))
   {
-    m_type = tString;
-    m_string = new GCString(val);
   }
 
-  Value(char const* val)
+  Value(char const* val) :
+  m_type    (tString),
+  m_string  (new GCString(val))
   {
-    m_type = tString;
-    m_string = new GCString(val);
   }
 
-  Value(GCString const& str)
+  Value(GCString const& str) :
+  m_type    (tString),
+  m_string  (&str)
   {
-    m_type = tString;
-    m_string = &str;
   }
 
-  Value(GCString const* str)
+  Value(GCString const* str) :
+  m_type    (tString),
+  m_string  (str)
   {
-    m_type = tString;
-    m_string = str;
   }
 
-  Value(Object* obj)
+  Value(Object* obj) :
+  m_type    (obj ? tObject : tNull),
+  m_object  (obj)
   {
-    if(obj == 0)
-    {
-      m_type = tNull;
-      m_int = 0;
-    }
-    else
-    {
-      m_type = tObject;
-      m_object = obj;
-    }
   }
 
   void Clear()
@@ -140,20 +131,26 @@ public:
 
   Bool GetBool() const
   {
-    if(m_type == tBool)
-    {
-      return m_bool;
-    }
-    throw std::runtime_error("Value is not of type bool");
+    return (m_type == tBool) ? m_bool : 
+      throw std::runtime_error("Value is not of type bool");
   }
 
   Int GetInt() const
   {
-    if(m_type == tInt)
-    {
-      return m_int;
-    }
-    throw std::runtime_error("Value is not of type int");
+    return (m_type == tInt) ? m_int : 
+      throw std::runtime_error("Value is not of type int");
+  }
+
+  GCString const& GetString() const
+  {
+    return *((m_type == tString) ? m_string :
+      throw std::runtime_error("Value is not of type string"));
+  }
+
+  Object* GetObject() const
+  {
+    return m_type == tObject ? m_object :
+      throw std::runtime_error("Value is not of type object");
   }
 
   operator Int () const
@@ -161,35 +158,17 @@ public:
     return GetInt();
   }
 
-  GCString const& GetString() const
-  {
-    if(m_type == tString)
-    {
-      return *m_string;
-    }
-    throw std::runtime_error("Value is not of type string");
-  }
-
   operator String const& () const
   {
     return GetString();
   }
 
-  Object* GetObject() const
-  {
-    if(m_type == tObject)
-    {
-      return m_object;
-    }
-    throw std::runtime_error("Value is not of type object");
-  }
-
-  Object* operator -> () const
+  operator Object * () const
   {
     return GetObject();
   }
 
-  operator Object * () const
+  Object* operator -> () const
   {
     return GetObject();
   }
@@ -201,15 +180,8 @@ public:
   //
   void SetValue(Value const& rhs)
   {
-    Clear();
-    switch(rhs.m_type)
-    {
-    case tBool:   m_bool   = rhs.m_bool;    break;
-    case tInt:    m_int    = rhs.m_int;     break;
-    case tString: m_string = rhs.m_string;  break;
-    case tObject: m_object = rhs.m_object;  break;
-    }
     m_type = rhs.m_type;
+    m_int  = rhs.m_int;
   }
 
   //
@@ -217,7 +189,8 @@ public:
   //
   Value const& operator = (Value const& rhs)
   {
-    SetValue(rhs);
+    m_type = rhs.m_type;
+    m_int  = rhs.m_int;
     return *this;
   }
 

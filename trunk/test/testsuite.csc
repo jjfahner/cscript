@@ -516,14 +516,18 @@ var tprint = print;
 var print = function(arg) {};
 
 // Invoke main program
+var elapsed = ticks();
 for(var i = 0; i < 10; ++i) 
 {
   tprint("Iteration {i}\n");
   main();
 }
+elapsed = ticks() - elapsed;
 
 // Restore print
 unset print;
+
+print("Executed in {elapsed} ms\n");
 
 // Run garbage collector
 print("Collecting...\n");
