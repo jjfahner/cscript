@@ -23,10 +23,10 @@
 
 #include <cscript.h>
 #include <object.h>
+#include <astnode.h>
 
 enum AstTypes;
 class LexStream;
-
 
 class CSParser
 {
@@ -51,11 +51,11 @@ public:
   //
   // Used by the parser to allocate nodes
   //
-  Object* AllocNode(AstTypes type);
-  Object* AllocNode(AstTypes type, Value const& a1);
-  Object* AllocNode(AstTypes type, Value const& a1, Value const& a2);
-  Object* AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3);
-  Object* AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4);
+  AstNode* AllocNode(AstTypes type);
+  AstNode* AllocNode(AstTypes type, Value const& a1);
+  AstNode* AllocNode(AstTypes type, Value const& a1, Value const& a2);
+  AstNode* AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3);
+  AstNode* AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4);
 
   //
   // Used by the parser to store the root node
@@ -78,42 +78,34 @@ private:
 // Node allocation
 //
 
-inline Object* 
+inline AstNode* 
+CSParser::AllocNode(AstTypes type)
+{
+  return new AstNode(type);
+}
+
+inline AstNode* 
 CSParser::AllocNode(AstTypes type, Value const& a1)
 {
-  Object* obj = AllocNode(type);
-  (*obj)[1] = a1;
-  return obj;
+  return new AstNode(type, a1);
 }
 
-inline Object* 
+inline AstNode* 
 CSParser::AllocNode(AstTypes type, Value const& a1, Value const& a2)
 {
-  Object* obj = AllocNode(type);
-  (*obj)[1] = a1;
-  (*obj)[2] = a2;
-  return obj;
+  return new AstNode(type, a1, a2);
 }
 
-inline Object* 
+inline AstNode* 
 CSParser::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3)
 {
-  Object* obj = AllocNode(type);
-  (*obj)[1] = a1;
-  (*obj)[2] = a2;
-  (*obj)[3] = a3;
-  return obj;
+  return new AstNode(type, a1, a2, a3);
 }
 
-inline Object* 
+inline AstNode* 
 CSParser::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4)
 {
-  Object* obj = AllocNode(type);
-  (*obj)[1] = a1;
-  (*obj)[2] = a2;
-  (*obj)[3] = a3;
-  (*obj)[4] = a4;
-  return obj;
+  return new AstNode(type, a1, a2, a3, a4);
 }
 
 #endif // CSCRIPT_CS_PARSER_H

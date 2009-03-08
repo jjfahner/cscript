@@ -446,14 +446,14 @@ Evaluator::EvalStatement(Object* node)
 
   case declaration_sequence:
     EvalStatement(Ast_A1(node));
-    if(Ast_A2(node))
+    if(!Ast_A2(node).Empty())
     {
       EvalStatement(Ast_A2(node));
     }
     break;
 
   case compound_statement:
-    if(Ast_A1(node))
+    if(!Ast_A1(node).Empty())
     {
       AutoScope as(this, new Scope(m_scope));
       EvalStatement(Ast_A1(node));
@@ -804,7 +804,7 @@ Evaluator::EvalQualifiedId(Object* node)
     RValue& rval = scope->GetRValue(name);
 
     // If nested, descend, else retrieve value
-    if(Ast_A2(cur))
+    if(!Ast_A2(cur).Empty())
     {
       // Retrieve namespace scope
       scope = dynamic_cast<NamespaceScope*>(rval.GetObject());
@@ -867,7 +867,7 @@ Evaluator::EvalNamespace(Object* node)
   AutoScope as(this, new NamespaceScope(curNS, name));
 
   // Evaluate declarations in scope
-  if(Ast_A2(node))
+  if(!Ast_A2(node).Empty())
   {
     EvalStatement(Ast_A2(node));
   }
@@ -1002,7 +1002,7 @@ Evaluator::EvalFunctionCall(Object* node)
 
   // Determine arguments
   Object* args = 0;
-  if(Ast_A2(node))
+  if(!Ast_A2(node).Empty())
   {
     args = Ast_A2(node);
   }
@@ -1153,7 +1153,7 @@ Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments&
     if(ai == ae)
     {
       // Must have default value
-      if(!Ast_A4(par))
+      if(Ast_A4(par).Empty())
       {
         throw ScriptException(node, "Not enough arguments in call to '" + fun->GetName() + "'");
       }
@@ -1175,7 +1175,7 @@ Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments&
     }
 
     // Apply type conversion to value
-    if(Ast_A3(par))
+    if(!Ast_A3(par).Empty())
     { 
       ConvertInPlace(node, value, (Value::Types)Ast_A1(Ast_A3(par)).GetInt());
     }
@@ -1211,7 +1211,7 @@ Evaluator::EvalListLiteral(Object* node)
 
       // Evaluate key
       Value key = index++;
-      if(Ast_A2(Ast_A1(child)))
+      if(!Ast_A2(Ast_A1(child)).Empty())
       {
         key = EvalExpression(Ast_A2(Ast_A1(child)));
       }
@@ -1226,7 +1226,7 @@ Evaluator::EvalListLiteral(Object* node)
       (*o)[key] = element;
 
       // Check for next element
-      if(!Ast_A2(child)) 
+      if(Ast_A2(child).Empty()) 
       {
         break;
       }
@@ -1277,7 +1277,7 @@ Evaluator::EvalJsonLiteral(Object* node)
       (*o)[key] = element;
 
       // Check for next element
-      if(!Ast_A2(child)) 
+      if(Ast_A2(child).Empty()) 
       {
         break;
       }
@@ -1441,7 +1441,7 @@ Evaluator::EvalIfStatement(Object* node)
   {
     EvalStatement(Ast_A2(node));
   }
-  else if(Ast_A3(node))
+  else if(!Ast_A3(node).Empty())
   {
     EvalStatement(Ast_A3(node));
   }
@@ -1617,7 +1617,7 @@ Evaluator::EvalTryStatement(Object* node)
     catch(CatchableException const& e)
     {
       // Handle only when handler is present
-      if(Ast_A2(node))
+      if(!Ast_A2(node).Empty())
       {
         // Insert exception into scope
         // TODO this maketemp might crash horribly during exception cleanup!!!
@@ -1637,7 +1637,7 @@ Evaluator::EvalTryStatement(Object* node)
   catch(...)
   {
     // Exception thrown in catch block
-    if(Ast_A3(node))
+    if(!Ast_A3(node).Empty())
     {
       // Evaluate finally
       EvalStatement(Ast_A1(Ast_A3(node)));
@@ -1648,7 +1648,7 @@ Evaluator::EvalTryStatement(Object* node)
   }
 
   // Evaluate finally
-  if(Ast_A3(node))
+  if(!Ast_A3(node).Empty())
   {
     EvalStatement(Ast_A1(Ast_A3(node)));
   }

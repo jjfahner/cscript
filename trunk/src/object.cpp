@@ -41,10 +41,23 @@ Object::GetTypeName() const
   return type;
 }
 
+size_t 
+Object::Count() const 
+{
+  // Update members
+  const_cast<Object*>(this)->UpdateMembers();
+
+  // Return size
+  return m_members.size();
+}
+
 bool 
 Object::ContainsKey(Value const& key, bool checkProto) const
 {
   MemberMap::const_iterator it;
+
+  // Update members
+  const_cast<Object*>(this)->UpdateMembers();
 
   // Find in own members
   if(m_members.count(key))
@@ -73,6 +86,9 @@ bool
 Object::Find(Value const& key, RValue*& pValue, bool checkProto) const
 {
   MemberMap::iterator it;
+
+  // Update members
+  const_cast<Object*>(this)->UpdateMembers();
 
   // Initialize return value
   pValue = 0;
@@ -115,12 +131,15 @@ Object::Find(Value const& key, RValue*& pValue, bool checkProto) const
 RValue& 
 Object::GetRValue(Value const& key)
 {
+  // Find member
   RValue* pValue;
   if(!Find(key, pValue))
   {
+    // Add member
     pValue = &m_members[key];
   }
 
+  // Done
   return *pValue;
 }
 
@@ -139,6 +158,9 @@ Object::Add(Value const& value)
 RValue& 
 Object::Add(Value const& key, Value const& value)
 {
+  // Update members first
+  UpdateMembers();
+
   // Insert new variable
   typedef std::pair<MemberIterator, bool> InsertResult;
   InsertResult const& res = m_members.insert(std::make_pair(key, value));
@@ -165,6 +187,9 @@ Object::Add(Value const& key, RValue* value)
 void 
 Object::AddMembers(Object* source)
 {
+  // Update members
+  UpdateMembers();
+
   // Copy members
   MemberIterator it = source->Begin();
   MemberIterator ie = source->End();
@@ -177,6 +202,9 @@ Object::AddMembers(Object* source)
 void 
 Object::Remove(Value const& key)
 {
+  // Update members
+  UpdateMembers();
+
   // Erase from members
   MemberIterator it = m_members.find(key);
   if(it != m_members.end())

@@ -25,7 +25,7 @@
 #include <object.h>
 #include <variable.h>
 #include <args.h>
-#include <ast.h>
+#include <astnode.h>
 
 class Evaluator;
 

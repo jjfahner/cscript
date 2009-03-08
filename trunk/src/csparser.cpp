@@ -109,17 +109,6 @@ CSParser::OnSyntaxError()
   throw std::runtime_error("CSParser: Syntax error");
 }
 
-Object* 
-CSParser::AllocNode(AstTypes type)
-{
-  // Create node
-  Object* obj = new Object;
-  (*obj)[0] = type;
-
-  // Done
-  return obj;
-}
-
 void 
 CSParser::SetRoot(Object* root)
 {
