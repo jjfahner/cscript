@@ -124,7 +124,6 @@ statement(R) ::= error .                    { R = 0; }
 
 // Expression
 expression(R) ::= assignment_expression(A) . { R = A; }
-// expression(R) ::= xml_expression(A)        . { R = A; }
 
 // Optional expression
 expression_opt(R) ::= .               { R = 0; }
@@ -211,6 +210,7 @@ literal(R) ::= FALSE .            { R = p->AllocNode(literal_value, Value(false)
 literal(R) ::= NULL .             { R = p->AllocNode(literal_value, Value());        }
 literal(R) ::= list_literal(A) .  { R = A; }
 literal(R) ::= json_literal(A) .  { R = A; }
+literal(R) ::= xml_expression(A). { R = A; }
 
 // Id expression
 id_expression(R) ::= unqualified_id(A) . { R = A; }
@@ -495,3 +495,10 @@ catch_block(R) ::= CATCH LPAREN IDENTIFIER(A) RPAREN compound_statement(B) . { R
 finally_block(R) ::= FINALLY compound_statement(A) . { R = p->AllocNode(finally_block, A); }
 
 throw_expression(R) ::= THROW assignment_expression(A) . { R = p->AllocNode(throw_expression, A); }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// XML parser tie-in
+//
+
+xml_expression(R) ::= LT . { R = p->ParseXml(); }

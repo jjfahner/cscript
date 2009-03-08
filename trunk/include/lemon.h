@@ -36,7 +36,7 @@ public:
   //
   // Allocate parser
   //
-  LemonParser(ParserClass* pParser, bool debug = false) :
+  LemonParser(ParserClass* pParser, char const* prefix = "Parser: ", bool debug = false) :
   m_pParser (pParser),
   m_hParser (0)
   {
@@ -44,7 +44,7 @@ public:
     if(debug)
     {
 #ifdef _DEBUG
-      pfunParserTrace(stdout, "Parser: ");
+      pfunParserTrace(stdout, (char*)prefix);
 #else
       throw std::runtime_error("Cannot debug parser in release build");
 #endif

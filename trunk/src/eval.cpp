@@ -207,7 +207,7 @@ Evaluator::OpenFile(String const& filename, std::ifstream& file)
 }
 
 Value
-Evaluator::ParseFile(String const& filename)
+Evaluator::ParseFile(String const& filename, bool executeImmediate)
 {
   // Construct string stream
   std::ifstream is;
@@ -223,14 +223,21 @@ Evaluator::ParseFile(String const& filename)
   CSParser parser;
 
   // Parse source code
-  Object* root = parser.Parse(ls);
+  Object* root = parser.Parse(ls, executeImmediate);
 
-  // Return parsed code
-  return Eval(root);
+  // Execute or return code tree
+  if(executeImmediate)
+  {
+    return Eval(root);
+  }
+  else
+  {
+    return root;
+  }
 }
 
 Value
-Evaluator::ParseText(char const* text, bool doEval)
+Evaluator::ParseText(char const* text, bool executeImmediate)
 {
   // Construct string stream
   std::istrstream is(text, strlen(text));
@@ -242,16 +249,17 @@ Evaluator::ParseText(char const* text, bool doEval)
   CSParser parser;
 
   // Parse source code
-  Object* root = parser.Parse(ls);
+  Object* root = parser.Parse(ls, executeImmediate);
 
-  // Return parsed code
-  if(!doEval)
+  // Execute or return code tree
+  if(executeImmediate)
+  {
+    return Eval(root);
+  }
+  else
   {
     return root;
   }
-
-  // Evaluate code
-  return Eval(root);
 }
 
 void 

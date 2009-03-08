@@ -24,6 +24,7 @@
 class GCString;
 class Object;
 class LexStream;
+class XmlLexer;
 
 class XmlParser
 {
@@ -105,9 +106,11 @@ public:
 
 private:
 
-  Object* m_document;
-  Object* m_curNode;
-  size_t  m_nodeCount;
+  XmlLexer* m_lexer;
+  Object*   m_document;
+  Object*   m_curNode;
+  Object*   m_rootNode;
+  size_t    m_nodeCount;
 
 };
 

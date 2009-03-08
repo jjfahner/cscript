@@ -36,21 +36,9 @@ public:
   CSLexer(LexStream& stream);
 
   //
-  // Lex from string
-  //
-  void SetText(Char* text);
-
-  //
   // Fetch next token
   //
   bool Lex(Token& token);
-
-  //
-  // Current line
-  //
-  int32 GetLine() const {
-    return m_line;
-  }
 
 private:
 
@@ -68,12 +56,8 @@ private:
   //
   // MemberMap
   //
-  LexStream&  m_stream;
-  Char*   m_source;
-  size_t  m_length;
-  Char*   m_strptr;
-  int32   m_line;
-  int     m_string;
+  LexStream&      m_stream;
+  int             m_string;
 
 };
 

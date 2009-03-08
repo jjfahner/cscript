@@ -33,6 +33,14 @@ struct XmlToken
   size_t    m_line;
 };
 
+enum XmlLexerStates
+{
+  xmllsProlog,
+  xmllsElement,
+  xmllsContent,
+  xmllsEpilog
+};
+
 class XmlLexer
 {
 public:
@@ -41,6 +49,11 @@ public:
   // Construction
   //
   XmlLexer(LexStream& stream);
+
+  //
+  // Set parser state
+  //
+  void SetState(XmlLexerStates state);
 
   //
   // At end of input
@@ -77,9 +90,10 @@ private:
   //
   // Members
   //
-  LexStream&    m_stream;
-  GCString*     m_token;
-  bool          m_inNode;
+  LexStream&      m_stream;
+  GCString*       m_token;
+  bool            m_inNode;
+  XmlLexerStates  m_state;
 
 };
 

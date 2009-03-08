@@ -20,8 +20,10 @@
 //////////////////////////////////////////////////////////////////////////
 #include "csparser.h"
 #include "tokens.h"
-#include "cslexer.h"
 #include "lemon.h"
+#include "cslexer.h"
+#include "xmlparser.h"
+#include "lexstream.h"
 
 #include "csparser.gen.h"
 #include "csparser.gen.c"
@@ -43,15 +45,18 @@ typedef LemonParser<
 //////////////////////////////////////////////////////////////////////////
 
 Object* 
-CSParser::Parse(LexStream& stream)
+CSParser::Parse(LexStream& stream, bool debug)
 {
   m_root = 0;
+
+  // Store stream
+  m_stream = &stream;
 
   // Initialize lexer
   CSLexer lexer(stream);
 
   // Allocate parser
-  CSParserImpl parser(this);
+  CSParserImpl parser(this, "CScript Parser: ", debug);
 
   // Parse tokens
   Token token;
@@ -72,8 +77,24 @@ CSParser::Parse(LexStream& stream)
   Object* root = 0;
   std::swap(root, m_root);
 
+  // Forget stream
+  m_stream = 0;
+
   // Done
   return root;
+}
+
+Object* 
+CSParser::ParseXml()
+{
+  // Create xml parser
+  XmlParser parser;
+
+  // Backup two chars in the stream
+  m_stream->m_cursor -= 2;
+
+  // Parse from current stream
+  return parser.Parse(*m_stream);
 }
 
 void 
@@ -94,13 +115,6 @@ CSParser::AllocNode(AstTypes type)
   // Create node
   Object* obj = new Object;
   (*obj)[0] = type;
-
-//   // Set file position
-//   if(false && m_file /*&& m_debug*/)
-//   {
-//     (*obj)[10] = m_file->GetPath();
-//     (*obj)[11] = m_lexer->GetLine();
-//   }
 
   // Done
   return obj;

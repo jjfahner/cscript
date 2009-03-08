@@ -54,14 +54,14 @@
   p->OnSyntaxError();
 }
 
-%nonassoc EOF WS .
+%nonassoc EOF WS UNKNOWN .
 
 //////////////////////////////////////////////////////////////////////////
 
 //
 // The root element of this grammar
 //
-document ::= prolog element misc .
+document ::= prolog element misc EOF .
 
 //
 // The document prolog
@@ -142,7 +142,8 @@ start_element ::= element_prolog attribute_list_opt GT  .
 //
 // End element
 //
-end_element ::= LT_SL name(A) GT .
+end_element ::= end_element_prolog GT .
+end_element_prolog ::= LT_SL name(A) .
 {
   p->endElement(A);
 }
