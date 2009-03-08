@@ -100,11 +100,14 @@ public:
   //
 
   //
+  // Update member map. Implemented by derived classes.
+  //
+  virtual void UpdateMembers() {}
+
+  //
   // Member count
   //
-  size_t Count() const {
-    return m_members.size();
-  }
+  virtual size_t Count() const;
 
   //
   // Is a certain key present

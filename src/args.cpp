@@ -21,7 +21,7 @@
 #include "args.h"
 #include "object.h"
 #include "variable.h"
-#include "ast.h"
+#include "astnode.h"
 
 Value const& 
 Arguments::at(String const& name) const

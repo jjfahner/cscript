@@ -418,6 +418,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\astnode.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\convert.h"
 				>
 			</File>

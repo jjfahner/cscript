@@ -30,9 +30,9 @@
 %include {
 
 #include "ast.h"
-#include "tokens.h"
 #include "convert.h"
 #include "csparser.h"
+#include "astnode.h"
 
 #include <cassert>
 
