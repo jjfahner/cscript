@@ -35,7 +35,12 @@ public:
   //
   // Parse contents of stream
   //
-  Object* Parse(LexStream&);
+  Object* Parse(LexStream&, bool debug = false);
+
+  //
+  // Parse xml sub-expression
+  //
+  Object* ParseXml();
 
   //
   // Errors raised by parser
@@ -62,7 +67,8 @@ private:
   //
   // Members
   //
-  Object* m_root;
+  Object*     m_root;
+  LexStream*  m_stream;
 
 };
 

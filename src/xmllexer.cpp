@@ -31,6 +31,12 @@ m_inNode  (false)
 {
 }
 
+void 
+XmlLexer::SetState(XmlLexerStates state)
+{
+  m_state = state;
+}
+
 bool 
 XmlLexer::Eof()
 {
@@ -53,6 +59,7 @@ bool
 XmlLexer::LexImpl(XmlToken& token)
 {
   // Create token string buffer
+  token.m_type = 0;
   token.m_text = new GCString();
   m_token = token.m_text;
 
@@ -66,22 +73,18 @@ XmlLexer::LexImpl(XmlToken& token)
   // Start next token
   m_stream.Start(m_token);
 
-  // Handle node content
+  // Try to parse a text node
   if(!m_inNode)
   {
-    // Try to parse a text node
     token.m_type = ParseTextNode();
-    if(token.m_type)
-    {
-      return true;
-    }
   }
 
-  // Retrieve next tokn
-  token.m_type = ParseNextToken();
-
-  // Append parse data
-  m_stream.Flush();
+  // Retrieve next tokon
+  if(token.m_type == 0)
+  {
+    token.m_type = ParseNextToken();
+    m_stream.Flush();
+  }
 
   // Do special handling
   switch(token.m_type)
@@ -140,6 +143,11 @@ XmlLexer::ParseTextNode()
       // End of non-empty whitepace
       if(space && !isspace(*m_stream.m_cursor))
       {
+        if(m_state == xmllsEpilog)
+        {
+          m_stream.Start();
+          return XML_EOF;
+        }
         space = false;
       }
 

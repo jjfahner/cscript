@@ -29,19 +29,21 @@
 #include "xmlparser.gen.h"
 #include "xmlparser.gen.c"
 
-GCSTR(str_nodeType,       "nodeType");
-GCSTR(str_nodeName,       "nodeName");
-GCSTR(str_nodeTypeName,   "nodeTypeName");
-GCSTR(str_childNodes,     "childNodes");
-GCSTR(str_attributes,     "attributes");
-GCSTR(str_parentNode,     "parentNode");
-GCSTR(str_target,         "target");
-GCSTR(str_nodeCount,      "nodeCount");
-GCSTR(str_localName,      "localName");
-GCSTR(str_qualifiedName,  "qualifiedName");
-GCSTR(str_namespace,      "namespace");
-GCSTR(str_data,           "data");
-GCSTR(str_value,          "value");
+GCSTR(str_nodeType,         "nodeType");
+GCSTR(str_nodeName,         "nodeName");
+GCSTR(str_nodeTypeName,     "nodeTypeName");
+GCSTR(str_childNodes,       "childNodes");
+GCSTR(str_attributes,       "attributes");
+GCSTR(str_parentNode,       "parentNode");
+GCSTR(str_target,           "target");
+GCSTR(str_nodeCount,        "nodeCount");
+GCSTR(str_localName,        "localName");
+GCSTR(str_qualifiedName,    "qualifiedName");
+GCSTR(str_namespace,        "namespace");
+GCSTR(str_data,             "data");
+GCSTR(str_value,            "value");
+GCSTR(str_ownerDocument,    "ownerDocument");
+GCSTR(str_documentElement,  "documentElement");
 
 GCSTR(str_xmlElement,               "#element");
 GCSTR(str_xmlAttribute,             "#attribute");
@@ -123,9 +125,10 @@ XmlParser::Parse(LexStream& stream)
 {
   // Create lexer
   XmlLexer lexer(stream);
+  m_lexer = &lexer;
 
   // Allocate parser
-  XmlParserImpl parser(this);
+  XmlParserImpl parser(this, "XML Parser: ", true);
 
   // Start document
   startDocument();
@@ -177,9 +180,10 @@ Object*
 XmlParser::createNode(XmlNodeTypes type)
 {
   Object* node = new Object();
-  (*node)[str_nodeType]     = (int)type;
-  (*node)[str_nodeName]     = XmlNodeName(type);
-  (*node)[str_nodeTypeName] = XmlNodeName(type);
+  (*node)[str_ownerDocument]  = m_document;
+  (*node)[str_nodeType]       = (int)type;
+  (*node)[str_nodeName]       = XmlNodeName(type);
+  (*node)[str_nodeTypeName]   = XmlNodeName(type);
 
   // Add child nodes and attributes
   switch(type)
@@ -215,8 +219,9 @@ void
 XmlParser::startDocument()
 {
   // Initialize state
-  m_document = 0;
-  m_curNode  = 0;
+  m_document  = 0;
+  m_curNode   = 0;
+  m_rootNode  = 0;
   m_nodeCount = 0;
 
   // Create document
@@ -224,6 +229,9 @@ XmlParser::startDocument()
 
   // Set as current node
   m_curNode = m_document;
+
+  // Set lexer state
+  m_lexer->SetState(xmllsElement);
 }
 
 void
@@ -269,6 +277,16 @@ XmlParser::startElement(XmlName const& name)
 
   // Set as current element
   m_curNode = node;
+
+  // Set root node
+  if(m_rootNode == 0)
+  {
+    m_rootNode = node;
+    (*m_document)[str_documentElement] = node;
+  }
+
+  // Set lexer state
+  m_lexer->SetState(xmllsElement);
 }
 
 void 
@@ -287,6 +305,12 @@ XmlParser::endElement(XmlName const& name)
 
   // Move back up in tree
   m_curNode = (*m_curNode)["parentNode"].GetObject();
+
+  // Root node
+  if(m_curNode == m_rootNode)
+  {
+    m_lexer->SetState(xmllsEpilog);
+  }
 }
 
 void 

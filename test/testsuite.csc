@@ -491,6 +491,8 @@ function main()
   assert("Namespace lookup (3)", ::outer::f(), "inner1outerinner1");
   assert("Namespace lookup (4)", ::outer::inner2::f(), "outerinner1");
 
+  assert("XML parser", <?xml version="1.0"?><foo><bar/></foo>, "");
+
   // Print result
   if(errors == 0)
   {
@@ -513,7 +515,7 @@ collect();
 
 // Replace print
 var tprint = print;
-var print = function(arg) {};
+//var print = function(arg) {};
 
 // Invoke main program
 for(var i = 0; i < 10; ++i) 
@@ -523,7 +525,7 @@ for(var i = 0; i < 10; ++i)
 }
 
 // Restore print
-unset print;
+//unset print;
 
 // Run garbage collector
 print("Collecting...\n");

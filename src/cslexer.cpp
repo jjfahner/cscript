@@ -35,20 +35,10 @@
 
 CSLexer::CSLexer(LexStream& stream) :
 m_stream  (stream),
-m_strptr  (0),
-m_line    (0),
 m_string  (0)
 {
 }
 
-
-void 
-CSLexer::SetText(Char* text)
-{
-  m_source = text;
-  m_strptr = text;
-  m_line   = 1;
-}
 
 bool
 CSLexer::Lex(Token& token)
@@ -92,7 +82,7 @@ CSLexer::Lex(Token& token)
     // Depending on token, do specialized parsing
     switch(token.m_type)
     {
-    case CS_NEWLINE:    ++m_line; continue;
+    case CS_NEWLINE:    /*++m_line; */continue;
     case CS_WHITESPACE: continue;
     case CS_LIT_STRING: return LexString(token);
     case CS_SLCOMMENT:  LexComment(CS_SLCOMMENT); continue;

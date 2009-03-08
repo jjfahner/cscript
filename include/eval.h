@@ -126,12 +126,12 @@ private:
   //
   // Parse a string
   //
-  Value ParseText(char const* text, bool doEval = true);
+  Value ParseText(char const* text, bool executeImmediate = true);
 
   //
   // Parse a file
   //
-  Value ParseFile(String const& filename);
+  Value ParseFile(String const& filename, bool executeImmediate = true);
 
   //
   // Error reporting
