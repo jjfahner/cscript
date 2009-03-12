@@ -168,7 +168,6 @@ Object::Add(Value const& key, Value const& value)
   // Check insert result
   if(!res.second)
   {
-    delete value;
     throw std::runtime_error("Variable already declared");
   }
 
