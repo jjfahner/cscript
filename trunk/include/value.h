@@ -25,6 +25,7 @@
 #include <gcstring.h>
 
 class Object;
+class List;
 
 class Value
 {
@@ -37,7 +38,8 @@ public:
     tInt,
     tReal,
     tString,
-    tObject
+    tObject,
+    tList
   };
 
   typedef bool          Bool;
@@ -113,6 +115,12 @@ public:
   {
   }
 
+  Value(List* list) :
+  m_type    (tList),
+  m_list    (list)
+  {
+  }
+
   void Clear()
   {
     m_type = tNull;
@@ -131,26 +139,32 @@ public:
 
   Bool GetBool() const
   {
-    return (m_type == tBool) ? m_bool : 
-      throw std::runtime_error("Value is not of type bool");
+    if(m_type == tBool) return m_bool;
+    throw std::runtime_error("Value is not of type bool");
   }
 
   Int GetInt() const
   {
-    return (m_type == tInt) ? m_int : 
-      throw std::runtime_error("Value is not of type int");
+    if(m_type == tInt) return m_int;
+    throw std::runtime_error("Value is not of type int");
   }
 
   GCString const& GetString() const
   {
-    return *((m_type == tString) ? m_string :
-      throw std::runtime_error("Value is not of type string"));
+    if(m_type == tString) return *m_string;
+    throw std::runtime_error("Value is not of type string");
   }
 
   Object* GetObject() const
   {
-    return m_type == tObject ? m_object :
-      throw std::runtime_error("Value is not of type object");
+    if(m_type == tObject) return m_object;
+    throw std::runtime_error("Value is not of type object");
+  }
+
+  List* GetList() const
+  {
+    if(m_type == tList) return m_list;
+    throw std::runtime_error("Value is not of type list");
   }
 
   operator Int () const
@@ -166,6 +180,11 @@ public:
   operator Object * () const
   {
     return GetObject();
+  }
+
+  operator List * () const
+  {
+    return GetList();
   }
 
   Object* operator -> () const
@@ -215,6 +234,7 @@ private:
     Int             m_int;
     Bool            m_bool;
     Object*         m_object;
+    List*           m_list;
   };
 
 };

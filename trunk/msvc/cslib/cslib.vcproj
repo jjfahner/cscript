@@ -470,6 +470,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\list.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\map_iter.h"
 				>
 			</File>
