@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include <native/array.h>
 #include <eval.h>
+#include <list.h>
 
 DEFINE_NATIVE_LINKAGE(Array)
 
@@ -27,9 +28,12 @@ DEFINE_NATIVE_LINKAGE(Array)
 
 NATIVE_CALL("count(arg)")
 {
-  if(args[0].Type() != Value::tObject)
+  switch(args[0].Type())
   {
-    throw std::runtime_error("Invalid type for count");
+  case Value::tObject:
+    return args[0].GetObject()->Count();
+  case Value::tList:
+    return args[0].GetList()->Count();
   }
-  return args[0]->Count();
+  throw std::runtime_error("Invalid type for count");
 }

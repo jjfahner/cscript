@@ -208,6 +208,7 @@ literal(R) ::= TRUE .             { R = p->AllocNode(literal_value, Value(true))
 literal(R) ::= FALSE .            { R = p->AllocNode(literal_value, Value(false));   }
 literal(R) ::= NULL .             { R = p->AllocNode(literal_value, Value());        }
 literal(R) ::= list_literal(A) .  { R = A; }
+literal(R) ::= map_literal (A) .  { R = A; }
 literal(R) ::= json_literal(A) .  { R = A; }
 
 // Id expression
@@ -227,13 +228,19 @@ nested_name_specifier(R) ::= NS_SEP IDENTIFIER(A) nested_name_specifier(B) . { R
 // List literal
 list_literal(R) ::= LBRACKET list_content(A) RBRACKET .       { R = p->AllocNode(list_literal, A); }
 list_literal(R) ::= LBRACKET RBRACKET .                       { R = p->AllocNode(list_literal); }
-
 list_content(R) ::= list_entry(A) .                           { R = p->AllocNode(list_content, A); }
 list_content(R) ::= list_entry(A) COMMA list_content(B) .     { R = p->AllocNode(list_content, A, B); }
-
 list_entry(R)   ::= expression(A) .                           { R = p->AllocNode(list_entry, A); }
-list_entry(R)   ::= expression(A)    COLON expression(B) .    { R = p->AllocNode(list_entry, B, A); }
-list_entry(R)   ::= operator_decl(A) COLON expression(B) .    { R = p->AllocNode(list_entry, B, A); }
+
+//
+// Map literal
+//
+map_literal(R) ::= LBRACKET map_content(A) RBRACKET .         { R = p->AllocNode(map_literal, A); }
+map_content(R) ::= map_entry(A) .                             { R = p->AllocNode(map_content, A); }
+map_content(R) ::= map_entry(A) COMMA map_content(B) .        { R = p->AllocNode(map_content, A, B); }
+map_entry(R)   ::= expression(A)    COLON expression(B) .     { R = p->AllocNode(map_entry, A, B); }
+map_entry(R)   ::= operator_decl(A) COLON expression(B) .     { R = p->AllocNode(map_entry, A, B); }
+
 
 // JSON literal
 json_literal(R) ::= LBRACE json_content(A) RBRACE . { R = p->AllocNode(json_literal, A); }

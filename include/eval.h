@@ -31,6 +31,7 @@
 #include <iosfwd>
 
 class Object;
+class List;
 class CSLexer;
 class Scope;
 class Function;
@@ -174,6 +175,7 @@ private:
   RValue& EvalUnqualifiedId(Object* node);
   RValue& EvalQualifiedId(Object* node);
   RValue& EvalListLiteral(Object* node);
+  RValue& EvalMapLiteral(Object* node);
   RValue& EvalJsonLiteral(Object* node);
   RValue& EvalNewExpression(Object* node);
   RValue& EvalMemberExpression(Object* node);
@@ -183,7 +185,6 @@ private:
   RValue& EvalTernary(Object* node);
   RValue& EvalPrefix(Object* node);
   RValue& EvalPostfix(Object* node);
-  RValue& EvalIndex(Object* node);
   RValue& EvalConversion(Object* node);
   RValue& EvalClosure(Object* node);
   RValue& EvalXmlExpression(Object* node);
@@ -192,6 +193,10 @@ private:
   RValue& EvalShellCommand(Object* node);
   RValue& EvalTypeConversion(Object* node);
   RValue& EvalOperatorDeclaration(Object* node);
+
+  RValue& EvalIndex(Object* node);
+  RValue& EvalObjectIndex(Object* node, Object* lhs);
+  RValue& EvalListIndex(Object* node, List* lhs);
 
   //
   // Function handlers

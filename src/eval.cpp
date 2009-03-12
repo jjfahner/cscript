@@ -30,8 +30,9 @@
 #include "timer.h"
 #include "enumerator.h"
 #include "lexstream.h"
-#include "csparser.h"
+#include "list.h"
 
+#include "csparser.h"
 #include "csparser.gen.h"
 
 #include <list>
@@ -485,6 +486,7 @@ Evaluator::EvalExpression(Object* node)
   case qualified_id_g:        return EvalQualifiedId(node);
   case qualified_id_l:        return EvalQualifiedId(node);
   case list_literal:          return EvalListLiteral(node);
+  case map_literal:           return EvalMapLiteral(node);
   case json_literal:          return EvalJsonLiteral(node);
   case new_expression:        return EvalNewExpression(node);
   case this_expression:       return EvalThisExpression(node);
@@ -696,21 +698,30 @@ Evaluator::EvalPostfix(Object* node)
 RValue&
 Evaluator::EvalIndex(Object* node)
 {
-  // Check type of left-hand side
+  // Evaluate left-hand side
   RValue& lhs = EvalExpression(Ast_A1(node));
+
+  // Delegate to typed implementation
   switch(lhs.Type())
   {
   case Value::tNull:
-    lhs.GetLValue() = new Object();
-    break;
+    lhs.GetLValue() = new List();
+    return EvalListIndex(node, lhs.GetList());
+
   case Value::tObject:
-    // Fine
-    break;
+    return EvalObjectIndex(node, lhs.GetObject());
+
+  case Value::tList:
+    return EvalListIndex(node, lhs.GetList());
+
   default:  
     throw ScriptException(node, "Invalid type for index operator");
   }
+}
 
-  // Locate value
+RValue&
+Evaluator::EvalObjectIndex(Object* node, Object* lhs)
+{
   RValue* val = 0;
   if(Ast_A2(node).Empty())
   {
@@ -718,13 +729,13 @@ Evaluator::EvalIndex(Object* node)
     Value key = lhs->Count();
 
     // Make sure this key doesn't exist.
-    if(lhs.GetObject()->Find(key, val))
+    if(lhs->Find(key, val))
     {
       throw std::runtime_error("Key to add already exists");
     }
     
     // Add value
-    val = &lhs.GetObject()->Add(key, Value());
+    val = &lhs->Add(key, Value());
   }
   else
   {
@@ -732,7 +743,7 @@ Evaluator::EvalIndex(Object* node)
     RValue& rhs = EvalExpression(Ast_A2(node));
 
     // Retrieve value
-    if(!lhs.GetObject()->Find(rhs, val))
+    if(!lhs->Find(rhs, val))
     {
       val = &lhs->Add(rhs, Value());
     }
@@ -740,6 +751,22 @@ Evaluator::EvalIndex(Object* node)
   
   // Done
   return StoreTemp(new BoundLValue(val->GetLValue(), lhs));
+}
+
+RValue&
+Evaluator::EvalListIndex(Object* node, List* lhs)
+{
+  // No index expression; refers to newly added element
+  if(Ast_A2(node).Empty())
+  {
+    return lhs->AddTail();
+  }
+
+  // Evaluate index expression
+  RValue& rhs = EvalExpression(Ast_A2(node));
+
+  // Retrieve from list
+  return lhs->GetAt((int)rhs.GetInt());
 }
 
 RValue&
@@ -1195,9 +1222,8 @@ Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments&
 RValue&
 Evaluator::EvalListLiteral(Object* node)
 {
-  // Create empty map
-  Value v(new Object());
-  Object* o = v.GetObject();
+  // Create empty list
+  List* list = new List();
   
   // Recurse into map values
   if(!Ast_A1(node).Empty())
@@ -1206,15 +1232,41 @@ Evaluator::EvalListLiteral(Object* node)
     int index = 0;
     while(child)
     {
-      // Evaluate element
-      RValue const& element = EvalExpression(Ast_A1(Ast_A1(child)));
+      // Add element to list
+      list->AddTail(EvalExpression(Ast_A1(Ast_A1(child))));
 
-      // Evaluate key
-      Value key = index++;
-      if(!Ast_A2(Ast_A1(child)).Empty())
+      // Check for next element
+      if(Ast_A2(child).Empty()) 
       {
-        key = EvalExpression(Ast_A2(Ast_A1(child)));
+        break;
       }
+
+      // Set next element
+      child = Ast_A2(child);
+    }
+  }
+
+  // Done
+  return MakeTemp(list);
+}
+
+RValue&
+Evaluator::EvalMapLiteral(Object* node)
+{
+  // Create empty map
+  Value v(new Object());
+  Object* o = v.GetObject();
+
+  // Recurse into map values
+  if(!Ast_A1(node).Empty())
+  {
+    Object* child = Ast_A1(node);
+    int index = 0;
+    while(child)
+    {
+      // Evaluate key and value
+      RValue const& key = EvalExpression(Ast_A1(Ast_A1(child)));
+      RValue const& val = EvalExpression(Ast_A2(Ast_A1(child)));
 
       // Check for duplicate key in object, ignore prototype
       if(o->ContainsKey(key, false))
@@ -1223,7 +1275,7 @@ Evaluator::EvalListLiteral(Object* node)
       }
 
       // Insert into member variables
-      (*o)[key] = element;
+      o->Add(key, val);
 
       // Check for next element
       if(Ast_A2(child).Empty()) 

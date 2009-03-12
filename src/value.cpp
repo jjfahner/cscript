@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include "value.h"
 #include "object.h"
+#include "list.h"
 
 #include <typeinfo>
 
@@ -30,6 +31,7 @@ Value::GetGCObject() const
   {
   case tString: return const_cast<GCString*>(m_string);
   case tObject: return m_object;
+  case tList:   return m_list;
   default:      return 0;
   }
 }
