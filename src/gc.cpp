@@ -67,9 +67,13 @@ GC::Object::Object(bool complex)
   m_pinned  = false;
   m_complex = complex;
 
-  // Reserve space efficiently
-  size_t reserve = (g_objects.size() + 1023) / 1024 * 1024;
-  g_objects.reserve(reserve);
+  // Reserve space in blocks
+  size_t current = g_objects.size();
+  size_t reserve = (current + 1023) / 1024 * 1024;
+  if(reserve > g_objects.capacity())
+  {
+    g_objects.reserve(reserve);
+  }
 
   // Add object to object list
   g_objects.push_back(this);
@@ -144,11 +148,11 @@ GC::Collect(ObjectVec const& roots)
     next.clear();
   }
 
-  // Record time for marking
+  // Record time again
   ci.m_markPhase = Timer::Ticks() - ci.m_markPhase;
+  ci.m_deletePhase = Timer::Ticks();
 
   // Now delete objects and compact array
-  ci.m_deletePhase = Timer::Ticks();
   size_t pos = 0, ins = 0, len = g_objects.size();
   for(; pos < len; ++pos)
   {
