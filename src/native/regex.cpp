@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include <native/regex.h>
 #include <native/regex_i.h>
+#include <ctype.h>
 
 DEFINE_NATIVE_LINKAGE(Regex)
 

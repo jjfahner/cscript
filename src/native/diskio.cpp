@@ -21,6 +21,7 @@
 #include <native/diskio.h>
 #include <args.h>
 #include <object.h>
+#include <cstdio>
 
 DEFINE_NATIVE_LINKAGE(Diskio)
 

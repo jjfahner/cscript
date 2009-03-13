@@ -23,6 +23,7 @@
 #include "list.h"
 
 #include <typeinfo>
+#include <cstdio>
 
 GC::Object* 
 Value::GetGCObject() const
