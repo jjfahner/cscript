@@ -45,7 +45,39 @@ NATIVE_CALL("cocreate(string classname)")
   static CoInit coInit;
 
   // Create instance
-  return ComObject::Create(args[0].GetString());
+  return ComObject::Create(evaluator, args[0].GetString());
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+NATIVE_CALL("cosleep(int timeout)")
+{
+  MSG msg;
+  
+  DWORD timeout = (DWORD)args[0].GetInt();  
+  DWORD ticks = GetTickCount();
+
+  while(true)
+  {
+    int remain = timeout - (GetTickCount() - ticks);
+    if(remain < 0)
+    {
+      break;
+    }
+
+    if(MsgWaitForMultipleObjects(0, 0, false, remain, QS_ALLINPUT) == WAIT_TIMEOUT)
+    {
+      break;
+    }
+    
+    while(PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+    {
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
+    }
+  }
+
+  return Value();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,7 +114,7 @@ ValueToVariant(Value const& value, VARIANT& variant)
 //////////////////////////////////////////////////////////////////////////
 
 void
-VariantToValue(VARIANT const& variant, Value& value)
+VariantToValue(Evaluator* evaluator, VARIANT const& variant, Value& value)
 {
   USES_CONVERSION;
 
@@ -132,7 +164,7 @@ VariantToValue(VARIANT const& variant, Value& value)
     // Change to destination type
     if(SUCCEEDED(VariantChangeType(&vt, &variant, 0, vtDst)))
     {
-      return VariantToValue(vt, value);
+      return VariantToValue(evaluator, vt, value);
     }
 
     // Failed conversion
@@ -168,7 +200,7 @@ VariantToValue(VARIANT const& variant, Value& value)
   case VT_DISPATCH: 
     if(variant.pdispVal)
     {
-      value = ComObject::Create(variant.pdispVal);
+      value = ComObject::Create(evaluator, variant.pdispVal);
     }
     break;
         
@@ -180,7 +212,7 @@ VariantToValue(VARIANT const& variant, Value& value)
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ Object* 
-ComObject::Create(String progID)
+ComObject::Create(Evaluator* evaluator, String progID)
 {
   USES_CONVERSION;
 
@@ -197,14 +229,14 @@ ComObject::Create(String progID)
   if(SUCCEEDED(CoCreateInstance(clsid, NULL, CLSCTX_ALL, 
     IID_IDispatch, (void**)&pDispatch)))
   {
-    return ComObject::Create(pDispatch);
+    return ComObject::Create(evaluator, pDispatch);
   }
 
   // Second attempt: use CLSCTX_LOCAL_SERVER
   if(SUCCEEDED(CoCreateInstance(clsid, NULL, CLSCTX_LOCAL_SERVER, 
     IID_IDispatch,(void**)&pDispatch)))
   {
-    return ComObject::Create(pDispatch);
+    return ComObject::Create(evaluator, pDispatch);
   }
 
   // Failed
@@ -212,12 +244,13 @@ ComObject::Create(String progID)
 }
 
 /*static*/ Object* 
-ComObject::Create(IDispatch* pdisp)
+ComObject::Create(Evaluator* evaluator, IDispatch* pdisp)
 {
-  return new ComObject(pdisp);
+  return new ComObject(evaluator, pdisp);
 }
 
-ComObject::ComObject(IDispatch* pdisp) : 
+ComObject::ComObject(Evaluator* evaluator, IDispatch* pdisp) : \
+m_evaluator (evaluator),
 m_dispatch  (pdisp),
 m_typeInfo  (0)
 {
@@ -245,7 +278,7 @@ ComObject::~ComObject()
 }
 
 bool 
-ComObject::ContainsKey(Value const& key, bool checkProto)
+ComObject::ContainsKey(Value const& key, bool checkProto) const
 {
   // Lazy as I am: use the implementation of Find for ContainsKey
   RValue* pDummy;
@@ -253,31 +286,92 @@ ComObject::ContainsKey(Value const& key, bool checkProto)
 }
 
 bool 
-ComObject::Find(Value const& name, RValue*& ptr, bool checkProto)
+ComObject::Find(Value const& name, RValue*& ptr, bool checkProto) const
+{
+  // Find on primary interface
+  if(FindOnInterface(*m_typeInfo, name, ptr, false))
+  {
+    return true;
+  }
+
+  // Retrieve connection point container
+  IConnectionPointContainerPtr pConnPtC(m_dispatch);
+  if(pConnPtC == 0)
+  {
+    return false;
+  }
+
+  // Retrieve connection point enumerator
+  IEnumConnectionPointsPtr pEnum;
+  if(FAILED(pConnPtC->EnumConnectionPoints(&pEnum)))
+  {
+    return false;
+  }
+
+  // Enumerate connection points
+  for(ULONG num = 0;;)
+  {
+    // Retrieve connection point
+    IConnectionPointPtr pConnPt;
+    if(FAILED(pEnum->Next(1, &pConnPt, &num)) || num != 1)
+    {
+      break;
+    }
+
+    // Retrieve interface iid
+    IID iid;
+    if(FAILED(pConnPt->GetConnectionInterface(&iid)))
+    {
+      continue;
+    }
+
+    // Retrieve type info
+    ITypeInfoPtr pTypeInfo;
+    if(!m_typeInfo->GetTypeInfoForIID(iid, &pTypeInfo))
+    {
+      continue;
+    }
+
+    // Find event on this interface
+    ComTypeInfo cti(pTypeInfo);
+    if(FindOnInterface(cti, name, ptr, pConnPt))
+    {
+      return true;
+    }
+  }
+
+  // Done
+  return 0;
+}
+
+bool 
+ComObject::FindOnInterface(ComTypeInfo& cti, Value const& name, RValue*& ptr, IConnectionPointPtr const& pConnPt) const
 {
   // Find method info
   DISPID dispid;
-  if(!m_typeInfo->GetDispIdOfName(name.GetString(), dispid))
+  if(!cti.GetDispIdOfName(name.GetString(), dispid))
   {
     return false;
   }
 
   // Retrieve proper name
   String properName;
-  if(!m_typeInfo->GetNameOfDispId(dispid, properName))
+  if(!cti.GetNameOfDispId(dispid, properName))
   {
     return false;
   }
 
   // Find in current member list
-  if(Find(properName, ptr, checkProto))
+  ComMemberMap::const_iterator it = m_members.find(properName);
+  if(it != m_members.end())
   {
+    ptr = it->second;
     return true;
   }
 
   // Retrieve function info
   FUNCDESC* pfd;
-  if(!m_typeInfo->GetFuncDescOfDispId(dispid, &pfd))
+  if(!cti.GetFuncDescOfDispId(dispid, &pfd))
   {
     return false;
   }
@@ -285,16 +379,29 @@ ComObject::Find(Value const& name, RValue*& ptr, bool checkProto)
   // Create right sort of object
   if(pfd->invkind == INVOKE_FUNC)
   {
-    ptr = new ROVariable(new ComMemberFunction(properName, dispid, this));
+    if(pConnPt)
+    {
+      ptr = new ComEventHandler(properName, dispid, this, pConnPt);
+    }
+    else
+    {
+      ptr = new ROVariable(new ComMemberFunction(properName, dispid, this));
+    }
   }
   else
   {
+    if(pConnPt)
+    {
+      throw std::runtime_error("Unexpected: property on source interface");
+    }
+
     if(!(pfd->invkind & INVOKE_PROPERTYGET))
     {
       throw std::runtime_error("Write-only COM properties not supported");
     }
+    
     if((pfd->invkind & INVOKE_PROPERTYPUT)    ||
-       (pfd->invkind & INVOKE_PROPERTYPUTREF) )
+      (pfd->invkind & INVOKE_PROPERTYPUTREF) )
     {
       ptr = new RWComVariable(properName, dispid, this);
     }
@@ -305,7 +412,7 @@ ComObject::Find(Value const& name, RValue*& ptr, bool checkProto)
   }
 
   // Add to member variables
-  Add(properName, ptr);
+  m_members[properName] = ptr;
 
   // Done
   return true;
@@ -406,7 +513,7 @@ ComObject::Invoke(DISPID dispid, INVOKEKIND invokeKind, Arguments& args) const
   
   // Convert result value
   Value result;
-  VariantToValue(vResult, result);
+  VariantToValue(m_evaluator, vResult, result);
   VariantClear(&vResult);
 
   // Done
@@ -459,12 +566,13 @@ ComObject::GetEnumerator(Value const& value) const
   }
 
   // Construct enumerator
-  return new ComEnumerator(pEnum);
+  return new ComEnumerator(m_evaluator, pEnum);
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-ComEnumerator::ComEnumerator(IEnumVARIANTPtr const& pEnum) :
+ComEnumerator::ComEnumerator(Evaluator* evaluator, IEnumVARIANTPtr const& pEnum) :
+m_evaluator (evaluator),
 m_pEnum (pEnum)
 {
 }
@@ -498,7 +606,7 @@ ComEnumerator::GetNext(Value& value)
   }
 
   // Convert value
-  VariantToValue(vElem, value);
+  VariantToValue(m_evaluator, vElem, value);
   VariantClear(&vElem);
 
   // Done
@@ -591,4 +699,129 @@ Value
 ComMemberFunction::Execute(Evaluator*, Arguments& args)
 {
   return m_inst->Invoke(m_dispid, INVOKE_FUNC, args);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+ComEventHandler::ComEventHandler(String name, DISPID dispid, ComObject const* inst, IConnectionPointPtr const& pConnPt) :
+m_name    (name),
+m_dispid  (dispid),
+m_inst    (inst)
+{
+  // Retrieve iid for event interface
+  pConnPt->GetConnectionInterface(&m_iid);
+
+  // Retrieve type info
+  ITypeInfoPtr pTypeInfo;
+  m_inst->m_typeInfo->GetTypeInfoForIID(m_iid, &pTypeInfo);
+  m_typeInfo = new ComTypeInfo(pTypeInfo);
+
+  // Connect to interface
+  pConnPt->Advise(this, &m_cookie);
+}
+
+Value const& 
+ComEventHandler::GetValue() const
+{
+  return m_handler;
+}
+
+void 
+ComEventHandler::SetValue(Value const& rhs)
+{
+  // TODO check type of rhs, must be function
+  m_handler = rhs;
+}
+
+HRESULT WINAPI
+ComEventHandler::QueryInterface(REFIID riid, void **ppvObject)
+{
+  *ppvObject = 0;
+  if(IsEqualGUID(riid, IID_IUnknown)  || 
+     IsEqualGUID(riid, IID_IDispatch) ||
+     IsEqualGUID(riid, m_iid)         )
+  {
+    *ppvObject = this;
+  }
+  else
+  {
+    return E_NOINTERFACE;
+  }
+
+  static_cast<IUnknown*>(*ppvObject)->AddRef();
+  
+  return S_OK;
+}
+
+ULONG WINAPI
+ComEventHandler::AddRef()
+{
+  return 1;
+}
+
+ULONG WINAPI 
+ComEventHandler::Release()
+{
+  return 0;
+}
+
+HRESULT WINAPI
+ComEventHandler::GetTypeInfoCount(UINT *pctinfo)
+{
+  *pctinfo = 0;
+  return E_NOTIMPL;
+}
+
+HRESULT WINAPI
+ComEventHandler::GetTypeInfo(UINT iTInfo, 
+                             LCID lcid, 
+                             ITypeInfo **ppTInfo)
+{
+  *ppTInfo = 0;
+  return E_NOTIMPL;
+}
+
+HRESULT WINAPI
+ComEventHandler::GetIDsOfNames(REFIID riid, 
+                               LPOLESTR *rgszNames, 
+                               UINT cNames, 
+                               LCID lcid, 
+                               DISPID *rgDispId)
+{
+  *rgDispId = 0;
+  return E_NOTIMPL;
+}
+
+HRESULT WINAPI
+ComEventHandler::Invoke(DISPID dispIdMember, 
+                        REFIID riid, 
+                        LCID lcid, 
+                        WORD wFlags, 
+                        DISPPARAMS *pDispParams, 
+                        VARIANT *pVarResult, 
+                        EXCEPINFO *pExcepInfo, 
+                        UINT *puArgErr)
+{
+  // Retrieve name of function
+  String name;
+  m_typeInfo->GetNameOfDispId(dispIdMember, name);  
+
+  // Compare with subscribed name
+  if(name != m_name)
+  {
+    return E_NOTIMPL;
+  }
+
+  // Retrieve the function information
+  FUNCDESC* pfd;
+  if(!m_typeInfo->GetFuncDescOfDispId(dispIdMember, &pfd))
+  {
+    return E_UNEXPECTED;
+  }
+
+  // Build call stack
+  
+
+  // Done
+  return S_OK;
 }

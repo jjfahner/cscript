@@ -122,7 +122,6 @@ Object::Find(Value const& key, RValue*& pValue, bool checkProto) const
 
   // Clone value
   pValue = &m_members.insert(std::make_pair(key, pValue->GetValue())).first->second;
-  
 
   // Done
   return true;
