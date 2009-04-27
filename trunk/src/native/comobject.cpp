@@ -819,8 +819,30 @@ ComEventHandler::Invoke(DISPID dispIdMember,
     return E_UNEXPECTED;
   }
 
-  // Build call stack
+  // Extract handler
+  Function* handler = dynamic_cast<Function*>(m_handler.GetObject());
+  if(handler == 0)
+  {
+    return E_UNEXPECTED;
+  }
   
+  // Check argument counts
+  //if()
+
+  // Build argument list
+  Arguments args;
+  for(SHORT i = pfd->cParams - 1; i >= 0; --i)
+  {
+    VARIANT& src = pDispParams->rgvarg[i];
+    Value    dst;
+
+    VariantToValue(m_inst->m_evaluator, src, dst);
+    
+    args.push_back(dst);
+  }
+
+  // Build call stack
+  handler->Execute(m_inst->m_evaluator, args);
 
   // Done
   return S_OK;
