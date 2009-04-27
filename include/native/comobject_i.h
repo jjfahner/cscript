@@ -40,6 +40,8 @@ class ComTypeInfo;
 class ComMemberFunction;
 class ComEnumerator;
 
+typedef std::map<Value, RValue*> ComMemberMap;
+
 //////////////////////////////////////////////////////////////////////////
 
 class ComObject : public Object
@@ -49,12 +51,12 @@ public:
   //
   // Class factory
   //
-  static Object* Create(String progID);
+  static Object* Create(Evaluator* evaluator, String progID);
 
   //
   // Class factory
   //
-  static Object* Create(IDispatch* p);
+  static Object* Create(Evaluator* evaluator, IDispatch* p);
 
   //
   // Class type name
@@ -67,12 +69,12 @@ public:
   //
   // Is a certain key present
   //
-  virtual bool ContainsKey(Value const& key, bool checkProto = true);
+  virtual bool ContainsKey(Value const& key, bool checkProto = true) const;
 
   //
   // Find a member
   //
-  virtual bool Find(Value const& key, RValue*& pValue, bool checkProto = true);
+  virtual bool Find(Value const& key, RValue*& pValue, bool checkProto = true) const;
 
   //
   // Raw method invocation
@@ -94,7 +96,7 @@ protected:
   //
   // Construction
   //
-  ComObject(IDispatch* pdisp = 0);
+  ComObject(Evaluator* evaluator, IDispatch* pdisp = 0);
 
   //
   // Destruction
@@ -102,19 +104,28 @@ protected:
   ~ComObject();
 
   //
+  // Find member on specific interface
+  //
+  virtual bool FindOnInterface(ComTypeInfo& cti, Value const& key, RValue*& pValue, 
+    IConnectionPointPtr const& pConn = IConnectionPointPtr()) const;
+
+  //
   // MemberMap
   //
   friend class ComMemberFunction;
   friend class ComMemberVariable;
+  friend class ComEventHandler;
+  Evaluator*    m_evaluator;
   IDispatch*    m_dispatch;
   ComTypeInfo*  m_typeInfo;
+  mutable ComMemberMap m_members;
 };
 
 //////////////////////////////////////////////////////////////////////////
 
 class ComEnumerator : public Enumerator
 {
-  Evaluator*      m_eval;
+  Evaluator*      m_evaluator;
   IEnumVARIANTPtr m_pEnum;
 
 public:
@@ -122,7 +133,7 @@ public:
   //
   // Construction
   //
-  ComEnumerator(IEnumVARIANTPtr const& pEnum);
+  ComEnumerator(Evaluator* evaluator, IEnumVARIANTPtr const& pEnum);
 
   //
   // Reset enumerator to first entry
@@ -225,6 +236,51 @@ protected:
   //
   ComObject const* m_inst;
   DISPID       m_dispid;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class ComEventHandler : public IDispatch, public LValue
+{
+public:
+
+  //
+  // Construction
+  //
+  ComEventHandler(String name, DISPID dispid, ComObject const* instance, IConnectionPointPtr const& pConnPt);
+
+  //
+  // LValue implementation
+  //
+  Value const& GetValue() const;
+  void SetValue(Value const& rhs);
+
+  //
+  // IDispatch implementation
+  //
+  HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
+  ULONG STDMETHODCALLTYPE AddRef();
+  ULONG STDMETHODCALLTYPE Release();
+  HRESULT STDMETHODCALLTYPE GetTypeInfoCount(UINT *pctinfo);
+  HRESULT STDMETHODCALLTYPE GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo **ppTInfo);
+  HRESULT STDMETHODCALLTYPE GetIDsOfNames(REFIID riid, LPOLESTR *rgszNames, UINT cNames, 
+                                          LCID lcid, DISPID *rgDispId);
+  HRESULT STDMETHODCALLTYPE Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, 
+                                    DISPPARAMS *pDispParams, 
+                                    VARIANT *pVarResult, 
+                                    EXCEPINFO *pExcepInfo, 
+                                    UINT *puArgErr);
+
+private:
+
+  ComObject const*  m_inst;
+  ComTypeInfo*      m_typeInfo;
+  String            m_name;
+  DISPID            m_dispid;
+  GUID              m_iid;
+  DWORD             m_cookie;
+  Value             m_handler;
 
 };
 

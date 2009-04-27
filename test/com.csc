@@ -1,40 +1,6 @@
-/////////////////////////////////////////////////////////////////////
-//
-// Test COM functionality
-//
+var e = cocreate("Excel.Application");
 
-//
-// Recursive descent through XML tree
-//
-function enumNodes(node)
-{
-  print(node.nodeName);
-  
-  if(node.attributes != null)
-  {
-	  for(var att in node.attributes)
-	  {
-		  print(" " + att.nodeName + "=" + att.nodeValue);	
-	  }
-  }
+e.visible = true;
+e.SheetActivate = function(sheet) { sheet.Close(); };
 
-  print("\n");
-
-  for(var elm in node.childNodes)
-  {
-	  enumNodes(elm);
-  }
-}
-
-// Create document instance
-var xmlDoc = cocreate("Microsoft.XMLDOM");
-
-// Set properties
-xmlDoc.async = false;
-xmlDoc.preserveWhitespace = false;
-
-// Load XML data
-xmlDoc.load("sample.xml");
-
-// Enumerate tree
-enumNodes(xmlDoc);
+cosleep(10000);

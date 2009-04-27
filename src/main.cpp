@@ -32,10 +32,10 @@
 #include <native/string.h>
 
 // Link to windows-only native functions
-// #ifdef WIN32
-// #include <native/comobject.h>
-// #include <native/winapi.h>
-// #endif
+#ifdef WIN32
+#include <native/comobject.h>
+#include <native/winapi.h>
+#endif
 
 // Standard library stuff
 #include <iostream>
