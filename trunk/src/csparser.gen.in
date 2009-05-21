@@ -193,7 +193,7 @@ primary_expression(R) ::= literal(A) .                  { R = A; }
 primary_expression(R) ::= id_expression(A) .            { R = A; }
 primary_expression(R) ::= LPAREN expression(A) RPAREN . { R = A; }
 primary_expression(R) ::= THIS .                        { R = p->AllocNode(this_expression); }
-primary_expression(R) ::= closure_declaration(A) .      { R = A; }
+primary_expression(R) ::= closure_expression(A) .       { R = A; }
 primary_expression(R) ::= shell_command(A) .            { R = A; }
 primary_expression(R) ::= type_conversion(A) .          { R = A; }
 
@@ -206,7 +206,7 @@ literal(R) ::= LIT_REAL(A) .      { R = p->AllocNode(literal_value, Value(str2fl
 literal(R) ::= LIT_STRING(A) .    { R = p->AllocNode(literal_value, Value(String(A))); }
 literal(R) ::= TRUE .             { R = p->AllocNode(literal_value, Value(true));    }
 literal(R) ::= FALSE .            { R = p->AllocNode(literal_value, Value(false));   }
-literal(R) ::= NULL .             { R = p->AllocNode(literal_value, Value());        }
+literal(R) ::= NULL .             { R = p->AllocNode(null_literal); }
 literal(R) ::= list_literal(A) .  { R = A; }
 literal(R) ::= map_literal (A) .  { R = A; }
 literal(R) ::= json_literal(A) .  { R = A; }
@@ -349,7 +349,7 @@ native_declaration(R) ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN e
 
 // Function declaration
 function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocNode(function_declaration, String(A),  B, C); }
-closure_declaration(R)  ::= FUNCTION LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocNode(closure_declaration, String("function"), B, C); }
+closure_expression(R)   ::= FUNCTION LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocNode(closure_expression, String("function"), B, C); }
 
 // Single parameter
 parameter(R) ::= type(A) IDENTIFIER(B) .        { R = p->AllocNode(parameter, String(B), ptByVal, A); }

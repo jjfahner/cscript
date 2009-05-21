@@ -39,13 +39,14 @@ public:
   //
   // Wrappers for Value interface
   //
-  Value::Types      Type()        const { return GetValue().Type();      }
-  bool              Empty()       const { return GetValue().Empty();     }
-  Value::Bool       GetBool()     const { return GetValue().GetBool();   }
-  Value::Int        GetInt()      const { return GetValue().GetInt();    }
-  GCString const&   GetString()   const { return GetValue().GetString(); }
-  Object*           GetObject()   const { return GetValue().GetObject(); }
-  List*             GetList()     const { return GetValue().GetList();   }
+  Value::Types      Type()        const { return GetValue().Type();        }
+  DataType*         GetDataType() const { return GetValue().GetDataType(); }
+  bool              Empty()       const { return GetValue().Empty();       }
+  Value::Bool       GetBool()     const { return GetValue().GetBool();     }
+  Value::Int        GetInt()      const { return GetValue().GetInt();      }
+  GCString const&   GetString()   const { return GetValue().GetString();   }
+  Object*           GetObject()   const { return GetValue().GetObject();   }
+  List*             GetList()     const { return GetValue().GetList();     }
   GC::Object*       GetGCObject() const { return GetValue().GetGCObject(); }
 
   //

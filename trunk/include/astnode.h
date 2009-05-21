@@ -25,6 +25,8 @@
 #include <object.h>
 #include <ast.h>
 
+class DataType;
+
 class AstNode : public Object 
 {
 public:
@@ -47,6 +49,7 @@ public:
   // Members
   //
   AstTypes  m_type;
+  DataType* m_dataType;
   Value     m_a1;
   Value     m_a2;
   Value     m_a3;
@@ -108,6 +111,18 @@ inline Value const& Ast_A3(Object* obj) {
 }
 inline Value const& Ast_A4(Object* obj) {
   return static_cast<AstNode*>(obj)->m_a4;
+}
+inline AstNode* AstNode_A1(Object* obj) {
+  return static_cast<AstNode*>(Ast_A1(obj).GetObject());
+}
+inline AstNode* AstNode_A2(Object* obj) {
+  return static_cast<AstNode*>(Ast_A2(obj).GetObject());
+}
+inline AstNode* AstNode_A3(Object* obj) {
+  return static_cast<AstNode*>(Ast_A3(obj).GetObject());
+}
+inline AstNode* AstNode_A4(Object* obj) {
+  return static_cast<AstNode*>(Ast_A4(obj).GetObject());
 }
 
 //////////////////////////////////////////////////////////////////////////

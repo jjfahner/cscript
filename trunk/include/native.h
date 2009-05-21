@@ -183,8 +183,13 @@ protected:
 
 };
 
-#define NATIVE_METHOD(class, method, decl) \
-  (*this)[#method] = new NativeMethod<class>(#method, & class :: method, evaluator->ParseNativeCall(decl))
+#define NATIVE_METHOD(class, method, decl)            \
+{                                                     \
+  Object* node = Evaluator::ParseNativeCall(decl);    \
+  this->Add(Ast_A1(node).GetString(),                 \
+    new NativeMethod<class>(Ast_A1(node).GetString(), \
+      & class :: method, node));                      \
+}
 
 //////////////////////////////////////////////////////////////////////////
 

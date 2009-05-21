@@ -508,6 +508,10 @@ function main()
 // Start by invoking main()
 //
 
+print(null.Name() + "\n");
+print(10.ToString() + "\n");
+print(false.ToString() + "\n");
+
 // Cleanup any garbage objects and store current count
 collect();
 

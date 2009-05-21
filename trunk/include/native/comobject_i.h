@@ -101,13 +101,18 @@ protected:
   //
   // Destruction
   //
-  ~ComObject();
+  virtual ~ComObject();
 
   //
   // Find member on specific interface
   //
   virtual bool FindOnInterface(ComTypeInfo& cti, Value const& key, RValue*& pValue, 
     IConnectionPointPtr const& pConn = IConnectionPointPtr()) const;
+
+  //
+  // Garbage collection
+  //
+  virtual void MarkObjects(GC::ObjectVec& grey);
 
   //
   // MemberMap
@@ -241,7 +246,7 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 
-class ComEventHandler : public IDispatch, public LValue
+class ComEventHandler : public IDispatch, public LValue, public GC::ComplexObject
 {
 public:
 
@@ -274,7 +279,16 @@ public:
 
 private:
 
+  //
+  // Destruction
+  //
+  virtual void Delete() override;
+
+  //
+  // Members
+  //
   ComObject const*  m_inst;
+  LONG              m_refs;
   ComTypeInfo*      m_typeInfo;
   String            m_name;
   DISPID            m_dispid;

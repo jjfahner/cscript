@@ -21,6 +21,7 @@
 #include "value.h"
 #include "object.h"
 #include "list.h"
+#include "datatype.h"
 
 #include <typeinfo>
 #include <cstdio>
@@ -35,6 +36,20 @@ Value::GetGCObject() const
   case tList:   return m_list;
   default:      return 0;
   }
+}
+
+DataType* 
+Value::GetDataType() const
+{
+  switch(m_type)
+  {
+  case Value::tNull:    return NullType::Instance();
+  case Value::tBool:    return BooleanType::Instance();
+  case Value::tInt:     return IntegerType::Instance();
+  case Value::tString:  return StringType::Instance();
+  case Value::tObject:  return GetObject()->GetDataType();
+  }
+  throw std::runtime_error("Invalid type");
 }
 
 /*static*/ Value::String 

@@ -31,6 +31,7 @@
 #include "enumerator.h"
 #include "lexstream.h"
 #include "list.h"
+#include "datatype.h"
 
 #include "csparser.h"
 #include "csparser.gen.h"
@@ -274,23 +275,25 @@ Evaluator::ReportError(String text, Object* source)
   std::cout << text << "\n";
 }
 
-Object* 
+/*static*/ Object* 
 Evaluator::ParseNativeCall(String const& declaration)
 {
+  Evaluator eval;
+
   // Parse the call
   try
   {
     // Reset reporter
-    m_reporter.Reset();
+    eval.m_reporter.Reset();
 
     // Reset native call pointer
-    m_resultNode = 0;
+    eval.m_resultNode = 0;
 
     // Parse code
-    Value result = ParseText((String("__native ") + declaration).c_str(), false);
+    Value result = eval.ParseText((String("__native ") + declaration).c_str(), false);
 
     // Check error count
-    if(m_reporter.GetErrorCount())
+    if(eval.m_reporter.GetErrorCount())
     {
       return 0;
     }
@@ -482,6 +485,7 @@ Evaluator::EvalExpression(Object* node)
   case index_expression:      return EvalIndex(node);
   case function_call:         return EvalFunctionCall(node);
   case literal_value:         return MakeTemp(Ast_A1(node));
+  case null_literal:          return MakeTemp(Value());
   case unqualified_id:        return EvalUnqualifiedId(node);
   case qualified_id_g:        return EvalQualifiedId(node);
   case qualified_id_l:        return EvalQualifiedId(node);
@@ -491,7 +495,7 @@ Evaluator::EvalExpression(Object* node)
   case new_expression:        return EvalNewExpression(node);
   case this_expression:       return EvalThisExpression(node);
   case member_expression:     return EvalMemberExpression(node);  
-  case closure_declaration:   return EvalClosure(node);
+  case closure_expression:    return EvalClosure(node);
   case xml_expression:        return EvalXmlExpression(node);
   case shell_command:         return EvalShellCommand(node);
   case type_conversion:       return EvalTypeConversion(node);
@@ -1613,10 +1617,14 @@ Evaluator::EvalMemberExpression(Object* node)
 {
   // Retrieve left-hand side
   RValue& lhs = EvalExpression(Ast_A1(node));
-  Object* object = ValueToType<Object>(lhs);
-  if(object == 0)
+  Object* object;
+  if(lhs.Type() == Value::tObject)
   {
-    throw std::runtime_error("Left-hand side does not yield an object");
+    object = ValueToType<Object>(lhs);
+  }
+  else
+  {
+    object = lhs.GetDataType()->Box(lhs.GetValue());
   }
 
   // Determine name

@@ -76,9 +76,16 @@ public:
   protected:
 
     //
-    // Virtual destruction
+    // Virtual destructor
     //
     virtual ~Object() {}
+
+    //
+    // Virtual destruction
+    //
+    virtual void Delete() { 
+      delete this; 
+    }
 
     //
     // Assignment

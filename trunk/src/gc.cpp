@@ -42,19 +42,19 @@ GC::ObjectCount()
 void 
 GC::Pin(Object* obj)
 {
-  if(!obj->m_complex)
-  {
+//   if(!obj->m_complex)
+//   {
     static_cast<SimpleObject*>(obj)->m_pinned = true;
-  }
+//   }
 }
 
 void 
 GC::Unpin(Object* obj)
 {
-  if(!obj->m_complex)
-  {
+//   if(!obj->m_complex)
+//   {
     static_cast<SimpleObject*>(obj)->m_pinned = false;
-  }
+//   }
 }
 
 GC::Object::Object(bool complex)
@@ -148,6 +148,8 @@ GC::Collect(ObjectVec const& roots)
     next.clear();
   }
 
+  // TODO Resurrect pinned object structures
+
   // Record time again
   ci.m_markPhase = Timer::Ticks() - ci.m_markPhase;
   ci.m_deletePhase = Timer::Ticks();
@@ -159,7 +161,7 @@ GC::Collect(ObjectVec const& roots)
     GC::Object*& obj = g_objects[pos];
     if(obj->m_collect && !obj->m_pinned)
     {
-      delete obj;
+      obj->Delete();
     }
     else
     {

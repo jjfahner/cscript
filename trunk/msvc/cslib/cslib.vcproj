@@ -438,6 +438,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\datatype.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\enumerator.h"
 				>
 			</File>

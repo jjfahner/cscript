@@ -109,7 +109,7 @@ public:
   //
   // Parse native call
   //
-  Object* ParseNativeCall(String const& declaration);
+  static Object* ParseNativeCall(String const& declaration);
 
   //
   // Error handlers
