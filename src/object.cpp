@@ -21,6 +21,7 @@
 #include "object.h"
 #include "variable.h"
 #include "function.h"
+#include "datatype.h"
 
 #include <algorithm>
 #include <typeinfo>
@@ -29,6 +30,17 @@
 static const String g_prototype("prototype");
 
 //////////////////////////////////////////////////////////////////////////
+
+Object::Object() :
+m_dataType (ObjectType::Instance())
+{
+}
+
+DataType* 
+Object::GetDataType() const
+{
+  return m_dataType;
+}
 
 String 
 Object::GetTypeName() const
@@ -158,7 +170,7 @@ RValue&
 Object::Add(Value const& key, Value const& value)
 {
   // Update members first
-  UpdateMembers();
+  //UpdateMembers();
 
   // Insert new variable
   typedef std::pair<MemberIterator, bool> InsertResult;

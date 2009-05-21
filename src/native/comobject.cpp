@@ -569,6 +569,29 @@ ComObject::GetEnumerator(Value const& value) const
   return new ComEnumerator(m_evaluator, pEnum);
 }
 
+void 
+ComObject::MarkObjects(GC::ObjectVec& grey)
+{
+  // Iterate over members
+  ComMemberMap::iterator mi, me;
+  mi = m_members.begin();
+  me = m_members.end();
+  for(; mi != me; ++mi)
+  {
+    // Check key content
+    if(GC::Object* o = mi->first.GetGCObject())
+    {
+      grey.push_back(o);
+    }
+
+    // Check value content
+    if(GC::Object* o = mi->second->GetGCObject())
+    {
+      grey.push_back(o);
+    }
+  }
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 ComEnumerator::ComEnumerator(Evaluator* evaluator, IEnumVARIANTPtr const& pEnum) :
@@ -706,7 +729,8 @@ ComMemberFunction::Execute(Evaluator*, Arguments& args)
 ComEventHandler::ComEventHandler(String name, DISPID dispid, ComObject const* inst, IConnectionPointPtr const& pConnPt) :
 m_name    (name),
 m_dispid  (dispid),
-m_inst    (inst)
+m_inst    (inst),
+m_refs    (1)
 {
   // Retrieve iid for event interface
   pConnPt->GetConnectionInterface(&m_iid);
@@ -718,6 +742,12 @@ m_inst    (inst)
 
   // Connect to interface
   pConnPt->Advise(this, &m_cookie);
+}
+
+void 
+ComEventHandler::Delete()
+{
+  Release();
 }
 
 Value const& 
@@ -756,12 +786,16 @@ ComEventHandler::QueryInterface(REFIID riid, void **ppvObject)
 ULONG WINAPI
 ComEventHandler::AddRef()
 {
-  return 1;
+  return InterlockedIncrement(&m_refs);
 }
 
 ULONG WINAPI 
 ComEventHandler::Release()
 {
+  if(InterlockedDecrement(&m_refs) == 0)
+  {
+    delete this;
+  }
   return 0;
 }
 

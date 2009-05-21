@@ -48,10 +48,15 @@ public:
   //
   // Construction
   //
-  Object() {}
+  Object();
 
   //
   // Object type
+  //
+  virtual DataType* GetDataType() const;
+
+  //
+  // Object type name
   //
   virtual String GetTypeName() const;
 
@@ -180,6 +185,7 @@ private:
   //
   // Object members
   //
+  mutable DataType* m_dataType;
   mutable MemberMap m_members;
 
 };

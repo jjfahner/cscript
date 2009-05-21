@@ -65,6 +65,11 @@ public:
 private:
 
   //
+  // Determine node data type
+  //
+  DataType* GetDataType(AstNode* node);
+
+  //
   // Members
   //
   Object*     m_root;
@@ -81,31 +86,41 @@ private:
 inline AstNode* 
 CSParser::AllocNode(AstTypes type)
 {
-  return new AstNode(type);
+  AstNode* node = new AstNode(type);
+  node->m_dataType = GetDataType(node);
+  return node;
 }
 
 inline AstNode* 
 CSParser::AllocNode(AstTypes type, Value const& a1)
 {
-  return new AstNode(type, a1);
+  AstNode* node = new AstNode(type, a1);
+  node->m_dataType = GetDataType(node);
+  return node;
 }
 
 inline AstNode* 
 CSParser::AllocNode(AstTypes type, Value const& a1, Value const& a2)
 {
-  return new AstNode(type, a1, a2);
+  AstNode* node = new AstNode(type, a1, a2);
+  node->m_dataType = GetDataType(node);
+  return node;
 }
 
 inline AstNode* 
 CSParser::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3)
 {
-  return new AstNode(type, a1, a2, a3);
+  AstNode* node = new AstNode(type, a1, a2, a3);
+  node->m_dataType = GetDataType(node);
+  return node;
 }
 
 inline AstNode* 
 CSParser::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4)
 {
-  return new AstNode(type, a1, a2, a3, a4);
+  AstNode* node = new AstNode(type, a1, a2, a3, a4);
+  node->m_dataType = GetDataType(node);
+  return node;
 }
 
 #endif // CSCRIPT_CS_PARSER_H

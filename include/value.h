@@ -26,6 +26,7 @@
 
 class Object;
 class List;
+class DataType;
 
 class Value
 {
@@ -131,6 +132,8 @@ public:
   {
     return m_type;
   }
+
+  DataType* GetDataType() const;
 
   bool Empty() const
   {
