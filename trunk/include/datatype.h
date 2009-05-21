@@ -118,6 +118,8 @@ public:
 
 };
 
+//////////////////////////////////////////////////////////////////////////
+
 class BooleanType : public ScalarType
 {
 public:
@@ -129,6 +131,9 @@ public:
   //
   static DataType* Instance();
 
+  //
+  // Constructor
+  //
   BooleanType(DeclType value = DeclType());
 
   //
@@ -136,6 +141,9 @@ public:
   //
   virtual String TypeName() const;
 
+  //
+  // Convert to string
+  //
   virtual String ToString() const;
 
   //
@@ -149,6 +157,8 @@ protected:
 
 };
 
+//////////////////////////////////////////////////////////////////////////
+
 class IntegerType : public ScalarType
 {
 public:
@@ -160,6 +170,9 @@ public:
   //
   static DataType* Instance();
 
+  //
+  // Constructor
+  //
   IntegerType(DeclType value = DeclType());
 
   //
@@ -183,6 +196,8 @@ protected:
 
 };
 
+//////////////////////////////////////////////////////////////////////////
+
 class StringType : public ScalarType
 {
 public:
@@ -197,6 +212,9 @@ public:
   //
   static DataType* Instance();
 
+  //
+  // Constructor
+  //
   StringType(DeclType const& value = DeclType());
 
   //
@@ -230,20 +248,12 @@ public:
   //
   // Retrieve singleton instance
   //
-  static DataType* Instance()
-  {
-    static ObjectType m_type;
-    GC::Pin(&m_type);
-    return &m_type;
-  }
+  static DataType* Instance();
 
   //
   // Type name as string
   //
-  virtual String TypeName() const
-  {
-    return "object";
-  }
+  virtual String TypeName() const;
 
 };
 
@@ -256,20 +266,12 @@ public:
   //
   // Retrieve singleton instance
   //
-  static DataType* Instance()
-  {
-    static FunctionType m_type;
-    GC::Pin(&m_type);
-    return &m_type;
-  }
+  static DataType* Instance();
 
   //
   // Type name as string
   //
-  virtual String TypeName() const
-  {
-    return "function";
-  }
+  virtual String TypeName() const;
 
 };
 
@@ -282,20 +284,12 @@ public:
   //
   // Retrieve singleton instance
   //
-  static DataType* Instance()
-  {
-    static NativeFunctionType m_type;
-    GC::Pin(&m_type);
-    return &m_type;
-  }
+  static DataType* Instance();
 
   //
   // Type name as string
   //
-  virtual String TypeName() const
-  {
-    return "native_function";
-  }
+  virtual String TypeName() const;
 
 };
 
