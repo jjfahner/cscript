@@ -36,7 +36,7 @@ class MemberVariable;
 //
 // Member map
 //
-typedef std::map<Value, MemberVariable> MemberMap;
+typedef std::map<String, MemberVariable> MemberMap;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -118,12 +118,12 @@ public:
   //
   // Is a certain key present
   //
-  virtual bool ContainsKey(Value const& key, bool checkProto = true) const;
+  virtual bool ContainsKey(String const& key, bool checkProto = true) const;
 
   //
   // Find a member
   //
-  virtual bool Find(Value const& key, RValue*& pValue, bool checkProto = true) const;
+  virtual bool Find(String const& key, RValue*& pValue, bool checkProto = true) const;
 
   //
   // Add new item to end
@@ -133,27 +133,27 @@ public:
   //
   // Add a member
   //
-  RValue& Add(Value const& key, Value const& value);
+  RValue& Add(String const& key, Value const& value);
 
   //
   // Add a member with a custom RValue-derived type
   //
-  RValue& Add(Value const& key, RValue* value);
+  RValue& Add(String const& key, RValue* value);
 
   //
   // Retrieve variable as rvalue
   //
-  virtual RValue& GetRValue(Value const& key);
+  virtual RValue& GetRValue(String const& key);
 
   //
   // Retrieve variable as lvalue
   //
-  virtual LValue& GetLValue(Value const& key);
+  virtual LValue& GetLValue(String const& key);
 
   //
   // Use index operator to retrieve lvalue
   //
-  LValue& operator [] (Value const& key)
+  LValue& operator [] (String const& key)
   {
     return GetLValue(key);
   }
@@ -166,7 +166,7 @@ public:
   //
   // Remove a member
   //
-  virtual void Remove(Value const& key);
+  virtual void Remove(String const& key);
 
 protected:
 

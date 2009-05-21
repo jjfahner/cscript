@@ -267,11 +267,11 @@ Evaluator::ParseText(String const& text, bool executeImmediate)
 void 
 Evaluator::ReportError(String text, Object* source)
 {
-  if(source && source->ContainsKey(10))
-  {
-    std::cout << source->GetRValue(10).GetString() << "("
-              << source->GetRValue(11).GetInt()    << ") : ";
-  }
+//   if(source && source->ContainsKey(10))
+//   {
+//     std::cout << source->GetRValue(10).GetString() << "("
+//               << source->GetRValue(11).GetInt()    << ") : ";
+//   }
   std::cout << text << "\n";
 }
 
@@ -779,7 +779,7 @@ Evaluator::EvalUnqualifiedId(Object* node)
   RValue* ptr;
   Object* owner;
 
-  Value const& name = Ast_A1(node).GetString();
+  String const& name = Ast_A1(node).GetString();
   if(m_scope->Lookup(name, ptr, owner))
   {
     return owner ? StoreTemp(BoundValue::Create(*ptr, owner)) : *ptr;
@@ -921,19 +921,20 @@ Evaluator::EvalVariableDeclaration(Object* node)
 
   // Create variable
   // TODO deletion of newed variable
-  m_scope->Add(Ast_A1(node).GetString(), value);
+  m_scope->Add(Ast_A1(node), value);
 }
 
 void
 Evaluator::EvalFunctionDeclaration(Object* node)
 {
-  Function* fun = new ScriptFunction(Ast_A1(node), node);
+  String name = Ast_A1(node);
+  Function* fun = new ScriptFunction(name, node);
   
-  (*fun)["name"]   = fun->GetName();
+  (*fun)["name"]   = name;
   (*fun)["parent"] = m_scope;
   (*fun)["scope"]  = FindNamespace(m_scope);
 
-  m_scope->Add(Ast_A1(node).GetString(), fun);
+  m_scope->Add(name, fun);
 }
 
 void
@@ -989,8 +990,7 @@ Evaluator::EvalFunctionIndex(Object* node)
 void 
 Evaluator::EvalExternDeclaration(Object* node)
 {
-  m_scope->Add(Ast_A1(node).GetString(), 
-    new ExternFunction(Ast_A1(node), node));
+  m_scope->Add(Ast_A1(node), new ExternFunction(Ast_A1(node), node));
 }
 
 RValue&
@@ -1576,7 +1576,7 @@ Evaluator::EvalNewExpression(Object* node)
 {
   // Find object
   RValue* rval;
-  if(!m_scope->Lookup(Ast_A1(node), rval))
+  if(!m_scope->Lookup(Ast_A1(node).GetString(), rval))
   {
     throw ScriptException(node, "Variable not found");
   }
@@ -1632,13 +1632,13 @@ Evaluator::EvalMemberExpression(Object* node)
   }
 
   // Determine name
-  Value const& name = Ast_A1(Ast_A2(node));
+  String const& name = Ast_A1(Ast_A2(node));
 
   // Lookup right-hand side
   RValue* rval;
   if(!object->Find(name, rval))
   {
-    throw ScriptException(node, "Object has no member '" + name.GetString() + "'");
+    throw ScriptException(node, "Object has no member '" + name + "'");
   }
 
   // Construct bound member

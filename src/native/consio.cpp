@@ -113,9 +113,10 @@ void print_ast(Object& node, std::set<Object*>& done, int level)
   std::cout << std::ios::hex << &node;
   for(int i = 0; i < 5; ++i)
   {
-    if(node.ContainsKey(i))
+    // This is broken; members are now called "a{n}"
+    if(node.ContainsKey(ValString(i)))
     {
-      Value const& v = node[i];
+      Value const& v = node[ValString(i)];
       std::cout << " [" << i << "] : ";
       switch(v.Type())
       {

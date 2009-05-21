@@ -30,22 +30,6 @@
 #include "xmlparser.gen.h"
 #include "xmlparser.gen.c"
 
-GCSTR(str_nodeType,         "nodeType");
-GCSTR(str_nodeName,         "nodeName");
-GCSTR(str_nodeTypeName,     "nodeTypeName");
-GCSTR(str_childNodes,       "childNodes");
-GCSTR(str_attributes,       "attributes");
-GCSTR(str_parentNode,       "parentNode");
-GCSTR(str_target,           "target");
-GCSTR(str_nodeCount,        "nodeCount");
-GCSTR(str_localName,        "localName");
-GCSTR(str_qualifiedName,    "qualifiedName");
-GCSTR(str_namespace,        "namespace");
-GCSTR(str_data,             "data");
-GCSTR(str_value,            "value");
-GCSTR(str_ownerDocument,    "ownerDocument");
-GCSTR(str_documentElement,  "documentElement");
-
 GCSTR(str_xmlElement,               "#element");
 GCSTR(str_xmlAttribute,             "#attribute");
 GCSTR(str_xmlText,                  "#text");
@@ -182,10 +166,10 @@ Object*
 XmlParser::createNode(XmlNodeTypes type)
 {
   Object* node = new Object();
-  (*node)[str_ownerDocument]  = m_document;
-  (*node)[str_nodeType]       = (int)type;
-  (*node)[str_nodeName]       = XmlNodeName(type);
-  (*node)[str_nodeTypeName]   = XmlNodeName(type);
+  (*node)["ownerDocument"]  = m_document;
+  (*node)["nodeType"]       = (int)type;
+  (*node)["nodeName"]       = XmlNodeName(type);
+  (*node)["nodeTypeName"]   = XmlNodeName(type);
 
   // Add child nodes and attributes
   switch(type)
@@ -193,22 +177,22 @@ XmlParser::createNode(XmlNodeTypes type)
   case xmlDocument:
   case xmlDocumentFragment:
   case xmlElement:
-    (*node)[str_childNodes]   = new Object();
-    (*node)[str_attributes]   = new Object();
+    (*node)["childNodes"]   = new Object();
+    (*node)["attributes"]   = new Object();
     break;
   }
 
   // Attach to parent node
   if(m_curNode)
   {
-    (*node)[str_parentNode] = m_curNode;
+    (*node)["parentNode"] = m_curNode;
     if(type == xmlAttribute)
     {
-      (*m_curNode)[str_attributes].GetObject()->Add(node);
+      (*m_curNode)["attributes"].GetObject()->Add(node);
     }
     else
     {
-      (*m_curNode)[str_childNodes].GetObject()->Add(node);
+      (*m_curNode)["childNodes"].GetObject()->Add(node);
     }
   }
 
@@ -260,8 +244,8 @@ XmlParser::processingInstruction(XmlName const& target, GCString* data)
 
   // Create processing instruction
   Object* node = createNode(xmlProcessingInstruction);
-  (*node)[str_target] = target.m_localName;
-  (*node)[str_data]   = data;
+  (*node)["target"] = target.m_localName;
+  (*node)["data"]   = data;
 }
 
 void 
@@ -273,9 +257,9 @@ XmlParser::startElement(XmlName const& name)
 
   // Create element
   Object* node = createNode(xmlElement);
-  (*node)[str_localName]      = name.m_localName;
-  (*node)[str_qualifiedName]  = name.m_localName;
-  (*node)[str_namespace]      = name.m_namespace;
+  (*node)["localName"]      = name.m_localName;
+  (*node)["qualifiedName"]  = name.m_localName;
+  (*node)["namespace"]      = name.m_namespace;
 
   // Set as current element
   m_curNode = node;
@@ -284,7 +268,7 @@ XmlParser::startElement(XmlName const& name)
   if(m_rootNode == 0)
   {
     m_rootNode = node;
-    (*m_document)[str_documentElement] = node;
+    (*m_document)["documentElement"] = node;
   }
 
   // Set lexer state
@@ -324,10 +308,10 @@ XmlParser::attribute(XmlName const& name, GCString* value)
 
   // Add attribute to current node
   Object* node = createNode(xmlAttribute);
-  (*node)[str_localName]      = name.m_localName;
-  (*node)[str_qualifiedName]  = name.m_localName;
-  (*node)[str_namespace]      = name.m_namespace;
-  (*node)[str_value]          = value;
+  (*node)["localName"]      = name.m_localName;
+  (*node)["qualifiedName"]  = name.m_localName;
+  (*node)["namespace"]      = name.m_namespace;
+  (*node)["value"]          = value;
 }
 
 void 
@@ -339,7 +323,7 @@ XmlParser::ignorableWhitespace(GCString* text)
 
   // Create text node
   Object* node = createNode(xmlText);
-  (*node)[str_data] = text;
+  (*node)["data"] = text;
 }
 
 void 
@@ -351,5 +335,5 @@ XmlParser::characters(GCString* text)
 
   // Create text node
   Object* node = createNode(xmlText);
-  (*node)[str_data] = text;
+  (*node)["data"] = text;
 }
