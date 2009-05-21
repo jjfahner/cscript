@@ -23,6 +23,7 @@
 
 #include <cscript.h>
 #include <object.h>
+#include <value.h>
 #include <ast.h>
 
 class DataType;

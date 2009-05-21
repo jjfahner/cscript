@@ -22,6 +22,7 @@
 #define CSCRIPT_LISTOBJECT_H
 
 #include <cscript.h>
+#include <variable.h>
 #include <gc.h>
 
 #include <list>

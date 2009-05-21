@@ -19,27 +19,28 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "object.h"
+#include "datatype.h"
 #include "variable.h"
 #include "function.h"
-#include "datatype.h"
 
 #include <algorithm>
 #include <typeinfo>
 
 // Literals
 static const String g_prototype("prototype");
+static const String g_type("Type");
 
 //////////////////////////////////////////////////////////////////////////
 
 Object::Object() :
-m_dataType (ObjectType::Instance())
+m_dataType (new ROVariable(ObjectType::Instance()))
 {
 }
 
 DataType* 
 Object::GetDataType() const
 {
-  return m_dataType;
+  return static_cast<DataType*>(m_dataType->GetObject());
 }
 
 String 
@@ -77,6 +78,13 @@ Object::ContainsKey(Value const& key, bool checkProto) const
     return true;
   }
 
+  // Type name
+  if(key.Type() == Value::tString && 
+     key.GetString() == g_type)
+  {
+    return true;
+  }
+
   // Prototype checking
   if(!checkProto)
   {
@@ -110,6 +118,13 @@ Object::Find(Value const& key, RValue*& pValue, bool checkProto) const
   if(it != m_members.end())
   {
     pValue = &it->second;
+    return true;
+  }
+
+  // Type name
+  if(key.GetString() == g_type)
+  {
+    pValue = m_dataType;
     return true;
   }
 

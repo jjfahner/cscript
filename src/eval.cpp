@@ -1622,9 +1622,13 @@ Evaluator::EvalMemberExpression(Object* node)
   {
     object = ValueToType<Object>(lhs);
   }
+  else if(ScalarType* s = dynamic_cast<ScalarType*>(lhs.GetDataType()))
+  {
+    object = s->Box(lhs.GetValue());
+  }
   else
   {
-    object = lhs.GetDataType()->Box(lhs.GetValue());
+    throw std::runtime_error("Left-hand side does not yield an object");
   }
 
   // Determine name
