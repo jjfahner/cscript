@@ -65,7 +65,7 @@ Object::Count() const
 }
 
 bool 
-Object::ContainsKey(Value const& key, bool checkProto) const
+Object::ContainsKey(String const& key, bool checkProto) const
 {
   MemberMap::const_iterator it;
 
@@ -79,8 +79,7 @@ Object::ContainsKey(Value const& key, bool checkProto) const
   }
 
   // Type name
-  if(key.Type() == Value::tString && 
-     key.GetString() == g_type)
+  if(key == g_type)
   {
     return true;
   }
@@ -103,7 +102,7 @@ Object::ContainsKey(Value const& key, bool checkProto) const
 }
 
 bool 
-Object::Find(Value const& key, RValue*& pValue, bool checkProto) const
+Object::Find(String const& key, RValue*& pValue, bool checkProto) const
 {
   MemberMap::iterator it;
 
@@ -122,7 +121,7 @@ Object::Find(Value const& key, RValue*& pValue, bool checkProto) const
   }
 
   // Type name
-  if(key.GetString() == g_type)
+  if(key == g_type)
   {
     pValue = m_dataType;
     return true;
@@ -155,7 +154,7 @@ Object::Find(Value const& key, RValue*& pValue, bool checkProto) const
 }
 
 RValue& 
-Object::GetRValue(Value const& key)
+Object::GetRValue(String const& key)
 {
   // Find member
   RValue* pValue;
@@ -170,7 +169,7 @@ Object::GetRValue(Value const& key)
 }
 
 LValue& 
-Object::GetLValue(Value const& key)
+Object::GetLValue(String const& key)
 {
   return GetRValue(key).GetLValue();
 }
@@ -178,11 +177,16 @@ Object::GetLValue(Value const& key)
 RValue& 
 Object::Add(Value const& value)
 {
-  return Add(m_members.size(), value);
+  // TODO this is really, really bad. Should be replaced
+  // (or simply removed) as soon as statement_seq and its
+  // ilk have been moved to an array-like object
+  char buf[10];
+  sprintf(buf, "%08d", m_members.size());
+  return Add(buf, value);
 }
 
 RValue& 
-Object::Add(Value const& key, Value const& value)
+Object::Add(String const& key, Value const& value)
 {
   // Update members first
   //UpdateMembers();
@@ -202,11 +206,9 @@ Object::Add(Value const& key, Value const& value)
 }
 
 RValue& 
-Object::Add(Value const& key, RValue* value)
+Object::Add(String const& key, RValue* value)
 {
   throw std::runtime_error("Custom object members are currently not implemented");
-
-  //return Add(key, value);
 }
 
 void 
@@ -225,7 +227,7 @@ Object::AddMembers(Object* source)
 }
 
 void 
-Object::Remove(Value const& key)
+Object::Remove(String const& key)
 {
   // Update members
   UpdateMembers();
@@ -242,19 +244,12 @@ void
 Object::MarkObjects(GC::ObjectVec& grey)
 {
   // Iterate over members
-  MemberIterator mi, me;
-  mi = Begin();
-  me = End();
+  ValueIterator mi, me;
+  mi = ValueBegin();
+  me = ValueEnd();
   for(; mi != me; ++mi)
   {
-    // Check key content
-    if(GC::Object* o = mi->first.GetGCObject())
-    {
-      grey.push_back(o);
-    }
-
-    // Check value content
-    if(GC::Object* o = mi->second.GetGCObject())
+    if(GC::Object* o = mi->GetGCObject())
     {
       grey.push_back(o);
     }

@@ -71,10 +71,10 @@ public:
     
     // Add members
     Add(0, m_type);
-    if(!m_a1.Empty()) Add(1, m_a1);
-    if(!m_a2.Empty()) Add(2, m_a2);
-    if(!m_a3.Empty()) Add(3, m_a3);
-    if(!m_a4.Empty()) Add(4, m_a4);
+    if(!m_a1.Empty()) Add("a1", m_a1);
+    if(!m_a2.Empty()) Add("a2", m_a2);
+    if(!m_a3.Empty()) Add("a3", m_a3);
+    if(!m_a4.Empty()) Add("a4", m_a4);
   }
 
   //
