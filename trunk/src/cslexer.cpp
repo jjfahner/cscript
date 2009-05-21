@@ -19,9 +19,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "cslexer.h"
+#include "value.h"
 #include "tokens.h"
-#include "eval.h"
 #include "lexstream.h"
+#include "eval.h"
 
 #include "csparser.gen.h"
 #include "cslexer.gen.c"

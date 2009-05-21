@@ -22,15 +22,16 @@
 #define CSCRIPT_OBJECT_H
 
 #include <gc.h>
-#include <value.h>
-#include <map_iter.h>
-#include <variable.h>
-
 #include <map>
+#include <map_iter.h>
 
 class Object;
 class RValue;
 class LValue;
+class Value;
+class DataType;
+class ROVariable;
+class MemberVariable;
 
 //
 // Member map
@@ -185,7 +186,7 @@ private:
   //
   // Object members
   //
-  mutable DataType* m_dataType;
+  mutable ROVariable* m_dataType;
   mutable MemberMap m_members;
 
 };

@@ -21,6 +21,7 @@
 #ifndef CSCRIPT_VARIABLE_H
 #define CSCRIPT_VARIABLE_H
 
+#include <cscript.h>
 #include <value.h>
 
 //////////////////////////////////////////////////////////////////////////

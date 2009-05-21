@@ -26,6 +26,7 @@
 #include <variable.h>
 #include <args.h>
 #include <astnode.h>
+#include <value.h>
 
 class Evaluator;
 

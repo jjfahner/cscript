@@ -25,6 +25,7 @@
 #include <lexstream.h>
 #include <lemon.h>
 #include <iostream>
+#include <variable.h>
 
 #include "xmlparser.gen.h"
 #include "xmlparser.gen.c"

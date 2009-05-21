@@ -18,12 +18,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#ifndef CSCRIPT_TYPE_H
-#define CSCRIPT_TYPE_H
+#ifndef CSCRIPT_DATATYPE_H
+#define CSCRIPT_DATATYPE_H
 
 #include <cscript.h>
-#include <native.h>
-#include <eval.h>
+#include <object.h>
 
 class Evaluator;
 class Arguments;
@@ -33,27 +32,19 @@ class DataType : public Object
 public:
 
   //
+  // Type has member
+  //
+  bool ContainsKey(Value const& key, bool checkProto) const;
+
+  //
+  // Find member
+  //
+  bool Find(Value const& key, RValue*& pValue, bool checkProto) const;
+
+  //
   // Type name as string
   //
-  virtual String Name() const = 0;
-
-  //
-  // Box value
-  //
-  virtual DataType* Box(Value const& value) = 0;
-
-  //
-  // Add method wrappers
-  //
-  virtual void UpdateMembers() 
-  {
-    NATIVE_METHOD(DataType, NM_Name, "Name()");
-  }
-
-  Value NM_Name(Evaluator*, Arguments const&)
-  {
-    return Name();
-  }
+  virtual String TypeName() const = 0;
 
 };
 
@@ -63,22 +54,15 @@ class VoidType : public DataType
 {
 public:
 
-  static DataType* Instance()
-  {
-    static VoidType m_type;
-    GC::Pin(&m_type);
-    return &m_type;
-  }
+  //
+  // Retrieve singleton instance
+  //
+  static DataType* Instance();
 
-  virtual String Name() const
-  {
-    return "void";
-  }
-
-  virtual DataType* Box(Value const&)
-  {
-    throw std::runtime_error("Attempt to box a VoidType");
-  }
+  //
+  // Type name as string
+  //
+  virtual String TypeName() const;
 
 };
 
@@ -88,22 +72,15 @@ class UnknownType : public DataType
 {
 public:
 
-  static DataType* Instance()
-  {
-    static UnknownType m_type;
-    GC::Pin(&m_type);
-    return &m_type;
-  }
+  //
+  // Retrieve singleton instance
+  //
+  static DataType* Instance();
 
-  virtual String Name() const
-  {
-    return "unknown";
-  }
-
-  virtual DataType* Box(Value const&)
-  {
-    throw std::runtime_error("Attempt to box an UnknownType");
-  }
+  //
+  // Type name as string
+  //
+  virtual String TypeName() const;
 
 };
 
@@ -111,55 +88,64 @@ public:
 
 class ScalarType : public DataType
 {
+public:
+
+  //
+  // Box a scalar value
+  //
+  virtual DataType* Box(Value const& value) = 0;
+
+};
+
+class NullType : public ScalarType
+{
+public:
+
+  //
+  // Retrieve singleton instance
+  //
+  static DataType* Instance();
+
+  //
+  // Type name as string
+  //
+  virtual String TypeName() const;
+
+  //
+  // Box value
+  //
+  virtual DataType* Box(Value const&);
+
 };
 
 class BooleanType : public ScalarType
 {
 public:
 
-  typedef bool ValueType;
+  typedef bool DeclType;
 
-  static DataType* Instance()
-  {
-    static BooleanType m_type;
-    GC::Pin(&m_type);
-    return &m_type;
-  }
+  //
+  // Retrieve singleton instance
+  //
+  static DataType* Instance();
 
-  BooleanType(ValueType value = ValueType()) :
-  m_value (value)
-  {
-  }
+  BooleanType(DeclType value = DeclType());
 
-  virtual String Name() const
-  {
-    return "bool";
-  }
+  //
+  // Type name as string
+  //
+  virtual String TypeName() const;
 
-  virtual String ToString() const
-  {
-    return m_value ? "true" : "false";
-  }
+  virtual String ToString() const;
 
-  virtual BooleanType* Box(Value const& value)
-  {
-    return new BooleanType(value.GetBool());
-  }
-
-  virtual void UpdateMembers()
-  {
-    ScalarType::UpdateMembers();
-    NATIVE_METHOD(BooleanType, NM_ToString, "ToString()");
-  }
-
-  Value NM_ToString(Evaluator*, Arguments const&)
-  {
-    return ToString();
-  }
+  //
+  // Box value
+  //
+  virtual BooleanType* Box(Value const& value);
 
 protected:
 
-  ValueType m_value;
+  DeclType m_value;
 
 };
 
@@ -167,51 +153,33 @@ class IntegerType : public ScalarType
 {
 public:
 
-  typedef __int64 ValueType;
+  typedef __int64 DeclType;
 
-  static DataType* Instance()
-  {
-    static IntegerType m_type;
-    GC::Pin(&m_type);
-    return &m_type;
-  }
+  //
+  // Retrieve singleton instance
+  //
+  static DataType* Instance();
 
-  IntegerType(ValueType value = ValueType()) :
-  m_value (value)
-  {
-  }
+  IntegerType(DeclType value = DeclType());
 
-  virtual String Name() const
-  {
-    return "int";
-  }
+  //
+  // Type name as string
+  //
+  virtual String TypeName() const;
 
-  virtual String ToString() const
-  {
-    char buf[25];
-    sprintf(buf, "%d", m_value);
-    return buf;
-  }
+  //
+  // Convert to string
+  //
+  virtual String ToString() const;
 
-  virtual IntegerType* Box(Value const& value)
-  {
-    return new IntegerType(value.GetInt());
-  }
-
-  virtual void UpdateMembers()
-  {
-    ScalarType::UpdateMembers();
-    NATIVE_METHOD(IntegerType, NM_ToString, "ToString()");
-  }
-
-  Value NM_ToString(Evaluator*, Arguments const&)
-  {
-    return ToString();
-  }
-
+  //
+  // Box value
+  //
+  virtual IntegerType* Box(Value const& value);
+ 
 protected:
 
-  ValueType m_value;
+  DeclType m_value;
 
 };
 
@@ -219,33 +187,31 @@ class StringType : public ScalarType
 {
 public:
 
-  typedef std::string ValueType;
+  //
+  // Type declaration
+  //
+  typedef ::String DeclType;
 
-  static DataType* Instance()
-  {
-    static StringType m_type;
-    GC::Pin(&m_type);
-    return &m_type;
-  }
+  //
+  // Retrieve singleton instance
+  //
+  static DataType* Instance();
 
-  StringType(ValueType const& value = ValueType()) :
-  m_value (value)
-  {
-  }
+  StringType(DeclType const& value = DeclType());
 
-  virtual String Name() const
-  {
-    return "string";
-  }
+  //
+  // Type name as string
+  //
+  virtual String TypeName() const;
 
-  virtual StringType* Box(Value const& value)
-  {
-    return new StringType(value.GetString());
-  }
+  //
+  // Box value
+  //
+  virtual StringType* Box(Value const& value);
 
 protected:
 
-  ValueType m_value;
+  DeclType m_value;
 
 };
 
@@ -253,19 +219,17 @@ protected:
 
 class ComplexType : public DataType
 {
-public:
-
-  virtual DataType* Box(Value const&)
-  {
-    throw std::runtime_error("Attempt to box a complex type");
-  }
-
 };
+
+//////////////////////////////////////////////////////////////////////////
 
 class ObjectType : public ComplexType
 {
 public:
 
+  //
+  // Retrieve singleton instance
+  //
   static DataType* Instance()
   {
     static ObjectType m_type;
@@ -273,40 +237,25 @@ public:
     return &m_type;
   }
 
-  virtual String Name() const
+  //
+  // Type name as string
+  //
+  virtual String TypeName() const
   {
     return "object";
   }
 
 };
 
-class NullType : public ObjectType
-{
-public:
-
-  static DataType* Instance()
-  {
-    static NullType m_type;
-    GC::Pin(&m_type);
-    return &m_type;
-  }
-
-  virtual String Name() const
-  {
-    return "null";
-  }
-
-  virtual DataType* Box(Value const&)
-  {
-    return new NullType();
-  }
-
-};
+//////////////////////////////////////////////////////////////////////////
 
 class FunctionType : public ObjectType
 {
 public:
 
+  //
+  // Retrieve singleton instance
+  //
   static DataType* Instance()
   {
     static FunctionType m_type;
@@ -314,17 +263,25 @@ public:
     return &m_type;
   }
 
-  virtual String Name() const
+  //
+  // Type name as string
+  //
+  virtual String TypeName() const
   {
     return "function";
   }
 
 };
 
+//////////////////////////////////////////////////////////////////////////
+
 class NativeFunctionType : public FunctionType
 {
 public:
 
+  //
+  // Retrieve singleton instance
+  //
   static DataType* Instance()
   {
     static NativeFunctionType m_type;
@@ -332,11 +289,14 @@ public:
     return &m_type;
   }
 
-  virtual String Name() const
+  //
+  // Type name as string
+  //
+  virtual String TypeName() const
   {
     return "native_function";
   }
 
 };
 
-#endif // CSCRIPT_TYPE_H
+#endif // CSCRIPT_DATATYPE_H
