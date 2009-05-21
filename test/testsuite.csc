@@ -508,9 +508,9 @@ function main()
 // Start by invoking main()
 //
 
-// print(null.TypeName() + "\n");
-// print(10.ToString() + "\n");
-// print(false.ToString() + "\n");
+print(null.TypeName() + "\n");
+print(10.ToString() + "\n");
+print(false.ToString() + "\n");
 
 // Cleanup any garbage objects and store current count
 collect();

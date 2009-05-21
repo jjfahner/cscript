@@ -34,17 +34,17 @@ public:
   //
   // Type has member
   //
-  bool ContainsKey(Value const& key, bool checkProto) const;
+  bool ContainsKey(String const& key, bool checkProto) const;
 
   //
   // Find member
   //
-  bool Find(Value const& key, RValue*& pValue, bool checkProto) const;
+  bool Find(String const& key, RValue*& pValue, bool checkProto) const;
 
   //
   // Type name as string
   //
-  virtual String TypeName() const = 0;
+  virtual String TypeName() = 0;
 
 };
 
@@ -62,7 +62,7 @@ public:
   //
   // Type name as string
   //
-  virtual String TypeName() const;
+  virtual String TypeName();
 
 };
 
@@ -80,7 +80,7 @@ public:
   //
   // Type name as string
   //
-  virtual String TypeName() const;
+  virtual String TypeName();
 
 };
 
@@ -89,6 +89,21 @@ public:
 class ScalarType : public DataType
 {
 public:
+
+  //
+  // Type has member
+  //
+  bool ContainsKey(String const& key, bool checkProto) const;
+
+  //
+  // Find member
+  //
+  bool Find(String const& key, RValue*& pValue, bool checkProto) const;
+
+  //
+  // Convert to string
+  //
+  virtual String ToString() = 0;
 
   //
   // Box a scalar value
@@ -109,7 +124,12 @@ public:
   //
   // Type name as string
   //
-  virtual String TypeName() const;
+  virtual String TypeName();
+
+  //
+  // Convert to string
+  //
+  virtual String ToString();
 
   //
   // Box value
@@ -139,12 +159,12 @@ public:
   //
   // Type name as string
   //
-  virtual String TypeName() const;
+  virtual String TypeName();
 
   //
   // Convert to string
   //
-  virtual String ToString() const;
+  virtual String ToString();
 
   //
   // Box value
@@ -178,12 +198,12 @@ public:
   //
   // Type name as string
   //
-  virtual String TypeName() const;
+  virtual String TypeName();
 
   //
   // Convert to string
   //
-  virtual String ToString() const;
+  virtual String ToString();
 
   //
   // Box value
@@ -220,7 +240,12 @@ public:
   //
   // Type name as string
   //
-  virtual String TypeName() const;
+  virtual String TypeName();
+
+  //
+  // Convert to string
+  //
+  virtual String ToString();
 
   //
   // Box value
@@ -253,7 +278,7 @@ public:
   //
   // Type name as string
   //
-  virtual String TypeName() const;
+  virtual String TypeName();
 
 };
 
@@ -271,7 +296,7 @@ public:
   //
   // Type name as string
   //
-  virtual String TypeName() const;
+  virtual String TypeName();
 
 };
 
@@ -289,7 +314,7 @@ public:
   //
   // Type name as string
   //
-  virtual String TypeName() const;
+  virtual String TypeName();
 
 };
 
