@@ -20,18 +20,31 @@
 //////////////////////////////////////////////////////////////////////////
 #include "datatype.h"
 #include "variable.h"
+#include "native.h"
+#include "eval.h"
 
 //////////////////////////////////////////////////////////////////////////
 
 bool 
-DataType::ContainsKey(Value const& key, bool checkProto) const
+DataType::ContainsKey(String const& key, bool checkProto) const
 {
+  if(key == "TypeName")
+  {
+    return true;
+  }
   return false;
 }
 
 bool 
-DataType::Find(Value const& key, RValue*& pValue, bool checkProto) const
+DataType::Find(String const& key, RValue*& pValue, bool checkProto) const
 {
+  if(key == "TypeName")
+  {
+    pValue = new ROVariable(
+      new NativeMethod<DataType, String>("TypeName", &DataType::TypeName, 
+        Evaluator::ParseNativeCall("TypeName()")));
+    return true;
+  }
   return false;
 }
 
@@ -46,7 +59,7 @@ VoidType::Instance()
 }
 
 String 
-VoidType::TypeName() const
+VoidType::TypeName()
 {
   return "void";
 }
@@ -62,9 +75,34 @@ UnknownType::Instance()
 }
 
 String 
-UnknownType::TypeName() const
+UnknownType::TypeName()
 {
   return "unknown";
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+bool 
+ScalarType::ContainsKey(String const& key, bool checkProto) const
+{
+  if(key == "ToString")
+  {
+    return true;
+  }
+  return DataType::ContainsKey(key, checkProto);
+}
+
+bool 
+ScalarType::Find(String const& key, RValue*& pValue, bool checkProto) const
+{
+  if(key == "ToString")
+  {
+    pValue = new ROVariable(
+      new NativeMethod<ScalarType, String>("ToString", &ScalarType::ToString, 
+      Evaluator::ParseNativeCall("ToString()")));
+    return true;
+  }
+  return DataType::Find(key, pValue, checkProto);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,7 +116,13 @@ NullType::Instance()
 }
 
 String 
-NullType::TypeName() const
+NullType::TypeName()
+{
+  return "null";
+}
+
+String 
+NullType::ToString()
 {
   return "null";
 }
@@ -105,13 +149,13 @@ m_value (value)
 }
 
 String 
-BooleanType::TypeName() const
+BooleanType::TypeName()
 {
   return "bool";
 }
 
 String 
-BooleanType::ToString() const
+BooleanType::ToString()
 {
   return m_value ? "true" : "false";
 }
@@ -138,13 +182,13 @@ m_value (value)
 }
 
 String 
-IntegerType::TypeName() const
+IntegerType::TypeName()
 {
   return "int";
 }
 
 String 
-IntegerType::ToString() const
+IntegerType::ToString()
 {
   char buf[25];
   sprintf(buf, "%d", m_value);
@@ -173,9 +217,15 @@ m_value (value)
 }
 
 String 
-StringType::TypeName() const
+StringType::TypeName()
 {
   return "string";
+}
+
+String 
+StringType::ToString()
+{
+  return m_value;
 }
 
 StringType* 
@@ -198,7 +248,7 @@ ObjectType::Instance()
 // Type name as string
 //
 String 
-ObjectType::TypeName() const
+ObjectType::TypeName()
 {
   return "object";
 }
@@ -214,7 +264,7 @@ FunctionType::Instance()
 }
 
 String 
-FunctionType::TypeName() const
+FunctionType::TypeName()
 {
   return "function";
 }
@@ -230,7 +280,7 @@ NativeFunctionType::Instance()
 }
 
 String 
-NativeFunctionType::TypeName() const
+NativeFunctionType::TypeName()
 {
   return "native_function";
 }

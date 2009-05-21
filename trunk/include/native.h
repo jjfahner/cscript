@@ -118,20 +118,52 @@ public:
 // Native class method
 //
 
-template <typename T>
+template <typename T, typename R>
 class NativeMethod : public Function
 {
 public:
 
-  typedef Value (T::*FunPtr) 
-    (Evaluator* evaluator, Arguments const& args);
+  typedef R (T::*FunPtr)();
+  typedef R (T::*FunPtrA)(Arguments const& args);
+  typedef R (T::*FunPtrE)(Evaluator* evaluator);
+  typedef R (T::*FunPtrEA)(Evaluator* evaluator, Arguments const& args);
 
   //
   // Construction
   //
   NativeMethod(String name, FunPtr funPtr, Object* ast) :
   Function  (name),
-  m_funPtr  (funPtr)
+  m_funPtr  (funPtr),
+  m_funPtrA (0),
+  m_funPtrE (0),
+  m_funPtrEA(0)
+  {
+    Add("__ast", ast);
+  }
+  NativeMethod(String name, FunPtrA funPtr, Object* ast) :
+  Function  (name),
+  m_funPtr  (0),
+  m_funPtrA (funPtr),
+  m_funPtrE (0),
+  m_funPtrEA(0)
+  {
+    Add("__ast", ast);
+  }
+  NativeMethod(String name, FunPtrE funPtr, Object* ast) :
+  Function  (name),
+  m_funPtr  (0),
+  m_funPtrA (0),
+  m_funPtrE (funPtr),
+  m_funPtrEA(0)
+  {
+    Add("__ast", ast);
+  }
+  NativeMethod(String name, FunPtrEA funPtr, Object* ast) :
+  Function  (name),
+  m_funPtr  (0),
+  m_funPtrA (0),
+  m_funPtrE (0),
+  m_funPtrEA(funPtr)
   {
     Add("__ast", ast);
   }
@@ -170,7 +202,13 @@ public:
     }
 
     // Invoke method
-    return (inst->*m_funPtr)(evaluator, args);
+    if(m_funPtr)   return (inst->*m_funPtr)  ();
+    if(m_funPtrA)  return (inst->*m_funPtrA) (args);
+    if(m_funPtrE)  return (inst->*m_funPtrE) (evaluator);
+    if(m_funPtrEA) return (inst->*m_funPtrEA)(evaluator, args);
+
+    // ???
+    throw std::runtime_error("Invalid native method");
   }
 
 protected:
@@ -180,15 +218,18 @@ protected:
   //
   String m_decl;
   FunPtr m_funPtr;
+  FunPtrA m_funPtrA;
+  FunPtrE m_funPtrE;
+  FunPtrEA m_funPtrEA;
 
 };
 
-#define NATIVE_METHOD(class, method, decl)            \
-{                                                     \
-  Object* node = Evaluator::ParseNativeCall(decl);    \
-  this->Add(Ast_A1(node).GetString(),                 \
-    new NativeMethod<class>(Ast_A1(node).GetString(), \
-      & class :: method, node));                      \
+#define NATIVE_METHOD(class, method, decl)                    \
+{                                                             \
+  Object* node = Evaluator::ParseNativeCall(decl);            \
+  this->Add(Ast_A1(node).GetString(),                         \
+    new NativeMethod<class, Value>(Ast_A1(node).GetString(),  \
+      & class :: method, node));                              \
 }
 
 //////////////////////////////////////////////////////////////////////////
