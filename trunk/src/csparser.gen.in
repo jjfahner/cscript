@@ -187,6 +187,7 @@ postfix_expression(R) ::= postfix_expression(A) LBRACKET RBRACKET.              
 postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocNode(index_expression, A, B); }
 postfix_expression(R) ::= FUNCTION DOT unqualified_id(A) .						            { R = p->AllocNode(function_member_expression, A); }
 postfix_expression(R) ::= FUNCTION LBRACKET expression(A) RBRACKET .			        { R = p->AllocNode(function_index_expression, A); }
+postfix_expression(R) ::= TYPEOF LPAREN expression(A) RPAREN .                    { R = p->AllocNode(typeof_expression, A); }
 
 // Primary expression
 primary_expression(R) ::= literal(A) .                  { R = A; }

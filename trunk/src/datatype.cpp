@@ -23,7 +23,15 @@
 #include "native.h"
 #include "eval.h"
 
+// warning C4355: 'this' : used in base member initializer list
+#pragma warning(disable:4355)
+
 //////////////////////////////////////////////////////////////////////////
+
+DataType::DataType() :
+Object(this)
+{
+}
 
 bool 
 DataType::ContainsKey(String const& key, bool checkProto) const
@@ -32,7 +40,7 @@ DataType::ContainsKey(String const& key, bool checkProto) const
   {
     return true;
   }
-  return false;
+  return Object::ContainsKey(key, checkProto);
 }
 
 bool 
@@ -45,39 +53,47 @@ DataType::Find(String const& key, RValue*& pValue, bool checkProto) const
         Evaluator::ParseNativeCall("TypeName()")));
     return true;
   }
-  return false;
+  return Object::Find(key, pValue, checkProto);
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ DataType* 
-VoidType::Instance()
+class VoidTypeImpl : public VoidType
 {
-  static VoidType m_type;
+public:
+
+  String TypeName()
+  {
+    return "void";
+  }
+
+};
+
+DataType* VoidType::Instance()
+{
+  static VoidTypeImpl m_type;
   GC::Pin(&m_type);
   return &m_type;
-}
-
-String 
-VoidType::TypeName()
-{
-  return "void";
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ DataType* 
-UnknownType::Instance()
+class UnknownTypeImpl : public UnknownType
 {
-  static UnknownType m_type;
+public:
+
+  String TypeName()
+  {
+    return "unknown";
+  }
+
+};
+
+DataType* UnknownType::Instance()
+{
+  static UnknownTypeImpl m_type;
   GC::Pin(&m_type);
   return &m_type;
-}
-
-String 
-UnknownType::TypeName()
-{
-  return "unknown";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,7 +103,7 @@ ScalarType::ContainsKey(String const& key, bool checkProto) const
 {
   if(key == "ToString")
   {
-    return true;
+    return false;
   }
   return DataType::ContainsKey(key, checkProto);
 }
@@ -97,192 +113,221 @@ ScalarType::Find(String const& key, RValue*& pValue, bool checkProto) const
 {
   if(key == "ToString")
   {
-    pValue = new ROVariable(
-      new NativeMethod<ScalarType, String>("ToString", &ScalarType::ToString, 
-      Evaluator::ParseNativeCall("ToString()")));
-    return true;
+    //pValue = 
+    return false;
   }
   return DataType::Find(key, pValue, checkProto);
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ DataType* 
-NullType::Instance()
+class NullTypeImpl : public NullType
 {
-  static NullType m_type;
+public:
+
+  String TypeName()
+  {
+    return "null";
+  }
+
+  String ToString()
+  {
+    return "null";
+  }
+
+  DataType* Box(Value const&)
+  {
+    return new NullTypeImpl();
+  }
+
+};
+
+DataType* NullType::Instance()
+{
+  static NullTypeImpl m_type;
   GC::Pin(&m_type);
   return &m_type;
-}
-
-String 
-NullType::TypeName()
-{
-  return "null";
-}
-
-String 
-NullType::ToString()
-{
-  return "null";
-}
-
-DataType* 
-NullType::Box(Value const&)
-{
-  return new NullType();
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ DataType* 
-BooleanType::Instance()
+class BooleanTypeImpl : public BooleanType
 {
-  static BooleanType m_type;
+public:
+
+  BooleanTypeImpl(DeclType value = DeclType()) :
+  m_value     (value),
+  m_vToString (new NativeMethod<BooleanTypeImpl, String>("ToString", &BooleanTypeImpl::ToString, 0))
+  {
+  }
+
+  String TypeName()
+  {
+    return "bool";
+  }
+
+  String ToString()
+  {
+    return m_value ? "true" : "false";
+  }
+
+  BooleanType* Box(Value const& value)
+  {
+    return new BooleanTypeImpl(value.GetBool());
+  }
+
+protected:
+
+  DeclType    m_value;
+  ROVariable  m_vToString;
+
+};
+
+DataType* BooleanType::Instance()
+{
+  static BooleanTypeImpl m_type;
   GC::Pin(&m_type);
   return &m_type;
-}
-
-BooleanType::BooleanType(DeclType value) :
-m_value (value)
-{
-}
-
-String 
-BooleanType::TypeName()
-{
-  return "bool";
-}
-
-String 
-BooleanType::ToString()
-{
-  return m_value ? "true" : "false";
-}
-
-BooleanType* 
-BooleanType::Box(Value const& value)
-{
-  return new BooleanType(value.GetBool());
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ DataType* 
-IntegerType::Instance()
+class IntegerTypeImpl : public IntegerType
 {
-  static IntegerType m_type;
+public:
+
+  IntegerTypeImpl(DeclType value = DeclType()) :
+  m_value (value)
+  {
+  }
+
+  String TypeName()
+  {
+    return "int";
+  }
+
+  String ToString()
+  {
+    char buf[25];
+    sprintf(buf, "%d", m_value);
+    return buf;
+  }
+
+  IntegerType* Box(Value const& value)
+  {
+    return new IntegerTypeImpl(value.GetInt());
+  }
+
+protected:
+
+  DeclType m_value;
+
+};
+
+DataType* IntegerType::Instance()
+{
+  static IntegerTypeImpl m_type;
   GC::Pin(&m_type);
   return &m_type;
-}
-
-IntegerType::IntegerType(DeclType value) :
-m_value (value)
-{
-}
-
-String 
-IntegerType::TypeName()
-{
-  return "int";
-}
-
-String 
-IntegerType::ToString()
-{
-  char buf[25];
-  sprintf(buf, "%d", m_value);
-  return buf;
-}
-
-IntegerType* 
-IntegerType::Box(Value const& value)
-{
-  return new IntegerType(value.GetInt());
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ DataType* 
-StringType::Instance()
+class StringTypeImpl : public StringType
 {
-  static StringType m_type;
+public:
+
+  StringTypeImpl(DeclType const& value = DeclType()) :
+  m_value (value)
+  {
+  }
+
+  String TypeName()
+  {
+    return "string";
+  }
+
+  String ToString()
+  {
+    return m_value;
+  }
+
+  StringType* Box(Value const& value)
+  {
+    return new StringTypeImpl(value.GetString());
+  }
+
+protected:
+
+  DeclType m_value;
+
+};
+
+DataType* StringType::Instance()
+{
+  static StringTypeImpl m_type;
   GC::Pin(&m_type);
   return &m_type;
-}
-
-StringType::StringType(DeclType const& value) :
-m_value (value)
-{
-}
-
-String 
-StringType::TypeName()
-{
-  return "string";
-}
-
-String 
-StringType::ToString()
-{
-  return m_value;
-}
-
-StringType* 
-StringType::Box(Value const& value)
-{
-  return new StringType(value.GetString());
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ DataType* 
-ObjectType::Instance()
+class ObjectTypeImpl : public ObjectType
 {
-  static ObjectType m_type;
+public:
+
+  String TypeName()
+  {
+    return "object";
+  }
+
+};
+
+DataType* ObjectType::Instance()
+{
+  static ObjectTypeImpl m_type;
   GC::Pin(&m_type);
   return &m_type;
-}
-
-//
-// Type name as string
-//
-String 
-ObjectType::TypeName()
-{
-  return "object";
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ DataType* 
-FunctionType::Instance()
+class FunctionTypeImpl : public FunctionType
 {
-  static FunctionType m_type;
+public:
+
+  String TypeName()
+  {
+    return "function";
+  }
+
+};
+
+DataType* FunctionType::Instance()
+{
+  static FunctionTypeImpl m_type;
   GC::Pin(&m_type);
   return &m_type;
-}
-
-String 
-FunctionType::TypeName()
-{
-  return "function";
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ DataType* 
-NativeFunctionType::Instance()
+class NativeFunctionTypeImpl : public NativeFunctionType
 {
-  static NativeFunctionType m_type;
+public:
+
+  String TypeName()
+  {
+    return "native_function";
+  }
+
+};
+
+DataType* NativeFunctionType::Instance()
+{
+  static NativeFunctionTypeImpl m_type;
   GC::Pin(&m_type);
   return &m_type;
-}
-
-String 
-NativeFunctionType::TypeName()
-{
-  return "native_function";
 }
 
 //////////////////////////////////////////////////////////////////////////

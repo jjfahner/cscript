@@ -27,26 +27,51 @@
 
 #include <list>
 
-class List : public GC::ComplexObject
+class ListType : public ObjectType
+{
+public:
+
+  static ListType* Instance()
+  {
+    static ListType m_type;
+    GC::Pin(&m_type);
+    return &m_type;
+  }
+
+  virtual String TypeName() 
+  {
+    return "list";
+  }
+
+};
+
+class List : public Object
 {
 public:
 
   //
   // The implementation list type
   //
-  typedef std::list<MemberVariable> ListType;
+  typedef std::vector<MemberVariable> ImplType;
 
   //
   // Iterator type
   //
-  typedef ListType::iterator Iterator;
+  typedef ImplType::iterator Iterator;
+
+  //
+  // Construction
+  //
+  List() : Object(ListType::Instance())
+  {
+  }
 
   //
   // Number of items in list
   //
-  int Count() const
+  virtual size_t Count() const
   {
-    return (int)m_list.size();
+    return m_list.size();
   }
 
   //
@@ -62,18 +87,9 @@ public:
   }
 
   //
-  // Add to head of list
+  // Add to end of list
   //
-  RValue& AddHead(Value const& v = Value())
-  {
-    m_list.push_front(v);
-    return m_list.front();
-  }
-
-  //
-  // Add to tail of list
-  //
-  RValue& AddTail(Value const& v = Value())
+  RValue& Append(Value const& v = Value())
   {
     m_list.push_back(v);
     return m_list.back();
@@ -104,14 +120,6 @@ public:
   }
 
   //
-  // Remove from front
-  //
-  void PopHead()
-  {
-    m_list.pop_front();
-  }
-
-  //
   // Remove from back
   //
   void PopTail()
@@ -122,23 +130,25 @@ public:
   //
   // Retrieve at specified index
   //
-  RValue& GetAt(int index)
+  RValue& GetAt(size_t index)
   {
-    // Check bounds
-    if(index < 0 || index >= Count())
+    if(index >= m_list.size())
     {
-      throw std::runtime_error("Index out of bounds");
+      m_list.resize(index + 1);
     }
+    return m_list[index];
+  }
 
-    // Make iterator
-    ListType::iterator it = m_list.begin();
-    if(index)
+  //
+  // Retrieve a member by index
+  //
+  virtual RValue& GetAt(Value const& index)
+  {
+    if(index.Type() != Value::tInt)
     {
-      std::advance(it, index);
+      throw std::runtime_error("Invalid key type for list");
     }
-    
-    // Done
-    return *it;
+    return GetAt((size_t)index.GetInt());
   }
 
   //
@@ -146,13 +156,17 @@ public:
   //
   virtual void MarkObjects(GC::ObjectVec& grey) 
   {
-    ListType::const_iterator it = m_list.begin();
-    ListType::const_iterator ie = m_list.end();
+    // Mark object members
+    Object::MarkObjects(grey);
+
+    // Mark list entries
+    Iterator it = m_list.begin();
+    Iterator ie = m_list.end();
     for(; it != ie; ++it)
     {
       if(GC::Object* o = it->GetGCObject())
       {
-        grey.push_back(o);
+        GC::Mark(grey, o);
       }
     }
   }
@@ -162,7 +176,7 @@ private:
   //
   // The list instance
   // 
-  ListType m_list;
+  ImplType m_list;
 
 };
 

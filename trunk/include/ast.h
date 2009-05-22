@@ -37,6 +37,7 @@ enum AstTypes
   ternary_expression,
   prefix_expression,
   postfix_expression,
+  typeof_expression,
   member_expression,
   index_expression,
   function_call,

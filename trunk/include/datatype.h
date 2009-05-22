@@ -32,6 +32,11 @@ class DataType : public Object
 public:
 
   //
+  // Construction
+  //
+  DataType();
+
+  //
   // Type has member
   //
   bool ContainsKey(String const& key, bool checkProto) const;
@@ -59,11 +64,6 @@ public:
   //
   static DataType* Instance();
 
-  //
-  // Type name as string
-  //
-  virtual String TypeName();
-
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,11 +76,6 @@ public:
   // Retrieve singleton instance
   //
   static DataType* Instance();
-
-  //
-  // Type name as string
-  //
-  virtual String TypeName();
 
 };
 
@@ -112,6 +107,8 @@ public:
 
 };
 
+//////////////////////////////////////////////////////////////////////////
+
 class NullType : public ScalarType
 {
 public:
@@ -121,21 +118,6 @@ public:
   //
   static DataType* Instance();
 
-  //
-  // Type name as string
-  //
-  virtual String TypeName();
-
-  //
-  // Convert to string
-  //
-  virtual String ToString();
-
-  //
-  // Box value
-  //
-  virtual DataType* Box(Value const&);
-
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,36 +126,15 @@ class BooleanType : public ScalarType
 {
 public:
 
+  //
+  // Declaration type
+  //
   typedef bool DeclType;
 
   //
   // Retrieve singleton instance
   //
   static DataType* Instance();
-
-  //
-  // Constructor
-  //
-  BooleanType(DeclType value = DeclType());
-
-  //
-  // Type name as string
-  //
-  virtual String TypeName();
-
-  //
-  // Convert to string
-  //
-  virtual String ToString();
-
-  //
-  // Box value
-  //
-  virtual BooleanType* Box(Value const& value);
-
-protected:
-
-  DeclType m_value;
 
 };
 
@@ -183,36 +144,15 @@ class IntegerType : public ScalarType
 {
 public:
 
+  //
+  // Declaration type
+  //
   typedef __int64 DeclType;
 
   //
   // Retrieve singleton instance
   //
   static DataType* Instance();
-
-  //
-  // Constructor
-  //
-  IntegerType(DeclType value = DeclType());
-
-  //
-  // Type name as string
-  //
-  virtual String TypeName();
-
-  //
-  // Convert to string
-  //
-  virtual String ToString();
-
-  //
-  // Box value
-  //
-  virtual IntegerType* Box(Value const& value);
- 
-protected:
-
-  DeclType m_value;
 
 };
 
@@ -232,41 +172,17 @@ public:
   //
   static DataType* Instance();
 
-  //
-  // Constructor
-  //
-  StringType(DeclType const& value = DeclType());
-
-  //
-  // Type name as string
-  //
-  virtual String TypeName();
-
-  //
-  // Convert to string
-  //
-  virtual String ToString();
-
-  //
-  // Box value
-  //
-  virtual StringType* Box(Value const& value);
-
-protected:
-
-  DeclType m_value;
-
 };
 
 //////////////////////////////////////////////////////////////////////////
 
-class ComplexType : public DataType
+class CompoundType : public DataType
 {
 };
 
 //////////////////////////////////////////////////////////////////////////
 
-class ObjectType : public ComplexType
+class ObjectType : public CompoundType
 {
 public:
 
@@ -274,11 +190,6 @@ public:
   // Retrieve singleton instance
   //
   static DataType* Instance();
-
-  //
-  // Type name as string
-  //
-  virtual String TypeName();
 
 };
 
@@ -293,11 +204,6 @@ public:
   //
   static DataType* Instance();
 
-  //
-  // Type name as string
-  //
-  virtual String TypeName();
-
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -310,11 +216,6 @@ public:
   // Retrieve singleton instance
   //
   static DataType* Instance();
-
-  //
-  // Type name as string
-  //
-  virtual String TypeName();
 
 };
 

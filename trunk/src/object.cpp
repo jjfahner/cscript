@@ -22,36 +22,68 @@
 #include "datatype.h"
 #include "variable.h"
 #include "function.h"
+#include "enumerator.h"
 
 #include <algorithm>
-#include <typeinfo>
 
 // Literals
 static const String g_prototype("prototype");
-static const String g_type("Type");
 
 //////////////////////////////////////////////////////////////////////////
 
-Object::Object() :
-m_dataType (new ROVariable(ObjectType::Instance()))
+class ObjectEnumerator : public Enumerator
+{
+  typedef Object::ValueIterator Iterator;
+
+  Object*  m_obj;
+  Iterator m_cur;
+
+public:
+
+  ObjectEnumerator(Object* object) :
+  m_obj (object)
+  {
+    // Initialize iterator
+    Reset();
+  }
+
+  virtual void Reset()
+  {
+    // Set iterator to start
+    m_cur = m_obj->ValueBegin();
+  }
+
+  virtual bool GetNext(Value& value)
+  {
+    // Check current position
+    if(m_cur == m_obj->ValueEnd())
+    {
+      return false;
+    }
+
+    // Retrieve value from iterator
+    value = *m_cur;
+
+    // Advance to next position
+    ++m_cur;
+
+    // Succeeded
+    return true;
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+Object::Object(DataType* dataType) :
+m_dataType (dataType ? dataType : ObjectType::Instance())
 {
 }
 
 DataType* 
 Object::GetDataType() const
 {
-  return static_cast<DataType*>(m_dataType->GetObject());
-}
-
-String 
-Object::GetTypeName() const
-{
-  String type = typeid(*this).name();
-  if(type.substr(0, 6) == "class ")
-  {
-    type = type.substr(6);
-  }
-  return type;
+  return m_dataType;
 }
 
 size_t 
@@ -64,6 +96,12 @@ Object::Count() const
   return m_members.size();
 }
 
+Enumerator* 
+Object::GetEnumerator()
+{
+  return new ObjectEnumerator(this);
+}
+
 bool 
 Object::ContainsKey(String const& key, bool checkProto) const
 {
@@ -74,12 +112,6 @@ Object::ContainsKey(String const& key, bool checkProto) const
 
   // Find in own members
   if(m_members.count(key))
-  {
-    return true;
-  }
-
-  // Type name
-  if(key == g_type)
   {
     return true;
   }
@@ -120,13 +152,6 @@ Object::Find(String const& key, RValue*& pValue, bool checkProto) const
     return true;
   }
 
-  // Type name
-  if(key == g_type)
-  {
-    pValue = m_dataType;
-    return true;
-  }
-
   // Prototype checking
   if(!checkProto)
   {
@@ -151,6 +176,17 @@ Object::Find(String const& key, RValue*& pValue, bool checkProto) const
 
   // Done
   return true;
+}
+
+RValue& 
+Object::GetAt(Value const& index)
+{
+  RValue* pValue;
+  if(Find(index, pValue, true))
+  {
+    return *pValue;
+  }
+  return m_members[index];
 }
 
 RValue& 
@@ -251,7 +287,7 @@ Object::MarkObjects(GC::ObjectVec& grey)
   {
     if(GC::Object* o = mi->GetGCObject())
     {
-      grey.push_back(o);
+      GC::Mark(grey, o);
     }
   }
 }

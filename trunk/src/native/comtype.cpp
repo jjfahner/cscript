@@ -78,12 +78,6 @@ ComTypeInfo::GetTypeInfo() const
   return m_typeinfo;
 }
 
-String
-ComTypeInfo::GetTypeName() const
-{
-  return m_typename;
-}
-
 CLSID 
 ComTypeInfo::GetCLSID() const
 {

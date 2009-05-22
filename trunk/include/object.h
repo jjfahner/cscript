@@ -30,7 +30,7 @@ class RValue;
 class LValue;
 class Value;
 class DataType;
-class ROVariable;
+class Enumerator;
 class MemberVariable;
 
 //
@@ -49,17 +49,12 @@ public:
   //
   // Construction
   //
-  Object();
+  Object(DataType* dataType = 0);
 
   //
   // Object type
   //
   virtual DataType* GetDataType() const;
-
-  //
-  // Object type name
-  //
-  virtual String GetTypeName() const;
 
   //////////////////////////////////////////////////////////////////////////
   //
@@ -69,6 +64,11 @@ public:
   typedef MemberMap::iterator                       MemberIterator;
   typedef map_iterator_t<MemberMap, key_accessor>   KeyIterator;
   typedef map_iterator_t<MemberMap, value_accessor> ValueIterator;
+
+  //
+  // Generic enumerator object
+  //
+  virtual Enumerator* GetEnumerator();
 
   //
   // Iterator for members
@@ -124,6 +124,11 @@ public:
   // Find a member
   //
   virtual bool Find(String const& key, RValue*& pValue, bool checkProto = true) const;
+  
+  //
+  // Retrieve a member by index
+  //
+  virtual RValue& GetAt(Value const& index);
 
   //
   // Add new item to end
@@ -186,7 +191,7 @@ private:
   //
   // Object members
   //
-  mutable ROVariable* m_dataType;
+  mutable DataType* m_dataType;
   mutable MemberMap m_members;
 
 };

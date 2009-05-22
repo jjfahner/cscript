@@ -26,7 +26,6 @@
 #include <gcstring.h>
 
 class Object;
-class List;
 class DataType;
 
 class Value
@@ -41,7 +40,6 @@ public:
     tReal,
     tString,
     tObject,
-    tList
   };
 
   typedef BooleanType::DeclType Bool;
@@ -117,12 +115,6 @@ public:
   {
   }
 
-  Value(List* list) :
-  m_type    (tList),
-  m_list    (list)
-  {
-  }
-
   void Clear()
   {
     m_type = tNull;
@@ -165,12 +157,6 @@ public:
     throw std::runtime_error("Value is not of type object");
   }
 
-  List* GetList() const
-  {
-    if(m_type == tList) return m_list;
-    throw std::runtime_error("Value is not of type list");
-  }
-
   operator Int () const
   {
     return GetInt();
@@ -184,11 +170,6 @@ public:
   operator Object * () const
   {
     return GetObject();
-  }
-
-  operator List * () const
-  {
-    return GetList();
   }
 
   Object* operator -> () const
@@ -238,7 +219,6 @@ private:
     Int             m_int;
     Bool            m_bool;
     Object*         m_object;
-    List*           m_list;
   };
 
 };

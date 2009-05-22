@@ -32,8 +32,7 @@ NATIVE_CALL("count(arg)")
   {
   case Value::tObject:
     return args[0].GetObject()->Count();
-  case Value::tList:
-    return args[0].GetList()->Count();
+  default:
+    throw std::runtime_error("Invalid type for count");
   }
-  throw std::runtime_error("Invalid type for count");
 }
