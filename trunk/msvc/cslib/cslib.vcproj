@@ -263,6 +263,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\src\datatype.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\error.cpp"
 				>
 			</File>
@@ -280,6 +284,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\lexstream.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\list.cpp"
 				>
 			</File>
 			<File
@@ -586,10 +594,6 @@
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath="..\..\src\datatype.cpp"
-			>
-		</File>
 		<File
 			RelativePath="..\..\TODO"
 			>
