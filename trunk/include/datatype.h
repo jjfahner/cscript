@@ -147,7 +147,7 @@ public:
   //
   // Declaration type
   //
-  typedef __int64 DeclType;
+  typedef int64 DeclType;
 
   //
   // Retrieve singleton instance

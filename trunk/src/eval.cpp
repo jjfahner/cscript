@@ -770,7 +770,7 @@ Evaluator::EvalListIndex(Object* node, List* lhs)
   RValue& rhs = EvalExpression(Ast_A2(node));
 
   // Retrieve from list
-  return lhs->GetAt(rhs);
+  return lhs->GetAt(rhs.GetValue());
 }
 
 RValue&
