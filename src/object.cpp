@@ -211,17 +211,6 @@ Object::GetLValue(String const& key)
 }
 
 RValue& 
-Object::Add(Value const& value)
-{
-  // TODO this is really, really bad. Should be replaced
-  // (or simply removed) as soon as statement_seq and its
-  // ilk have been moved to an array-like object
-  char buf[10];
-  sprintf(buf, "%08d", m_members.size());
-  return Add(buf, value);
-}
-
-RValue& 
 Object::Add(String const& key, Value const& value)
 {
   // Update members first
@@ -239,27 +228,6 @@ Object::Add(String const& key, Value const& value)
 
   // Done
   return res.first->second;
-}
-
-RValue& 
-Object::Add(String const& key, RValue* value)
-{
-  throw std::runtime_error("Custom object members are currently not implemented");
-}
-
-void 
-Object::AddMembers(Object* source)
-{
-  // Update members
-  UpdateMembers();
-
-  // Copy members
-  MemberIterator it = source->Begin();
-  MemberIterator ie = source->End();
-  for(; it != ie; ++it)
-  {
-    Add(it->second.GetValue());
-  }
 }
 
 void 

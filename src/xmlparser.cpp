@@ -188,11 +188,13 @@ XmlParser::createNode(XmlNodeTypes type)
     (*node)["parentNode"] = m_curNode;
     if(type == xmlAttribute)
     {
-      (*m_curNode)["attributes"].GetObject()->Add(node);
+      // FIXME
+      //(*m_curNode)["attributes"].GetObject()->Add(node);
     }
     else
     {
-      (*m_curNode)["childNodes"].GetObject()->Add(node);
+      // FIXME
+      //(*m_curNode)["childNodes"].GetObject()->Add(node);
     }
   }
 

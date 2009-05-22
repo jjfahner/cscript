@@ -650,9 +650,9 @@ Evaluator::EvalTernary(Object* node)
 void 
 Evaluator::EvalStatementSeq(Object* node)
 {
-  Object* list = Ast_A1(node);
-  Object::ValueIterator it = list->ValueBegin();
-  Object::ValueIterator ie = list->ValueEnd();
+  List* list = AstList_A1(node);
+  List::Iterator it = list->Begin();
+  List::Iterator ie = list->End();
   for(; it != ie; ++it)
   {
     EvalStatement(it->GetObject());
@@ -1094,9 +1094,9 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   AutoScope asa(this, new Scope(m_scope));
 
   // Insert arguments into argument scope
-  Object::ValueIterator pi, pe;
-  pi = fun->GetParameters()->ValueBegin();
-  pe = fun->GetParameters()->ValueEnd();
+  List::Iterator pi, pe;
+  pi = fun->GetParameters()->Begin();
+  pe = fun->GetParameters()->End();
   for(size_t index = 0; pi != pe; ++pi, ++index)
   {
     m_scope->Add(Ast_A1(pi->GetObject()), args[index]);
@@ -1138,8 +1138,8 @@ Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments&
   }
 
   // Enumerate parameters
-  Object::ValueIterator pi = fun->GetParameters()->ValueBegin();
-  Object::ValueIterator pe = fun->GetParameters()->ValueEnd();
+  List::Iterator pi = fun->GetParameters()->Begin();
+  List::Iterator pe = fun->GetParameters()->End();
   for(;;)
   {
     // End of lists
@@ -1161,7 +1161,7 @@ Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments&
     if(Ast_A2(par).GetInt() == ptVariadic)
     {
       // Insert map
-      Object* va = new Object();
+      List* va = new List();
       args.push_back(va);
 
       // Insert remaining arguments
@@ -1172,7 +1172,7 @@ Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments&
         Value val = EvalExpression(*ai);
 
         // Append to list
-        va->Add(val);
+        va->Append(val);
       }
 
       // Done
@@ -1535,8 +1535,8 @@ Evaluator::EvalSwitchStatement(Object* node)
   Value value = EvalExpression(Ast_A1(node));
 
   // Create iterators
-  Object::ValueIterator it = Ast_A2(node)->ValueBegin();
-  Object::ValueIterator ie = Ast_A2(node)->ValueEnd();
+  List::Iterator it = AstList_A2(node)->Begin();
+  List::Iterator ie = AstList_A2(node)->End();
 
   // Find case that matches switch value
   Object* statement = 0;
@@ -1843,7 +1843,8 @@ CreateXmlObject(XmlNodeTypes nodeType, Object* parentNode = 0)
     Object* coll = nodeType == xmlAttribute ?
       parentNode->GetLValue("attributes").GetObject() :
       parentNode->GetLValue("childNodes").GetObject() ;
-    coll->Add(childNode);
+    // FIXME
+    //coll->Add(childNode);
   }
 
   // Create complex members

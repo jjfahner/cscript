@@ -219,7 +219,7 @@ public:
   //
   // Retrieve parameter list
   //
-  Object* GetParameters() const;
+  List* GetParameters() const;
 
   //
   // Execution

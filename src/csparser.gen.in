@@ -33,6 +33,7 @@
 #include "convert.h"
 #include "csparser.h"
 #include "astnode.h"
+#include "list.h"
 
 #include <cassert>
 
@@ -93,10 +94,10 @@ statement_sequence(R) ::= statement_sequence(A) statement(B) . {
     R = A;
   }
   else {
-    R = p->AllocNode(statement_sequence, new Object);
-    Ast_A1(R)->Add(A);
+    R = p->AllocNode(statement_sequence, new List);
+    AstList_A1(R)->Append(A);
   }
-  Ast_A1(R)->Add(B);
+  AstList_A1(R)->Append(B);
 }
 
 // Statement
@@ -366,20 +367,23 @@ opt_parameter(R) ::=         IDENTIFIER(B) ASSIGN expression(C) . { R = p->Alloc
 variadic_parameter(R) ::= IDENTIFIER(A) VARIADIC . { R = p->AllocNode(parameter, String(A), ptVariadic); }
 
 // Parameter list
-parameter_list(R) ::= . { R = new Object; }
+%type parameter_list { List* }
+parameter_list(R) ::= . { R = new List; }
 parameter_list(R) ::= parameters(A)     . { R = A; }
 parameter_list(R) ::= opt_parameters(A) . { R = A; }
-parameter_list(R) ::= variadic_parameter(A) . { R = new Object; R->Add(A); }
-parameter_list(R) ::= parameters(A) COMMA opt_parameters(B) .     { R = A; A->AddMembers(B); }
-parameter_list(R) ::= parameters(A) COMMA variadic_parameter(B) . { R = A; A->Add(B); }
+parameter_list(R) ::= variadic_parameter(A) . { R = new List; R->Append(A); }
+parameter_list(R) ::= parameters(A) COMMA opt_parameters(B) .     { R = A; A->Append(B); }
+parameter_list(R) ::= parameters(A) COMMA variadic_parameter(B) . { R = A; A->Append(B); }
 
 // List of parameters
-parameters(R) ::= parameter(A) .                      { R = new Object; R->Add(A); }
-parameters(R) ::= parameters(A) COMMA parameter(B) .  { R = A; A->Add(B); }
+%type parameters { List* }
+parameters(R) ::= parameter(A) .                      { R = new List; R->Append(A); }
+parameters(R) ::= parameters(A) COMMA parameter(B) .  { R = A; A->Append(B); }
 
 // List of optional parameters
-opt_parameters(R) ::= opt_parameter(A) . { R = new Object; R->Add(A); }
-opt_parameters(R) ::= opt_parameters(A) COMMA opt_parameter(B) . { R = A; A->Add(B); }
+%type opt_parameters { List* }
+opt_parameters(R) ::= opt_parameter(A) . { R = new List; R->Append(A); }
+opt_parameters(R) ::= opt_parameters(A) COMMA opt_parameter(B) . { R = A; A->Append(B); }
 
 // Function body. Traditionally, this is a compound statement, but
 // there's no actual need for that.
@@ -474,9 +478,10 @@ while_statement(R) ::= WHILE LPAREN expression(A) RPAREN statement(B) . { R = p-
 switch_statement(R) ::= SWITCH LPAREN expression(A) RPAREN LBRACE switch_body(B) RBRACE . { R = p->AllocNode(switch_statement, A, B); }
 
 // Switch content
-switch_body(R) ::= . { R = new Object; }
-switch_body(R) ::= switch_body(A) switch_case(B)  . { R = A; R->Add(B); }
-switch_body(R) ::= switch_body(A) default_case(B) . { R = A; R->Add(B); }
+%type switch_body { List* }
+switch_body(R) ::= . { R = new List; }
+switch_body(R) ::= switch_body(A) switch_case(B)  . { R = A; R->Append(B); }
+switch_body(R) ::= switch_body(A) default_case(B) . { R = A; R->Append(B); }
 
 // Regular case
 switch_case(R) ::= CASE literal(A) COLON case_statements(B) . { R = p->AllocNode(switch_case, A, B); }

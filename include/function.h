@@ -65,7 +65,7 @@ public:
   //
   // Parameter list
   //
-  virtual Object* GetParameters() const = 0;
+  virtual List* GetParameters() const = 0;
 
   //
   // Execute function 
@@ -110,9 +110,9 @@ public:
   //
   // Parameter list
   //
-  virtual Object* GetParameters() const
+  virtual List* GetParameters() const
   {
-    return Ast_A2(GetNode());
+    return AstList_A2(GetNode());
   }
 
   //
@@ -151,7 +151,7 @@ public:
   //
   // Parameter list
   //
-  virtual Object* GetParameters() const;
+  virtual List* GetParameters() const;
 
   //
   // Execution
