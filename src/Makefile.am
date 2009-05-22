@@ -10,11 +10,13 @@ libcs_a_SOURCES = args.cpp \
                   convert.cpp \
 		  cslexer.cpp \
 		  csparser.cpp \
+		  datatype.cpp \
 		  error.cpp \
 		  eval.cpp \
 		  gc.cpp \
 		  function.cpp \
 		  lexstream.cpp \
+		  list.cpp \
 		  native.cpp \
 		  object.cpp \
 		  opcodes.cpp \
