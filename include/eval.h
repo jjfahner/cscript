@@ -185,6 +185,7 @@ private:
   RValue& EvalTernary(Object* node);
   RValue& EvalPrefix(Object* node);
   RValue& EvalPostfix(Object* node);
+  RValue& EvalTypeOf(Object* node);
   RValue& EvalConversion(Object* node);
   RValue& EvalClosure(Object* node);
   RValue& EvalXmlExpression(Object* node);

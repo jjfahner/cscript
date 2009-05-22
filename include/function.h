@@ -55,14 +55,6 @@ public:
   }
 
   //
-  // Object type
-  //
-  virtual String GetTypeName() const
-  {
-    return Object::GetTypeName() + "::" + m_name;
-  }
-
-  //
   // Function name
   //
   virtual String GetName() const

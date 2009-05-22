@@ -59,14 +59,6 @@ public:
   static Object* Create(Evaluator* evaluator, IDispatch* p);
 
   //
-  // Class type name
-  //
-  virtual String GetTypeName() const
-  {
-    return "ComObject " + m_typeInfo->GetTypeName();
-  }
-
-  //
   // Is a certain key present
   //
   virtual bool ContainsKey(Value const& key, bool checkProto = true) const;

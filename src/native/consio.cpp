@@ -75,7 +75,7 @@ void PrintValue(Value const& val)
     std::cout << ":";
     if(it->second.Type() == Value::tObject)
     {
-      std::cout << it->second.GetObject()->GetTypeName();
+      std::cout << it->second.GetObject()->GetDataType()->TypeName();
     }
     else
     {

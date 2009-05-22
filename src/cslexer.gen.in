@@ -73,6 +73,7 @@ CSLexer::ParseNextToken()
   "throw"                   { return CS_THROW; }
   "true"                    { return CS_TRUE; }
   "try"                     { return CS_TRY; }
+  "typeof"                  { return CS_TYPEOF; }
   "unset"                   { return CS_UNSET; }
   "var"                     { return CS_VAR; }
   "while"                   { return CS_WHILE; }

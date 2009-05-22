@@ -191,6 +191,9 @@ CSParser::GetDataType(AstNode* node)
       throw std::runtime_error("Invalid postfix operator");
     }
 
+  case typeof_expression:
+    return ObjectType::Instance();
+
   case member_expression:
     return UnknownType::Instance();
 

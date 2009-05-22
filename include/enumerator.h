@@ -48,50 +48,6 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-class ObjectEnumerator : public Enumerator
-{
-  typedef Object::ValueIterator Iterator;
-
-  Object*  m_obj;
-  Iterator m_cur;
-
-public:
-
-  ObjectEnumerator(Object* object) :
-  m_obj (object)
-  {
-    // Initialize iterator
-    Reset();
-  }
-
-  virtual void Reset()
-  {
-    // Set iterator to start
-    m_cur = m_obj->ValueBegin();
-  }
-
-  virtual bool GetNext(Value& value)
-  {
-    // Check current position
-    if(m_cur == m_obj->ValueEnd())
-    {
-      return false;
-    }
-
-    // Retrieve value from iterator
-    value = *m_cur;
-
-    // Advance to next position
-    ++m_cur;
-
-    // Succeeded
-    return true;
-  }
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
 class ListEnumerator : public Enumerator
 {
   typedef List::Iterator Iterator;
@@ -133,22 +89,5 @@ public:
   }
 
 };
-
-//////////////////////////////////////////////////////////////////////////
-//
-// TODO move this somewhere
-//
-
-inline Enumerator* 
-RValue::GetEnumerator() const
-{
-  switch(Type())
-  {
-  case Value::tObject:  return new ObjectEnumerator(GetValue());
-  case Value::tList:    return new ListEnumerator(GetValue());
-  default:              throw std::runtime_error("No iterator type available");
-  }
-  
-}
 
 #endif // CSCRIPT_ENUMERATOR_H

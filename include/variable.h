@@ -47,7 +47,6 @@ public:
   Value::Int        GetInt()      const { return GetValue().GetInt();      }
   GCString const&   GetString()   const { return GetValue().GetString();   }
   Object*           GetObject()   const { return GetValue().GetObject();   }
-  List*             GetList()     const { return GetValue().GetList();     }
   GC::Object*       GetGCObject() const { return GetValue().GetGCObject(); }
 
   //
@@ -60,7 +59,6 @@ public:
   // Automatic conversions
   //
   operator Object*         () const { return GetObject(); }
-  operator List*           () const { return GetList();   }
   operator Value::Int      () const { return GetInt();    }
   operator GCString const& () const { return GetString(); }
   operator Value const&    () const { return GetValue();  }
@@ -79,11 +77,6 @@ public:
   // Convert RValue to LValue. Throws if not an LValue
   //
   class LValue& GetLValue();
-
-  //
-  // Retrieve an enumerator for this variable
-  //
-  virtual Enumerator* GetEnumerator() const;
 
 protected:
 
@@ -130,8 +123,6 @@ RValue::GetLValue()
   }
   return *lval;
 }
-
-//////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -286,14 +277,6 @@ public:
     return m_value.GetValue();
   }
 
-  //
-  // Retrieve an enumerator for this variable
-  //
-  Enumerator* GetEnumerator() const
-  {
-    return m_value.GetEnumerator();
-  }
-
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -327,14 +310,6 @@ public:
   void SetValue(Value const& value)
   {
     m_value = value;
-  }
-
-  //
-  // Retrieve an enumerator for this variable
-  //
-  Enumerator* GetEnumerator() const
-  {
-    return m_value.GetEnumerator();
   }
 
 };

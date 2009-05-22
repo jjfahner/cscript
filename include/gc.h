@@ -66,6 +66,11 @@ public:
   static void Pin(Object* obj);
   static void Unpin(Object* obj);
 
+  //
+  // Mark an object into a set
+  //
+  static void Mark(ObjectVec& vec, Object* obj);
+
   //////////////////////////////////////////////////////////////////////////
   //
   // Base class for collectable objects

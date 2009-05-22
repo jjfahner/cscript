@@ -222,6 +222,24 @@ function main()
   // Reset error count
   errors = 0;
 
+  // Type names
+  assert("Typename of null",   typeof(null).TypeName() == "null",   1);
+  assert("Typename of bool",   typeof(true).TypeName() == "bool",   1);
+  assert("Typename of int",    typeof(1234).TypeName() == "int",    1);
+  assert("Typename of string", typeof("ab").TypeName() == "string", 1);
+  assert("Typename of list",   typeof( [] ).TypeName() == "list",   1);
+
+  // Type equivalence
+  assert("typeof(null) == typeof(null)",  typeof(null) == typeof(null),  1);
+  assert("typeof(null) != typeof(1234)",  typeof(null) == typeof(1234),  0);
+  assert("typeof(null) != typeof('ab')",  typeof(null) == typeof("ab"),  0);
+  assert("typeof(true) == typeof(false)", typeof(true) == typeof(false), 1);
+  assert("typeof(1234) == typeof(4321)",  typeof(1234) == typeof(4321),  1);
+  assert("typeof('ab') == typeof('ba')",  typeof("ab") == typeof("ba"),  1);
+ 
+//print(10.ToString() + "\n");
+//print(false.ToString() + "\n");
+
   // Number formats
   assert("Binary literal", 0b0000000, 0);
   assert("Binary literal", 0b0000001, 1);
@@ -502,15 +520,10 @@ function main()
   }
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Start by invoking main()
 //
-
-print(null.TypeName() + "\n");
-print(10.ToString() + "\n");
-print(false.ToString() + "\n");
 
 // Cleanup any garbage objects and store current count
 collect();

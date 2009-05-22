@@ -482,6 +482,7 @@ Evaluator::EvalExpression(Object* node)
   case ternary_expression:    return EvalTernary(node);
   case prefix_expression:     return EvalPrefix(node);
   case postfix_expression:    return EvalPostfix(node);
+  case typeof_expression:     return EvalTypeOf(node);
   case index_expression:      return EvalIndex(node);
   case function_call:         return EvalFunctionCall(node);
   case literal_value:         return MakeTemp(Ast_A1(node));
@@ -699,6 +700,13 @@ Evaluator::EvalPostfix(Object* node)
   return result;
 }
 
+RValue& 
+Evaluator::EvalTypeOf(Object* node)
+{
+  RValue& e = EvalExpression(Ast_A1(node));
+  return MakeTemp(e.GetDataType());
+}
+
 RValue&
 Evaluator::EvalIndex(Object* node)
 {
@@ -709,14 +717,14 @@ Evaluator::EvalIndex(Object* node)
   switch(lhs.Type())
   {
   case Value::tNull:
-    lhs.GetLValue() = new List();
-    return EvalListIndex(node, lhs.GetList());
+    {
+      List* list = new List();
+      lhs.GetLValue() = list;
+      return EvalListIndex(node, list);
+    }
 
   case Value::tObject:
     return EvalObjectIndex(node, lhs.GetObject());
-
-  case Value::tList:
-    return EvalListIndex(node, lhs.GetList());
 
   default:  
     throw ScriptException(node, "Invalid type for index operator");
@@ -729,17 +737,8 @@ Evaluator::EvalObjectIndex(Object* node, Object* lhs)
   RValue* val = 0;
   if(Ast_A2(node).Empty())
   {
-    // Use size as key
-    Value key = lhs->Count();
-
-    // Make sure this key doesn't exist.
-    if(lhs->Find(key, val))
-    {
-      throw std::runtime_error("Key to add already exists");
-    }
-    
-    // Add value
-    val = &lhs->Add(key, Value());
+    // Append value
+    val = &lhs->GetAt(lhs->Count());
   }
   else
   {
@@ -747,14 +746,15 @@ Evaluator::EvalObjectIndex(Object* node, Object* lhs)
     RValue& rhs = EvalExpression(Ast_A2(node));
 
     // Retrieve value
-    if(!lhs->Find(rhs, val))
-    {
-      val = &lhs->Add(rhs, Value());
-    }
+    val = &lhs->GetAt(rhs);
   }
-  
-  // Done
-  return StoreTemp(new BoundLValue(val->GetLValue(), lhs));
+
+  // Convert to bound value
+  if(LValue* lval = dynamic_cast<LValue*>(val))
+  {
+    return StoreTemp(new BoundLValue(*lval, lhs));
+  }
+  return StoreTemp(new BoundRValue(*val, lhs));
 }
 
 RValue&
@@ -763,14 +763,14 @@ Evaluator::EvalListIndex(Object* node, List* lhs)
   // No index expression; refers to newly added element
   if(Ast_A2(node).Empty())
   {
-    return lhs->AddTail();
+    return lhs->Append();
   }
 
   // Evaluate index expression
   RValue& rhs = EvalExpression(Ast_A2(node));
 
   // Retrieve from list
-  return lhs->GetAt((int)rhs.GetInt());
+  return lhs->GetAt(rhs);
 }
 
 RValue&
@@ -1237,7 +1237,7 @@ Evaluator::EvalListLiteral(Object* node)
     while(child)
     {
       // Add element to list
-      list->AddTail(EvalExpression(Ast_A1(Ast_A1(child))));
+      list->Append(EvalExpression(Ast_A1(Ast_A1(child))));
 
       // Check for next element
       if(Ast_A2(child).Empty()) 
@@ -1458,7 +1458,7 @@ Evaluator::EvalForeachStatement(Object* node)
   RValue& rhs = EvalExpression(Ast_A2(node));
 
   // Retrieve enumerator
-  Enumerator* enumerator = rhs.GetEnumerator();
+  Enumerator* enumerator = rhs.GetObject()->GetEnumerator();
   if(enumerator == 0)
   {
     throw ScriptException(node, "Invalid type specified in foreach");

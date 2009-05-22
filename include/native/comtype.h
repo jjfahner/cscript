@@ -59,11 +59,6 @@ public:
   ITypeInfoPtr const& GetTypeInfo() const;
 
   //
-  // Retrieve type name
-  //
-  String GetTypeName() const;
-
-  //
   // Get CLSID for interface
   //
   CLSID GetCLSID() const;

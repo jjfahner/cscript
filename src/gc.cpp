@@ -57,6 +57,15 @@ GC::Unpin(Object* obj)
 //   }
 }
 
+void 
+GC::Mark(ObjectVec& vec, Object* obj)
+{
+  if(obj->m_collect)
+  {
+    vec.push_back(obj);
+  }
+}
+
 GC::Object::Object(bool complex)
 {
   // Store reference to objects list
