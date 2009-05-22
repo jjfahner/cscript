@@ -26,7 +26,7 @@
 #include <gc.h>
 #include <enumerator.h>
 
-#include <list>
+#include <vector>
 
 class List : public Object
 {
@@ -79,6 +79,17 @@ public:
   {
     m_list.push_back(v);
     return m_list.back();
+  }
+
+  //
+  // Append list contents
+  //
+  void Append(List* list)
+  {
+    m_list.insert(
+      m_list.end(), 
+      list->m_list.begin(), 
+      list->m_list.end());
   }
 
   //

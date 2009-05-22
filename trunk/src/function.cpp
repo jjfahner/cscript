@@ -27,10 +27,10 @@ ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
   return evaluator->EvalScriptCall(this, args);
 }
 
-Object* 
+List* 
 ExternFunction::GetParameters() const
 {
-  return Ast_A2(GetNode());
+  return AstList_A2(GetNode());
 }
 
 #ifdef WIN32

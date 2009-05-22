@@ -712,7 +712,7 @@ m_dispid  (dispid)
 {
 }
 
-Object* 
+List* 
 ComMemberFunction::GetParameters() const
 {
   return 0;

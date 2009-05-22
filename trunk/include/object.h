@@ -131,19 +131,9 @@ public:
   virtual RValue& GetAt(Value const& index);
 
   //
-  // Add new item to end
-  //
-  RValue& Add(Value const& value);
-
-  //
   // Add a member
   //
   RValue& Add(String const& key, Value const& value);
-
-  //
-  // Add a member with a custom RValue-derived type
-  //
-  RValue& Add(String const& key, RValue* value);
 
   //
   // Retrieve variable as rvalue
@@ -162,11 +152,6 @@ public:
   {
     return GetLValue(key);
   }
-
-  //
-  // Add members in member list
-  //
-  void AddMembers(Object* source);
 
   //
   // Remove a member

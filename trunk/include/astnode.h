@@ -25,6 +25,7 @@
 #include <object.h>
 #include <value.h>
 #include <ast.h>
+#include <list.h>
 
 class DataType;
 
@@ -124,6 +125,14 @@ inline AstNode* AstNode_A3(Object* obj) {
 }
 inline AstNode* AstNode_A4(Object* obj) {
   return static_cast<AstNode*>(Ast_A4(obj).GetObject());
+}
+inline List* AstList_A1(Object* obj) {
+  List* l = dynamic_cast<List*>(Ast_A1(obj).GetObject());
+  return l ? l : throw std::runtime_error("Object is not a list");
+}
+inline List* AstList_A2(Object* obj) {
+  List* l = dynamic_cast<List*>(Ast_A2(obj).GetObject());
+  return l ? l : throw std::runtime_error("Object is not a list");
 }
 
 //////////////////////////////////////////////////////////////////////////
