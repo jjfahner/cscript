@@ -1458,7 +1458,7 @@ Evaluator::EvalForeachStatement(Object* node)
   RValue& rhs = EvalExpression(Ast_A2(node));
 
   // Retrieve enumerator
-  Enumerator* enumerator = rhs.GetObject()->GetEnumerator();
+  Enumerator* enumerator = rhs->GetEnumerator();
   if(enumerator == 0)
   {
     throw ScriptException(node, "Invalid type specified in foreach");

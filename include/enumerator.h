@@ -23,7 +23,6 @@
 
 #include <cscript.h>
 #include <object.h>
-#include <list.h>
 
 class Enumerator : public Object
 {
@@ -43,50 +42,6 @@ public:
   // Retrieve next value
   //
   virtual bool GetNext(Value& value) = 0;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
-class ListEnumerator : public Enumerator
-{
-  typedef List::Iterator Iterator;
-
-  Iterator m_beg;
-  Iterator m_cur;
-  Iterator m_end;
-
-public:
-
-  ListEnumerator(List* list) :
-  m_beg (list->Begin()),
-  m_cur (m_beg),
-  m_end (list->End())
-  {
-  }
-
-  virtual void Reset()
-  {
-    m_cur = m_beg;
-  }
-
-  virtual bool GetNext(Value& value)
-  {
-    // Check current position
-    if(m_cur == m_end)
-    {
-      return false;
-    }
-
-    // Retrieve value from iterator
-    value = *m_cur;
-
-    // Advance to next position
-    ++m_cur;
-
-    // Succeeded
-    return true;
-  }
 
 };
 

@@ -24,26 +24,9 @@
 #include <cscript.h>
 #include <variable.h>
 #include <gc.h>
+#include <enumerator.h>
 
 #include <list>
-
-class ListType : public ObjectType
-{
-public:
-
-  static ListType* Instance()
-  {
-    static ListType m_type;
-    GC::Pin(&m_type);
-    return &m_type;
-  }
-
-  virtual String TypeName() 
-  {
-    return "list";
-  }
-
-};
 
 class List : public Object
 {
@@ -62,9 +45,7 @@ public:
   //
   // Construction
   //
-  List() : Object(ListType::Instance())
-  {
-  }
+  List();
 
   //
   // Number of items in list
@@ -73,6 +54,11 @@ public:
   {
     return m_list.size();
   }
+
+  //
+  // Retrieve enumerator
+  //
+  virtual Enumerator* GetEnumerator();
 
   //
   // Iterators
