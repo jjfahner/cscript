@@ -106,11 +106,6 @@ public:
   //
 
   //
-  // Update member map. Implemented by derived classes.
-  //
-  virtual void UpdateMembers() {}
-
-  //
   // Member count
   //
   virtual size_t Count() const;

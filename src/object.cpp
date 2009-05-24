@@ -89,9 +89,6 @@ Object::GetDataType() const
 size_t 
 Object::Count() const 
 {
-  // Update members
-  const_cast<Object*>(this)->UpdateMembers();
-
   // Return size
   return m_members.size();
 }
@@ -106,9 +103,6 @@ bool
 Object::ContainsKey(String const& key, bool checkProto) const
 {
   MemberMap::const_iterator it;
-
-  // Update members
-  const_cast<Object*>(this)->UpdateMembers();
 
   // Find in own members
   if(m_members.count(key))
@@ -137,9 +131,6 @@ bool
 Object::Find(String const& key, RValue*& pValue, bool checkProto) const
 {
   MemberMap::iterator it;
-
-  // Update members
-  const_cast<Object*>(this)->UpdateMembers();
 
   // Initialize return value
   pValue = 0;
@@ -213,9 +204,6 @@ Object::GetLValue(String const& key)
 RValue& 
 Object::Add(String const& key, Value const& value)
 {
-  // Update members first
-  //UpdateMembers();
-
   // Insert new variable
   typedef std::pair<MemberIterator, bool> InsertResult;
   InsertResult const& res = m_members.insert(std::make_pair(key, value));
@@ -233,9 +221,6 @@ Object::Add(String const& key, Value const& value)
 void 
 Object::Remove(String const& key)
 {
-  // Update members
-  UpdateMembers();
-
   // Erase from members
   MemberIterator it = m_members.find(key);
   if(it != m_members.end())

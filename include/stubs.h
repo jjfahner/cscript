@@ -43,6 +43,7 @@ bool NativeCallFind(NativeCall*, String const& key, RValue*& pValue, bool checkP
 virtual bool \
 ContainsKey(String const& key, bool checkProto = true) const \
 { \
+  extern NativeCall __stublist_##class[]; \
   if(NativeCallContainsKey(__stublist_##class, key, checkProto)) \
   { \
     return true;  \
@@ -52,16 +53,12 @@ ContainsKey(String const& key, bool checkProto = true) const \
 virtual bool \
 Find(String const& key, RValue*& pValue, bool checkProto = true) const \
 { \
+  extern NativeCall __stublist_##class[]; \
   if(NativeCallFind(__stublist_##class, key, pValue, checkProto))  \
   { \
     return true;  \
   } \
   return base::Find(key, pValue, checkProto); \
 }
-
-//
-// Include stub array declarations
-//
-#include "stubs.gen.h"
 
 #endif // CSCRIPT_STUBS_H
