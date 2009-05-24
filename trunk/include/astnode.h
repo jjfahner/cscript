@@ -26,12 +26,15 @@
 #include <value.h>
 #include <ast.h>
 #include <list.h>
+#include <stubs.h>
 
 class DataType;
 
 class AstNode : public Object 
 {
 public:
+
+  IMPL_NATIVECALLS(AstNode, Object)
   
   //
   // Constructors
@@ -58,25 +61,11 @@ public:
   Value     m_a4;
   bool      m_updateDone;
 
-  //
-  // Update list
-  //
-  virtual void UpdateMembers()
-  {
-    // Avoid recursion or multiple adds
-    if(m_updateDone) 
-    {
-      return;
-    }
-    m_updateDone = true;
-    
-    // Add members
-    Add(0, m_type);
-    if(!m_a1.Empty()) Add("a1", m_a1);
-    if(!m_a2.Empty()) Add("a2", m_a2);
-    if(!m_a3.Empty()) Add("a3", m_a3);
-    if(!m_a4.Empty()) Add("a4", m_a4);
-  }
+  __native IntegerType::DeclType Type() { return m_type; }
+  __native Object* a1() { return m_a1; }
+  __native Object* a2() { return m_a2; }
+  __native Object* a3() { return m_a3; }
+  __native Object* a4() { return m_a4; }
 
   //
   // Mark reachable objects

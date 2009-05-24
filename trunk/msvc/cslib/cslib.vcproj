@@ -318,8 +318,9 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
+						Description="Generating native method stubs..."
 						CommandLine="cd ..\..&#x0D;&#x0A;tools\win32\awk.exe -f src\stubs.awk include\*.h &gt; src\stubs.gen.cpp"
-						Outputs="..\..\src\stubs.gen.cpp;..\..\include\stubs.gen.h"
+						Outputs="..\..\src\stubs.gen.cpp"
 					/>
 				</FileConfiguration>
 			</File>
