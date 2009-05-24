@@ -26,12 +26,18 @@
 class Value;
 class Evaluator;
 
+enum StubType
+{
+  stMethod = 0,
+  stRoProp = 1,
+  stRwProp = 2
+};
+
 struct NativeCall
 {
-  typedef Value (*StubType)(Evaluator*, Arguments const&);
-
   char const* m_name;
-  StubType    m_stub;
+  void*       m_stub;
+  StubType    m_type;
   ROVariable* m_var;
 };
 
@@ -53,8 +59,41 @@ inline int __stub_arg_to_int(Value const& v)
 
 #include "stubs.gen.cpp"
 
+//////////////////////////////////////////////////////////////////////////
+
+typedef Value (*MethodStub)(Evaluator*, Arguments const&);
+typedef Value (*RoPropStub)(Object*);
+
+//
+// NativeRoProp implements the RValue semantics of
+// read-only native properties. It's derived from
+// Object to make it garbage-collected.
+//
+class NativeRoProp : public RValue, public Object
+{
+  NativeCall* m_call;
+  Object* m_instance;
+  mutable Value m_value;
+
+public:
+
+  NativeRoProp(NativeCall* call, Object* instance) :
+  m_call (call),
+  m_instance (instance)
+  {
+  }
+
+  virtual Value const& GetValue() const
+  {
+    m_value = ((RoPropStub)m_call->m_stub)(m_instance);
+    return m_value;
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////
+
 bool 
-NativeCallContainsKey(NativeCall* pTable, String const& key, bool checkProto)
+NativeCallContainsKey(NativeCall* pTable, Object* instance, String const& key, bool checkProto)
 {
   while(pTable->m_name)
   {
@@ -68,20 +107,37 @@ NativeCallContainsKey(NativeCall* pTable, String const& key, bool checkProto)
 }
 
 bool 
-NativeCallFind(NativeCall* pTable, String const& key, RValue*& pValue, bool checkProto)
+NativeCallFind(NativeCall* pTable, Object* instance, String const& key, RValue*& pValue, bool checkProto)
 {
   while(pTable->m_name)
   {
     if(key == pTable->m_name)
     {
-      if(pTable->m_var == 0)
+      switch(pTable->m_type)
       {
-        NativeFunction* pFun = new NativeFunction("", pTable->m_stub);
-        GC::Pin(pFun);
-        pTable->m_var = new ROVariable(pFun);
+      case stMethod:
+        {
+          if(pTable->m_var == 0)
+          {
+            NativeFunction* pFun = new NativeFunction("", (MethodStub)pTable->m_stub);
+            GC::Pin(pFun);
+            pTable->m_var = new ROVariable(pFun);
+          }
+          pValue = pTable->m_var;
+          return true;
+        }
+        break;
+
+      case stRoProp:
+        {
+          pValue = new NativeRoProp(pTable, instance);
+          return true;
+        }
+        break;
+
+      default:
+        throw std::runtime_error("Invalid native stubtype");
       }
-      pValue = pTable->m_var;
-      return true;
     }
     ++pTable;
   }

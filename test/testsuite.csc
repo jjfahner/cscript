@@ -223,11 +223,11 @@ function main()
   errors = 0;
 
   // Type names
-  assert("Typename of null",   typeof(null).TypeName() == "null",   1);
-  assert("Typename of bool",   typeof(true).TypeName() == "bool",   1);
-  assert("Typename of int",    typeof(1234).TypeName() == "int",    1);
-  assert("Typename of string", typeof("ab").TypeName() == "string", 1);
-  assert("Typename of list",   typeof( [] ).TypeName() == "list",   1);
+  assert("Typename of null",   typeof(null).TypeName == "null",   1);
+  assert("Typename of bool",   typeof(true).TypeName == "bool",   1);
+  assert("Typename of int",    typeof(1234).TypeName == "int",    1);
+  assert("Typename of string", typeof("ab").TypeName == "string", 1);
+  assert("Typename of list",   typeof( [] ).TypeName == "list",   1);
 
   // Type equivalence
   assert("typeof(null) == typeof(null)",  typeof(null) == typeof(null),  1);
@@ -524,6 +524,8 @@ function main()
 //
 // Start by invoking main()
 //
+
+print(typeof(main.__ast.a1).TypeName + "\n");
 
 // Cleanup any garbage objects and store current count
 collect();

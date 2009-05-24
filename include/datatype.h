@@ -47,7 +47,7 @@ public:
   //
   // Type name as string
   //
-  __native virtual String TypeName() = 0;
+  __native_roprop virtual String TypeName() = 0;
 
 };
 
@@ -91,7 +91,7 @@ public:
   //
   // Convert to string
   //
-  __native virtual String ToString() = 0;
+  __native_method virtual String ToString() = 0;
 
   //
   // Box a scalar value
@@ -155,7 +155,7 @@ public:
   //
   // Parse an integer
   //
-  __native virtual DeclType ParseInt(String source) = 0;
+  __native_method virtual DeclType ParseInt(String source) = 0;
 
 };
 

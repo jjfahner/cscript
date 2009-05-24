@@ -61,11 +61,11 @@ public:
   Value     m_a4;
   bool      m_updateDone;
 
-  __native IntegerType::DeclType Type() { return m_type; }
-  __native Value a1() { return m_a1; }
-  __native Value a2() { return m_a2; }
-  __native Value a3() { return m_a3; }
-  __native Value a4() { return m_a4; }
+  __native_roprop IntegerType::DeclType Type() { return m_type; }
+  __native_roprop Value a1() { return m_a1; }
+  __native_roprop Value a2() { return m_a2; }
+  __native_roprop Value a3() { return m_a3; }
+  __native_roprop Value a4() { return m_a4; }
 
   //
   // Mark reachable objects
