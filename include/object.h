@@ -105,8 +105,6 @@ public:
   // Members
   //
 
-  __native String ToString(String nested, Value v, int t);
-
   //
   // Update member map. Implemented by derived classes.
   //

@@ -23,6 +23,7 @@
 
 #include <cscript.h>
 #include <object.h>
+#include <stubs.h>
 
 class Evaluator;
 class Arguments;
@@ -34,19 +35,14 @@ class DataType : public Object
 public:
 
   //
+  // Native calls
+  //
+  IMPL_NATIVECALLS(DataType, Object)
+
+  //
   // Construction
   //
   DataType();
-
-  //
-  // Type has member
-  //
-  bool ContainsKey(String const& key, bool checkProto) const;
-
-  //
-  // Find member
-  //
-  bool Find(String const& key, RValue*& pValue, bool checkProto) const;
 
   //
   // Type name as string
@@ -88,14 +84,9 @@ class ScalarType : public DataType
 public:
 
   //
-  // Type has member
+  // Native calls
   //
-  bool ContainsKey(String const& key, bool checkProto) const;
-
-  //
-  // Find member
-  //
-  bool Find(String const& key, RValue*& pValue, bool checkProto) const;
+  IMPL_NATIVECALLS(ScalarType, DataType)
 
   //
   // Convert to string
@@ -147,6 +138,11 @@ class IntegerType : public ScalarType
 public:
 
   //
+  // Native calls
+  //
+  IMPL_NATIVECALLS(IntegerType, ScalarType)
+
+  //
   // Declaration type
   //
   typedef int64 DeclType;
@@ -155,6 +151,11 @@ public:
   // Retrieve singleton instance
   //
   static DataType* Instance();
+
+  //
+  // Parse an integer
+  //
+  __native virtual DeclType ParseInt(String source) = 0;
 
 };
 

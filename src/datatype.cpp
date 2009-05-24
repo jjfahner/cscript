@@ -33,29 +33,6 @@ Object(this)
 {
 }
 
-bool 
-DataType::ContainsKey(String const& key, bool checkProto) const
-{
-  if(key == "TypeName")
-  {
-    return true;
-  }
-  return Object::ContainsKey(key, checkProto);
-}
-
-bool 
-DataType::Find(String const& key, RValue*& pValue, bool checkProto) const
-{
-  if(key == "TypeName")
-  {
-    pValue = new ROVariable(
-      new NativeMethod<DataType, String>("TypeName", &DataType::TypeName, 
-        Evaluator::ParseNativeCall("TypeName()")));
-    return true;
-  }
-  return Object::Find(key, pValue, checkProto);
-}
-
 //////////////////////////////////////////////////////////////////////////
 
 class VoidTypeImpl : public VoidType
@@ -94,29 +71,6 @@ DataType* UnknownType::Instance()
   static UnknownTypeImpl m_type;
   GC::Pin(&m_type);
   return &m_type;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-bool 
-ScalarType::ContainsKey(String const& key, bool checkProto) const
-{
-  if(key == "ToString")
-  {
-    return false;
-  }
-  return DataType::ContainsKey(key, checkProto);
-}
-
-bool 
-ScalarType::Find(String const& key, RValue*& pValue, bool checkProto) const
-{
-  if(key == "ToString")
-  {
-    //pValue = 
-    return false;
-  }
-  return DataType::Find(key, pValue, checkProto);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -216,6 +170,13 @@ public:
   IntegerType* Box(Value const& value)
   {
     return new IntegerTypeImpl(value.GetInt());
+  }
+
+  DeclType ParseInt(String source)
+  {
+    int v;
+    sscanf(source.c_str(), "%d", &v);
+    return v;
   }
 
 protected:
