@@ -784,7 +784,7 @@ Evaluator::EvalListIndex(Object* node, List* lhs)
   // No index expression; refers to newly added element
   if(Ast_A2(node).Empty())
   {
-    return lhs->Append();
+    return lhs->FastAppend();
   }
 
   // Evaluate index expression
