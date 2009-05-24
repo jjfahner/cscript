@@ -140,7 +140,7 @@ END {
       printf("\nNativeCall __stublist_%s[] = {\n", className);
       for(i = 1; i <= numStubs; ++i)
       {
-        printf("  { \"%s\", %s, %s, 0 },\n", stubName[className i], stubProc[className i], stubType[className i]);
+        printf("  { \"%s\", (void*)%s, %s, 0 },\n", stubName[className i], stubProc[className i], stubType[className i]);
       }
       printf("  { 0, 0, stMethod, 0 }\n");
       printf("};\n");
