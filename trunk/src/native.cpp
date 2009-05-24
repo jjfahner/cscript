@@ -73,12 +73,7 @@ NativeCallRegistrar::RegisterCalls()
 NativeFunction::NativeFunction(String decl, FunPtr funPtr) :
 Function  ("", NativeFunctionType::Instance()),
 m_funPtr  (funPtr)
-{
-  if(decl == "")
-  {
-    return;
-  }
-  
+{  
   // Create parser
   Evaluator eval;
 

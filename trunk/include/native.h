@@ -51,10 +51,6 @@ public:
   //
   Object* GetNode() const
   {
-    if(!ContainsKey("__ast"))
-    {
-      return 0;
-    }
     return const_cast<NativeFunction&>(*this)["__ast"].GetObject();
   }
 
@@ -63,8 +59,7 @@ public:
   //
   virtual List* GetParameters() const
   {
-    Object* ast = GetNode();
-    return ast ? AstList_A2(ast) : 0;
+    return AstList_A2(GetNode());
   }
 
   //

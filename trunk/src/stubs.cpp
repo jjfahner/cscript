@@ -40,7 +40,7 @@ struct NativeCall
   char const* m_name;
   void*       m_stub;
   StubType    m_type;
-  ROVariable* m_var;
+  RValue*     m_var;
 };
 
 
@@ -74,6 +74,40 @@ inline bool __stub_arg_to_bool(Value const& v)
 //////////////////////////////////////////////////////////////////////////
 
 typedef Value (*MethodStub)(Evaluator*, Arguments const&);
+
+class NativeMethod : public Function, public RValue
+{
+  NativeCall* m_call;
+  Value m_value;
+
+public:
+
+  NativeMethod(NativeCall* call) :
+  Function  (call->m_name),
+  m_call    (call)
+  {
+    m_value = this;
+    GC::Pin(this);
+  }
+
+  virtual List* GetParameters() const
+  {
+    return 0;
+  }
+
+  virtual Value Execute(Evaluator* evaluator, Arguments& args)
+  {
+    return ((MethodStub)m_call->m_stub)(evaluator, args);
+  }
+
+  virtual Value const& GetValue() const
+  {    
+    return m_value;
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////
+
 typedef Value (*RoPropStub)(Object*);
 
 //
@@ -131,9 +165,7 @@ NativeCallFind(NativeCall* pTable, Object* instance, String const& key, RValue*&
         {
           if(pTable->m_var == 0)
           {
-            NativeFunction* pFun = new NativeFunction("", (MethodStub)pTable->m_stub);
-            GC::Pin(pFun);
-            pTable->m_var = new ROVariable(pFun);
+            pTable->m_var = new NativeMethod(pTable);
           }
           pValue = pTable->m_var;
           return true;
