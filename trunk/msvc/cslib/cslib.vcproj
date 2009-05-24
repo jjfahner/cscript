@@ -318,10 +318,14 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="cd ..\..&#x0D;&#x0A;tools\win32\awk.exe -f src\stubs.awk include\*.h &gt; include\stubs.gen.h"
-						Outputs="..\..\include\stubs.gen.h"
+						CommandLine="cd ..\..&#x0D;&#x0A;tools\win32\awk.exe -f src\stubs.awk include\*.h &gt; src\stubs.gen.cpp"
+						Outputs="..\..\src\stubs.gen.cpp;..\..\include\stubs.gen.h"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\src\stubs.cpp"
+				>
 			</File>
 			<File
 				RelativePath="..\..\src\timer.cpp"
@@ -528,6 +532,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\srcfile.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\stubs.h"
 				>
 			</File>
 			<File
