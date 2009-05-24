@@ -90,3 +90,50 @@ List::GetEnumerator()
 {
   return new ListEnumerator(this);
 }
+
+int64 
+List::Length()
+{
+  return m_list.size();
+}
+
+Value 
+List::Clear()
+{
+  m_list.clear();
+  return Value();
+}
+
+Value 
+List::Append(Value v)
+{
+  m_list.push_back(v);
+  return Value();
+}
+
+Value 
+List::Head()
+{
+  if(m_list.size())
+  {
+    return m_list.front();
+  }
+  throw std::runtime_error("List is empty");
+}
+
+Value 
+List::Tail()
+{
+  if(m_list.size())
+  {
+    return m_list.back();
+  }
+  throw std::runtime_error("List is empty");
+}
+
+Value 
+List::At(int64 index)
+{
+  return GetAt(index);
+}
+

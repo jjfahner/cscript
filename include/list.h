@@ -33,7 +33,13 @@ class List : public Object
 {
 public:
 
-  IMPL_NATIVECALLS(List, Object)
+  IMPL_NATIVECALLS(List, Object);
+  __native_method Value Append(Value v);
+  __native_method Value At(int64 index);
+  __native_method Value Clear();
+  __native_roprop Value Head();
+  __native_roprop Value Tail();
+  __native_roprop int64 Length();
 
   //
   // The implementation list type
@@ -68,32 +74,6 @@ public:
   }
 
   //
-  // Length of list
-  //
-  __native_roprop int64 Length()
-  {
-    return m_list.size();
-  }
-
-  //
-  // Clear the list
-  //
-  __native_method Value Clear()
-  {
-    m_list.clear();
-    return Value();
-  }
-
-  //
-  // Add to end of list
-  //
-  __native_method Value Append(Value v)
-  {
-    m_list.push_back(v);
-    return Value();
-  }
-
-  //
   // Append new item
   //
   RValue& FastAppend(Value const& v = Value())
@@ -111,38 +91,6 @@ public:
       m_list.end(), 
       list->m_list.begin(), 
       list->m_list.end());
-  }
-
-  //
-  // Retrieve item at front
-  //
-  __native_roprop Value Head()
-  {
-    if(m_list.size())
-    {
-      return m_list.front();
-    }
-    throw std::runtime_error("List is empty");
-  }
-
-  //
-  // Retrieve item at back
-  //
-  __native_roprop Value Tail()
-  {
-    if(m_list.size())
-    {
-      return m_list.back();
-    }
-    throw std::runtime_error("List is empty");
-  }
-
-  //
-  // Retrieve item at specified index
-  //
-  __native_method Value At(int64 index)
-  {
-    return GetAt(index);
   }
 
   //
