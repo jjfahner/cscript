@@ -76,8 +76,9 @@ NativeCallFind(NativeCall* pTable, String const& key, RValue*& pValue, bool chec
     {
       if(pTable->m_var == 0)
       {
-        pTable->m_var = new ROVariable(
-          new NativeFunction("", pTable->m_stub));
+        NativeFunction* pFun = new NativeFunction("", pTable->m_stub);
+        GC::Pin(pFun);
+        pTable->m_var = new ROVariable(pFun);
       }
       pValue = pTable->m_var;
       return true;

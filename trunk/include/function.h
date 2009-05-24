@@ -42,10 +42,12 @@ public:
   //
   // Construction
   //
-  Function(String name) :
+  Function(String name, DataType* dataType = FunctionType::Instance()) :
+  Object (dataType),
   m_name (name)
   {
   }
+
 
   //
   // Destruction
