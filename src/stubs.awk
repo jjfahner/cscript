@@ -56,7 +56,7 @@ $2 ~ /__native_method/ {
   # Enumerate parameters
   p = 0;
   for(; i <= NF; i++) {
-    if($i == "" || $i == "=" || $i == ";" || $i == "{") {
+    if($i == "" || $i == "=" || $i == ";" || $i == "{" || $i == "\r") {
       break;
     }
     else {
