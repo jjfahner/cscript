@@ -110,8 +110,7 @@ class BooleanTypeImpl : public BooleanType
 public:
 
   BooleanTypeImpl(DeclType value = DeclType()) :
-  m_value     (value),
-  m_vToString (new NativeMethod<BooleanTypeImpl, String>("ToString", &BooleanTypeImpl::ToString, 0))
+  m_value     (value)
   {
   }
 
@@ -133,7 +132,6 @@ public:
 protected:
 
   DeclType    m_value;
-  ROVariable  m_vToString;
 
 };
 
