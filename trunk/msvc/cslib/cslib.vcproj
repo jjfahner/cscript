@@ -311,6 +311,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\stubs.awk"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="cd ..\..&#x0D;&#x0A;tools\win32\awk.exe -f src\stubs.awk include\*.h &gt; include\stubs.gen.h"
+						Outputs="..\..\include\stubs.gen.h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\src\timer.cpp"
 				>
 			</File>
