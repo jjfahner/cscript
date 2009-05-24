@@ -173,9 +173,16 @@ Evaluator::Reset()
   Collect();
 }
 
-inline bool open_file(String const& path, std::ifstream& file)
+inline bool 
+open_file(String const& path, std::ifstream& file)
 {
+  // Reset error flags
+  file.clear();
+
+  // Open the file
   file.open(path.c_str());
+  
+  // Check whether open succeeded
   return file.is_open();
 }
 
@@ -185,6 +192,7 @@ Evaluator::OpenFile(String const& filename, std::ifstream& file)
   // Open file using unaltered path
   if(open_file(filename, file))
   {
+    m_fileNames.push_back(filename);
     return true;
   }
 
@@ -194,7 +202,20 @@ Evaluator::OpenFile(String const& filename, std::ifstream& file)
     return false;
   }
 
-  // Try the working directory
+  // Try to open the file relative to the location of 
+  // the currently executing script
+  if(m_fileNames.size())
+  {
+    String path = Path::DirectoryPart(m_fileNames.back());
+    path = Path::Combine(path, filename);
+    if(open_file(path, file))
+    {
+      m_fileNames.push_back(path);
+      return true;
+    }
+  }
+
+  // Last try: see if the script exists in the working directory
   String path = Path::Combine(Path::WorkingDirectory(), filename);
   if(open_file(path, file))
   {
