@@ -525,6 +525,8 @@ function main()
 // Start by invoking main()
 //
 
+print(typeof(main.__ast).TypeName() + "\n");
+
 // Cleanup any garbage objects and store current count
 collect();
 
