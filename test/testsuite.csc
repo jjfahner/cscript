@@ -22,7 +22,6 @@
 //
 // Includes
 //
-include "socket.csi";
 include "file.csi";
 
 //

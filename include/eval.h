@@ -313,6 +313,7 @@ struct ReturnException : public ScriptException
 struct CatchableException : public ScriptException
 {
   Value m_value;
+  CatchableException(Value const& value) : ScriptException(0), m_value (value) {}
   CatchableException(Object* node) : ScriptException (node) {}
   CatchableException(Object* node, Value const& value) : ScriptException (node), m_value (value) {}
   ~CatchableException() throw() {}

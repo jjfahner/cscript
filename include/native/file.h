@@ -22,7 +22,43 @@
 #define CSCRIPT_NATIVE_FILE_H
 
 #include <native.h>
+#include <fstream>
 
 DECLARE_NATIVE_LINKAGE(File)
+
+class File : public Object
+{
+public:
+
+  IMPL_NATIVECALLS(File, Object)
+
+  //
+  // Open file
+  //
+  __native_method Value Open(String s_name, String s_mode, bool b_binary, bool b_atend, bool b_truncate);
+
+  //
+  // Close file
+  //
+  __native_method Value Close();
+
+  //
+  // Read string
+  //
+  __native_method Value Read();
+
+  //
+  // Write string
+  //
+  __native_method Value Write(String data, int length);
+
+private:
+
+  //
+  // Members
+  //
+  std::fstream m_stream;
+
+};
 
 #endif // CSCRIPT_NATIVE_FILE_H
