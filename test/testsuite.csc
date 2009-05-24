@@ -236,8 +236,9 @@ function main()
   assert("typeof(1234) == typeof(4321)",  typeof(1234) == typeof(4321),  1);
   assert("typeof('ab') == typeof('ba')",  typeof("ab") == typeof("ba"),  1);
  
-//print(10.ToString() + "\n");
-//print(false.ToString() + "\n");
+  // String conversions
+  assert("Number to string", 10.ToString(), "10");
+  assert("Boolean to string", false.ToString(), "false");
 
   // Number formats
   assert("Binary literal", 0b0000000, 0);
