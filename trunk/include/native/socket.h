@@ -22,7 +22,54 @@
 #define CSCRIPT_SOCKET_H
 
 #include <native.h>
+#include <stubs.h>
 
 DECLARE_NATIVE_LINKAGE(Socket)
+
+class Socket : public Object
+{
+public:
+
+  IMPL_NATIVECALLS(Socket, Object);
+
+  //
+  // Construction
+  //
+  Socket();
+
+  //
+  // Destruction
+  //
+  virtual ~Socket();
+
+  //
+  // Connect to peer
+  //
+  __native_method Value Connect(String host, int port);
+
+  //
+  // Close connection
+  //
+  __native_method Value Disconnect();
+
+  //
+  // Send data
+  //
+  __native_method Value Send(String data, int64 length);
+
+  //
+  // Receive data
+  //
+  __native_method Value Receive(int64 length, int64 timeout);
+
+
+private:
+
+  //
+  // Member data
+  //
+  unsigned int m_socket;
+
+};
 
 #endif // CSCRIPT_SOCKET_H

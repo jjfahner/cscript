@@ -42,52 +42,6 @@ DEFINE_NATIVE_LINKAGE(Socket)
 
 //////////////////////////////////////////////////////////////////////////
 
-class Socket : public Object
-{
-public:
-
-  //
-  // Construction
-  //
-  Socket(Evaluator* eval);
-
-  //
-  // Destruction
-  //
-  virtual ~Socket();
-
-  //
-  // Connect to peer
-  //
-  Value Connect(Evaluator*, Arguments const&);
-
-  //
-  // Close connection
-  //
-  Value Disconnect(Evaluator*, Arguments const&);
-
-  //
-  // Send data
-  //
-  Value Send(Evaluator*, Arguments const&);
-
-  //
-  // Receive data
-  //
-  Value Receive(Evaluator*, Arguments const&);
-
-
-private:
-
-  //
-  // Member data
-  //
-  unsigned int m_socket;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
 static int g_numSockets = 0;
 
 void SocketCreate()
@@ -113,39 +67,29 @@ void SocketDelete()
 
 //////////////////////////////////////////////////////////////////////////
 
-Socket::Socket(Evaluator* evaluator) :
+Socket::Socket() :
 m_socket (INVALID_SOCKET)
 {
   // Global initialization
   SocketCreate();
-
-  // Register methods
-  NATIVE_METHOD(Socket, Connect,    "Connect(string host, int port)");
-  NATIVE_METHOD(Socket, Disconnect, "Disconnect()");
-  NATIVE_METHOD(Socket, Send,       "Send(string data, int len = 0)");
-  NATIVE_METHOD(Socket, Receive,    "Receive(int len, int timeout = 0)");
 }
 
 Socket::~Socket()
 {
   // Close connection
-  Disconnect(0, Arguments());
+  Disconnect();
 
   // Global cleanup
   SocketDelete();
 }
 
 Value
-Socket::Connect(Evaluator*, Arguments const& args)
+Socket::Connect(String host, int port)
 { 
-  // Extract parameters
-  String host = args[0].GetString();
-  String port = ValString(args[1].GetInt());
-
   // Disconnect previous connection
   if(m_socket != INVALID_SOCKET)
   {
-    Disconnect(0, Arguments());
+    Disconnect();
   }
 
   // Create hint
@@ -155,10 +99,14 @@ Socket::Connect(Evaluator*, Arguments const& args)
   hint.ai_socktype = SOCK_STREAM;
   hint.ai_protocol = IPPROTO_TCP;
 
+  // Convert port to string
+  char portString[10];
+  sprintf(portString, "%d", port);
+
   // Retrieve info
   addrinfo* ai;
   if(getaddrinfo(host.c_str(), 
-                 port.c_str(), 
+                 portString, 
                  &hint, &ai))
   {
     return false;
@@ -186,7 +134,7 @@ Socket::Connect(Evaluator*, Arguments const& args)
 }
 
 Value 
-Socket::Disconnect(Evaluator*, Arguments const&)
+Socket::Disconnect()
 {
   if(m_socket != INVALID_SOCKET)
   {
@@ -198,11 +146,8 @@ Socket::Disconnect(Evaluator*, Arguments const&)
 }
 
 Value
-Socket::Send(Evaluator*, Arguments const& args)
+Socket::Send(String data, int64 length)
 {
-  String data = args[0].GetString();
-  Value::Int len = args[1].GetInt();
-
   // Check connection
   if(m_socket == INVALID_SOCKET)
   {
@@ -210,7 +155,7 @@ Socket::Send(Evaluator*, Arguments const& args)
   }
 
   // Determine length
-  int expected = (int)len;
+  int expected = (int)length;
   if(expected == 0)
   {
     expected = (int)data.length();
@@ -228,11 +173,8 @@ Socket::Send(Evaluator*, Arguments const& args)
 }
 
 Value 
-Socket::Receive(Evaluator*, Arguments const& args)
+Socket::Receive(int64 length, int64 timeout)
 {
-  Value::Int length  = args[0].GetInt();
-  Value::Int timeout = args[1].GetInt();
-
   // Check connection
   if(m_socket == INVALID_SOCKET)
   {
@@ -269,7 +211,7 @@ Socket::Receive(Evaluator*, Arguments const& args)
   // Connection closed by peer
   if(read == 0)
   {
-    Disconnect(0, Arguments());
+    Disconnect();
     return Value();
   }
   
@@ -277,7 +219,7 @@ Socket::Receive(Evaluator*, Arguments const& args)
   if(read == SOCKET_ERROR)
   {
     delete [] buf;
-    Disconnect(0, Arguments());
+    Disconnect();
     return Value();
   }
 
@@ -294,5 +236,5 @@ Socket::Receive(Evaluator*, Arguments const& args)
 
 NATIVE_CALL("CreateSocket()")
 {
-  return new Socket(evaluator);
+  return new Socket();
 }
