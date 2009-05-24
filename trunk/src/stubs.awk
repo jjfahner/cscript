@@ -56,7 +56,7 @@ $2 ~ /__native_method/ {
   # Enumerate parameters
   p = 0;
   for(; i <= NF; i++) {
-    if($i == "=" || $i == ";" || $i == "{") {
+    if($i == "" || $i == "=" || $i == ";" || $i == "{") {
       break;
     }
     else {
@@ -70,7 +70,7 @@ $2 ~ /__native_method/ {
   
   # Generate call stub
   stub = sprintf("__stub_%s_%s", className, memberName);
-  printf("inline Value %s(Evaluator*, Arguments const& args) {\n", stub);
+  printf("static Value %s(Evaluator*, Arguments const& args) {\n", stub);
   printf("  return dynamic_cast<%s*>(args.GetObject())->%s(\n", className, memberName);
   for(i = 1; i <= p; ++i)
   {
@@ -117,7 +117,7 @@ $2 ~ /__native_roprop/ {
   
   # Generate call stub
   stub = sprintf("__stub_%s_%s", className, memberName);
-  printf("inline Value %s(Object* instance) {\n", stub);
+  printf("static Value %s(Object* instance) {\n", stub);
   printf("  return dynamic_cast<%s*>(instance)->%s();\n", className, memberName);
   printf("}\n");
 

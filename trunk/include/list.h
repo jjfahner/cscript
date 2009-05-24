@@ -25,12 +25,15 @@
 #include <variable.h>
 #include <gc.h>
 #include <enumerator.h>
+#include <stubs.h>
 
 #include <vector>
 
 class List : public Object
 {
 public:
+
+  IMPL_NATIVECALLS(List, Object)
 
   //
   // The implementation list type
@@ -46,14 +49,6 @@ public:
   // Construction
   //
   List();
-
-  //
-  // Number of items in list
-  //
-  virtual size_t Count() const
-  {
-    return m_list.size();
-  }
 
   //
   // Retrieve enumerator
@@ -73,9 +68,35 @@ public:
   }
 
   //
+  // Length of list
+  //
+  __native_roprop int64 Length()
+  {
+    return m_list.size();
+  }
+
+  //
+  // Clear the list
+  //
+  __native_method Value Clear()
+  {
+    m_list.clear();
+    return Value();
+  }
+
+  //
   // Add to end of list
   //
-  RValue& Append(Value const& v = Value())
+  __native_method Value Append(Value v)
+  {
+    m_list.push_back(v);
+    return Value();
+  }
+
+  //
+  // Append new item
+  //
+  RValue& FastAppend(Value const& v = Value())
   {
     m_list.push_back(v);
     return m_list.back();
@@ -95,7 +116,7 @@ public:
   //
   // Retrieve item at front
   //
-  RValue& Head()
+  __native_roprop Value Head()
   {
     if(m_list.size())
     {
@@ -107,7 +128,7 @@ public:
   //
   // Retrieve item at back
   //
-  RValue& Tail()
+  __native_roprop Value Tail()
   {
     if(m_list.size())
     {
@@ -117,23 +138,23 @@ public:
   }
 
   //
-  // Remove from back
+  // Retrieve item at specified index
   //
-  void PopTail()
+  __native_method Value At(int64 index)
   {
-    m_list.pop_back();
+    return GetAt(index);
   }
 
   //
   // Retrieve at specified index
   //
-  RValue& GetAt(size_t index)
+  RValue& GetAt(int64 index)
   {
     if(index >= m_list.size())
     {
-      m_list.resize(index + 1);
+      m_list.resize((size_t)index + 1);
     }
-    return m_list[index];
+    return m_list[(size_t)index];
   }
 
   //
@@ -145,7 +166,7 @@ public:
     {
       throw std::runtime_error("Invalid key type for list");
     }
-    return GetAt((size_t)index.GetInt());
+    return GetAt(index.GetInt());
   }
 
   //
