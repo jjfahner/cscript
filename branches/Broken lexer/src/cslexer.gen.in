@@ -1,0 +1,140 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2007 - 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
+
+int 
+CSLexer::ParseNextToken()
+{
+  /*!re2c
+  re2c:define:YYCTYPE   = "char";
+  re2c:define:YYCURSOR  = m_stream.m_cursor;
+  re2c:define:YYMARKER  = m_stream.m_marker;
+  re2c:define:YYLIMIT   = m_stream.m_bufend;
+  re2c:define:YYFILL    = m_stream.FillBuffer;
+  re2c:yyfill:enable    = 1;
+  re2c:yyfill:parameter = 1;
+  re2c:yych:conversion  = 1;
+  re2c:indent:top       = 1;
+  
+  /* Whitespace */
+  [ \t]+                    { return CS_WHITESPACE; }
+  
+  /* Newlines */
+  "\r"*"\n"                 { return CS_NEWLINE; }
+  
+  /* Comments */
+  "//"                      { return CS_SLCOMMENT;   }
+  "#"                       { return CS_SLCOMMENT;   }
+  "/*"                      { return CS_MLCOMMENT; }
+
+  /* Keywords */
+  "__native"                { return CS_NATIVE; }
+  "bool"                    { return CS_BOOL; }
+  "break"                   { return CS_BREAK; }
+  "case"                    { return CS_CASE; }
+  "catch"                   { return CS_CATCH; }
+  "continue"                { return CS_CONTINUE; }
+  "default"                 { return CS_DEFAULT; }
+  "else"                    { return CS_ELSE; }
+  "extern"                  { return CS_EXTERN; }
+  "false"                   { return CS_FALSE; }
+  "finally"                 { return CS_FINALLY; }
+  "for"                     { return CS_FOR; }
+  "function"				        { return CS_FUNCTION; }
+  "if"                      { return CS_IF; }
+  "in"                      { return CS_IN; }
+  "include"                 { return CS_INCLUDE; }
+  "int"                     { return CS_INT; }
+  "namespace"               { return CS_NAMESPACE; }
+  "new"                     { return CS_NEW; }
+  "null"                    { return CS_NULL; }
+  "operator"                { return CS_OPERATOR; }
+  "return"                  { return CS_RETURN; }
+  "string"                  { return CS_STRING; }
+  "switch"                  { return CS_SWITCH; }
+  "this"                    { return CS_THIS; }
+  "throw"                   { return CS_THROW; }
+  "true"                    { return CS_TRUE; }
+  "try"                     { return CS_TRY; }
+  "typeof"                  { return CS_TYPEOF; }
+  "unset"                   { return CS_UNSET; }
+  "var"                     { return CS_VAR; }
+  "while"                   { return CS_WHILE; }
+
+  /* Identifiers */
+  [a-zA-Z_][a-zA-Z_0-9]*    { return CS_IDENTIFIER; }
+
+  /* Number formats */  
+  [0-9]+                    { return CS_LIT_INTEGER; }
+  [0-9]+"."[0-9]+           { return CS_LIT_REAL; }
+  "0x"[0-9a-fA-F]+          { return CS_LIT_HEX; }
+  "0b"[01]+                 { return CS_LIT_BIN; }
+  "0r"[MDCLXVIO]+           { return CS_LIT_ROM; }
+  
+  /* Strings */
+  ["]                       { return CS_LIT_STRING; }
+  
+  /* Shell command */
+  [`][^`]+[`]               { return CS_SHELLCMD; }
+  
+  /* operators */
+  "..."   { return CS_VARIADIC; }
+  "==="   { return CS_SEQ; }
+  "!=="   { return CS_SNE; }
+  "=="    { return CS_EQUALS; }
+  "!="    { return CS_NEQUALS; }
+  "<="    { return CS_LE; }
+  ">="    { return CS_GE; }
+  "++"    { return CS_ADDADD; }
+  "--"    { return CS_SUBSUB; }
+  "+="    { return CS_ASSADD; }
+  "-="    { return CS_ASSSUB; }
+  "*="    { return CS_ASSMUL; }
+  "/="    { return CS_ASSDIV; }
+  "%="    { return CS_ASSMOD; }
+  "||"    { return CS_LOGOR; }
+  "&&"    { return CS_LOGAND; }
+  "::"    { return CS_NS_SEP; }
+  ";"     { return CS_SEMICOLON; }
+  ","     { return CS_COMMA; }
+  "="     { return CS_ASSIGN; }
+  "?"     { return CS_QUESTION; }
+  ":"     { return CS_COLON; }
+  "|"     { return CS_BITOR; }
+  "^"     { return CS_BITXOR; }
+  "&"     { return CS_BITAND; }
+  "<"     { return CS_LT; }
+  ">"     { return CS_GT; }
+  "+"     { return CS_ADDOP; }
+  "-"     { return CS_SUBOP; }
+  "*"     { return CS_MULOP; }
+  "/"     { return CS_DIVOP; }
+  "%"     { return CS_MODOP; }
+  "."     { return CS_DOT; }
+  "["     { return CS_LBRACKET; }
+  "]"     { return CS_RBRACKET; }
+  "("     { return CS_LPAREN; }
+  ")"     { return CS_RPAREN; }
+  "{"     { return CS_LBRACE; }
+  "}"     { return CS_RBRACE; }
+  "!"     { return CS_NOT; }
+  
+  */
+}

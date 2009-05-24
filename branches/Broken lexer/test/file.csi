@@ -1,0 +1,71 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2007 - 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
+
+//
+// File wrapper class
+//
+
+var File =
+{
+  m_name : null,
+  m_file : null,
+
+  Open : function(filename, mode)
+  {
+    Close();
+    var f = fopen(filename, mode);
+    if(f == null)
+    {
+      return false;
+    }
+    m_name = filename;
+    this.m_file = f;
+  },
+
+  Close : function()
+  {
+    if(m_file != null)
+    {
+      fclose(m_file);
+      m_file = null;
+      m_name = null;
+    }
+  },
+
+  Read : function(length)
+  {
+    if(m_file == null)
+    {
+      return false;
+    }
+    return fread(m_file, length);
+  },
+
+  Write : function(data, length)
+  {
+    if(m_file == null)
+    {
+      return false;
+    }
+    return fwrite(m_file, data);
+  }
+
+};
