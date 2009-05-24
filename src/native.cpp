@@ -96,3 +96,23 @@ NativeFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
   return m_funPtr(evaluator, args);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+
+inline String const& __stub_arg_to_String(Value const& v)
+{
+  return v.GetString();
+}
+
+inline Value const& __stub_arg_to_Value(Value const& v)
+{
+  return v;
+}
+
+inline int __stub_arg_to_int(Value const& v)
+{
+  return (int) v.GetInt();
+}
+
+#include "stubs.gen.h"

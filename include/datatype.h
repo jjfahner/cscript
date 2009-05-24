@@ -27,6 +27,8 @@
 class Evaluator;
 class Arguments;
 
+//////////////////////////////////////////////////////////////////////////
+
 class DataType : public Object
 {
 public:
@@ -49,7 +51,7 @@ public:
   //
   // Type name as string
   //
-  virtual String TypeName() = 0;
+  __native virtual String TypeName() = 0;
 
 };
 
@@ -98,7 +100,7 @@ public:
   //
   // Convert to string
   //
-  virtual String ToString() = 0;
+  __native virtual String ToString() = 0;
 
   //
   // Box a scalar value
