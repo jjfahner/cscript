@@ -26,15 +26,16 @@
 class RValue;
 
 //
-// Forward declare array type
+// Forward declare some types
 //
 struct NativeCall;
+class Object;
 
 //
 // Forward declare generic native call handlers
 //
-bool NativeCallContainsKey(NativeCall*, String const& key, bool checkProto);
-bool NativeCallFind(NativeCall*, String const& key, RValue*& pValue, bool checkProto);
+bool NativeCallContainsKey(NativeCall*, Object* instance, String const& key, bool checkProto);
+bool NativeCallFind(NativeCall*, Object* instance, String const& key, RValue*& pValue, bool checkProto);
 
 //
 // Implement native calls for a class by using this macro
@@ -44,7 +45,7 @@ virtual bool \
 ContainsKey(String const& key, bool checkProto = true) const \
 { \
   extern NativeCall __stublist_##class[]; \
-  if(NativeCallContainsKey(__stublist_##class, key, checkProto)) \
+  if(NativeCallContainsKey(__stublist_##class, (Object*)this, key, checkProto)) \
   { \
     return true;  \
   } \
@@ -54,7 +55,7 @@ virtual bool \
 Find(String const& key, RValue*& pValue, bool checkProto = true) const \
 { \
   extern NativeCall __stublist_##class[]; \
-  if(NativeCallFind(__stublist_##class, key, pValue, checkProto))  \
+  if(NativeCallFind(__stublist_##class, (Object*)this, key, pValue, checkProto))  \
   { \
     return true;  \
   } \

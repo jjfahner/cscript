@@ -93,6 +93,7 @@ typedef std::string String;
 //
 // Marker for native methods
 //
-#define __native
+#define __native_method
+#define __native_roprop
 
 #endif // #ifndef CSCRIPT_H
