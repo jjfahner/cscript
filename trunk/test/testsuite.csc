@@ -22,8 +22,8 @@
 //
 // Includes
 //
-include "../../test/socket.csi";
-include "../../test/file.csi";
+include "socket.csi";
+include "file.csi";
 
 //
 // Error count

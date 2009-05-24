@@ -41,7 +41,8 @@ void
 LexStream::Start(std::string* lexeme)
 {
   m_lexeme = lexeme;
-  m_token = m_cursor;
+  m_token  = m_cursor;
+  m_marker = m_cursor;
 }
 
 void 
@@ -57,8 +58,8 @@ LexStream::Flush()
   }
 }
 
-size_t 
-LexStream::FillBuffer(size_t minRead)
+int
+LexStream::FillBuffer(int minRead)
 {
   // If there's enough available, ignore
   if(m_bufend - m_cursor > 0 &&
@@ -82,14 +83,31 @@ LexStream::FillBuffer(size_t minRead)
   // Move remainder to start of buffer
   if(m_cursor < m_bufend)
   {
-    size_t avail = m_bufend - m_cursor;
-    memmove(m_buffer, m_cursor, avail);
-    m_cursor = m_buffer;
-    m_bufend = m_cursor + avail;
+    // Determine current offsets
+    int pos_cursor = m_cursor - m_buffer;
+    int pos_marker = m_marker - m_buffer;
+    int pos_bufend = m_bufend - m_buffer;
+
+    // Check for buffer space
+    if(bufsize - pos_marker < minRead)
+    {
+      throw std::runtime_error("Lex buffer too small");
+    }
+
+    // Move remaining bytes to start of buffer
+    int move = pos_bufend - pos_marker;
+    memmove(m_buffer, m_buffer + pos_marker, move);
+
+    // Adjust pointers
+    m_marker = m_buffer;
+    m_cursor = m_buffer + pos_cursor - pos_marker;
+    m_bufend = m_buffer + pos_bufend - pos_marker;
   }
   else
   {
+    // Reset pointers
     m_cursor = m_buffer;
+    m_marker = m_buffer;
     m_bufend = m_buffer;
   }
 
@@ -98,11 +116,11 @@ LexStream::FillBuffer(size_t minRead)
 
   // Read from stream
   size_t offset = m_bufend - m_buffer;
-  size_t length = bufsize - offset;
+  size_t length = (bufsize / 2) - offset;
   m_stream.read(m_buffer + offset, length);
 
   // Check fill count
-  size_t gcount = m_stream.gcount();
+  int gcount = m_stream.gcount();
   if(gcount < minRead)
   {
     throw std::runtime_error("Unexpected end of file");

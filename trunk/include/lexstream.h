@@ -58,7 +58,7 @@ public:
   //
   // Fill buffer and adjust pointers, called by re2c
   //
-  size_t FillBuffer(size_t minSize = 0);
+  int FillBuffer(int minSize = 0);
 
 private:
 

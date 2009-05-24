@@ -174,6 +174,7 @@ CSLexer::LexString(Token& token)
       ++cur;
     }
 
+    m_stream.m_marker = m_stream.m_cursor;
     if(m_stream.FillBuffer() == 0)
     {
       throw std::runtime_error("Unterminated string constant");
@@ -197,6 +198,7 @@ CSLexer::LexComment(int type)
         }
         ++m_stream.m_cursor;
       }
+      m_stream.m_marker = m_stream.m_cursor;
       if(m_stream.FillBuffer() == 0)
       {
         return true;
@@ -216,6 +218,7 @@ CSLexer::LexComment(int type)
         }
         ++m_stream.m_cursor;
       }
+      m_stream.m_marker = m_stream.m_cursor;
       if(m_stream.FillBuffer() < 2)
       {
         throw std::runtime_error("Unexpected end of file");
