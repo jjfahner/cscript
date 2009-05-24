@@ -23,6 +23,7 @@
 #include <args.h>
 #include <native.h>
 #include <native/socket.h>
+#include <native/file.h>
 
 class Value;
 class Evaluator;
@@ -61,6 +62,11 @@ inline int __stub_arg_to_int(Value const& v)
 inline int64 __stub_arg_to_int64(Value const& v)
 {
   return v.GetInt();
+}
+
+inline bool __stub_arg_to_bool(Value const& v)
+{
+  return v.GetBool();
 }
 
 #include "stubs.gen.cpp"

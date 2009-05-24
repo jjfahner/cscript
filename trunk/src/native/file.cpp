@@ -21,143 +21,104 @@
 #include <native/file.h>
 #include <eval.h>
 
-#include <fstream>
-
 DEFINE_NATIVE_LINKAGE(File)
 
 //////////////////////////////////////////////////////////////////////////
 
-class File : public Object
+Value 
+File::Open(String s_name, String s_mode, bool b_binary, bool b_atend, bool b_truncate)
 {
-public:
+  // Close current file
+  Close();
 
-  //
-  // Construction
-  //
-  File(Evaluator* evaluator)
+  // Mode flag
+  size_t o_mode = 0;
+
+  // Direction
+  if(s_mode == "r")  o_mode = std::ios::in;
+  else if(s_mode == "w")  o_mode = std::ios::out;
+  else if(s_mode == "rw") o_mode = std::ios::in|std::ios::out;
+
+  // Modifiers
+  if(b_binary)   o_mode |= std::ios::binary;
+  if(b_atend)    o_mode |= std::ios::ate;
+  if(b_truncate) o_mode |= std::ios::trunc;
+
+  // Open the file
+  m_stream.open(s_name.c_str(), (std::ios::openmode)o_mode);
+
+  // Check file
+  if(!m_stream.is_open() || m_stream.bad())
   {
-    NATIVE_METHOD(File, Open,  "Open(string path, string mode, bool binary = false, bool atend = false, bool truncate = false)");
-    NATIVE_METHOD(File, Close, "Close()");
-    NATIVE_METHOD(File, Read,  "Read()");
-    NATIVE_METHOD(File, Write, "Write(string data, int length = 0)");
+    throw CatchableException("Failed to open file");
   }
 
-  //
-  // Open file
-  //
-  Value Open(Evaluator*, Arguments const& args)
+  // Return nothing
+  return Value();
+}
+
+Value 
+File::Close()
+{
+  // Close current file
+  if(m_stream.is_open())
   {
-    // Close current file
-    Close(0, Arguments());
-
-    // Mode flag
-    size_t o_mode = 0;
-
-    // Direction
-    String s_mode = args[1].GetString();
-         if(s_mode == "r")  o_mode = std::ios::in;
-    else if(s_mode == "w")  o_mode = std::ios::out;
-    else if(s_mode == "rw") o_mode = std::ios::in|std::ios::out;
-
-    // Modifiers
-    if(args[2].GetBool()) o_mode |= std::ios::binary;
-    if(args[3].GetBool()) o_mode |= std::ios::ate;
-    if(args[4].GetBool()) o_mode |= std::ios::trunc;
-
-    // Open the file
-    m_stream.open(args[0].GetString().c_str(), (std::ios::openmode)o_mode);
-
-    // Check file
-    if(!m_stream.is_open() || m_stream.bad())
-    {
-      throw CatchableException(args.GetNode(), "Failed to open file");
-    }
-
-    // Return nothing
-    return Value();
+    m_stream.close();
   }
 
-  //
-  // Close file
-  //
-  Value Close(Evaluator*, Arguments const& args)
-  {
-    // Close current file
-    if(m_stream.is_open())
-    {
-      m_stream.close();
-    }
+  // No return value
+  return Value();
+}
 
-    // No return value
-    return Value();
-  }
-  
-  //
-  // Read string
-  //
-  Value Read(Evaluator*, Arguments const& args)
+Value 
+File::Read()
+{
+  return Value();
+}
+
+Value 
+File::Write(String data, int length)
+{
+  // Check file
+  if(!m_stream.is_open())
   {
-    return Value();
+    throw CatchableException("Write to closed file");
   }
 
-  //
-  // Write string
-  //
-  Value Write(Evaluator*, Arguments const& args)
+  // Determine length
+  if(length == 0)
   {
-    // Check file
-    if(!m_stream.is_open())
-    {
-      throw CatchableException(args.GetNode(), "Write to closed file");
-    }
-
-    // Retrieve data
-    String const& data = args[0].GetString();
-
-    // Determine length
-    size_t length = (size_t) args[1].GetInt();
-    if(length == 0)
-    {
-      length = data.length();
-    }
-
-    // Check for no output
-    if(length == 0)
-    {
-      return true;
-    }
-
-    // Check for buffer underflow
-    if(length > data.length())
-    {
-      throw CatchableException(args.GetNode(), "Buffer underflow");
-    }
-
-    // Write the string
-    m_stream.write(data.c_str(), length);
-
-    // Check stream
-    if(m_stream.bad())
-    {
-      throw CatchableException(args.GetNode(), "Failed to write to file");
-    }
-
-    // Return nothing
-    return Value();    
+    length = data.length();
   }
 
-private:
+  // Check for no output
+  if(length == 0)
+  {
+    return true;
+  }
 
-  //
-  // Members
-  //
-  std::fstream m_stream;
+  // Check for buffer underflow
+  if(length > (int)data.length())
+  {
+    throw CatchableException("Buffer underflow");
+  }
 
-};
+  // Write the string
+  m_stream.write(data.c_str(), length);
+
+  // Check stream
+  if(m_stream.bad())
+  {
+    throw CatchableException("Failed to write to file");
+  }
+
+  // Return nothing
+  return Value();    
+}
 
 //////////////////////////////////////////////////////////////////////////
 
 NATIVE_CALL("CreateFile()")
 {
-  return new File(evaluator);
+  return new File();
 };
