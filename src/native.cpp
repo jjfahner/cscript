@@ -71,7 +71,7 @@ NativeCallRegistrar::RegisterCalls()
 //////////////////////////////////////////////////////////////////////////
 
 NativeFunction::NativeFunction(String decl, FunPtr funPtr) :
-Function  (""),
+Function  ("", NativeFunctionType::Instance()),
 m_funPtr  (funPtr)
 {
   if(decl == "")
