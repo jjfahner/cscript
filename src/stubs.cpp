@@ -22,6 +22,7 @@
 #include <variable.h>
 #include <args.h>
 #include <native.h>
+#include <native/socket.h>
 
 class Value;
 class Evaluator;
@@ -55,6 +56,11 @@ inline Value const& __stub_arg_to_Value(Value const& v)
 inline int __stub_arg_to_int(Value const& v)
 {
   return (int) v.GetInt();
+}
+
+inline int64 __stub_arg_to_int64(Value const& v)
+{
+  return v.GetInt();
 }
 
 #include "stubs.gen.cpp"
