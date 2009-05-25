@@ -24,6 +24,7 @@
 #include <native.h>
 #include <native/socket.h>
 #include <native/file.h>
+#include <native/xml.h>
 
 class Value;
 class Evaluator;
@@ -37,9 +38,10 @@ enum StubType
 
 struct NativeCall
 {
-  char const* m_name;
-  void*       m_stub;
   StubType    m_type;
+  char const* m_name;
+  void*       m_stubR;
+  void*       m_stubW;
   RValue*     m_var;
 };
 
@@ -97,7 +99,7 @@ public:
 
   virtual Value Execute(Evaluator* evaluator, Arguments& args)
   {
-    return ((MethodStub)m_call->m_stub)(evaluator, args);
+    return ((MethodStub)m_call->m_stubR)(evaluator, args);
   }
 
   virtual Value const& GetValue() const
@@ -131,8 +133,43 @@ public:
 
   virtual Value const& GetValue() const
   {
-    m_value = ((RoPropStub)m_call->m_stub)(m_instance);
+    m_value = ((RoPropStub)m_call->m_stubR)(m_instance);
     return m_value;
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+typedef void (*RwPropStub)(Object*, Value const&);
+
+//
+// NativeRwProp implements the LValue semantics of
+// read-write native properties. It's derived from
+// Object to make it garbage-collected.
+//
+class NativeRwProp : public LValue, public Object
+{
+  NativeCall* m_call;
+  Object* m_instance;
+  mutable Value m_value;
+
+public:
+
+  NativeRwProp(NativeCall* call, Object* instance) :
+  m_call (call),
+  m_instance (instance)
+  {
+  }
+
+  virtual Value const& GetValue() const
+  {
+    m_value = ((RoPropStub)m_call->m_stubR)(m_instance);
+    return m_value;
+  }
+
+  virtual void SetValue(Value const& rhs)
+  {
+    (RwPropStub(m_call->m_stubW))(m_instance, rhs);
   }
 };
 
@@ -175,6 +212,13 @@ NativeCallFind(NativeCall* pTable, Object* instance, String const& key, RValue*&
       case stRoProp:
         {
           pValue = new NativeRoProp(pTable, instance);
+          return true;
+        }
+        break;
+
+      case stRwProp:
+        {
+          pValue = new NativeRwProp(pTable, instance);
           return true;
         }
         break;

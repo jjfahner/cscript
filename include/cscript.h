@@ -95,5 +95,6 @@ typedef std::string String;
 //
 #define __native_method
 #define __native_roprop
+#define __native_rwprop
 
 #endif // #ifndef CSCRIPT_H

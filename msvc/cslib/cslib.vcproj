@@ -614,10 +614,18 @@
 					RelativePath="..\..\include\native\winapi.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\include\native\xml.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<File
 			RelativePath="..\..\TODO"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\native\xml.cpp"
 			>
 		</File>
 	</Files>
