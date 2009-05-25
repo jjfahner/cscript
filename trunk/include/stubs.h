@@ -23,19 +23,27 @@
 
 #include <cscript.h>
 
+//
+// Forward declare some required types
+//
 class RValue;
+class Value;
+class Object;
 
 //
-// Forward declare some types
+// Forward declare single-word types that have a wrapper function
 //
-struct NativeCall;
-class Object;
+typedef Object* ObjectPtr;
+typedef Value& ValueRef;
+typedef Value const& ValueCRef;
+typedef String& StringRef;
+typedef String const& StringCRef;
 
 //
 // Forward declare generic native call handlers
 //
-bool NativeCallContainsKey(NativeCall*, Object* instance, String const& key, bool checkProto);
-bool NativeCallFind(NativeCall*, Object* instance, String const& key, RValue*& pValue, bool checkProto);
+bool NativeCallContainsKey(struct NativeCall*, Object* instance, String const& key, bool checkProto);
+bool NativeCallFind(struct NativeCall*, Object* instance, String const& key, RValue*& pValue, bool checkProto);
 
 //
 // Implement native calls for a class by using this macro
@@ -44,7 +52,7 @@ bool NativeCallFind(NativeCall*, Object* instance, String const& key, RValue*& p
 virtual bool \
 ContainsKey(String const& key, bool checkProto = true) const \
 { \
-  extern NativeCall __stublist_##class[]; \
+  extern struct NativeCall __stublist_##class[]; \
   if(NativeCallContainsKey(__stublist_##class, (Object*)this, key, checkProto)) \
   { \
     return true;  \
@@ -54,7 +62,7 @@ ContainsKey(String const& key, bool checkProto = true) const \
 virtual bool \
 Find(String const& key, RValue*& pValue, bool checkProto = true) const \
 { \
-  extern NativeCall __stublist_##class[]; \
+  extern struct NativeCall __stublist_##class[]; \
   if(NativeCallFind(__stublist_##class, (Object*)this, key, pValue, checkProto))  \
   { \
     return true;  \

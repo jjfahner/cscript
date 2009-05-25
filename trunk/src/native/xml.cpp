@@ -27,26 +27,26 @@ XmlNode::parentNode()
   return 0;
 }
 
-Value 
+StringCRef 
 XmlNode::innerText()
 {
   return m_text;
 }
 
 void 
-XmlNode::SetinnerText(String text)
+XmlNode::SetinnerText(StringCRef text)
 {
   m_text = text;
 }
 
-Value 
+StringCRef
 XmlNode::xml()
 {
   return m_xml;
 }
 
 void 
-XmlNode::Setxml(String xml)
+XmlNode::Setxml(StringCRef xml)
 {
   m_xml = xml;
 }

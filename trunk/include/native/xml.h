@@ -34,19 +34,19 @@ public:
   //
   // Retrieve parent node
   //
-  __native_roprop Object* parentNode();
+  __native_roprop ObjectPtr parentNode();
   
   //
   // Get/set inner text
   //
-  __native_rwprop Value innerText();
-  void SetinnerText(String text);
+  __native_rwprop StringCRef innerText();
+  void SetinnerText(StringCRef text);
 
   //
   // Get/set xml
   //
-  __native_rwprop Value xml();
-  void Setxml(String xml);
+  __native_rwprop StringCRef xml();
+  void Setxml(StringCRef xml);
 
 protected:
 
