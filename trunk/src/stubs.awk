@@ -10,7 +10,6 @@
 #
 # TODO Match invalid __native_xxx statements
 
-
 # Setup separators
 BEGIN {
   FS = "[ \t(),]+";
@@ -83,14 +82,15 @@ $2 ~ /__native_method/ {
   
   # Store name and stub in arrays
   i = classIds[className] + 1;
-  stubName[className i] = memberName;
-  stubProc[className i] = stub;
-  stubType[className i] = "stMethod";
-  classIds[className] = i;
+  stubName[className i]  = memberName;
+  stubProcR[className i] = stub;
+  stubProcW[className i] = "0";
+  stubType[className i]  = "stMethod";
+  classIds[className]    = i;
 }
 
 # Handle native declarations
-$2 ~ /__native_roprop/ {
+$2 ~ /__native_roprop/ || $2 ~ /__native_rwprop/ {
   
   # Check number of words
   if(NF < 3) {
@@ -100,12 +100,20 @@ $2 ~ /__native_roprop/ {
   # Find index of first word
   for(i = 1; i <= NF; i++) {
     if($i == "__native_roprop") {
+      type = "stRoProp";
       i++;
-      if($i == "virtual") {
-        i++;
-      }
       break;
     }
+    if($i == "__native_rwprop") {
+      type = "stRwProp";
+      i++;
+      break;
+    }
+  }
+  
+  # Strip virtual
+  if($i == "virtual") {
+    i++;
   }
   
   # Store return type
@@ -115,17 +123,28 @@ $2 ~ /__native_roprop/ {
   # Store member name
   memberName = $i;
   
-  # Generate call stub
-  stub = sprintf("__stub_%s_%s", className, memberName);
-  printf("static Value %s(Object* instance) {\n", stub);
+  # Generate reader call stub
+  stubR = sprintf("__stub_%s_%s", className, memberName);
+  printf("static Value %s(Object* instance) {\n", stubR);
   printf("  return dynamic_cast<%s*>(instance)->%s();\n", className, memberName);
   printf("}\n");
+  
+  # Generate writer call stub
+  stubW = "0";
+  if(type == "stRwProp")
+  {
+    stubW = sprintf("__stub_set_%s_%s", className, memberName);
+    printf("static void %s(Object* instance, Value const& value) {\n", stubW);
+    printf("  dynamic_cast<%s*>(instance)->Set%s(value);\n", className, memberName);
+    printf("}\n");
+  }
 
   # Store name and stub in arrays
   i = classIds[className] + 1;
   stubName[className i] = memberName;
-  stubProc[className i] = stub;
-  stubType[className i] = "stRoProp";
+  stubProcR[className i] = stubR;
+  stubProcW[className i] = stubW;
+  stubType[className i] = type;
   classIds[className] = i;
 }
 
@@ -140,9 +159,9 @@ END {
       printf("\nNativeCall __stublist_%s[] = {\n", className);
       for(i = 1; i <= numStubs; ++i)
       {
-        printf("  { \"%s\", (void*)%s, %s, 0 },\n", stubName[className i], stubProc[className i], stubType[className i]);
+        printf("  { %s, \"%s\", (void*)%s, (void*)%s, 0 },\n", stubType[className i], stubName[className i], stubProcR[className i], stubProcW[className i]);
       }
-      printf("  { 0, 0, stMethod, 0 }\n");
+      printf("  { stMethod, 0, 0, 0, 0 }\n");
       printf("};\n");
     }
   }  
