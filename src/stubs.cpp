@@ -26,9 +26,11 @@
 #include <native/file.h>
 #include <native/xml.h>
 
-class Value;
-class Evaluator;
+//////////////////////////////////////////////////////////////////////////
 
+//
+// Types of stubs
+//
 enum StubType
 {
   stMethod = 0,
@@ -36,11 +38,16 @@ enum StubType
   stRwProp = 2
 };
 
+//
+// Stub signatures
+//
 typedef Value (*MethodStub)(Evaluator*, Arguments const&);
 typedef Value (*RoPropStub)(Object*);
 typedef void  (*RwPropStub)(Object*, Value const&);
 
-
+//
+// Native call information
+//
 struct NativeCall
 {
   StubType    m_type;
@@ -52,42 +59,45 @@ struct NativeCall
 };
 
 //////////////////////////////////////////////////////////////////////////
+//
+// Native call conversion functions
+//
 
-inline String const& __stub_arg_to_String(Value const& v)
-{
+inline String const& __stub_arg_to_String(Value const& v) {
   return v.GetString();
 }
 
-inline String const& __stub_arg_to_StringCRef(Value const& v)
-{
+inline String const& __stub_arg_to_StringCRef(Value const& v) {
   return v.GetString();
 }
 
-inline Value const& __stub_arg_to_Value(Value const& v)
-{
+inline Value const& __stub_arg_to_Value(Value const& v) {
   return v;
 }
 
-inline int __stub_arg_to_int(Value const& v)
-{
+inline int __stub_arg_to_int(Value const& v) {
   return (int) v.GetInt();
 }
 
-inline int64 __stub_arg_to_int64(Value const& v)
-{
+inline int64 __stub_arg_to_int64(Value const& v) {
   return v.GetInt();
 }
 
-inline bool __stub_arg_to_bool(Value const& v)
-{
+inline bool __stub_arg_to_bool(Value const& v) {
   return v.GetBool();
 }
 
 //////////////////////////////////////////////////////////////////////////
+//
+// Include generated call stubs
+//
 
 #include "stubs.gen.cpp"
 
 //////////////////////////////////////////////////////////////////////////
+//
+// Native method wrapper
+//
 
 class NativeMethod : public Function, public RValue
 {
@@ -121,12 +131,10 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
+//
+// Native RO property wrapper
+//
 
-//
-// NativeRoProp implements the RValue semantics of
-// read-only native properties. It's derived from
-// Object to make it garbage-collected.
-//
 class NativeRoProp : public RValue, public Object
 {
   NativeCall* m_call;
@@ -149,12 +157,10 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
+//
+// Native RW property wrapper
+//
 
-//
-// NativeRwProp implements the LValue semantics of
-// read-write native properties. It's derived from
-// Object to make it garbage-collected.
-//
 class NativeRwProp : public LValue, public Object
 {
   NativeCall* m_call;
@@ -182,6 +188,9 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
+//
+// Resolver implementation
+//
 
 bool 
 NativeCallContainsKey(NativeCall* pTable, Object* instance, String const& key, bool checkProto)
