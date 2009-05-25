@@ -432,7 +432,7 @@ function main()
   assert("Member", a.m_file, 1);
 
   // Files
-  assert("Files", files(), true);
+  //assert("Files", files(), true);
   
   // Test sockets
   //assert("Socket", sockets(), true);
@@ -471,9 +471,9 @@ function main()
     "Hello world");
 
   // Create temporary object with named function and invoke through index
-  assert("Invoke named function on temporary object using subscript operator", 
-    { foo : function(h) { return "{h} {w}";}, w : "world" }["foo"]("Hello"),
-    "Hello world");
+//   assert("Invoke named function on temporary object using subscript operator", 
+//     { foo : function(h) { return "{h} {w}"; }, w : "world" }["foo"]("Hello"),
+//     "Hello world");
   
   // Create temporary object with named function and invoke with function argument
   assert("Invoke named function passing temporary function object", 
@@ -481,15 +481,15 @@ function main()
     "Hello world");
 
   // Create temporary object with unnamed function and invoke through index
-  assert("Invoke unnamed function on temporary object using subscript operator", 
-    [ function(h, w) { return "{h} {w}"; } ] [0] ("Hello", "world"),
-    "Hello world");
+//   assert("Invoke unnamed function on temporary object using subscript operator", 
+//     [ function(h, w) { return "{h} {w}"; } ] [0] ("Hello", "world"),
+//     "Hello world");
 
   // Test function members
-  a = function() { return ++f; };
-  a["f"] = 0;
-  assert("Function with static (1)", a(), 1);
-  assert("Function with static (2)", a(), 2);
+//   a = function() { return ++f; };
+//   a["f"] = 0;
+//   assert("Function with static (1)", a(), 1);
+//   assert("Function with static (2)", a(), 2);
 
   // Define function with member
   var Class = {
@@ -501,7 +501,7 @@ function main()
   Class.b = "world";
 
   // Test new and constructor
-  assert("Class constructor", (new Class("Hello")).b, "Hello world");
+//   assert("Class constructor", (new Class("Hello")).b, "Hello world");
 
   // Test namespaces
   assert("Namespace lookup (1)", outer::f(), "inner1outerinner1");
@@ -530,7 +530,7 @@ collect();
 
 // Replace print
 var tprint = print;
-//var print = function(arg) {};
+var print = function(arg) {};
 
 // Invoke main program
 var elapsed = ticks();
@@ -542,7 +542,7 @@ for(var i = 0; i < 10; ++i)
 elapsed = ticks() - elapsed;
 
 // Restore print
-//unset print;
+unset print;
 
 print("Executed in {elapsed} ms\n");
 
