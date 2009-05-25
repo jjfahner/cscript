@@ -78,19 +78,17 @@ public:
   //
   // Clear the list
   //
-  __native_method Value Clear()
+  __native_method void Clear()
   {
     m_list.clear();
-    return Value();
   }
 
   //
   // Add to end of list
   //
-  __native_method Value Append(Value v)
+  __native_method void Append(Value v)
   {
     m_list.push_back(v);
-    return Value();
   }
 
   //
@@ -116,7 +114,7 @@ public:
   //
   // Retrieve item at front
   //
-  __native_roprop Value Head()
+  __native_roprop ValueCRef Head()
   {
     if(m_list.size())
     {
@@ -128,7 +126,7 @@ public:
   //
   // Retrieve item at back
   //
-  __native_roprop Value Tail()
+  __native_roprop ValueCRef Tail()
   {
     if(m_list.size())
     {
@@ -140,7 +138,7 @@ public:
   //
   // Retrieve item at specified index
   //
-  __native_method Value At(int64 index)
+  __native_method ValueCRef At(int64 index)
   {
     return GetAt(index);
   }
