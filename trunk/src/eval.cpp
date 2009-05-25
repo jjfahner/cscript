@@ -499,6 +499,7 @@ Evaluator::EvalExpression(Object* node)
   switch(Ast_Type(node))
   {
   case assignment_expression: return EvalAssignment(node);
+  case assignment_function:   return EvalAssignmentFun(node);
   case binary_expression:     return EvalBinary(node);
   case ternary_expression:    return EvalTernary(node);
   case prefix_expression:     return EvalPrefix(node);
@@ -512,6 +513,7 @@ Evaluator::EvalExpression(Object* node)
   case qualified_id_g:        return EvalQualifiedId(node);
   case qualified_id_l:        return EvalQualifiedId(node);
   case list_literal:          return EvalListLiteral(node);
+  case list_append:           return EvalListAppend(node);
   case map_literal:           return EvalMapLiteral(node);
   case json_literal:          return EvalJsonLiteral(node);
   case new_expression:        return EvalNewExpression(node);
@@ -584,6 +586,53 @@ Evaluator::EvalAssignment(Object* node)
 
   // Unknown operator
   throw ScriptException(node, "Invalid assignment operator");
+}
+
+RValue& 
+Evaluator::EvalAssignmentFun(Object* node)
+{
+  // Opcode for the assignment
+  opcodes opcode = (opcodes)Ast_A1(node).GetInt();
+
+  // Object to apply the assignment to
+  Object* obj;
+  if(Ast_A2(node).Empty())
+  {
+    obj = m_scope;
+  }
+  else
+  {
+    obj = EvalExpression(Ast_A2(node));
+  }
+
+  // Member to assign to
+  Value member = Ast_A1(Ast_A3(node));
+
+  // Evaluate right-hand side
+  Value rhs = EvalExpression(Ast_A4(node));
+
+  // Direct assignment
+  if(opcode == op_assign)
+  {
+    return obj->Set(member, rhs);
+  }
+
+  // Retrieve current value
+  Value const& lhs = obj->GetAt(member);
+
+  // Convert right-hand side to left-hand type
+  ConvertInPlace(node, rhs, lhs.Type());
+
+  // Perform assignment
+  switch(opcode)
+  {
+  case op_assadd: return obj->Set(member, ValAdd(lhs, rhs));
+  case op_asssub: return obj->Set(member, ValSub(lhs, rhs));
+  case op_assmul: return obj->Set(member, ValMul(lhs, rhs));
+  case op_assdiv: return obj->Set(member, ValDiv(lhs, rhs));
+  case op_assmod: return obj->Set(member, ValMod(lhs, rhs));
+  default: throw ScriptException(node, "Invalid assignment operator");
+  }
 }
 
 RValue&
@@ -792,6 +841,20 @@ Evaluator::EvalListIndex(Object* node, List* lhs)
 
   // Retrieve from list
   return lhs->GetAt(rhs.GetValue());
+}
+
+RValue& 
+Evaluator::EvalListAppend(Object* node)
+{
+  Object* obj = EvalExpression(Ast_A2(node));
+  List* list = dynamic_cast<List*>(obj);
+  if(list == 0)
+  {
+    throw ScriptException(node, "Invalid type for list append operator");
+  }
+  
+  RValue const& rhs = EvalExpression(Ast_A4(node));
+  return list->FastAppend(rhs);
 }
 
 RValue&

@@ -119,6 +119,11 @@ public:
   // Find a member
   //
   virtual bool Find(String const& key, RValue*& pValue, bool checkProto = true) const;
+
+  //
+  // Set a member
+  //
+  virtual RValue& Set(String const& key, Value const& value);
   
   //
   // Retrieve a member by index

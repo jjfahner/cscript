@@ -31,7 +31,7 @@ NATIVE_CALL("count(arg)")
   switch(args[0].Type())
   {
   case Value::tObject:
-    return args[0].GetObject()->Count();
+    return dynamic_cast<List*>(args[0].GetObject())->Length();
   default:
     throw std::runtime_error("Invalid type for count");
   }

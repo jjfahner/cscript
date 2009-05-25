@@ -290,7 +290,7 @@ function main()
   // Associative arrays
   assert("Array", [1,2][0], 1);
   assert("Array", [1,2][1], 2);
-  assert("Array", count([1,2]), 2);
+  assert("Array count", [1,2].Length, 2);
   assert("Nested array", [1,[2,3]][0],    1);
   assert("Nested array", [1,[2,3]][1][0], 2);
   assert("Nested array", [1,[2,3]][1][1], 3);
