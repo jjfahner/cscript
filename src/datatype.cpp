@@ -170,7 +170,7 @@ public:
     return new IntegerTypeImpl(value.GetInt());
   }
 
-  DeclType ParseInt(String source)
+  DeclType ParseInt(StringCRef source)
   {
     int v;
     sscanf(source.c_str(), "%d", &v);

@@ -155,7 +155,7 @@ public:
   //
   // Parse an integer
   //
-  __native_method virtual DeclType ParseInt(String source) = 0;
+  __native_method virtual DeclType ParseInt(StringCRef source) = 0;
 
 };
 
