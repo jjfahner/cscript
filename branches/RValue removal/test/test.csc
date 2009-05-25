@@ -1,19 +1,13 @@
-function assert(a,b,c) {
-}
+var a = 1;
+var b = 2;
+var c = a + b;
 
-function foo()
-{
-  var a;
-  a = [];
-  a[] = 0;
-  a[] = 1;
-  a[] = 2;
-  assert("Array entries", count(a), 3);
-  assert("Array entries", a[0], 0);
-  assert("Array entries", a[1], 1);
-  assert("Array entries", a[2], 2);
+print(a);
+print(b);
+print(c);
 
-  for(a = 0; a < 10; ++a) {}
-}
+var d = function() { print("foo"); };
 
-foo();
+print(d);
+
+d();

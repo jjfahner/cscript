@@ -132,28 +132,20 @@ expression_opt(R) ::= expression(A) . { R = A; }
 // Assignment
 assignment_expression(R) ::= conditional_expression(A) . { R = A; }
 assignment_expression(R) ::= throw_expression(A) .       { R = A; }
-assignment_expression(R) ::= binary_expression(A) assignment_operator(B) assignment_expression(C) .  {
-  R = 0;
-  switch(Ast_Type(A))
+assignment_expression(R) ::= unqualified_id(A) assignment_operator(B) assignment_expression(C) .  {
+  R = p->AllocNode(assignment_expression, B, Value(), A, C);
+}
+assignment_expression(R) ::= member_expression(A) assignment_operator(B) assignment_expression(C) .  {
+  R = p->AllocNode(assignment_expression, B, Ast_A1(A), Ast_A2(A), C);
+}
+assignment_expression(R) ::= index_expression(A) assignment_operator(B) assignment_expression(C) .  {
+  if(!Ast_A2(A).Empty())
   {
-  case unqualified_id:
-    R = p->AllocNode(assignment_function, B, Value(), A, C);
-    break;
-  case member_expression:
-    R = p->AllocNode(assignment_function, B, Ast_A1(A), Ast_A2(A), C);
-    break;
-  case index_expression:
-    if(!Ast_A2(A).Empty())
-    {
-      R = p->AllocNode(assignment_function, B, Ast_A1(A), Ast_A2(A), C);
-    }
-    else
-    {
-      R = p->AllocNode(list_append, B, Ast_A1(A), Value(), C);
-    }
-    break; 
-  default:
-    throw std::runtime_error("Left-hand value cannot be assigned to");
+    R = p->AllocNode(assignment_expression, B, Ast_A1(A), Ast_A2(A), C);
+  }
+  else
+  {
+    R = p->AllocNode(list_append, B, Ast_A1(A), Value(), C);
   }
 }
 
@@ -201,16 +193,21 @@ unary_expression(R) ::= new_expression(A) . 			   { R = A; }
 unary_expression(R) ::= NOT unary_expression(A) .    { R = p->AllocNode(prefix_expression, op_not,    A); }
 
 // Postfix expression
-postfix_expression(R) ::= primary_expression(A) .                                 { R = A; }
-postfix_expression(R) ::= postfix_expression(A) ADDADD .                          { R = p->AllocNode(postfix_expression, op_postinc, A); }
-postfix_expression(R) ::= postfix_expression(A) SUBSUB .                          { R = p->AllocNode(postfix_expression, op_postdec, A); }
-postfix_expression(R) ::= postfix_expression(A) LPAREN arguments(B) RPAREN .      { R = p->AllocNode(function_call, A, B); }
-postfix_expression(R) ::= postfix_expression(A) DOT unqualified_id(B).            { R = p->AllocNode(member_expression, A, B); }
-postfix_expression(R) ::= postfix_expression(A) LBRACKET RBRACKET.                { R = p->AllocNode(index_expression, A); }
-postfix_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocNode(index_expression, A, B); }
-postfix_expression(R) ::= FUNCTION DOT unqualified_id(A) .						            { R = p->AllocNode(function_member_expression, A); }
-postfix_expression(R) ::= FUNCTION LBRACKET expression(A) RBRACKET .			        { R = p->AllocNode(function_index_expression, A); }
-postfix_expression(R) ::= TYPEOF LPAREN expression(A) RPAREN .                    { R = p->AllocNode(typeof_expression, A); }
+postfix_expression(R) ::= primary_expression(A) .                            { R = A; }
+postfix_expression(R) ::= member_expression(A) .                             { R = A; }
+postfix_expression(R) ::= index_expression(A) .                              { R = A; }
+postfix_expression(R) ::= postfix_expression(A) ADDADD .                     { R = p->AllocNode(postfix_expression, op_postinc, A); }
+postfix_expression(R) ::= postfix_expression(A) SUBSUB .                     { R = p->AllocNode(postfix_expression, op_postdec, A); }
+postfix_expression(R) ::= postfix_expression(A) LPAREN arguments(B) RPAREN . { R = p->AllocNode(function_call, A, B); }
+postfix_expression(R) ::= FUNCTION DOT unqualified_id(A) .						       { R = p->AllocNode(function_member_expression, A); }
+postfix_expression(R) ::= FUNCTION LBRACKET expression(A) RBRACKET .			   { R = p->AllocNode(function_index_expression, A); }
+postfix_expression(R) ::= TYPEOF LPAREN expression(A) RPAREN .               { R = p->AllocNode(typeof_expression, A); }
+
+// Member expression
+member_expression(R) ::= postfix_expression(A) DOT unqualified_id(B). { R = p->AllocNode(member_expression, A, B); }
+
+index_expression(R) ::= postfix_expression(A) LBRACKET RBRACKET.                { R = p->AllocNode(index_expression, A); }
+index_expression(R) ::= postfix_expression(A) LBRACKET expression(B) RBRACKET.  { R = p->AllocNode(index_expression, A, B); }
 
 // Primary expression
 primary_expression(R) ::= literal(A) .                  { R = A; }

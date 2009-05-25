@@ -33,7 +33,6 @@ enum AstTypes
   statement_sequence,
   expression_statement,
   assignment_expression,
-  assignment_function,
   binary_expression,
   ternary_expression,
   prefix_expression,

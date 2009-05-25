@@ -130,7 +130,7 @@ CSParser::GetDataType(AstNode* node)
     return AstNode_A1(node)->m_dataType;
 
   case assignment_expression: 
-    return AstNode_A2(node)->m_dataType;
+    return AstNode_A4(node)->m_dataType;
 
     // TODO
 //   case assignment_function

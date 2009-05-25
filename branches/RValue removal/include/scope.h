@@ -99,7 +99,7 @@ public:
     return false;
   }
 
-  virtual RValue& GetAt(Value const& key)
+  virtual Value const& Get(String const& key)
   {
     RValue* pValue;
     if(Lookup(key, pValue))
@@ -109,7 +109,7 @@ public:
     throw std::runtime_error("Variable not found");
   }
 
-  virtual RValue& Set(String const& key, Value const& value)
+  virtual Value const& Set(String const& key, Value const& value)
   {
     RValue* pValue;
     if(Lookup(key, pValue))
