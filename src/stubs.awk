@@ -72,19 +72,19 @@ $2 ~ /__native_method/ {
   printf("static Value %s(Evaluator*, Arguments const& args) {\n", stub);
   if(returns == "void")
   {
-    printf("  dynamic_cast<%s*>(args.GetObject())->%s(\n", className, memberName);
+    printf("  dynamic_cast<%s*>(args.GetObject())->%s(", className, memberName);
   }
   else
   {
-    printf("  return dynamic_cast<%s*>(args.GetObject())->%s(\n", className, memberName);
+    printf("  return dynamic_cast<%s*>(args.GetObject())->%s(", className, memberName);
   }
   for(i = 1; i <= p; ++i)
   {
     comma = "";
     if(i < p) comma = ",";
-    printf("    __stub_arg_to_%s(args[%d])%s\n", ptype[i], (i-1), comma);
+    printf("\n    __stub_arg_to_%s(args[%d])%s", ptype[i], (i-1), comma);
   }
-  printf("    );\n");
+  printf(");\n");
   if(returns == "void")
   {
     printf("  return Value();\n");
