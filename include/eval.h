@@ -181,6 +181,7 @@ private:
   RValue& EvalMemberExpression(Object* node);
   RValue& EvalThisExpression(Object* node);
   RValue& EvalAssignment(Object* node);
+  RValue& EvalAssignmentFun(Object* node);
   RValue& EvalBinary(Object* node);
   RValue& EvalTernary(Object* node);
   RValue& EvalPrefix(Object* node);
@@ -198,6 +199,7 @@ private:
   RValue& EvalIndex(Object* node);
   RValue& EvalObjectIndex(Object* node, Object* lhs);
   RValue& EvalListIndex(Object* node, List* lhs);
+  RValue& EvalListAppend(Object* node);
 
   //
   // Function handlers

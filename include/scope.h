@@ -99,6 +99,27 @@ public:
     return false;
   }
 
+  virtual RValue& GetAt(Value const& key)
+  {
+    RValue* pValue;
+    if(Lookup(key, pValue))
+    {
+      return *pValue;
+    }
+    throw std::runtime_error("Variable not found");
+  }
+
+  virtual RValue& Set(String const& key, Value const& value)
+  {
+    RValue* pValue;
+    if(Lookup(key, pValue))
+    {
+      pValue->GetLValue().SetValue(value);
+      return *pValue;
+    }
+    throw std::runtime_error("Variable not found");
+  }
+
 protected:
 
   //

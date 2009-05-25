@@ -132,8 +132,30 @@ expression_opt(R) ::= expression(A) . { R = A; }
 // Assignment
 assignment_expression(R) ::= conditional_expression(A) . { R = A; }
 assignment_expression(R) ::= throw_expression(A) .       { R = A; }
-assignment_expression(R) ::= binary_expression(A) assignment_operator(B) 
-                             assignment_expression(C) .  { R = p->AllocNode(assignment_expression, B, A, C); }
+assignment_expression(R) ::= binary_expression(A) assignment_operator(B) assignment_expression(C) .  {
+  R = 0;
+  switch(Ast_Type(A))
+  {
+  case unqualified_id:
+    R = p->AllocNode(assignment_function, B, Value(), A, C);
+    break;
+  case member_expression:
+    R = p->AllocNode(assignment_function, B, Ast_A1(A), Ast_A2(A), C);
+    break;
+  case index_expression:
+    if(!Ast_A2(A).Empty())
+    {
+      R = p->AllocNode(assignment_function, B, Ast_A1(A), Ast_A2(A), C);
+    }
+    else
+    {
+      R = p->AllocNode(list_append, B, Ast_A1(A), Value(), C);
+    }
+    break; 
+  default:
+    throw std::runtime_error("Left-hand value cannot be assigned to");
+  }
+}
 
 // Assignment operator
 %type assignment_operator { opcodes }

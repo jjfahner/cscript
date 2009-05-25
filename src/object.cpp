@@ -169,6 +169,14 @@ Object::Find(String const& key, RValue*& pValue, bool checkProto) const
   return true;
 }
 
+RValue&
+Object::Set(String const& key, Value const& value)
+{
+  MemberVariable& result = m_members[key];
+  result.SetValue(value);
+  return result;
+}
+
 RValue& 
 Object::GetAt(Value const& index)
 {
