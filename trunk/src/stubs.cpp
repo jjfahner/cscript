@@ -36,15 +36,22 @@ enum StubType
   stRwProp = 2
 };
 
+typedef Value (*MethodStub)(Evaluator*, Arguments const&);
+typedef Value (*RoPropStub)(Object*);
+typedef void  (*RwPropStub)(Object*, Value const&);
+
+
 struct NativeCall
 {
   StubType    m_type;
   char const* m_name;
-  void*       m_stubR;
-  void*       m_stubW;
+  MethodStub  m_method;
+  RoPropStub  m_roprop;
+  RwPropStub  m_rwprop;
   RValue*     m_var;
 };
 
+//////////////////////////////////////////////////////////////////////////
 
 inline String const& __stub_arg_to_String(Value const& v)
 {
@@ -76,11 +83,11 @@ inline bool __stub_arg_to_bool(Value const& v)
   return v.GetBool();
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 #include "stubs.gen.cpp"
 
 //////////////////////////////////////////////////////////////////////////
-
-typedef Value (*MethodStub)(Evaluator*, Arguments const&);
 
 class NativeMethod : public Function, public RValue
 {
@@ -104,7 +111,7 @@ public:
 
   virtual Value Execute(Evaluator* evaluator, Arguments& args)
   {
-    return ((MethodStub)m_call->m_stubR)(evaluator, args);
+    return m_call->m_method(evaluator, args);
   }
 
   virtual Value const& GetValue() const
@@ -114,8 +121,6 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-
-typedef Value (*RoPropStub)(Object*);
 
 //
 // NativeRoProp implements the RValue semantics of
@@ -138,14 +143,12 @@ public:
 
   virtual Value const& GetValue() const
   {
-    m_value = ((RoPropStub)m_call->m_stubR)(m_instance);
+    m_value = m_call->m_roprop(m_instance);
     return m_value;
   }
 };
 
 //////////////////////////////////////////////////////////////////////////
-
-typedef void (*RwPropStub)(Object*, Value const&);
 
 //
 // NativeRwProp implements the LValue semantics of
@@ -168,13 +171,13 @@ public:
 
   virtual Value const& GetValue() const
   {
-    m_value = ((RoPropStub)m_call->m_stubR)(m_instance);
+    m_value = m_call->m_roprop(m_instance);
     return m_value;
   }
 
   virtual void SetValue(Value const& rhs)
   {
-    (RwPropStub(m_call->m_stubW))(m_instance, rhs);
+    m_call->m_rwprop(m_instance, rhs);
   }
 };
 
