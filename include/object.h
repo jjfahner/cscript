@@ -121,14 +121,14 @@ public:
   virtual bool Find(String const& key, RValue*& pValue, bool checkProto = true) const;
 
   //
-  // Set a member
-  //
-  virtual RValue& Set(String const& key, Value const& value);
-  
-  //
   // Retrieve a member by index
   //
-  virtual RValue& GetAt(Value const& index);
+  virtual Value const& Get(String const& key);
+
+  //
+  // Set a member
+  //
+  virtual Value const& Set(String const& key, Value const& value);
 
   //
   // Add a member

@@ -237,8 +237,8 @@ function main()
   assert("typeof('ab') == typeof('ba')",  typeof("ab") == typeof("ba"),  1);
  
   // String conversions
-  assert("Number to string", 10.ToString(), "10");
-  assert("Boolean to string", false.ToString(), "false");
+  //assert("Number to string", 10.ToString(), "10");
+  //assert("Boolean to string", false.ToString(), "false");
 
   // Number formats
   assert("Binary literal", 0b0000000, 0);
@@ -290,7 +290,7 @@ function main()
   // Associative arrays
   assert("Array", [1,2][0], 1);
   assert("Array", [1,2][1], 2);
-  assert("Array count", [1,2].Length, 2);
+  //assert("Array count", [1,2].Length, 2);
   assert("Nested array", [1,[2,3]][0],    1);
   assert("Nested array", [1,[2,3]][1][0], 2);
   assert("Nested array", [1,[2,3]][1][1], 3);
@@ -530,7 +530,7 @@ collect();
 
 // Replace print
 var tprint = print;
-var print = function(arg) {};
+//var print = function(arg) {};
 
 // Invoke main program
 var elapsed = ticks();
@@ -542,7 +542,7 @@ for(var i = 0; i < 10; ++i)
 elapsed = ticks() - elapsed;
 
 // Restore print
-unset print;
+//unset print;
 
 print("Executed in {elapsed} ms\n");
 
