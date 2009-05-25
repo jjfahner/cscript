@@ -504,6 +504,37 @@ Evaluator::EvalStatement(Object* node)
   return result;
 }
 
+void
+Evaluator::EvalLValue(Object* node, Object*& obj, String& name)
+{
+  switch(Ast_Type(node))
+  {
+  case unqualified_id:
+    obj = m_scope;
+    name = Ast_A1(node).GetString();
+    return;
+
+  case member_expression:
+    obj = Ast_A1(node);
+    name = Ast_A2(node);
+    return;
+
+  case index_expression:
+    if(Ast_A2(node).Empty())
+    {
+      throw ScriptException(node, "Straks weer");
+    }
+    else
+    {
+      obj = Ast_A1(node);
+      name = Ast_A2(node);
+    }
+    return;
+  }
+  
+  throw ScriptException(node, "Expression must yield an lvalue");
+}
+
 Value
 Evaluator::EvalExpression(Object* node)
 {
@@ -658,7 +689,7 @@ Evaluator::EvalBinary(Object* node)
   }  
 
   // Return new temporary
-  return MakeTemp(result);
+  return result;
 }
 
 Value
@@ -674,20 +705,34 @@ Evaluator::EvalTernary(Object* node)
 Value
 Evaluator::EvalPrefix(Object* node)
 {
-//   Value const& lhs = EvalExpression(Ast_A2(node));
-//   switch(Ast_A1(node).GetInt())
-//   {
-//   case op_preinc:
-//     lhs.GetLValue() = ValAdd(lhs, 1); 
-//     return lhs;
-//   case op_predec: 
-//     lhs.GetLValue() = ValSub(lhs, 1); 
-//     return lhs;
-//   case op_negate: 
-//     return MakeTemp(ValNeg(lhs));
-//   case op_not:    
-//     return MakeTemp(ValNot(lhs));
-//   }
+  // Resolve lvalue
+  Object* obj;
+  String name;
+  EvalLValue(Ast_A2(node), obj, name);
+
+  // Handle operator
+  Value result;
+  switch(Ast_A1(node).GetInt())
+  {
+  case op_preinc:
+    result = ValAdd(obj->Get(name), 1);
+    obj->Set(name, result);
+    return result;
+
+  case op_predec: 
+    result = ValAdd(obj->Get(name), 1);
+    obj->Set(name, result);
+    return result;
+
+  case op_negate: 
+    result = ValNeg(obj->Get(name));
+    return result;
+
+  case op_not:    
+    result = ValNot(obj->Get(name));
+    return result;
+  }
+
   throw ScriptException(node, "Invalid prefix operator");
 }
 
