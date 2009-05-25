@@ -514,8 +514,14 @@ Evaluator::EvalLValue(Object* node, Object*& obj, String& name)
     name = Ast_A1(node).GetString();
     return;
 
+  case qualified_id_g:
+  case qualified_id_l:
+    obj = EvalExpression(Ast_A1(Ast_A1(node)));
+    name = Ast_A2(obj);
+    return;
+
   case member_expression:
-    obj = Ast_A1(node);
+    obj = EvalExpression(Ast_A1(node));
     name = Ast_A1(Ast_A2(node));
     return;
 
@@ -526,7 +532,7 @@ Evaluator::EvalLValue(Object* node, Object*& obj, String& name)
     }
     else
     {
-      obj = Ast_A1(node);
+      obj = EvalExpression(Ast_A1(node));
       name = Ast_A2(node);
     }
     return;
@@ -635,17 +641,17 @@ Evaluator::EvalBinary(Object* node)
   Value const& lhs = EvalExpression(Ast_A2(node));
 
   // Handle object
-  if(lhs.Type() == Value::tObject)
-  {
-    String opfun = "operator" + OpcodeToString(opcode);
-    if(lhs->ContainsKey(opfun))
-    {
-      Object* funObj = lhs->GetRValue(opfun).GetObject();
-      ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
-
-      return EvalFunctionCall(node, fun, lhs.GetObject(), Ast_A3(node));
-    }
-  }
+//   if(lhs.Type() == Value::tObject)
+//   {
+//     String opfun = "operator" + OpcodeToString(opcode);
+//     if(lhs->ContainsKey(opfun))
+//     {
+//       Object* funObj = lhs->GetRValue(opfun).GetObject();
+//       ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
+// 
+//       return EvalFunctionCall(node, fun, lhs.GetObject(), Ast_A3(node));
+//     }
+//   }
 
   // Short-circuited operators
   if(opcode == op_logor)
@@ -710,7 +716,7 @@ Evaluator::EvalTernary(Object* node)
 Value
 Evaluator::EvalPrefix(Object* node)
 {
-  // RValue unary operators
+  // Unary operators
   switch(Ast_A1(node).GetInt())
   {
   case op_negate: 
@@ -914,7 +920,7 @@ Evaluator::EvalQualifiedId(Object* node)
     }
 
     // Retrieve node
-    RValue& rval = scope->GetRValue(name);
+    Value const& rval = scope->GetRValue(name);
 
     // If nested, descend, else retrieve value
     if(!Ast_A2(cur).Empty())
@@ -927,7 +933,7 @@ Evaluator::EvalQualifiedId(Object* node)
       }
 
       // Descend into id
-      cur = Ast_A2(cur);      
+      cur = Ast_A2(cur);
     }
     else
     {
