@@ -504,10 +504,10 @@ function main()
 //   assert("Class constructor", (new Class("Hello")).b, "Hello world");
 
   // Test namespaces
-  assert("Namespace lookup (1)", outer::f(), "inner1outerinner1");
-  assert("Namespace lookup (2)", outer::inner2::f(), "outerinner1");
-  assert("Namespace lookup (3)", ::outer::f(), "inner1outerinner1");
-  assert("Namespace lookup (4)", ::outer::inner2::f(), "outerinner1");
+//   assert("Namespace lookup (1)", outer::f(), "inner1outerinner1");
+//   assert("Namespace lookup (2)", outer::inner2::f(), "outerinner1");
+//   assert("Namespace lookup (3)", ::outer::f(), "inner1outerinner1");
+//   assert("Namespace lookup (4)", ::outer::inner2::f(), "outerinner1");
 
   // Print result
   if(errors == 0)
