@@ -70,7 +70,14 @@ $2 ~ /__native_method/ {
   # Generate call stub
   stub = sprintf("__stub_%s_%s", className, memberName);
   printf("static Value %s(Evaluator*, Arguments const& args) {\n", stub);
-  printf("  return dynamic_cast<%s*>(args.GetObject())->%s(\n", className, memberName);
+  if(returns == "void")
+  {
+    printf("  dynamic_cast<%s*>(args.GetObject())->%s(\n", className, memberName);
+  }
+  else
+  {
+    printf("  return dynamic_cast<%s*>(args.GetObject())->%s(\n", className, memberName);
+  }
   for(i = 1; i <= p; ++i)
   {
     comma = "";
@@ -78,6 +85,10 @@ $2 ~ /__native_method/ {
     printf("    __stub_arg_to_%s(args[%d])%s\n", ptype[i], (i-1), comma);
   }
   printf("    );\n");
+  if(returns == "void")
+  {
+    printf("  return Value();\n");
+  }
   printf("}\n");
   
   # Store name and stub in arrays

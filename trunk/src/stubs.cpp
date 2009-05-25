@@ -51,6 +51,11 @@ inline String const& __stub_arg_to_String(Value const& v)
   return v.GetString();
 }
 
+inline String const& __stub_arg_to_StringCRef(Value const& v)
+{
+  return v.GetString();
+}
+
 inline Value const& __stub_arg_to_Value(Value const& v)
 {
   return v;
