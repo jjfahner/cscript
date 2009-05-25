@@ -160,6 +160,16 @@ ValString(Value const& val)
   throw std::runtime_error("Cannot convert between types");
 }
 
+Object* 
+ValObject(Value const& val)
+{
+  if(val.Type() == Value::tObject)
+  {
+    return val.GetObject();
+  }
+  return static_cast<ScalarType*>(val.GetDataType())->Box(val);
+}
+
 Value 
 ValAdd(Value const& lhs, Value const& rhs)
 {

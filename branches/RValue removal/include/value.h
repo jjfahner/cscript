@@ -250,6 +250,7 @@ inline T* ValueToType(Value const& v)
 Value::Bool ValBool(Value const& val);
 Value::Int ValInt(Value const& val);
 String ValString(Value const& val);
+Object* ValObject(Value const& val);
 
 Value ValNeg(Value const& lhs);
 Value ValNot(Value const& lhs);

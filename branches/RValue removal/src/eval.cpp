@@ -516,7 +516,7 @@ Evaluator::EvalLValue(Object* node, Object*& obj, String& name)
 
   case member_expression:
     obj = Ast_A1(node);
-    name = Ast_A2(node);
+    name = Ast_A1(Ast_A2(node));
     return;
 
   case index_expression:
@@ -530,6 +530,11 @@ Evaluator::EvalLValue(Object* node, Object*& obj, String& name)
       name = Ast_A2(node);
     }
     return;
+
+  case literal_value:
+    obj = ValObject(Ast_A1(node));
+    name = Ast_A2(node);
+    break;
   }
   
   throw ScriptException(node, "Expression must yield an lvalue");
@@ -705,6 +710,16 @@ Evaluator::EvalTernary(Object* node)
 Value
 Evaluator::EvalPrefix(Object* node)
 {
+  // RValue unary operators
+  switch(Ast_A1(node).GetInt())
+  {
+  case op_negate: 
+    return ValNeg(EvalExpression(Ast_A2(node)));
+
+  case op_not:    
+    return ValNot(EvalExpression(Ast_A2(node)));
+  }
+
   // Resolve lvalue
   Object* obj;
   String name;
@@ -723,34 +738,35 @@ Evaluator::EvalPrefix(Object* node)
     result = ValAdd(obj->Get(name), 1);
     obj->Set(name, result);
     return result;
-
-  case op_negate: 
-    result = ValNeg(obj->Get(name));
-    return result;
-
-  case op_not:    
-    result = ValNot(obj->Get(name));
-    return result;
   }
 
+  // Failed
   throw ScriptException(node, "Invalid prefix operator");
 }
 
 Value
 Evaluator::EvalPostfix(Object* node)
 {
-//   // Evaluate lhs
-//   LValue& lhs = EvalExpression(Ast_A2(node)).GetLValue();
-// 
-//   // Create temporary with result value
-//   RValue& result = MakeTemp(lhs);
-// 
-//   // Perform postfix operation
-//   switch(Ast_A1(node).GetInt())
-//   {
-//   case op_postinc: return lhs.SetValue(ValAdd(lhs, 1));
-//   case op_postdec: return lhs.SetValue(ValSub(lhs, 1));
-//   }
+  // Evaluate lhs
+  Object* obj;
+  String name;
+  EvalLValue(Ast_A2(node), obj, name);
+
+  // Create temporary with result value
+  Value v = obj->Get(name);
+
+  // Perform postfix operation
+  switch(Ast_A1(node).GetInt())
+  {
+  case op_postinc:
+    obj->Set(name, ValAdd(v, 1));
+    return v;
+
+  case op_postdec:
+    obj->Set(name, ValSub(v, 1));
+    return v;
+  }
+  
   throw ScriptException(node, "Invalid postfix operator");
 }
 
@@ -763,25 +779,30 @@ Evaluator::EvalTypeOf(Object* node)
 Value
 Evaluator::EvalIndex(Object* node)
 {
-//   // Evaluate left-hand side
-//   Value const& lhs = EvalExpression(Ast_A1(node));
-// 
-//   // Delegate to typed implementation
-//   switch(lhs.Type())
-//   {
-//   case Value::tNull:
-//     {
-//       List* list = new List();
-//       lhs.GetLValue() = list;
-//       return EvalListIndex(node, list);
-//     }
-// 
-//   case Value::tObject:
-//     return EvalObjectIndex(node, lhs.GetObject());
-// 
-//   default:  
-//     throw ScriptException(node, "Invalid type for index operator");
-//   }
+  // Retrieve the container
+  Object* obj;
+  String name;
+  EvalLValue(node, obj, name);
+
+  // Retrieve the list
+  Value lhs = obj->Get(name);
+
+  // Delegate to typed implementation
+  switch(lhs.Type())
+  {
+  case Value::tNull:
+    {
+      List* list = new List();
+      lhs = list;
+      return EvalListIndex(node, list);
+    }
+
+  case Value::tObject:
+    return EvalObjectIndex(node, lhs.GetObject());
+
+  default:  
+    throw ScriptException(node, "Invalid type for index operator");
+  }
   throw ScriptException(node, "Invalid index operator");
 }
 
@@ -1053,9 +1074,12 @@ Value
 Evaluator::EvalFunctionCall(Object* node)
 {
   // Evaluate left-hand side
-  Value const& lhs = EvalExpression(Ast_A1(node));
+  Object* obj;
+  String name;
+  EvalLValue(Ast_A1(node), obj, name);
   
-  // Check whether returned type is an object
+  // Retrieve function
+  Value lhs = obj->Get(name);
   if(lhs.Type() != Value::tObject)
   {
     throw ScriptException(node, "Function call on non-function object");
@@ -1081,11 +1105,7 @@ Evaluator::EvalFunctionCall(Object* node)
   }
 
   // Add object context to arguments
-  Object* owner = 0;
-//   if(BoundValue* bval = dynamic_cast<BoundValue*>(&lhs))
-//   {
-//     owner = bval->GetBoundObject();
-//   }
+  Object* owner = obj;
 
   // Determine arguments
   Object* args = 0;
