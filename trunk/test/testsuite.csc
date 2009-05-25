@@ -525,10 +525,6 @@ function main()
 // Start by invoking main()
 //
 
-var x = CreateXmlNode();
-x.xml = "Hello world";
-print(x.xml + "\n");
-
 // Cleanup any garbage objects and store current count
 collect();
 
