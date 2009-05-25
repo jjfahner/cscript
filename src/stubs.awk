@@ -91,13 +91,16 @@ $2 ~ /__native_method/ {
   }
   printf("}\n");
   
-  # Store name and stub in arrays
+  # Determine next index position
   i = classIds[className] + 1;
-  stubName[className i]  = memberName;
-  stubProcR[className i] = stub;
-  stubProcW[className i] = "0";
-  stubType[className i]  = "stMethod";
-  classIds[className]    = i;
+  classIds[className]     = i;  
+  
+  # Store name and stubs in arrays
+  stubName[className i] = memberName;
+  stubType[className i] = "stMethod";
+  stubMethod[className i] = stub;
+  stubRoProp[className i] = "0";
+  stubRwProp[className i] = "0";
 }
 
 # Handle native declarations
@@ -150,13 +153,16 @@ $2 ~ /__native_roprop/ || $2 ~ /__native_rwprop/ {
     printf("}\n");
   }
 
-  # Store name and stub in arrays
+  # Determine next index position
   i = classIds[className] + 1;
+  classIds[className]     = i;  
+  
+  # Store name and stubs in arrays
   stubName[className i] = memberName;
-  stubProcR[className i] = stubR;
-  stubProcW[className i] = stubW;
   stubType[className i] = type;
-  classIds[className] = i;
+  stubMethod[className i] = "0";
+  stubRoProp[className i] = stubR;
+  stubRwProp[className i] = stubW;
 }
 
 END {
@@ -170,9 +176,15 @@ END {
       printf("\nNativeCall __stublist_%s[] = {\n", className);
       for(i = 1; i <= numStubs; ++i)
       {
-        printf("  { %s, \"%s\", (void*)%s, (void*)%s, 0 },\n", stubType[className i], stubName[className i], stubProcR[className i], stubProcW[className i]);
+        printf("  { %s, \"%s\", %s, %s, %s, 0 },\n", \
+          stubType[className i],   \
+          stubName[className i],   \
+          stubMethod[className i], \
+          stubRoProp[className i], \
+          stubRwProp[className i]  \
+          );
       }
-      printf("  { stMethod, 0, 0, 0, 0 }\n");
+      printf("  { stMethod, 0, 0, 0, 0, 0 }\n");
       printf("};\n");
     }
   }  
