@@ -31,7 +31,9 @@
 #include "enumerator.h"
 #include "lexstream.h"
 #include "list.h"
+#include "dict.h"
 #include "datatype.h"
+
 
 #include "csparser.h"
 #include "csparser.gen.h"
@@ -505,13 +507,13 @@ Evaluator::EvalStatement(Object* node)
 }
 
 void
-Evaluator::EvalLValue(Object* node, Object*& obj, String& name)
+Evaluator::EvalLValue(Object* node, Object*& obj, Value& name)
 {
   switch(Ast_Type(node))
   {
   case unqualified_id:
     obj = m_scope;
-    name = Ast_A1(node).GetString();
+    name = Ast_A1(node);
     return;
 
   case qualified_id_g:
@@ -533,7 +535,7 @@ Evaluator::EvalLValue(Object* node, Object*& obj, String& name)
     else
     {
       obj = EvalExpression(Ast_A1(node));
-      name = Ast_A2(node);
+      name = EvalExpression(Ast_A2(node));
     }
     return;
 
@@ -602,7 +604,7 @@ Evaluator::EvalAssignment(Object* node)
   }
 
   // Member to assign to
-  String const& member = Ast_A1(Ast_A3(node));
+  Value const& member = Ast_A1(Ast_A3(node));
 
   // Evaluate right-hand side
   Value rhs = EvalExpression(Ast_A4(node));
@@ -728,21 +730,21 @@ Evaluator::EvalPrefix(Object* node)
 
   // Resolve lvalue
   Object* obj;
-  String name;
-  EvalLValue(Ast_A2(node), obj, name);
+  Value key;
+  EvalLValue(Ast_A2(node), obj, key);
 
   // Handle operator
   Value result;
   switch(Ast_A1(node).GetInt())
   {
   case op_preinc:
-    result = ValAdd(obj->Get(name), 1);
-    obj->Set(name, result);
+    result = ValAdd(obj->Get(key), 1);
+    obj->Set(key, result);
     return result;
 
   case op_predec: 
-    result = ValAdd(obj->Get(name), 1);
-    obj->Set(name, result);
+    result = ValAdd(obj->Get(key), 1);
+    obj->Set(key, result);
     return result;
   }
 
@@ -755,21 +757,21 @@ Evaluator::EvalPostfix(Object* node)
 {
   // Evaluate lhs
   Object* obj;
-  String name;
-  EvalLValue(Ast_A2(node), obj, name);
+  Value key;
+  EvalLValue(Ast_A2(node), obj, key);
 
   // Create temporary with result value
-  Value v = obj->Get(name);
+  Value v = obj->Get(key);
 
   // Perform postfix operation
   switch(Ast_A1(node).GetInt())
   {
   case op_postinc:
-    obj->Set(name, ValAdd(v, 1));
+    obj->Set(key, ValAdd(v, 1));
     return v;
 
   case op_postdec:
-    obj->Set(name, ValSub(v, 1));
+    obj->Set(key, ValSub(v, 1));
     return v;
   }
   
@@ -787,29 +789,39 @@ Evaluator::EvalIndex(Object* node)
 {
   // Retrieve the container
   Object* obj;
-  String name;
-  EvalLValue(node, obj, name);
+  Value key;
+  EvalLValue(node, obj, key);
 
   // Retrieve the list
-  Value lhs = obj->Get(name);
-
-  // Delegate to typed implementation
-  switch(lhs.Type())
-  {
-  case Value::tNull:
-    {
-      List* list = new List();
-      lhs = list;
-      return EvalListIndex(node, list);
-    }
-
-  case Value::tObject:
-    return EvalObjectIndex(node, lhs.GetObject());
-
-  default:  
-    throw ScriptException(node, "Invalid type for index operator");
-  }
-  throw ScriptException(node, "Invalid index operator");
+  return obj->Get(key);
+// 
+//   // Retrieve container object
+//   Object* container = 0;
+//   if(lhs.Type() == Value::tNull)
+//   {
+//     container = new Dictionary();
+//   }
+//   else
+//   {
+//     container = lhs.GetObject();
+//   }
+// 
+//   // Delegate to typed implementation
+//   switch(lhs.Type())
+//   {
+//   case Value::tNull:
+//     {
+//       Dictionary* dict = new Dictionary();
+//       return EvalListIndex(node, list);
+//     }
+// 
+//   case Value::tObject:
+//     return EvalObjectIndex(node, lhs.GetObject());
+// 
+//   default:  
+//     throw ScriptException(node, "Invalid type for index operator");
+//   }
+//  throw ScriptException(node, "Invalid index operator");
 }
 
 Value
@@ -1081,11 +1093,11 @@ Evaluator::EvalFunctionCall(Object* node)
 {
   // Evaluate left-hand side
   Object* obj;
-  String name;
-  EvalLValue(Ast_A1(node), obj, name);
+  Value key;
+  EvalLValue(Ast_A1(node), obj, key);
   
   // Retrieve function
-  Value lhs = obj->Get(name);
+  Value lhs = obj->Get(key);
   if(lhs.Type() != Value::tObject)
   {
     throw ScriptException(node, "Function call on non-function object");
@@ -1310,6 +1322,7 @@ Evaluator::EvalListLiteral(Object* node)
 {
   // Create empty list
   List* list = new List();
+  MakeTemp(list);
   
   // Recurse into map values
   if(!Ast_A1(node).Empty())
@@ -1340,8 +1353,8 @@ Value
 Evaluator::EvalMapLiteral(Object* node)
 {
   // Create empty map
-  Value v(new Object());
-  Object* o = v.GetObject();
+  Dictionary* dict = new Dictionary();
+  MakeTemp(dict);
 
   // Recurse into map values
   if(!Ast_A1(node).Empty())
@@ -1355,13 +1368,10 @@ Evaluator::EvalMapLiteral(Object* node)
       Value const& val = EvalExpression(Ast_A2(Ast_A1(child)));
 
       // Check for duplicate key in object, ignore prototype
-      if(o->ContainsKey(key, false))
+      if(!dict->Insert(key, val))
       {
         throw ScriptException(node, "Duplicate key in list literal");
       }
-
-      // Insert into member variables
-      o->Add(key, val);
 
       // Check for next element
       if(Ast_A2(child).Empty()) 
@@ -1375,7 +1385,7 @@ Evaluator::EvalMapLiteral(Object* node)
   }
 
   // Done
-  return v;
+  return dict;
 }
 
 Value
@@ -1701,14 +1711,21 @@ Evaluator::EvalMemberExpression(Object* node)
   }
   else
   {
-    throw std::runtime_error("Left-hand side does not yield an object");
+    throw ScriptException(node, "Left-hand side does not yield an object");
   }
 
   // Determine name
   String const& name = Ast_A1(Ast_A2(node));
 
   // Return the value
-  return object->Get(name);
+  RValue* rval;
+  if(!object->Find(name, rval))
+  {
+    throw ScriptException(node, "Object does not support this property");
+  }
+
+  // Done
+  return *rval;
 }
 
 Value

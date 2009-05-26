@@ -123,12 +123,12 @@ public:
   //
   // Retrieve a member by index
   //
-  virtual Value const& Get(String const& key);
+  virtual Value const& Get(Value const& key);
 
   //
   // Set a member
   //
-  virtual Value const& Set(String const& key, Value const& value);
+  virtual Value const& Set(Value const& key, Value const& value);
 
   //
   // Add a member
