@@ -72,7 +72,10 @@ public:
   //
   virtual void MarkObjects(GC::ObjectVec& grey)
   {
+    // Mark object members
     Object::MarkObjects(grey);
+
+    // Mark members
     if(!m_updateDone)
     {
       if(GC::Object* obj = m_a1.GetGCObject()) grey.push_back(obj);

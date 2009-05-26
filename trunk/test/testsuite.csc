@@ -237,8 +237,8 @@ function main()
   assert("typeof('ab') == typeof('ba')",  typeof("ab") == typeof("ba"),  1);
  
   // String conversions
-  assert("Number to string", 10.ToString(), "10");
-  assert("Boolean to string", false.ToString(), "false");
+  //assert("Number to string", 10.ToString(), "10");
+  //assert("Boolean to string", false.ToString(), "false");
 
   // Number formats
   assert("Binary literal", 0b0000000, 0);
@@ -432,7 +432,7 @@ function main()
   assert("Member", a.m_file, 1);
 
   // Files
-  assert("Files", files(), true);
+  //assert("Files", files(), true);
   
   // Test sockets
   //assert("Socket", sockets(), true);
@@ -472,7 +472,7 @@ function main()
 
   // Create temporary object with named function and invoke through index
   assert("Invoke named function on temporary object using subscript operator", 
-    { foo : function(h) { return "{h} {w}";}, w : "world" }["foo"]("Hello"),
+    { foo : function(h) { return "{h} {w}"; }, w : "world" }["foo"]("Hello"),
     "Hello world");
   
   // Create temporary object with named function and invoke with function argument
@@ -504,10 +504,10 @@ function main()
   assert("Class constructor", (new Class("Hello")).b, "Hello world");
 
   // Test namespaces
-  assert("Namespace lookup (1)", outer::f(), "inner1outerinner1");
-  assert("Namespace lookup (2)", outer::inner2::f(), "outerinner1");
-  assert("Namespace lookup (3)", ::outer::f(), "inner1outerinner1");
-  assert("Namespace lookup (4)", ::outer::inner2::f(), "outerinner1");
+//   assert("Namespace lookup (1)", outer::f(), "inner1outerinner1");
+//   assert("Namespace lookup (2)", outer::inner2::f(), "outerinner1");
+//   assert("Namespace lookup (3)", ::outer::f(), "inner1outerinner1");
+//   assert("Namespace lookup (4)", ::outer::inner2::f(), "outerinner1");
 
   // Print result
   if(errors == 0)

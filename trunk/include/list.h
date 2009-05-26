@@ -38,7 +38,7 @@ public:
   //
   // The implementation list type
   //
-  typedef std::vector<MemberVariable> ImplType;
+  typedef std::vector<Value> ImplType;
 
   //
   // Iterator type
@@ -86,7 +86,7 @@ public:
   //
   // Add to end of list
   //
-  __native_method void Append(Value v)
+  __native_method void Append(ValueCRef v)
   {
     m_list.push_back(v);
   }
@@ -94,7 +94,7 @@ public:
   //
   // Append new item
   //
-  RValue& FastAppend(Value const& v = Value())
+  Value const& FastAppend(Value const& v = Value())
   {
     m_list.push_back(v);
     return m_list.back();
@@ -146,7 +146,7 @@ public:
   //
   // Retrieve at specified index
   //
-  RValue& GetAt(int64 index)
+  Value& GetAt(int64 index)
   {
     if(index >= m_list.size())
     {
@@ -158,13 +158,34 @@ public:
   //
   // Retrieve a member by index
   //
-  virtual RValue& GetAt(Value const& index)
+  virtual Value const& Get(Value const& key)
   {
-    if(index.Type() != Value::tInt)
+    // Check key type
+    if(key.Type() != Value::tInt)
     {
       throw std::runtime_error("Invalid key type for list");
     }
-    return GetAt(index.GetInt());
+
+    // Retrieve value
+    return GetAt(key.GetInt());
+  }
+
+  //
+  // Set a member by index
+  //
+  virtual Value const& Set(Value const& key, Value const& value)
+  {
+    // Check key
+    if(key.Type() != Value::tInt)
+    {
+      throw std::runtime_error("Invalid key type for list");
+    }
+    
+    // Set value
+    GetAt(key.GetInt()) = value;
+    
+    // Return value
+    return value;
   }
 
   //

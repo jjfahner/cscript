@@ -25,6 +25,7 @@
 #include <native/socket.h>
 #include <native/file.h>
 #include <native/xml.h>
+#include <dict.h>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -85,6 +86,10 @@ inline int64 __stub_arg_to_int64(Value const& v) {
 
 inline bool __stub_arg_to_bool(Value const& v) {
   return v.GetBool();
+}
+
+inline ValueCRef __stub_arg_to_ValueCRef(Value const& v) {
+  return v;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -572,6 +572,9 @@ ComObject::GetEnumerator(Value const& value) const
 void 
 ComObject::MarkObjects(GC::ObjectVec& grey)
 {
+  // Mark object members
+  Object::MarkObjects(grey);
+
   // Iterate over members
   ComMemberMap::iterator mi, me;
   mi = m_members.begin();
@@ -579,14 +582,12 @@ ComObject::MarkObjects(GC::ObjectVec& grey)
   for(; mi != me; ++mi)
   {
     // Check key content
-    if(GC::Object* o = mi->first.GetGCObject())
-    {
+    if(GC::Object* o = mi->first.GetGCObject()) {
       grey.push_back(o);
     }
 
     // Check value content
-    if(GC::Object* o = mi->second->GetGCObject())
-    {
+    if(GC::Object* o = mi->second->GetGCObject()) {
       grey.push_back(o);
     }
   }

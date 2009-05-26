@@ -120,7 +120,7 @@ public:
   //
   // Create a temporary
   //
-  RValue& MakeTemp(Value const& value);
+  Value MakeTemp(Value value);
 
 private:
 
@@ -147,8 +147,8 @@ private:
   //
   // Evaluation of expression/statement
   //
-  RValue& EvalExpression(Object* node);
-  Value   EvalStatement(Object* node);
+  Value EvalExpression(Object* node);
+  Value EvalStatement(Object* node);
 
   //
   // Statement handlers
@@ -172,42 +172,42 @@ private:
   //
   // Expression handlers
   //
-  RValue& EvalUnqualifiedId(Object* node);
-  RValue& EvalQualifiedId(Object* node);
-  RValue& EvalListLiteral(Object* node);
-  RValue& EvalMapLiteral(Object* node);
-  RValue& EvalJsonLiteral(Object* node);
-  RValue& EvalNewExpression(Object* node);
-  RValue& EvalMemberExpression(Object* node);
-  RValue& EvalThisExpression(Object* node);
-  RValue& EvalAssignment(Object* node);
-  RValue& EvalAssignmentFun(Object* node);
-  RValue& EvalBinary(Object* node);
-  RValue& EvalTernary(Object* node);
-  RValue& EvalPrefix(Object* node);
-  RValue& EvalPostfix(Object* node);
-  RValue& EvalTypeOf(Object* node);
-  RValue& EvalConversion(Object* node);
-  RValue& EvalClosure(Object* node);
-  RValue& EvalXmlExpression(Object* node);
-  RValue& EvalFunctionMember(Object* node);
-  RValue& EvalFunctionIndex(Object* node);
-  RValue& EvalShellCommand(Object* node);
-  RValue& EvalTypeConversion(Object* node);
-  RValue& EvalOperatorDeclaration(Object* node);
+  Value EvalAssignment(Object* node);
+  Value EvalUnqualifiedId(Object* node);
+  Value EvalQualifiedId(Object* node);
+  Value EvalListLiteral(Object* node);
+  Value EvalMapLiteral(Object* node);
+  Value EvalJsonLiteral(Object* node);
+  Value EvalNewExpression(Object* node);
+  Value EvalMemberExpression(Object* node);
+  Value EvalThisExpression(Object* node);
+  Value EvalBinary(Object* node);
+  Value EvalTernary(Object* node);
+  Value EvalPrefix(Object* node);
+  Value EvalPostfix(Object* node);
+  Value EvalTypeOf(Object* node);
+  Value EvalConversion(Object* node);
+  Value EvalClosure(Object* node);
+  Value EvalXmlExpression(Object* node);
+  Value EvalFunctionMember(Object* node);
+  Value EvalFunctionIndex(Object* node);
+  Value EvalShellCommand(Object* node);
+  Value EvalTypeConversion(Object* node);
+  Value EvalOperatorDeclaration(Object* node);
+  Value EvalIndex(Object* node);
+  Value EvalObjectIndex(Object* node, Object* lhs);
+  Value EvalListIndex(Object* node, List* lhs);
+  Value EvalListAppend(Object* node);
 
-  RValue& EvalIndex(Object* node);
-  RValue& EvalObjectIndex(Object* node, Object* lhs);
-  RValue& EvalListIndex(Object* node, List* lhs);
-  RValue& EvalListAppend(Object* node);
+  void EvalLValue(Object* node, Object*& obj, Value& key);
 
   //
   // Function handlers
   //
   friend class ScriptFunction;
-  RValue& EvalFunctionCall(Object* node);
-  RValue& EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* arguments);
-  RValue& EvalScriptCall(ScriptFunction* fun, Arguments& args);
+  Value EvalFunctionCall(Object* node);
+  Value EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* arguments);
+  Value EvalScriptCall(ScriptFunction* fun, Arguments& args);
 
   //
   // Convert a value in-place
@@ -227,7 +227,7 @@ private:
   //
   // Store a temporary
   //
-  RValue& StoreTemp(RValue* rval);
+  Value StoreTemp(RValue* rval);
 
   //
   // Build xml tree
@@ -257,14 +257,14 @@ private:
 
 };
 
-inline RValue& 
-Evaluator::MakeTemp(Value const& value)
+inline Value 
+Evaluator::MakeTemp(Value value)
 {
   RValue* temp = new ROVariable(value);
   return StoreTemp(temp);
 }
 
-inline RValue& 
+inline Value 
 Evaluator::StoreTemp(RValue* rval)
 {
   m_temporaries.push_back(rval);
@@ -308,23 +308,23 @@ struct ReturnException : public ScriptException
 {
   Value m_value;
   ReturnException(Object* node) : ScriptException (node) {}
-  ReturnException(Object* node, Value const& value) : ScriptException (node), m_value (value) {}
+  ReturnException(Object* node, Value value) : ScriptException (node), m_value (value) {}
   ~ReturnException() throw() {}
 };
 
 struct CatchableException : public ScriptException
 {
   Value m_value;
-  CatchableException(Value const& value) : ScriptException(0), m_value (value) {}
+  CatchableException(Value value) : ScriptException(0), m_value (value) {}
   CatchableException(Object* node) : ScriptException (node) {}
-  CatchableException(Object* node, Value const& value) : ScriptException (node), m_value (value) {}
+  CatchableException(Object* node, Value value) : ScriptException (node), m_value (value) {}
   ~CatchableException() throw() {}
 };
 
 struct UserException : public CatchableException
 {
   UserException(Object* node) : CatchableException (node) {}
-  UserException(Object* node, Value const& value) : CatchableException (node, value) {}
+  UserException(Object* node, Value value) : CatchableException (node, value) {}
   ~UserException() throw() {}
 };
 
