@@ -132,22 +132,8 @@ expression_opt(R) ::= expression(A) . { R = A; }
 // Assignment
 assignment_expression(R) ::= conditional_expression(A) . { R = A; }
 assignment_expression(R) ::= throw_expression(A) .       { R = A; }
-assignment_expression(R) ::= unqualified_id(A) assignment_operator(B) assignment_expression(C) .  {
-  R = p->AllocNode(assignment_expression, B, Value(), A, C);
-}
-assignment_expression(R) ::= member_expression(A) assignment_operator(B) assignment_expression(C) .  {
-  R = p->AllocNode(assignment_expression, B, Ast_A1(A), Ast_A2(A), C);
-}
-assignment_expression(R) ::= index_expression(A) assignment_operator(B) assignment_expression(C) .  {
-  if(!Ast_A2(A).Empty())
-  {
-    R = p->AllocNode(assignment_expression, B, Ast_A1(A), Ast_A2(A), C);
-  }
-  else
-  {
-    R = p->AllocNode(list_append, B, Ast_A1(A), Value(), C);
-  }
-}
+assignment_expression(R) ::= binary_expression(A) assignment_operator(B) 
+                             assignment_expression(C) .  { R = p->AllocNode(assignment_expression, B, A, C); }
 
 // Assignment operator
 %type assignment_operator { opcodes }
