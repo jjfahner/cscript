@@ -528,13 +528,21 @@ Evaluator::EvalLValue(Object* node, Object*& obj, Value& name)
     return;
 
   case index_expression:
+    obj = EvalExpression(Ast_A1(node));
     if(Ast_A2(node).Empty())
     {
-      throw ScriptException(node, "Straks weer");
+      if(List* list = dynamic_cast<List*>(obj))
+      {
+        list->Append(Value());
+        name = list->Length() - 1;
+      }
+      else
+      {
+        throw ScriptException(node, "Invalid type for array append");
+      }
     }
     else
     {
-      obj = EvalExpression(Ast_A1(node));
       name = EvalExpression(Ast_A2(node));
     }
     return;
@@ -592,31 +600,22 @@ Evaluator::EvalAssignment(Object* node)
   // Opcode for the assignment
   opcodes opcode = (opcodes)Ast_A1(node).GetInt();
 
-  // Object to apply the assignment to
+  // Determine left-hand side
   Object* obj;
-  if(Ast_A2(node).Empty())
-  {
-    obj = m_scope;
-  }
-  else
-  {
-    obj = EvalExpression(Ast_A2(node));
-  }
-
-  // Member to assign to
-  Value const& member = Ast_A1(Ast_A3(node));
+  Value key;
+  EvalLValue(Ast_A2(node), obj, key);
 
   // Evaluate right-hand side
-  Value rhs = EvalExpression(Ast_A4(node));
+  Value rhs = EvalExpression(Ast_A3(node));
 
   // Direct assignment
   if(opcode == op_assign)
   {
-    return obj->Set(member, rhs);
+    return obj->Set(key, rhs);
   }
 
   // Retrieve current value
-  Value const& lhs = obj->Get(member);
+  Value const& lhs = obj->Get(key);
 
   // Convert right-hand side to left-hand type
   ConvertInPlace(node, rhs, lhs.Type());
@@ -624,11 +623,11 @@ Evaluator::EvalAssignment(Object* node)
   // Perform assignment
   switch(opcode)
   {
-  case op_assadd: return obj->Set(member, ValAdd(lhs, rhs));
-  case op_asssub: return obj->Set(member, ValSub(lhs, rhs));
-  case op_assmul: return obj->Set(member, ValMul(lhs, rhs));
-  case op_assdiv: return obj->Set(member, ValDiv(lhs, rhs));
-  case op_assmod: return obj->Set(member, ValMod(lhs, rhs));
+  case op_assadd: return obj->Set(key, ValAdd(lhs, rhs));
+  case op_asssub: return obj->Set(key, ValSub(lhs, rhs));
+  case op_assmul: return obj->Set(key, ValMul(lhs, rhs));
+  case op_assdiv: return obj->Set(key, ValDiv(lhs, rhs));
+  case op_assmod: return obj->Set(key, ValMod(lhs, rhs));
   default: throw ScriptException(node, "Invalid assignment operator");
   }
 }
