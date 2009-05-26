@@ -123,11 +123,6 @@ struct VecRestore
   }
   ~VecRestore()
   {
-    for(size_t i = m_size; i < m_vec.size(); ++i)
-    {
-      delete m_vec[i];
-      m_vec[i] = 0;
-    }
     m_vec.resize(m_size);
   }
 };
@@ -346,9 +341,9 @@ Evaluator::Collect()
   // Append temporaries
   for(size_t i = 0; i < m_temporaries.size(); ++i)
   {
-    if(m_temporaries[i]->Type() == Value::tObject)
+    if(GC::Object* o = m_temporaries[i].GetGCObject())
     {
-      valid.push_back(m_temporaries[i]->GetObject());
+      valid.push_back(o);
     }
   }
 
@@ -421,6 +416,8 @@ Evaluator::Eval(String text, bool isFileName)
 Value
 Evaluator::Eval(Object* astRoot)
 {
+  VecRestore<TempVec> vr(m_temporaries);
+
   // Place global scope on the scope stack
   AutoScope as(this, m_global);
 
@@ -532,6 +529,10 @@ Evaluator::EvalLValue(Object* node, Object*& obj, Value& name, bool scopeIsOwner
     return;
 
   case index_expression:
+    if(Ast_A2(node).Empty())
+    {
+      int i = 1;
+    }
     obj = EvalExpression(Ast_A1(node));
     if(Ast_A2(node).Empty())
     {
@@ -886,7 +887,7 @@ Evaluator::EvalListAppend(Object* node)
 Value
 Evaluator::EvalUnqualifiedId(Object* node)
 {
-  return m_scope->Get(Ast_A1(node).GetString());
+  return m_scope->Get(Ast_A1(node));
 }
 
 NamespaceScope* 
