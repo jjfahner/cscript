@@ -33,7 +33,7 @@ static const String g_prototype("prototype");
 
 class ObjectEnumerator : public Enumerator
 {
-  typedef Object::ValueIterator Iterator;
+  typedef MemberMap::iterator Iterator;
 
   Object*  m_obj;
   Iterator m_cur;
@@ -50,19 +50,19 @@ public:
   virtual void Reset()
   {
     // Set iterator to start
-    m_cur = m_obj->ValueBegin();
+    m_cur = m_obj->m_members.begin();
   }
 
   virtual bool GetNext(Value& value)
   {
     // Check current position
-    if(m_cur == m_obj->ValueEnd())
+    if(m_cur == m_obj->m_members.end())
     {
       return false;
     }
 
     // Retrieve value from iterator
-    value = *m_cur;
+    value = m_cur->second;
 
     // Advance to next position
     ++m_cur;
@@ -81,7 +81,7 @@ m_dataType (dataType ? dataType : ObjectType::Instance())
 }
 
 DataType* 
-Object::GetDataType() const
+Object::GetType() const
 {
   return m_dataType;
 }
@@ -243,14 +243,10 @@ Object::Unset(Value const& key)
 void 
 Object::MarkObjects(GC::ObjectVec& grey)
 {
-  // Iterate over members
-  ValueIterator mi, me;
-  mi = ValueBegin();
-  me = ValueEnd();
-  for(; mi != me; ++mi)
+  MemberMap::iterator it;
+  for(it = m_members.begin(); it != m_members.end(); ++it)
   {
-    if(GC::Object* o = mi->GetGCObject())
-    {
+    if(GC::Object* o = it->second.GetGCObject()) {
       GC::Mark(grey, o);
     }
   }

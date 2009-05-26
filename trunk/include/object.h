@@ -54,61 +54,17 @@ public:
   //
   // Object type
   //
-  virtual DataType* GetDataType() const;
-
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Iterators
-  //
-
-  typedef MemberMap::iterator                       MemberIterator;
-  typedef map_iterator_t<MemberMap, key_accessor>   KeyIterator;
-  typedef map_iterator_t<MemberMap, value_accessor> ValueIterator;
-
-  //
-  // Generic enumerator object
-  //
-  virtual Enumerator* GetEnumerator();
-
-  //
-  // Iterator for members
-  //
-  MemberIterator Begin() {
-    return m_members.begin();
-  }
-  MemberIterator End() {
-    return m_members.end();
-  }
-
-  //
-  // Iterator for values in member list
-  //
-  KeyIterator KeyBegin() {
-    return KeyIterator(m_members.begin());
-  }
-  KeyIterator KeyEnd() {
-    return KeyIterator(m_members.end());
-  }
-
-  //
-  // Iterator for values in member list
-  //
-  ValueIterator ValueBegin() {
-    return ValueIterator(m_members.begin());
-  }
-  ValueIterator ValueEnd() {
-    return ValueIterator(m_members.end());
-  }
-
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Members
-  //
+  virtual DataType* GetType() const;
 
   //
   // Member count
   //
   virtual size_t Count() const;
+
+  //
+  // Generic enumerator object
+  //
+  virtual Enumerator* GetEnumerator();
 
   //
   // Retrieve a member by key
@@ -164,6 +120,8 @@ protected:
   virtual void MarkObjects(GC::ObjectVec& grey);
 
 private:
+
+  friend class ObjectEnumerator;
 
   //
   // Object members
