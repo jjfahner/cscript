@@ -111,6 +111,36 @@ public:
   virtual size_t Count() const;
 
   //
+  // Retrieve a member by key
+  //
+  virtual Value const& Get(Value const& key);
+
+  //
+  // Try to retrieve a member by key
+  //
+  virtual bool TryGet(Value const& key, Value const*& value);
+
+  //
+  // Set a member
+  //
+  virtual Value const& Set(Value const& key, Value const& value);
+
+  //
+  // Set a member
+  //
+  virtual bool TrySet(Value const& key, Value const& value);
+
+  //
+  // Unset a member
+  //
+  virtual void Unset(Value const& key);
+
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Deprecated interface
+  //
+
+  //
   // Is a certain key present
   //
   virtual bool ContainsKey(String const& key, bool checkProto = true) const;
@@ -120,26 +150,11 @@ public:
   //
   virtual bool Find(String const& key, RValue*& pValue, bool checkProto = true) const;
 
-  //
-  // Retrieve a member by index
-  //
-  virtual Value const& Get(Value const& key);
-
-  //
-  // Set a member
-  //
-  virtual Value const& Set(Value const& key, Value const& value);
-
-  //
-  // Unset a member
-  //
-  virtual void Unset(Value const& key);
-
-  //
-  // Add a member
-  //
-  RValue& Add(String const& key, Value const& value);
-
+//   //
+//   // Add a member
+//   //
+//   virtual Value const& Add(String const& key, Value const& value);
+// 
   //
   // Retrieve variable as rvalue
   //

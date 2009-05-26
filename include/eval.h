@@ -199,7 +199,7 @@ private:
   Value EvalListIndex(Object* node, List* lhs);
   Value EvalListAppend(Object* node);
 
-  void EvalLValue(Object* node, Object*& obj, Value& key);
+  void EvalLValue(Object* node, Object*& obj, Value& key, bool scopeIsOwner = true);
 
   //
   // Function handlers
