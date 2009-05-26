@@ -120,7 +120,7 @@ public:
   //
   // Create a temporary
   //
-  Value MakeTemp(Value value);
+  void MakeTemp(Value const& value);
 
 private:
 
@@ -225,11 +225,6 @@ private:
   void EvalArguments(Object* node, Function* fun, Object* arglist, Arguments& args);
 
   //
-  // Store a temporary
-  //
-  Value StoreTemp(RValue* rval);
-
-  //
   // Build xml tree
   //
   Object* BuildXmlTree(Object* ast, Object* node);
@@ -239,7 +234,7 @@ private:
   //
   bool OpenFile(String const& filename, std::ifstream& file);
 
-  typedef std::vector<RValue*> TempVec;
+  typedef std::vector<Value> TempVec;
 
   typedef std::vector<String> StringVec;
 
@@ -257,18 +252,10 @@ private:
 
 };
 
-inline Value 
-Evaluator::MakeTemp(Value value)
+inline void
+Evaluator::MakeTemp(Value const& value)
 {
-  RValue* temp = new ROVariable(value);
-  return StoreTemp(temp);
-}
-
-inline Value 
-Evaluator::StoreTemp(RValue* rval)
-{
-  m_temporaries.push_back(rval);
-  return *rval;
+  m_temporaries.push_back(value);
 }
 
 //////////////////////////////////////////////////////////////////////////
