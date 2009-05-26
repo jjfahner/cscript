@@ -934,7 +934,7 @@ Evaluator::EvalQualifiedId(Object* node)
     }
 
     // Retrieve node
-    Value const& rval = scope->GetRValue(name);
+    Value const& rval = scope->Get(name);
 
     // If nested, descend, else retrieve value
     if(!Ast_A2(cur).Empty())
@@ -1818,7 +1818,7 @@ Evaluator::ConvertInPlace(Object* node, Value& value, Value::Types newType)
     String opfun = "operator " + Value::TypeToString(newType);
     if(value->ContainsKey(opfun))
     {
-      Object* funObj = value->GetRValue(opfun).GetObject();
+      Object* funObj = value->Get(opfun);
       ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
 
       Arguments args;

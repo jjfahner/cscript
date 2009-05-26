@@ -150,21 +150,6 @@ public:
   //
   virtual bool Find(String const& key, RValue*& pValue, bool checkProto = true) const;
 
-//   //
-//   // Add a member
-//   //
-//   virtual Value const& Add(String const& key, Value const& value);
-// 
-  //
-  // Retrieve variable as rvalue
-  //
-  virtual RValue& GetRValue(String const& key);
-
-  //
-  // Remove a member
-  //
-  virtual void Remove(String const& key);
-
 protected:
 
   //
