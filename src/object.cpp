@@ -240,49 +240,6 @@ Object::Unset(Value const& key)
   m_members.erase(key);
 }
 
-RValue& 
-Object::GetRValue(String const& key)
-{
-  // Find member
-  RValue* pValue;
-  if(!Find(key, pValue))
-  {
-    // Add member
-    pValue = &m_members[key];
-  }
-
-  // Done
-  return *pValue;
-}
-
-// Value const&
-// Object::Add(String const& key, Value const& value)
-// {
-//   // Insert new variable
-//   typedef std::pair<MemberIterator, bool> InsertResult;
-//   InsertResult const& res = m_members.insert(std::make_pair(key, value));
-// 
-//   // Check insert result
-//   if(!res.second)
-//   {
-//     throw std::runtime_error("Variable already declared");
-//   }
-// 
-//   // Done
-//   return res.first->second;
-// }
-
-void 
-Object::Remove(String const& key)
-{
-  // Erase from members
-  MemberIterator it = m_members.find(key);
-  if(it != m_members.end())
-  {
-    m_members.erase(it);
-  }
-}
-
 void 
 Object::MarkObjects(GC::ObjectVec& grey)
 {

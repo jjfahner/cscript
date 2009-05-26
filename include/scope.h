@@ -160,9 +160,6 @@ public:
       parent->Unset(key);
       return;
     }
-
-    // Unknown variable
-    throw std::runtime_error("Variable not found");
   }
 
 protected:
@@ -293,7 +290,7 @@ public:
     // Remove namespace scope from current parent
     if(Scope* parent = GetParent())
     {
-      parent->Remove(m_name);
+      parent->Unset(m_name);
     }
 
     // Delegate to scope implementation
