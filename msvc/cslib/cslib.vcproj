@@ -430,6 +430,10 @@
 					RelativePath="..\..\src\native\winapi.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\native\xml.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -626,10 +630,6 @@
 		</Filter>
 		<File
 			RelativePath="..\..\TODO"
-			>
-		</File>
-		<File
-			RelativePath="..\..\src\native\xml.cpp"
 			>
 		</File>
 	</Files>

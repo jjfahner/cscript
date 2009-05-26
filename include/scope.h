@@ -62,41 +62,7 @@ public:
   }
   virtual void SetParent(Scope* parent)
   {
-    GetLValue(parentName) = parent;
-  }
-
-  //
-  // Retrieve a variable without owner
-  //
-  virtual bool Lookup(String const& name, RValue*& ptr)
-  {
-    Object* owner;
-    return Lookup(name, ptr, owner, false);
-  }
-
-  //
-  // Retrieve a variable with owner
-  //
-  virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner, bool scopeIsOwner = false)
-  {
-    ptr = 0;
-    owner = 0;
-    
-    if(Object::Find(name, ptr))
-    {
-      if(scopeIsOwner)
-      {
-        owner = this;
-      }
-      return true;
-    }
-    
-    if(Scope* parent = GetParent())
-    {
-      return parent->Lookup(name, ptr, owner, scopeIsOwner);
-    }
-
-    return false;
+    Object::Set(parentName, parent);
   }
 
   virtual Value const& Get(Value const& key)
@@ -107,10 +73,14 @@ public:
         "Invalid key type for scope");
     }
 
-    RValue* pValue;
-    if(Lookup(key, pValue))
+    if(Object::ContainsKey(key))
     {
-      return *pValue;
+      return Object::Get(key);
+    }
+
+    if(Scope* parent = GetParent())
+    {
+      return parent->Get(key);
     }
     
     throw std::runtime_error("Variable not found");
@@ -124,11 +94,30 @@ public:
         "Invalid key type for object");
     }
 
-    RValue* pValue;
-    if(Lookup(key, pValue))
+    if(Object::ContainsKey(key, false))
     {
-      pValue->GetLValue().SetValue(value);
-      return *pValue;
+      Object::Set(key, value);
+      return value;
+    }
+
+    if(Scope* parent = GetParent())
+    {
+      return parent->Set(key, value);
+    }
+
+    throw std::runtime_error("Variable not found");
+  }
+
+  virtual void Unset(Value const& key)
+  {
+    if(Object::ContainsKey(key, false))
+    {
+      return Object::Unset(key);
+    }
+
+    if(Scope* parent = GetParent())
+    {
+      return parent->Unset(key);
     }
 
     throw std::runtime_error("Variable not found");
@@ -168,20 +157,36 @@ public:
     return m_inst;
   }
 
-  //
-  // Retrieve a variable
-  //
-  virtual bool Lookup(String const& name, RValue*& ptr, Object*& owner, bool scopeIsOwner = false)
+  virtual Value const& Get(Value const& key)
   {
-    // Find instance member
-    if(m_inst->Find(name, ptr))
+    if(key.Type() != Value::tString)
     {
-      owner = m_inst;
-      return true;
+      throw std::runtime_error(
+        "Invalid key type for object");
     }
 
-    // Look in parent scope
-    return Scope::Lookup(name, ptr, owner, scopeIsOwner);
+    if(m_inst->ContainsKey(key))
+    {
+      return m_inst->Get(key);
+    }
+
+    return Scope::Get(key);
+  }
+
+  virtual Value const& Set(Value const& key, Value const& value)
+  {
+    if(key.Type() != Value::tString)
+    {
+      throw std::runtime_error(
+        "Invalid key type for object");
+    }
+
+    if(m_inst->ContainsKey(key))
+    {
+      return m_inst->Set(key, value);
+    }
+
+    return Scope::Set(key, value);
   }
 
 protected:
@@ -235,7 +240,7 @@ public:
     Scope::SetParent(parent);
 
     // Reinsert into new parent
-    parent->GetLValue(m_name) = this;
+    parent->Object::Set(m_name, this);
   }
 
   //
