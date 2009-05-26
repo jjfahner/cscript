@@ -166,10 +166,10 @@ Object*
 XmlParser::createNode(XmlNodeTypes type)
 {
   Object* node = new Object();
-  (*node)["ownerDocument"]  = m_document;
-  (*node)["nodeType"]       = (int)type;
-  (*node)["nodeName"]       = XmlNodeName(type);
-  (*node)["nodeTypeName"]   = XmlNodeName(type);
+  node->Set("ownerDocument",  m_document);
+  node->Set("nodeType",  (int)type);
+  node->Set("nodeName",  XmlNodeName(type));
+  node->Set("nodeTypeName",  XmlNodeName(type));
 
   // Add child nodes and attributes
   switch(type)
@@ -177,15 +177,15 @@ XmlParser::createNode(XmlNodeTypes type)
   case xmlDocument:
   case xmlDocumentFragment:
   case xmlElement:
-    (*node)["childNodes"]   = new Object();
-    (*node)["attributes"]   = new Object();
+    node->Set("childNodes",  new Object());
+    node->Set("attributes",  new Object());
     break;
   }
 
   // Attach to parent node
   if(m_curNode)
   {
-    (*node)["parentNode"] = m_curNode;
+    node->Set("parentNode",  m_curNode);
     if(type == xmlAttribute)
     {
       // FIXME
@@ -232,7 +232,7 @@ XmlParser::endDocument()
   }
 
   // Store node count
-  (*m_document)["nodeCount"] = m_nodeCount;
+  m_document->Set("nodeCount",  m_nodeCount);
 }
 
 //#define XMLPARSER_DEBUG
@@ -246,8 +246,8 @@ XmlParser::processingInstruction(XmlName const& target, GCString* data)
 
   // Create processing instruction
   Object* node = createNode(xmlProcessingInstruction);
-  (*node)["target"] = target.m_localName;
-  (*node)["data"]   = data;
+  node->Set("target",  target.m_localName);
+  node->Set("data",  data);
 }
 
 void 
@@ -259,9 +259,9 @@ XmlParser::startElement(XmlName const& name)
 
   // Create element
   Object* node = createNode(xmlElement);
-  (*node)["localName"]      = name.m_localName;
-  (*node)["qualifiedName"]  = name.m_localName;
-  (*node)["namespace"]      = name.m_namespace;
+  node->Set("localName",  name.m_localName);
+  node->Set("qualifiedName",  name.m_localName);
+  node->Set("namespace",  name.m_namespace);
 
   // Set as current element
   m_curNode = node;
@@ -270,7 +270,7 @@ XmlParser::startElement(XmlName const& name)
   if(m_rootNode == 0)
   {
     m_rootNode = node;
-    (*m_document)["documentElement"] = node;
+    m_document->Set("documentElement",  node);
   }
 
   // Set lexer state
@@ -285,14 +285,14 @@ XmlParser::endElement(XmlName const& name)
 #endif
 
   // Check node name
-  String nodeName = (*m_curNode)["localName"].GetString();
+  String nodeName = m_curNode->Get("localName");
   if(nodeName != *name.m_localName)
   {
     throw std::runtime_error("Invalid document structure");
   }
 
   // Move back up in tree
-  m_curNode = (*m_curNode)["parentNode"].GetObject();
+  m_curNode = m_curNode->Get("parentNode");
 
   // Root node
   if(m_curNode == m_rootNode)
@@ -310,10 +310,10 @@ XmlParser::attribute(XmlName const& name, GCString* value)
 
   // Add attribute to current node
   Object* node = createNode(xmlAttribute);
-  (*node)["localName"]      = name.m_localName;
-  (*node)["qualifiedName"]  = name.m_localName;
-  (*node)["namespace"]      = name.m_namespace;
-  (*node)["value"]          = value;
+  node->Set("localName",  name.m_localName);
+  node->Set("qualifiedName",  name.m_localName);
+  node->Set("namespace",  name.m_namespace);
+  node->Set("value",  value);
 }
 
 void 
@@ -325,7 +325,7 @@ XmlParser::ignorableWhitespace(GCString* text)
 
   // Create text node
   Object* node = createNode(xmlText);
-  (*node)["data"] = text;
+  node->Set("data",  text);
 }
 
 void 
@@ -337,5 +337,5 @@ XmlParser::characters(GCString* text)
 
   // Create text node
   Object* node = createNode(xmlText);
-  (*node)["data"] = text;
+  node->Set("data",  text);
 }

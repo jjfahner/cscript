@@ -116,7 +116,7 @@ void print_ast(Object& node, std::set<Object*>& done, int level)
     // This is broken; members are now called "a{n}"
     if(node.ContainsKey(ValString(i)))
     {
-      Value const& v = node[ValString(i)];
+      Value const& v = node.Get(ValString(i));
       std::cout << " [" << i << "] : ";
       switch(v.Type())
       {

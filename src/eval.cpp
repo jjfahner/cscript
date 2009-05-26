@@ -586,7 +586,6 @@ Evaluator::EvalExpression(Object* node)
   case this_expression:       return EvalThisExpression(node);
   case member_expression:     return EvalMemberExpression(node);  
   case closure_expression:    return EvalClosure(node);
-  case xml_expression:        return EvalXmlExpression(node);
   case shell_command:         return EvalShellCommand(node);
   case type_conversion:       return EvalTypeConversion(node);
   case operator_declaration:  return EvalOperatorDeclaration(node);
@@ -1028,9 +1027,9 @@ Evaluator::EvalFunctionDeclaration(Object* node)
   String name = Ast_A1(node);
   Function* fun = new ScriptFunction(name, node);
   
-  (*fun)["name"]   = name;
-  (*fun)["parent"] = m_scope;
-  (*fun)["scope"]  = FindNamespace(m_scope);
+  fun->Set("name", name);
+  fun->Set("parent", m_scope);
+  fun->Set("scope", FindNamespace(m_scope));
 
   m_scope->Add(name, fun);
 }
@@ -1046,9 +1045,9 @@ Evaluator::EvalClosure(Object* node)
 {
   Function* fun = new ScriptFunction(Ast_A1(node), node);
 
-  (*fun)["name"]   = fun->GetName();
-  (*fun)["parent"] = m_scope;
-  (*fun)["scope"]  = FindNamespace(m_scope);
+  fun->Set("name", fun->GetName());
+  fun->Set("parent", m_scope);
+  fun->Set("scope", FindNamespace(m_scope));
   
   return fun;
 }
@@ -1167,7 +1166,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   AutoScope cs(this);
 
   // Determine base scope for function
-  Scope* parentScope = dynamic_cast<Scope*>((*fun)["scope"].GetObject());
+  Scope* parentScope = dynamic_cast<Scope*>(fun->Get("scope").GetObject());
 
   // Determine parent scope for invocation
   if(args.GetObject())
@@ -1420,7 +1419,7 @@ Evaluator::EvalJsonLiteral(Object* node)
       Value const& element = EvalExpression(Ast_A2(Ast_A1(child)));
 
       // Insert into member variables
-      (*o)[key] = element;
+      o->Set(key, element);
 
       // Check for next element
       if(Ast_A2(child).Empty()) 
@@ -1848,199 +1847,4 @@ Evaluator::ConvertInPlace(Object* node, Value& value, Value::Types newType)
 
   // Failed conversion
   throw ScriptException(node, "Cannot convert between types");
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-enum XmlNodeTypes
-{
-  xmlUnknown = 0,
-  xmlElement = 1,
-  xmlAttribute = 2, 	
-  xmlText = 3,
-  xmlCDATASection = 4,
-  xmlEntityReference = 5, 	
-  xmlEntity = 6,
-  xmlProcessingInstruction = 7,
-  xmlComment = 8,
-  xmlDocument = 9,
-  xmlDocumentType = 10,
-  xmlDocumentFragment = 11,
-  xmlNotation = 12
-};
-
-String 
-XmlNodeName(XmlNodeTypes nodeType)
-{
-  switch(nodeType)
-  {
-  case xmlElement:                return "#element";
-  case xmlAttribute:              return "#attribute";
-  case xmlText:                   return "#text";
-  case xmlCDATASection:           return "#cdata-section";
-  case xmlEntityReference:        return "#entity-reference";
-  case xmlEntity:                 return "#entity";
-  case xmlProcessingInstruction:  return "#processing-instruction";
-  case xmlComment:                return "#comment";
-  case xmlDocument:               return "#document";
-  case xmlDocumentType:           return "#document-type";
-  case xmlDocumentFragment:       return "#document-fragment";
-  case xmlNotation:               return "#notation";
-  default:                        throw std::runtime_error("Invalid XML node type");
-  }
-}
-
-Object* 
-CreateXmlObject(XmlNodeTypes nodeType, Object* parentNode = 0)
-{
-  // Create new node
-  Object* childNode = new Object();
-
-  // Create members
-  childNode->GetLValue("nodeType")     = (Value::Int)nodeType;
-  childNode->GetLValue("nodeName")     = XmlNodeName(nodeType);
-  childNode->GetLValue("nodeTypeName") = XmlNodeName(nodeType);
-
-  // Append to parent node
-  if(parentNode)
-  {
-    childNode->GetLValue("parentNode") = parentNode;
-    Object* coll = nodeType == xmlAttribute ?
-      parentNode->GetLValue("attributes").GetObject() :
-      parentNode->GetLValue("childNodes").GetObject() ;
-    // FIXME
-    //coll->Add(childNode);
-  }
-
-  // Create complex members
-  switch(nodeType)
-  {
-  case xmlDocument:
-  case xmlElement:
-    childNode->GetLValue("childNodes") = new Object();
-    // Intentional fallthrough
-  case xmlProcessingInstruction:
-    childNode->GetLValue("attributes") = new Object();
-    break;
-  }
-
-  // Done
-  return childNode;
-}
-
-void 
-SetNodeName(Object* ast, Object* node)
-{
-  String lname = Ast_A1(ast).GetString();
-
-  String ns;
-  String qname;
-  if(Ast_Type(ast) == xml_qname)
-  {
-    ns    = Ast_A2(ast).GetString();
-    qname = ns + ":" + lname;
-  }
-  else
-  {
-    qname = lname;
-  }
-
-  node->GetLValue("nodeName")      = lname;
-  node->GetLValue("localName")     = lname;
-  node->GetLValue("qualifiedName") = qname;
-  node->GetLValue("namespace")     = ns;
-}
-
-void 
-AddXmlAttributes(Object* ast, Object* node)
-{
-  // Walk through list
-  AstIterator it(ast, xml_attributes);
-  for(; it; ++it)
-  {
-    Object* attr = CreateXmlObject(xmlAttribute, node);
-    SetNodeName(Ast_A1(*it), attr);
-    attr->GetLValue("value") = Ast_A2(*it).GetString();
-  }
-}
-
-Value
-Evaluator::EvalXmlExpression(Object* node)
-{
-  // Create document element
-  Object* doc = CreateXmlObject(xmlDocument);
-
-  // Setup temporaries
-  Object* cur = doc;
-  Object* tmp;
-
-  // Walk through list
-  AstIterator it(Ast_A1(node), xml_elements);
-  for(; it; ++it)
-  {
-    switch(Ast_Type(*it))
-    {
-    case xml_processing_instruction:
-      tmp = CreateXmlObject(xmlProcessingInstruction, cur);
-      tmp->GetLValue("nodeName") = Ast_A1(*it).GetString();
-      if(Ast_A2(*it))
-      {
-        AddXmlAttributes(Ast_A2(*it), tmp);
-      }
-      break;
-
-    case xml_open_tag:
-      tmp = CreateXmlObject(xmlElement, cur);
-      SetNodeName(Ast_A1(*it), cur);
-      if(Ast_A2(*it))
-      {
-        AddXmlAttributes(Ast_A2(*it), tmp);
-      }
-      cur = tmp;
-      std::cout << "Recurse into " << cur->GetRValue("nodeName").GetString() << "\n";
-      break;
-
-    case xml_close_tag:
-      if(cur == 0)
-      {
-        throw ScriptException(node, "Invalid xml structure");
-      }
-//       if(Ast_A1(*it).GetString() != cur->GetRValue("nodeName").GetString())
-//       {
-//         throw ScriptException(node, "Invalid xml close tag");
-//       }
-      cur = cur->GetRValue("parentNode").GetObject();
-      std::cout << "Recurse out\n";
-      break;
-
-    case xml_closed_tag:
-      tmp = CreateXmlObject(xmlElement, cur);
-      SetNodeName(Ast_A1(*it), tmp);
-      if(Ast_A2(*it))
-      {
-        AddXmlAttributes(Ast_A2(*it), tmp);
-      }
-      break;
-
-    case xml_text:
-      tmp = CreateXmlObject(xmlText, cur);
-      tmp->GetLValue("data")   = Ast_A1(*it).GetString();
-      tmp->GetLValue("length") = Ast_A1(*it).GetString().length();
-      break;
-
-    default:
-      throw ScriptException(node, "Unexpected xml node type");
-    }
-  }
-
-  // Check whether we've gotten back to the document element
-  if(cur != doc)
-  {
-    throw ScriptException(node, "Invalid xml structure");
-  }
-
-  // TODO Set document element
-
-  // Done
-  return doc;
 }

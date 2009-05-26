@@ -98,7 +98,7 @@ public:
   ScriptFunction(String name, Object* node) :
   Function (name)
   {
-    (*this)["__ast"] = node;
+    Set("__ast", node);
   }
 
   //
@@ -106,7 +106,7 @@ public:
   //
   Object* GetNode() const
   {
-    return const_cast<ScriptFunction&>(*this)["__ast"].GetObject();
+    return const_cast<ScriptFunction&>(*this).Get("__ast");
   }
 
   //
@@ -139,7 +139,7 @@ public:
   ExternFunction(String name, Object* node) :
   Function  (name)
   {
-    (*this)["__ast"] = node;
+    Set("__ast", node);
   }
 
   //
@@ -147,7 +147,7 @@ public:
   //
   Object* GetNode() const
   {
-    return const_cast<ExternFunction&>(*this)["__ast"].GetObject();
+    return const_cast<ExternFunction*>(this)->Get("__ast");
   }
 
   //

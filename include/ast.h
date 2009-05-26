@@ -95,18 +95,7 @@ enum AstTypes
   conversion_expression,
   closure_expression,
   function_member_expression,
-  function_index_expression,
-  xml_expression,
-  xml_processing_instruction,
-  xml_elements,
-  xml_open_tag,
-  xml_close_tag,
-  xml_closed_tag,
-  xml_text,
-  xml_attribute,
-  xml_attributes,
-  xml_uname,
-  xml_qname
+  function_index_expression
 };
 
 enum ParameterTypes

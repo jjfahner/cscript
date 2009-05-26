@@ -51,7 +51,7 @@ public:
   //
   Object* GetNode() const
   {
-    return const_cast<NativeFunction&>(*this)["__ast"].GetObject();
+    return const_cast<NativeFunction*>(this)->Get("__ast");
   }
 
   //

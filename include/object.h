@@ -161,19 +161,6 @@ public:
   virtual RValue& GetRValue(String const& key);
 
   //
-  // Retrieve variable as lvalue
-  //
-  virtual LValue& GetLValue(String const& key);
-
-  //
-  // Use index operator to retrieve lvalue
-  //
-  LValue& operator [] (String const& key)
-  {
-    return GetLValue(key);
-  }
-
-  //
   // Remove a member
   //
   virtual void Remove(String const& key);

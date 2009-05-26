@@ -227,7 +227,7 @@ Object::TrySet(Value const& key, Value const& value)
   RValue* pValue;
   if(Find(key, pValue, true))
   {
-    pValue->GetLValue() = value;
+    //pValue->GetLValue() = value;
     return true;
   }
 
@@ -253,12 +253,6 @@ Object::GetRValue(String const& key)
 
   // Done
   return *pValue;
-}
-
-LValue& 
-Object::GetLValue(String const& key)
-{
-  return GetRValue(key).GetLValue();
 }
 
 // Value const&
