@@ -288,22 +288,22 @@ function main()
   assert("Conditional", false ? 1 : 2, 2);
 
   // Associative arrays
-//   assert("Array", [1,2][0], 1);
-//   assert("Array", [1,2][1], 2);
-//   assert("Array count", [1,2].Length, 2);
-//   assert("Nested array", [1,[2,3]][0],    1);
-//   assert("Nested array", [1,[2,3]][1][0], 2);
-//   assert("Nested array", [1,[2,3]][1][1], 3);
+  assert("Array", [1,2][0], 1);
+  assert("Array", [1,2][1], 2);
+  assert("Array count", [1,2].Length, 2);
+  assert("Nested array", [1,[2,3]][0],    1);
+  assert("Nested array", [1,[2,3]][1][0], 2);
+  assert("Nested array", [1,[2,3]][1][1], 3);
   
   // Add array entries
-//   a = [];
-//   a[] = 0;
-//   a[] = 1;
-//   a[] = 2;
-//   assert("Array entries", count(a), 3);
-//   assert("Array entries", a[0], 0);
-//   assert("Array entries", a[1], 1);
-//   assert("Array entries", a[2], 2);
+  a = [];
+  a[] = 0;
+  a[] = 1;
+  a[] = 2;
+  assert("Array entries", count(a), 3);
+  assert("Array entries", a[0], 0);
+  assert("Array entries", a[1], 1);
+  assert("Array entries", a[2], 2);
 
   // For loop
   for(a = 0; a < 10; ++a) {}
@@ -471,9 +471,9 @@ function main()
     "Hello world");
 
   // Create temporary object with named function and invoke through index
-//   assert("Invoke named function on temporary object using subscript operator", 
-//     { foo : function(h) { return "{h} {w}"; }, w : "world" }["foo"]("Hello"),
-//     "Hello world");
+  assert("Invoke named function on temporary object using subscript operator", 
+    { foo : function(h) { return "{h} {w}"; }, w : "world" }["foo"]("Hello"),
+    "Hello world");
   
   // Create temporary object with named function and invoke with function argument
   assert("Invoke named function passing temporary function object", 
@@ -481,15 +481,15 @@ function main()
     "Hello world");
 
   // Create temporary object with unnamed function and invoke through index
-//   assert("Invoke unnamed function on temporary object using subscript operator", 
-//     [ function(h, w) { return "{h} {w}"; } ] [0] ("Hello", "world"),
-//     "Hello world");
+  assert("Invoke unnamed function on temporary object using subscript operator", 
+    [ function(h, w) { return "{h} {w}"; } ] [0] ("Hello", "world"),
+    "Hello world");
 
   // Test function members
-//   a = function() { return ++f; };
-//   a["f"] = 0;
-//   assert("Function with static (1)", a(), 1);
-//   assert("Function with static (2)", a(), 2);
+  a = function() { return ++f; };
+  a["f"] = 0;
+  assert("Function with static (1)", a(), 1);
+  assert("Function with static (2)", a(), 2);
 
   // Define function with member
   var Class = {
@@ -501,7 +501,7 @@ function main()
   Class.b = "world";
 
   // Test new and constructor
-//   assert("Class constructor", (new Class("Hello")).b, "Hello world");
+  assert("Class constructor", (new Class("Hello")).b, "Hello world");
 
   // Test namespaces
 //   assert("Namespace lookup (1)", outer::f(), "inner1outerinner1");

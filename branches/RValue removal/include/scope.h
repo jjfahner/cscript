@@ -99,24 +99,38 @@ public:
     return false;
   }
 
-  virtual Value const& Get(String const& key)
+  virtual Value const& Get(Value const& key)
   {
+    if(key.Type() != Value::tString)
+    {
+      throw std::runtime_error(
+        "Invalid key type for scope");
+    }
+
     RValue* pValue;
     if(Lookup(key, pValue))
     {
       return *pValue;
     }
+    
     throw std::runtime_error("Variable not found");
   }
 
-  virtual Value const& Set(String const& key, Value const& value)
+  virtual Value const& Set(Value const& key, Value const& value)
   {
+    if(key.Type() != Value::tString)
+    {
+      throw std::runtime_error(
+        "Invalid key type for object");
+    }
+
     RValue* pValue;
     if(Lookup(key, pValue))
     {
       pValue->GetLValue().SetValue(value);
       return *pValue;
     }
+
     throw std::runtime_error("Variable not found");
   }
 
