@@ -346,9 +346,9 @@ Evaluator::Collect()
   // Append temporaries
   for(size_t i = 0; i < m_temporaries.size(); ++i)
   {
-    if(m_temporaries[i]->Type() == Value::tObject)
+    if(GC::Object* o = m_temporaries[i].GetGCObject())
     {
-      valid.push_back(m_temporaries[i]->GetObject());
+      valid.push_back(o);
     }
   }
 
@@ -421,6 +421,8 @@ Evaluator::Eval(String text, bool isFileName)
 Value
 Evaluator::Eval(Object* astRoot)
 {
+  VecRestore<TempVec> vr(m_temporaries);
+
   // Place global scope on the scope stack
   AutoScope as(this, m_global);
 
