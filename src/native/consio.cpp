@@ -61,29 +61,30 @@ void PrintValue(Value const& val)
     throw std::runtime_error("Invalid subtype");
   }
 
-  Object::MemberIterator it = val->Begin();
-  Object::MemberIterator ie = val->End();
-
-  std::cout << "[";
-
-  String sep;
-  for(; it != ie; ++it)
-  {
-    std::cout << sep;
-    sep = ",";
-    PrintValue(it->first);
-    std::cout << ":";
-    if(it->second.Type() == Value::tObject)
-    {
-      std::cout << it->second.GetObject()->GetDataType()->TypeName();
-    }
-    else
-    {
-      PrintValue(it->second.GetValue());
-    }
-  }
-
-  std::cout << "]";
+  // FIXME
+//   Object::MemberIterator it = val->Begin();
+//   Object::MemberIterator ie = val->End();
+// 
+//   std::cout << "[";
+// 
+//   String sep;
+//   for(; it != ie; ++it)
+//   {
+//     std::cout << sep;
+//     sep = ",";
+//     PrintValue(it->first);
+//     std::cout << ":";
+//     if(it->second.Type() == Value::tObject)
+//     {
+//       std::cout << it->second.GetObject()->GetType()->TypeName();
+//     }
+//     else
+//     {
+//       PrintValue(it->second.GetValue());
+//     }
+//   }
+// 
+//   std::cout << "]";
 }
 
 NATIVE_CALL("print(value)")

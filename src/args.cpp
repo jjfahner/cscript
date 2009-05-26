@@ -26,15 +26,19 @@
 Value const& 
 Arguments::at(String const& name) const
 {
-  Object::ValueIterator it = m_parameters->ValueBegin();
-  Object::ValueIterator ie = m_parameters->ValueEnd();
-  for(size_t index = 0; it != ie; ++it, ++index)
+  Enumerator* pEnum = m_parameters->GetEnumerator();
+  size_t index = 0;
+
+  Value parameter;
+  while(pEnum->GetNext(parameter))
   {
-    if(Ast_A1(*it).GetString() == name)
+    if(Ast_A1(parameter).GetString() == name)
     {
       return at(index);
     }
+    ++index;
   }
+
   throw std::runtime_error("Function has no parameter '" + name + "'");
 }
 

@@ -46,7 +46,7 @@ Value::GetDataType() const
   case Value::tBool:    return BooleanType::Instance();
   case Value::tInt:     return IntegerType::Instance();
   case Value::tString:  return StringType::Instance();
-  case Value::tObject:  return GetObject()->GetDataType();
+  case Value::tObject:  return GetObject()->GetType();
   }
   throw std::runtime_error("Invalid type");
 }
