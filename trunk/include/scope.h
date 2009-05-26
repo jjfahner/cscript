@@ -38,6 +38,12 @@ public:
   static const GCString& parentName;
 
   //
+  // Variable map
+  //
+  typedef std::map<String, Value> VarMap;
+  typedef VarMap::iterator Iter;
+
+  //
   // Construction
   //
   Scope(Scope* parent = 0)
@@ -49,86 +55,139 @@ public:
   }
 
   //
-  // Parent scope
+  // Retrieve parent scope or 0
   //
   virtual Scope* GetParent()
   {
-    RValue* parent;
-    if(Find("__parent", parent))
-    {
-      return dynamic_cast<Scope*>(parent->GetObject());
-    }
-    return 0;
+    Iter it = m_vars.find(parentName);
+    return it == m_vars.end() ? 0 : 
+      dynamic_cast<Scope*>(
+        it->second.GetObject());
   }
+
+  //
+  // Set parent pointer
+  //
   virtual void SetParent(Scope* parent)
   {
-    Object::Set(parentName, parent);
+    m_vars[parentName] = parent;
   }
 
+  //
+  // Add a new variable
+  //
+  virtual Value const& Add(String const& key, Value const& value, bool replace = false)
+  {
+    // Find in this scope
+    Iter it = m_vars.find(key);
+    if(it == m_vars.end())
+    {
+      m_vars[key] = value;
+      return value;
+    }
+
+    // Replace
+    if(replace)
+    {
+      it->second = value;
+      return value;
+    }
+
+    // Duplicate variable
+    throw std::runtime_error("Variable already declared");
+  }
+
+  //
+  // Retrieve an existing variable
+  //
   virtual Value const& Get(Value const& key)
   {
-    if(key.Type() != Value::tString)
+    // Find in this scope
+    Iter it = m_vars.find(key);
+    if(it != m_vars.end())
     {
-      throw std::runtime_error(
-        "Invalid key type for scope");
+      return it->second;
     }
 
-    if(Object::ContainsKey(key))
-    {
-      return Object::Get(key);
-    }
-
+    // Find in parent scope
     if(Scope* parent = GetParent())
     {
       return parent->Get(key);
     }
     
+    // Unknown variable
     throw std::runtime_error("Variable not found");
   }
 
+  //
+  // Set an existing variable
+  //
   virtual Value const& Set(Value const& key, Value const& value)
   {
-    if(key.Type() != Value::tString)
+    // Find in this scope
+    Iter it = m_vars.find(key);
+    if(it != m_vars.end())
     {
-      throw std::runtime_error(
-        "Invalid key type for object");
+      return it->second = value;
     }
 
-    if(Object::ContainsKey(key, false))
-    {
-      Object::Set(key, value);
-      return value;
-    }
-
+    // Find in parent scope
     if(Scope* parent = GetParent())
     {
       return parent->Set(key, value);
     }
 
+    // Unknown variable
     throw std::runtime_error("Variable not found");
   }
 
+  //
+  // Unset a variable
+  //
   virtual void Unset(Value const& key)
   {
-    if(Object::ContainsKey(key, false))
+    // Find in this scope
+    Iter it = m_vars.find(key);
+    if(it != m_vars.end())
     {
-      return Object::Unset(key);
+      m_vars.erase(it);
+      return;
     }
 
+    // Find in parent scope
     if(Scope* parent = GetParent())
     {
-      return parent->Unset(key);
+      parent->Unset(key);
+      return;
     }
 
+    // Unknown variable
     throw std::runtime_error("Variable not found");
   }
 
 protected:
 
   //
-  // Hide Find function, is replaced by Lookup
+  // Override GC::MarkObjects
   //
-  using Object::Find;
+  virtual void MarkObjects(GC::ObjectVec& grey)
+  {
+    // Mark object members
+    Object::MarkObjects(grey);
+    
+    // Mark map contents
+    for(Iter mi = m_vars.begin(); mi != m_vars.end(); ++mi)
+    {
+      if(GC::Object* o = mi->second.GetGCObject()) {
+        GC::Mark(grey, o);
+      }
+    }
+  }
+
+  //
+  // Members
+  //
+  VarMap m_vars;  
 
 };
 
@@ -147,6 +206,8 @@ public:
   Scope  (parent),
   m_inst (inst)
   {
+    // Store in map for GC reference
+    Add("__object", inst);
   }
 
   //
@@ -157,42 +218,41 @@ public:
     return m_inst;
   }
 
+  //
+  // Retrieve a variable
+  //
   virtual Value const& Get(Value const& key)
   {
-    if(key.Type() != Value::tString)
+    // Find in object
+    Value const* pValue;
+    if(m_inst->TryGet(key, pValue))
     {
-      throw std::runtime_error(
-        "Invalid key type for object");
+      return *pValue;
     }
 
-    if(m_inst->ContainsKey(key))
-    {
-      return m_inst->Get(key);
-    }
-
+    // Continue in scope
     return Scope::Get(key);
   }
 
+  //
+  // Set a variable
+  //
   virtual Value const& Set(Value const& key, Value const& value)
   {
-    if(key.Type() != Value::tString)
+    // Try to set in instance
+    if(m_inst->TrySet(key, value))
     {
-      throw std::runtime_error(
-        "Invalid key type for object");
+      return value;
     }
 
-    if(m_inst->ContainsKey(key))
-    {
-      return m_inst->Set(key, value);
-    }
-
+    // Continue in scope
     return Scope::Set(key, value);
   }
 
 protected:
 
   //
-  // MemberMap
+  // Members
   //
   Object* m_inst;
 
@@ -240,7 +300,7 @@ public:
     Scope::SetParent(parent);
 
     // Reinsert into new parent
-    parent->Object::Set(m_name, this);
+    parent->Add(m_name, this, true);
   }
 
   //

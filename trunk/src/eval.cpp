@@ -507,12 +507,16 @@ Evaluator::EvalStatement(Object* node)
 }
 
 void
-Evaluator::EvalLValue(Object* node, Object*& obj, Value& name)
+Evaluator::EvalLValue(Object* node, Object*& obj, Value& name, bool scopeIsOwner)
 {
+  obj = 0;
   switch(Ast_Type(node))
   {
   case unqualified_id:
-    obj = m_scope;
+    if(scopeIsOwner)
+    {
+      obj = m_scope;
+    }
     name = Ast_A1(node);
     return;
 
@@ -1088,10 +1092,10 @@ Evaluator::EvalFunctionCall(Object* node)
   // Evaluate left-hand side
   Object* obj;
   Value key;
-  EvalLValue(Ast_A1(node), obj, key);
+  EvalLValue(Ast_A1(node), obj, key, false);
   
   // Retrieve function
-  Value lhs = obj->Get(key);
+  Value lhs = (obj ? obj : m_scope)->Get(key);
   if(lhs.Type() != Value::tObject)
   {
     throw ScriptException(node, "Function call on non-function object");

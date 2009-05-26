@@ -170,21 +170,40 @@ Object::Find(String const& key, RValue*& pValue, bool checkProto) const
 }
 
 Value const& 
-Object::Get(Value const& index)
+Object::Get(Value const& key)
 {
-  if(index.Type() != Value::tString)
+  if(key.Type() != Value::tString)
   {
     throw std::runtime_error(
       "Invalid key type for object");
   }
 
   RValue* pValue;
-  if(Find(index, pValue, true))
+  if(Find(key, pValue, true))
   {
     return *pValue;
   }
   
-  return m_members[index];
+  return m_members[key];
+}
+
+bool 
+Object::TryGet(Value const& key, Value const*& value)
+{
+  if(key.Type() != Value::tString)
+  {
+    throw std::runtime_error(
+      "Invalid key type for object");
+  }
+
+  RValue* pValue;
+  if(Find(key, pValue, true))
+  {
+    value = &pValue->GetValue();
+    return true;
+  }
+
+  return false;
 }
 
 Value const&
@@ -200,6 +219,19 @@ Object::Set(Value const& key, Value const& value)
   result.SetValue(value);
 
   return result;
+}
+
+bool
+Object::TrySet(Value const& key, Value const& value)
+{
+  RValue* pValue;
+  if(Find(key, pValue, true))
+  {
+    pValue->GetLValue() = value;
+    return true;
+  }
+
+  return false;
 }
 
 void 
@@ -229,22 +261,22 @@ Object::GetLValue(String const& key)
   return GetRValue(key).GetLValue();
 }
 
-RValue& 
-Object::Add(String const& key, Value const& value)
-{
-  // Insert new variable
-  typedef std::pair<MemberIterator, bool> InsertResult;
-  InsertResult const& res = m_members.insert(std::make_pair(key, value));
-
-  // Check insert result
-  if(!res.second)
-  {
-    throw std::runtime_error("Variable already declared");
-  }
-
-  // Done
-  return res.first->second;
-}
+// Value const&
+// Object::Add(String const& key, Value const& value)
+// {
+//   // Insert new variable
+//   typedef std::pair<MemberIterator, bool> InsertResult;
+//   InsertResult const& res = m_members.insert(std::make_pair(key, value));
+// 
+//   // Check insert result
+//   if(!res.second)
+//   {
+//     throw std::runtime_error("Variable already declared");
+//   }
+// 
+//   // Done
+//   return res.first->second;
+// }
 
 void 
 Object::Remove(String const& key)
