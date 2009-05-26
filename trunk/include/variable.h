@@ -73,11 +73,6 @@ public:
   //
   virtual Value const& GetValue() const = 0;
 
-  //
-  // Convert RValue to LValue. Throws if not an LValue
-  //
-  class LValue& GetLValue();
-
 protected:
 
   //
@@ -110,19 +105,6 @@ public:
   virtual void SetValue(Value const& rhs) = 0;
 
 };
-
-//////////////////////////////////////////////////////////////////////////
-
-inline LValue& 
-RValue::GetLValue()
-{
-  LValue* lval = dynamic_cast<LValue*>(this);
-  if(lval == 0)
-  {
-    throw std::runtime_error("Left-hand value cannot be assigned to");
-  }
-  return *lval;
-}
 
 //////////////////////////////////////////////////////////////////////////
 //

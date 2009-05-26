@@ -88,7 +88,7 @@ m_funPtr  (funPtr)
   m_name = Ast_A1(node).GetString();
 
   // Store the ast node
-  (*this)["__ast"] = node;
+  Set("__ast", node);
 }
 
 Value
