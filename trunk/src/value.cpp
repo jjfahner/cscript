@@ -98,10 +98,11 @@ ValCmp(Value const& lhs, Value const& rhs)
     return int(lhs.GetInt() - rhs.GetInt());
 
   case Value::tString: 
-    return strcmp(lhs.GetString().c_str(), 
-                  rhs.GetString().c_str());
+    return lhs.m_string == rhs.m_string ? 0 :
+            strcmp(lhs.GetString().c_str(), 
+                   rhs.GetString().c_str());
 
-  case Value::tObject: 
+  case Value::tObject:
     return int(lhs.GetObject() - rhs.GetObject());
   }
 

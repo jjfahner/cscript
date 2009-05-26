@@ -48,11 +48,11 @@ NATIVE_CALL("collect()")
   evaluator->MakeTemp(obj);
 
   // Copy fields
-  obj->GetLValue("markPhase")     = (Value::Int) ci.m_markPhase;
-  obj->GetLValue("deletePhase")   = (Value::Int) ci.m_deletePhase;
-  obj->GetLValue("numCycles")     = (Value::Int) ci.m_numCycles;
-  obj->GetLValue("numRemaining")  = (Value::Int) ci.m_numRemaining;
-  obj->GetLValue("numCollected")  = (Value::Int) ci.m_numCollected;
+  obj->Set("markPhase",    (Value::Int) ci.m_markPhase);
+  obj->Set("deletePhase",  (Value::Int) ci.m_deletePhase);
+  obj->Set("numCycles",    (Value::Int) ci.m_numCycles);
+  obj->Set("numRemaining", (Value::Int) ci.m_numRemaining);
+  obj->Set("numCollected", (Value::Int) ci.m_numCollected);
 
   // Done
   return obj;
@@ -85,12 +85,7 @@ NATIVE_CALL("quit(int exitcode = 0)")
 
 NATIVE_CALL("lookup(name)")
 {
-  RValue* pValue;
-  if(evaluator->GetScope()->Lookup(args[0], pValue))
-  {
-    return *pValue;
-  }
-  return Value();
+  return evaluator->GetScope()->Get(args[0]);
 }
 
 //////////////////////////////////////////////////////////////////////////

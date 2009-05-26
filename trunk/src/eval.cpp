@@ -569,8 +569,8 @@ Evaluator::EvalExpression(Object* node)
   case typeof_expression:     return EvalTypeOf(node);
   case index_expression:      return EvalIndex(node);
   case function_call:         return EvalFunctionCall(node);
-  case literal_value:         return MakeTemp(Ast_A1(node));
-  case null_literal:          return MakeTemp(Value());
+  case literal_value:         return Ast_A1(node);
+  case null_literal:          return Value();
   case unqualified_id:        return EvalUnqualifiedId(node);
   case qualified_id_g:        return EvalQualifiedId(node);
   case qualified_id_l:        return EvalQualifiedId(node);
@@ -658,12 +658,12 @@ Evaluator::EvalBinary(Object* node)
   if(opcode == op_logor)
   {
     // TODO type conversion
-    return MakeTemp(ValBool(lhs) || ValBool(EvalExpression(Ast_A3(node))));
+    return ValBool(lhs) || ValBool(EvalExpression(Ast_A3(node)));
   }
   if(opcode == op_logand)
   {
     // TODO type conversion
-    return MakeTemp(ValBool(lhs) && ValBool(EvalExpression(Ast_A3(node))));
+    return ValBool(lhs) && ValBool(EvalExpression(Ast_A3(node)));
   }
   
   // Evaluate right-hand side
@@ -672,11 +672,11 @@ Evaluator::EvalBinary(Object* node)
   // Comparison without implicit type conversion
   if(opcode == op_seq)
   {
-    return MakeTemp(lhs.Type() == rhs.Type() && ValCmp(lhs, rhs) == 0);
+    return lhs.Type() == rhs.Type() && ValCmp(lhs, rhs) == 0;
   }
   if(opcode == op_sne)
   {
-    return MakeTemp(lhs.Type() == rhs.Type() && ValCmp(lhs, rhs) != 0);
+    return lhs.Type() == rhs.Type() && ValCmp(lhs, rhs) != 0;
   }
 
   // Convert to type of lhs
@@ -959,13 +959,8 @@ Evaluator::EvalUnsetStatement(Object* node)
 {
   if(Ast_Type(Ast_A1(node)) == unqualified_id)
   {
-    String name = Ast_A1(Ast_A1(node)).GetString();
-    Object* pOwner;
-    RValue* pValue;
-    if(m_scope->Lookup(name, pValue, pOwner, true))
-    {
-      pOwner->Remove(name);
-    }
+    String name = Ast_A1(Ast_A1(node));
+    m_scope->Unset(name);
   }
 }
 
@@ -1517,30 +1512,21 @@ void
 Evaluator::EvalForeachStatement(Object* node)
 {
   AutoScope scope(this, new Scope(m_scope));
+  
+  Object* obj;
+  Value key;
 
-  String varName;
-
-  // Determine variable name
+  // Fetch iterator variable
   if(Ast_Type(Ast_A1(node)) == variable_declaration)
   {
     EvalStatement(Ast_A1(node));
-    varName = Ast_A1(Ast_A1(node)).GetString();
+    obj = m_scope;
+    key = Ast_A1(Ast_A1(node)).GetString();
   }
   else
   {
-    varName = Ast_A1(node).GetString();
+    EvalLValue(Ast_A1(node), obj, key);
   }
-
-  // Fetch variable
-  RValue* rval;
-  Object* owner;
-  if(!m_scope->Lookup(varName, rval, owner))
-  {
-    throw ScriptException(node, "Failed to find iterator variable");
-  }
-
-  // Convert to lvalue
-  LValue& var = rval->GetLValue();
 
   // Evaluate expression
   Value const& rhs = EvalExpression(Ast_A2(node));
@@ -1556,11 +1542,11 @@ Evaluator::EvalForeachStatement(Object* node)
   MakeTemp(enumerator);
 
   // Enumerate members
-  Value itVal;
-  while(enumerator->GetNext(itVal))
+  Value value;
+  while(enumerator->GetNext(value))
   {
     // Assign value to iterator variable
-    var = itVal;
+    obj->Set(key, value);
 
     // Evaluate expression
     try

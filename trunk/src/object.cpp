@@ -202,6 +202,12 @@ Object::Set(Value const& key, Value const& value)
   return result;
 }
 
+void 
+Object::Unset(Value const& key)
+{
+  m_members.erase(key);
+}
+
 RValue& 
 Object::GetRValue(String const& key)
 {

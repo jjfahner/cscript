@@ -206,6 +206,11 @@ private:
   bool operator == (Value const& rhs);
 
   //
+  // Allow member access for performance
+  //
+  friend int ValCmp(Value const& lhs, Value const& rhs);
+
+  //
   // Meant to prevent conversion from pointer to boolean 
   // when a Value is constructed from an invalid pointer type
   //

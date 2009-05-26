@@ -131,6 +131,11 @@ public:
   virtual Value const& Set(Value const& key, Value const& value);
 
   //
+  // Unset a member
+  //
+  virtual void Unset(Value const& key);
+
+  //
   // Add a member
   //
   RValue& Add(String const& key, Value const& value);
