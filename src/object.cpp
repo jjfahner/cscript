@@ -169,23 +169,37 @@ Object::Find(String const& key, RValue*& pValue, bool checkProto) const
   return true;
 }
 
-RValue&
-Object::Set(String const& key, Value const& value)
+Value const& 
+Object::Get(Value const& index)
 {
-  MemberVariable& result = m_members[key];
-  result.SetValue(value);
-  return result;
-}
+  if(index.Type() != Value::tString)
+  {
+    throw std::runtime_error(
+      "Invalid key type for object");
+  }
 
-RValue& 
-Object::GetAt(Value const& index)
-{
   RValue* pValue;
   if(Find(index, pValue, true))
   {
     return *pValue;
   }
+  
   return m_members[index];
+}
+
+Value const&
+Object::Set(Value const& key, Value const& value)
+{
+  if(key.Type() != Value::tString)
+  {
+    throw std::runtime_error(
+      "Invalid key type for object");
+  }
+  
+  MemberVariable& result = m_members[key];
+  result.SetValue(value);
+
+  return result;
 }
 
 RValue& 

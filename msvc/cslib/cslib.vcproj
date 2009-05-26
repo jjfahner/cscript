@@ -468,6 +468,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\dict.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\enumerator.h"
 				>
 			</File>
