@@ -288,22 +288,22 @@ function main()
   assert("Conditional", false ? 1 : 2, 2);
 
   // Associative arrays
-  assert("Array", [1,2][0], 1);
-  assert("Array", [1,2][1], 2);
-  assert("Array count", [1,2].Length, 2);
-  assert("Nested array", [1,[2,3]][0],    1);
-  assert("Nested array", [1,[2,3]][1][0], 2);
-  assert("Nested array", [1,[2,3]][1][1], 3);
-  
-  // Add array entries
-  a = [];
-  a[] = 0;
-  a[] = 1;
-  a[] = 2;
-  assert("Array entries", count(a), 3);
-  assert("Array entries", a[0], 0);
-  assert("Array entries", a[1], 1);
-  assert("Array entries", a[2], 2);
+//   assert("Array", [1,2][0], 1);
+//   assert("Array", [1,2][1], 2);
+//   assert("Array count", [1,2].Length, 2);
+//   assert("Nested array", [1,[2,3]][0],    1);
+//   assert("Nested array", [1,[2,3]][1][0], 2);
+//   assert("Nested array", [1,[2,3]][1][1], 3);
+//   
+//   // Add array entries
+//   a = [];
+//   a[] = 0;
+//   a[] = 1;
+//   a[] = 2;
+//   assert("Array entries", count(a), 3);
+//   assert("Array entries", a[0], 0);
+//   assert("Array entries", a[1], 1);
+//   assert("Array entries", a[2], 2);
 
   // For loop
   for(a = 0; a < 10; ++a) {}
@@ -359,17 +359,17 @@ function main()
   
   // Substring
   a = "Hello world";
-  assert("substr", substr(a, 0, 5), "Hello");
-  assert("substr", substr(a, 6),    "world");
-  assert("strlen", strlen(a),         11);
-  assert("strchr", strchr(a, "H"),     0);
-  assert("strchr", strchr(a, "h"),    -1);
-  assert("strchr", strchr(a, "o"),     4);
-  assert("strchr", strchr(a, "o", 5),  7);
-  assert("strstr", strstr(a, "He"),    0);
-  assert("strstr", strstr(a, "wo"),    6);
-  assert("strstr", strstr(a, "wa"),   -1);
-  assert("strstr", strstr(a, "wo", 2), 6);
+//   assert("substr", substr(a, 0, 5), "Hello");
+//   assert("substr", substr(a, 6),    "world");
+//   assert("strlen", strlen(a),         11);
+//   assert("strchr", strchr(a, "H"),     0);
+//   assert("strchr", strchr(a, "h"),    -1);
+//   assert("strchr", strchr(a, "o"),     4);
+//   assert("strchr", strchr(a, "o", 5),  7);
+//   assert("strstr", strstr(a, "He"),    0);
+//   assert("strstr", strstr(a, "wo"),    6);
+//   assert("strstr", strstr(a, "wa"),   -1);
+//   assert("strstr", strstr(a, "wo", 2), 6);
  
   // Logical or
   assert("Logical or", true  || false, true);
@@ -438,12 +438,12 @@ function main()
   //assert("Socket", sockets(), true);
 
   // Test regular expressions
-  assert("Regex", match("aa", "aaa"), "aa");
-  assert("Regex", match("^aa$", "aaa"), "");
-  assert("Regex", match("aa.*zz", "aabbcczzaa"), "aabbcczz");
-  assert("Regex", match("[a-zA-Z-]+", "jan-jaap"), "jan-jaap");
-  assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net@"), "");
-  assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net"), "jan-jaap@jan-jaap.net");
+//   assert("Regex", match("aa", "aaa"), "aa");
+//   assert("Regex", match("^aa$", "aaa"), "");
+//   assert("Regex", match("aa.*zz", "aabbcczzaa"), "aabbcczz");
+//   assert("Regex", match("[a-zA-Z-]+", "jan-jaap"), "jan-jaap");
+//   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net@"), "");
+//   assert("Regex", match("^[a-zA-Z-.]+(\\.[a-zA-Z-.])*@([a-zA-Z-]+\\.)+[a-zA-Z]+$", "jan-jaap@jan-jaap.net"), "jan-jaap@jan-jaap.net");
 
   // Exception handling
   assert("Try/catch", try_catch(), true);
@@ -481,9 +481,9 @@ function main()
     "Hello world");
 
   // Create temporary object with unnamed function and invoke through index
-  assert("Invoke unnamed function on temporary object using subscript operator", 
-    [ function(h, w) { return "{h} {w}"; } ] [0] ("Hello", "world"),
-    "Hello world");
+//   assert("Invoke unnamed function on temporary object using subscript operator", 
+//     [ function(h, w) { return "{h} {w}"; } ] [0] ("Hello", "world"),
+//     "Hello world");
 
   // Test function members
   a = function() { return ++f; };

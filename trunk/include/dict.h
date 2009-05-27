@@ -127,19 +127,19 @@ public:
   //
   // Implement Object::Get
   //
-  virtual Value const& Get(ValueCRef key)
-  {
-    return m_map[key];
-  }
+//   virtual Value const& Get(ValueCRef key)
+//   {
+//     return m_map[key];
+//   }
 
   //
   // Implement Object::Set
   //
-  virtual Value const& Set(Value const& key, Value const& value)
-  {
-    m_map[key] = value;
-    return value;
-  }
+//   virtual Value const& Set(Value const& key, Value const& value)
+//   {
+//     m_map[key] = value;
+//     return value;
+//   }
 
   //
   // Implement Object::GetEnumerator

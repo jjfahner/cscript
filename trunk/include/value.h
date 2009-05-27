@@ -22,7 +22,6 @@
 #define CSCRIPT_VALUE_H
 
 #include <cscript.h>
-#include <datatype.h>
 #include <gcstring.h>
 
 class Object;
@@ -42,9 +41,9 @@ public:
     tObject,
   };
 
-  typedef BooleanType::DeclType Bool;
-  typedef IntegerType::DeclType Int;
-  typedef StringType::DeclType  String;
+  typedef bool        Bool;
+  typedef int64       Int;
+  typedef std::string String;
 
   static String TypeToString(Types);
   static Types StringToType(String);

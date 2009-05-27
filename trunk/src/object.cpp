@@ -169,7 +169,7 @@ Object::Find(String const& key, RValue*& pValue, bool checkProto) const
   return true;
 }
 
-Value const& 
+Value
 Object::Get(Value const& key)
 {
   if(key.Type() != Value::tString)
@@ -188,7 +188,7 @@ Object::Get(Value const& key)
 }
 
 bool 
-Object::TryGet(Value const& key, Value const*& value)
+Object::TryGet(Value const& key, Value& value)
 {
   if(key.Type() != Value::tString)
   {
@@ -199,7 +199,7 @@ Object::TryGet(Value const& key, Value const*& value)
   RValue* pValue;
   if(Find(key, pValue, true))
   {
-    value = &pValue->GetValue();
+    value = *pValue;
     return true;
   }
 
@@ -238,6 +238,26 @@ void
 Object::Unset(Value const& key)
 {
   m_members.erase(key);
+}
+
+bool
+Object::Evaluate(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
+{
+  // Find method
+  Object* method = Get(key);
+
+  // Try to convert to function
+  Function* fun = dynamic_cast<Function*>(method);
+  if(fun == 0)
+  {
+    return false;
+  }
+
+  // Evaluate the function
+  result = fun->Execute(evaluator, arguments);
+
+  // Success
+  return true;
 }
 
 void 

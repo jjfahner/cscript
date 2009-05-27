@@ -43,6 +43,11 @@ public:
   Object* ParseXml();
 
   //
+  // Retrieve the elapsed parse time
+  //
+  uint64 Elapsed() const;
+
+  //
   // Errors raised by parser
   //
   void OnParseFailure();
@@ -74,6 +79,7 @@ private:
   //
   Object*     m_root;
   LexStream*  m_stream;
+  uint64      m_elapsed;
 
 };
 
@@ -121,6 +127,12 @@ CSParser::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const
   AstNode* node = new AstNode(type, a1, a2, a3, a4);
   node->m_dataType = GetDataType(node);
   return node;
+}
+
+inline uint64 
+CSParser::Elapsed() const
+{
+  return m_elapsed;
 }
 
 #endif // CSCRIPT_CS_PARSER_H

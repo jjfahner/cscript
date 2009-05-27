@@ -1092,6 +1092,41 @@ Evaluator::EvalFunctionCall(Object* node)
   // Evaluate left-hand side
   Object* obj;
   Value key;
+  EvalLValue(Ast_A1(node), obj, key);
+
+
+  // Add parameters to arguments
+  // FIXME
+  //args.SetParameters(fun->GetParameters());
+  
+  // Retrieve arguments from node
+  Object* argsource = 0;
+  if(!Ast_A2(node).Empty())
+  {
+    argsource = Ast_A2(node);
+  }
+
+  // Setup arguments
+  Arguments args;
+  args.SetObject(obj);
+  args.SetNode(node);
+
+  // Evaluate arguments
+  EvalArguments(node, argsource, args);
+
+  // Evaluate the function call
+  Value result;
+  if(obj->Evaluate(key, this, args, result))
+  {
+    return result;
+  }
+
+  // Failed
+  throw ScriptException(node, "Failed to execute function");
+/*
+  // Evaluate left-hand side
+  Object* obj;
+  Value key;
   EvalLValue(Ast_A1(node), obj, key, false);
   
   // Retrieve function
@@ -1132,11 +1167,14 @@ Evaluator::EvalFunctionCall(Object* node)
 
   // Continue in overload
   return EvalFunctionCall(node, fun, owner, args);
+  */
 }
 
 Value
 Evaluator::EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* arguments)
 {
+  throw std::runtime_error("Not supported");
+  /*
   Arguments args;
 
   // Add object context to arguments
@@ -1158,6 +1196,7 @@ Evaluator::EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* 
   {
     return e.m_value;
   }
+  */
 }
 
 Value
@@ -1210,15 +1249,15 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 }
 
 void 
-Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments& args)
+Evaluator::EvalArguments(Object* node, Object* argptr, Arguments& args)
 {
   // Make iterator for argument list
   AstIterator ai(argptr, arguments);
   AstIterator ae;
 
-  // No formal parameter list
-  if(fun->GetParameters() == 0)
-  {
+//   // No formal parameter list
+//   if(fun->GetParameters() == 0)
+//   {
     // Evaluate arguments
     for(; ai != ae; ++ai)
     {
@@ -1227,8 +1266,8 @@ Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments&
 
     // Done
     return;
-  }
-
+//   }
+/*
   // Enumerate parameters
   List::Iterator pi = fun->GetParameters()->Begin();
   List::Iterator pe = fun->GetParameters()->End();
@@ -1313,6 +1352,7 @@ Evaluator::EvalArguments(Object* node, Function* fun, Object* argptr, Arguments&
       ++ai;
     }
   }
+  */
 }
 
 Value
@@ -1707,14 +1747,14 @@ Evaluator::EvalMemberExpression(Object* node)
   String const& name = Ast_A1(Ast_A2(node));
 
   // Return the value
-  RValue* rval;
-  if(!object->Find(name, rval))
+  Value rval;
+  if(!object->TryGet(name, rval))
   {
     throw ScriptException(node, "Object does not support this property");
   }
 
   // Done
-  return *rval;
+  return rval;
 }
 
 Value

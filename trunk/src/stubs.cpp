@@ -56,7 +56,7 @@ struct NativeCall
   MethodStub  m_method;
   RoPropStub  m_roprop;
   RwPropStub  m_rwprop;
-  RValue*     m_var;
+  Value       m_var;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -198,13 +198,18 @@ public:
 //
 
 bool 
-NativeCallContainsKey(NativeCall* pTable, Object* instance, String const& key, bool checkProto)
+NativeCallTryGet(struct NativeCall* pTable, Object* instance, Value const& key, Value& pValue)
 {
   while(pTable->m_name)
   {
-    if(key == pTable->m_name)
+    if(key.GetString() == pTable->m_name)
     {
-      return true;
+      if(pTable->m_roprop)
+      {
+        pValue = pTable->m_roprop(instance);
+        return true;
+      }
+      return false;
     }
     ++pTable;
   }
@@ -212,45 +217,13 @@ NativeCallContainsKey(NativeCall* pTable, Object* instance, String const& key, b
 }
 
 bool 
-NativeCallFind(NativeCall* pTable, Object* instance, String const& key, RValue*& pValue, bool checkProto)
+NativeCallTrySet(struct NativeCall* pTable, Object* instance, Value const& key, Value const& value)
 {
-  while(pTable->m_name)
-  {
-    if(key == pTable->m_name)
-    {
-      switch(pTable->m_type)
-      {
-      case stMethod:
-        {
-          if(pTable->m_var == 0)
-          {
-            pTable->m_var = new NativeMethod(pTable);
-          }
-          pValue = pTable->m_var;
-          return true;
-        }
-        break;
-
-      case stRoProp:
-        {
-          pValue = new NativeRoProp(pTable, instance);
-          return true;
-        }
-        break;
-
-      case stRwProp:
-        {
-          pValue = new NativeRwProp(pTable, instance);
-          return true;
-        }
-        break;
-
-      default:
-        throw std::runtime_error("Invalid native stubtype");
-      }
-    }
-    ++pTable;
-  }
   return false;
 }
 
+bool
+NativeCallEvaluate(struct NativeCall* pTable, Object* instance, Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
+{
+  return false;
+}

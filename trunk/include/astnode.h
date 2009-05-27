@@ -27,6 +27,7 @@
 #include <ast.h>
 #include <list.h>
 #include <stubs.h>
+#include <datatype.h>
 
 class DataType;
 
