@@ -100,7 +100,7 @@ public:
   //
   // Retrieve an existing variable
   //
-  virtual Value const& Get(Value const& key)
+  virtual Value Get(Value const& key)
   {
     // Find in this scope
     Iter it = m_vars.find(key);
@@ -218,13 +218,13 @@ public:
   //
   // Retrieve a variable
   //
-  virtual Value const& Get(Value const& key)
+  virtual Value Get(Value const& key)
   {
     // Find in object
-    Value const* pValue;
-    if(m_inst->TryGet(key, pValue))
+    Value value;
+    if(m_inst->TryGet(key, value))
     {
-      return *pValue;
+      return value;
     }
 
     // Continue in scope

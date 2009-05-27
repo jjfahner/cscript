@@ -46,7 +46,7 @@
 //
 void banner()
 {
-  std::cout << "CScript 0.8  Copyright (C) 2007-2009  Jan-Jaap Fahner.\n\n";
+  std::cout << "CScript 0.9 Copyright (C) 2007-2009  Jan-Jaap Fahner.\n\n";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -214,6 +214,10 @@ int cscript_main(int argc, Char** argv)
 //
 int main(int argc, Char** argv)
 {
+#if defined(_MSC_VER) && defined(_DEBUG)
+  banner();
+#endif
+
   int result = EXIT_FAILURE;
   try
   {

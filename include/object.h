@@ -27,10 +27,11 @@
 
 class Object;
 class RValue;
-class LValue;
 class Value;
 class DataType;
 class Enumerator;
+class Evaluator;
+class Arguments;
 class MemberVariable;
 
 //
@@ -69,12 +70,12 @@ public:
   //
   // Retrieve a member by key
   //
-  virtual Value const& Get(Value const& key);
+  virtual Value Get(Value const& key);
 
   //
   // Try to retrieve a member by key
   //
-  virtual bool TryGet(Value const& key, Value const*& value);
+  virtual bool TryGet(Value const& key, Value& value);
 
   //
   // Set a member
@@ -90,6 +91,11 @@ public:
   // Unset a member
   //
   virtual void Unset(Value const& key);
+
+  //
+  // Evaluate a method
+  //
+  virtual bool Evaluate(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
 
   //////////////////////////////////////////////////////////////////////////
   //

@@ -22,13 +22,14 @@
 #define CSCRIPT_STUBS_H
 
 #include <cscript.h>
+#include <value.h>
 
 //
 // Forward declare some required types
 //
-class RValue;
-class Value;
 class Object;
+class Evaluator;
+class Arguments;
 
 //
 // Forward declare single-word types that have a wrapper function
@@ -42,32 +43,67 @@ typedef String const& StringCRef;
 //
 // Forward declare generic native call handlers
 //
-bool NativeCallContainsKey(struct NativeCall*, Object* instance, String const& key, bool checkProto);
-bool NativeCallFind(struct NativeCall*, Object* instance, String const& key, RValue*& pValue, bool checkProto);
+bool NativeCallTryGet(struct NativeCall*, Object* instance, Value const& key, Value& value);
+bool NativeCallTrySet(struct NativeCall*, Object* instance, Value const& key, Value const& value);
+bool NativeCallEvaluate(struct NativeCall*, Object* instance, Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
 
 //
 // Implement native calls for a class by using this macro
 //
-#define IMPL_NATIVECALLS(class, base) \
-virtual bool \
-ContainsKey(String const& key, bool checkProto = true) const \
-{ \
-  extern struct NativeCall __stublist_##class[]; \
-  if(NativeCallContainsKey(__stublist_##class, (Object*)this, key, checkProto)) \
-  { \
-    return true;  \
-  } \
-  return base::ContainsKey(key, checkProto);  \
-} \
-virtual bool \
-Find(String const& key, RValue*& pValue, bool checkProto = true) const \
-{ \
-  extern struct NativeCall __stublist_##class[]; \
-  if(NativeCallFind(__stublist_##class, (Object*)this, key, pValue, checkProto))  \
-  { \
-    return true;  \
-  } \
-  return base::Find(key, pValue, checkProto); \
+#define IMPL_NATIVECALLS(class, base)             \
+virtual bool                                      \
+TryGet(Value const& key, Value& value)            \
+{                                                 \
+  extern struct NativeCall __stublist_##class[];  \
+  if(NativeCallTryGet(__stublist_##class,         \
+    (Object*)this, key, value))                   \
+  {                                               \
+    return true;                                  \
+  }                                               \
+  return base::TryGet(key, value);                \
+}                                                 \
+virtual Value Get(Value const& key)               \
+{                                                 \
+  Value value;                                    \
+  if(TryGet(key, value))                          \
+  {                                               \
+    return value;                                 \
+  }                                               \
+  throw std::runtime_error("Cannot get value");   \
+}                                                 \
+virtual bool                                      \
+TrySet(Value const& key, Value const& value)      \
+{                                                 \
+  extern struct NativeCall __stublist_##class[];  \
+  if(NativeCallTrySet(__stublist_##class,         \
+    (Object*)this, key, value))                   \
+  {                                               \
+    return true;                                  \
+  }                                               \
+  return base::TrySet(key, value);                \
+}                                                 \
+virtual Value const&                              \
+Set(Value const& key, Value const& value)         \
+{                                                 \
+  if(TrySet(key, value))                          \
+  {                                               \
+    return value;                                 \
+  }                                               \
+  throw std::runtime_error("Cannot set value");   \
+}                                                 \
+virtual bool Evaluate(Value const& key,           \
+      Evaluator* evaluator,                       \
+      Arguments& arguments,                       \
+      Value& result)                              \
+{                                                 \
+  extern struct NativeCall __stublist_##class[];  \
+  if(NativeCallEvaluate(__stublist_##class,       \
+    this, key, evaluator, arguments, result))     \
+  {                                               \
+    return true;                                  \
+  }                                               \
+  return base::Evaluate(key, evaluator,           \
+                        arguments, result);       \
 }
 
 #endif // CSCRIPT_STUBS_H

@@ -22,8 +22,6 @@
 #define CSCRIPT_LISTOBJECT_H
 
 #include <cscript.h>
-#include <variable.h>
-#include <gc.h>
 #include <enumerator.h>
 #include <stubs.h>
 
@@ -158,35 +156,35 @@ public:
   //
   // Retrieve a member by index
   //
-  virtual Value const& Get(Value const& key)
-  {
-    // Check key type
-    if(key.Type() != Value::tInt)
-    {
-      throw std::runtime_error("Invalid key type for list");
-    }
-
-    // Retrieve value
-    return GetAt(key.GetInt());
-  }
+//   virtual Value const& Get(Value const& key)
+//   {
+//     // Check key type
+//     if(key.Type() != Value::tInt)
+//     {
+//       throw std::runtime_error("Invalid key type for list");
+//     }
+// 
+//     // Retrieve value
+//     return GetAt(key.GetInt());
+//   }
 
   //
   // Set a member by index
   //
-  virtual Value const& Set(Value const& key, Value const& value)
-  {
-    // Check key
-    if(key.Type() != Value::tInt)
-    {
-      throw std::runtime_error("Invalid key type for list");
-    }
-    
-    // Set value
-    GetAt(key.GetInt()) = value;
-    
-    // Return value
-    return value;
-  }
+//   virtual Value const& Set(Value const& key, Value const& value)
+//   {
+//     // Check key
+//     if(key.Type() != Value::tInt)
+//     {
+//       throw std::runtime_error("Invalid key type for list");
+//     }
+//     
+//     // Set value
+//     GetAt(key.GetInt()) = value;
+//     
+//     // Return value
+//     return value;
+//   }
 
   //
   // Implement garbage collector hook

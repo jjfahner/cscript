@@ -24,6 +24,7 @@
 #include <cscript.h>
 #include <variable.h>
 #include <stubs.h>
+#include <object.h>
 
 class XmlNode : public Object
 {

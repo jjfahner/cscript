@@ -222,7 +222,7 @@ private:
   //
   // Evaluate argument list
   //
-  void EvalArguments(Object* node, Function* fun, Object* arglist, Arguments& args);
+  void EvalArguments(Object* node, /*Function* fun, */Object* arglist, Arguments& args);
 
   //
   // Build xml tree

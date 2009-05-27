@@ -25,6 +25,7 @@
 #include "xmlparser.h"
 #include "lexstream.h"
 #include "datatype.h"
+#include "timer.h"
 
 #include "csparser.gen.h"
 #include "csparser.gen.c"
@@ -50,6 +51,8 @@ typedef LemonParser<
 Object* 
 CSParser::Parse(LexStream& stream, bool debug)
 {
+  Timer timer;
+
   m_root = 0;
 
   // Store stream
@@ -82,6 +85,9 @@ CSParser::Parse(LexStream& stream, bool debug)
 
   // Forget stream
   m_stream = 0;
+
+  // Store parse time
+  m_elapsed = timer.Elapsed();
 
   // Done
   return root;
