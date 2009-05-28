@@ -504,16 +504,13 @@ Evaluator::EvalStatement(Object* node)
 }
 
 void
-Evaluator::EvalLValue(Object* node, Object*& obj, Value& name, bool scopeIsOwner)
+Evaluator::EvalLValue(Object* node, Object*& obj, Value& name)
 {
   obj = 0;
   switch(Ast_Type(node))
   {
   case unqualified_id:
-    if(scopeIsOwner)
-    {
-      obj = m_scope;
-    }
+    obj = m_scope;
     name = Ast_A1(node);
     return;
 
@@ -524,7 +521,7 @@ Evaluator::EvalLValue(Object* node, Object*& obj, Value& name, bool scopeIsOwner
     return;
 
   case member_expression:
-    obj = EvalExpression(Ast_A1(node));
+    obj = ValObject(EvalExpression(Ast_A1(node)));
     name = Ast_A1(Ast_A2(node));
     return;
 
@@ -1093,11 +1090,6 @@ Evaluator::EvalFunctionCall(Object* node)
   Object* obj;
   Value key;
   EvalLValue(Ast_A1(node), obj, key);
-
-
-  // Add parameters to arguments
-  // FIXME
-  //args.SetParameters(fun->GetParameters());
   
   // Retrieve arguments from node
   Object* argsource = 0;

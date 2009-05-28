@@ -216,6 +216,21 @@ public:
     return new StringTypeImpl(value.GetString());
   }
 
+  virtual int64 Length()
+  {
+    return m_value.length();
+  }
+
+  virtual String Substr(int start, int length)
+  {
+    return m_value.substr(start, length ? length : DeclType::npos);
+  }
+
+  virtual int64 Find(StringCRef what, int start)
+  {
+    return m_value.find(what, start ? start : DeclType::npos);
+  }
+
 protected:
 
   DeclType m_value;

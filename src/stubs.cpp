@@ -42,7 +42,7 @@ enum StubType
 //
 // Stub signatures
 //
-typedef Value (*MethodStub)(Evaluator*, Arguments const&);
+typedef Value (*MethodStub)(Evaluator*, Object*, Arguments const&);
 typedef Value (*RoPropStub)(Object*);
 typedef void  (*RwPropStub)(Object*, Value const&);
 
@@ -101,99 +101,6 @@ inline ValueCRef __stub_arg_to_ValueCRef(Value const& v) {
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Native method wrapper
-//
-
-class NativeMethod : public Function, public RValue
-{
-  NativeCall* m_call;
-  Value m_value;
-
-public:
-
-  NativeMethod(NativeCall* call) :
-  Function  (call->m_name),
-  m_call    (call)
-  {
-    m_value = this;
-    GC::Pin(this);
-  }
-
-  virtual List* GetParameters() const
-  {
-    return 0;
-  }
-
-  virtual Value Execute(Evaluator* evaluator, Arguments& args)
-  {
-    return m_call->m_method(evaluator, args);
-  }
-
-  virtual Value const& GetValue() const
-  {    
-    return m_value;
-  }
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Native RO property wrapper
-//
-
-class NativeRoProp : public RValue, public Object
-{
-  NativeCall* m_call;
-  Object* m_instance;
-  mutable Value m_value;
-
-public:
-
-  NativeRoProp(NativeCall* call, Object* instance) :
-  m_call (call),
-  m_instance (instance)
-  {
-  }
-
-  virtual Value const& GetValue() const
-  {
-    m_value = m_call->m_roprop(m_instance);
-    return m_value;
-  }
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Native RW property wrapper
-//
-
-class NativeRwProp : public LValue, public Object
-{
-  NativeCall* m_call;
-  Object* m_instance;
-  mutable Value m_value;
-
-public:
-
-  NativeRwProp(NativeCall* call, Object* instance) :
-  m_call (call),
-  m_instance (instance)
-  {
-  }
-
-  virtual Value const& GetValue() const
-  {
-    m_value = m_call->m_roprop(m_instance);
-    return m_value;
-  }
-
-  virtual void SetValue(Value const& rhs)
-  {
-    m_call->m_rwprop(m_instance, rhs);
-  }
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Resolver implementation
 //
 
@@ -219,11 +126,37 @@ NativeCallTryGet(struct NativeCall* pTable, Object* instance, Value const& key, 
 bool 
 NativeCallTrySet(struct NativeCall* pTable, Object* instance, Value const& key, Value const& value)
 {
+  while(pTable->m_name)
+  {
+    if(key.GetString() == pTable->m_name)
+    {
+      if(pTable->m_rwprop)
+      {
+        pTable->m_rwprop(instance, value);
+        return true;
+      }
+      return false;
+    }
+    ++pTable;
+  }
   return false;
 }
 
 bool
 NativeCallEvaluate(struct NativeCall* pTable, Object* instance, Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
 {
+  while(pTable->m_name)
+  {
+    if(key.GetString() == pTable->m_name)
+    {
+      if(pTable->m_method)
+      {
+        result = pTable->m_method(evaluator, instance, arguments);
+        return true;
+      }
+      return false;
+    }
+    ++pTable;
+  }
   return false;
 }

@@ -294,8 +294,8 @@ function main()
 //   assert("Nested array", [1,[2,3]][0],    1);
 //   assert("Nested array", [1,[2,3]][1][0], 2);
 //   assert("Nested array", [1,[2,3]][1][1], 3);
-//   
-//   // Add array entries
+  
+  // Add array entries
 //   a = [];
 //   a[] = 0;
 //   a[] = 1;
@@ -359,17 +359,17 @@ function main()
   
   // Substring
   a = "Hello world";
-//   assert("substr", substr(a, 0, 5), "Hello");
-//   assert("substr", substr(a, 6),    "world");
-//   assert("strlen", strlen(a),         11);
-//   assert("strchr", strchr(a, "H"),     0);
-//   assert("strchr", strchr(a, "h"),    -1);
-//   assert("strchr", strchr(a, "o"),     4);
-//   assert("strchr", strchr(a, "o", 5),  7);
-//   assert("strstr", strstr(a, "He"),    0);
-//   assert("strstr", strstr(a, "wo"),    6);
-//   assert("strstr", strstr(a, "wa"),   -1);
-//   assert("strstr", strstr(a, "wo", 2), 6);
+  assert("String.Find", a.Substr(0, 5), "Hello");
+  assert("String.Find", a.Substr(6, 0), "world");
+  assert("String.Find", a.Length,         11);
+  assert("String.Find", a.Find("H", 0),  0);
+  assert("String.Find", a.Find("h", 0), -1);
+  assert("String.Find", a.Find("o", 0),  4);
+  assert("String.Find", a.Find("o", 5),  7);
+  assert("String.Find", a.Find("He", 0), 0);
+  assert("String.Find", a.Find("wo", 0), 6);
+  assert("String.Find", a.Find("wa", 0),-1);
+  assert("String.Find", a.Find("wo", 2), 6);
  
   // Logical or
   assert("Logical or", true  || false, true);
