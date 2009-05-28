@@ -165,6 +165,8 @@ class StringType : public ScalarType
 {
 public:
 
+  IMPL_NATIVECALLS(StringType, ScalarType);
+
   //
   // Type declaration
   //
@@ -174,6 +176,21 @@ public:
   // Retrieve singleton instance
   //
   static DataType* Instance();
+
+  //
+  // Length of string
+  //
+  __native_roprop virtual int64 Length() = 0;
+
+  //
+  // Retrieve substring
+  //
+  __native_method virtual String Substr(int start, int length) = 0;
+
+  //
+  // Find offset of substring
+  //
+  __native_method virtual int64 Find(StringCRef what, int start) = 0;
 
 };
 
