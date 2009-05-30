@@ -31,7 +31,9 @@ class List : public Object
 {
 public:
 
-  DEF_NATIVE_CALLS(List, Object)
+  DEF_NATIVE_EVAL(List, Object);
+  IMPL_NATIVE_GET(List, Object);
+  IMPL_NATIVE_SET(List, Object);
 
   //
   // The implementation list type
@@ -146,37 +148,56 @@ public:
   }
 
   //
-  // Retrieve a member by index
+  // Retrieve a member by key
   //
-//   virtual Value const& Get(Value const& key)
-//   {
-//     // Check key type
-//     if(key.Type() != Value::tInt)
-//     {
-//       throw std::runtime_error("Invalid key type for list");
-//     }
-// 
-//     // Retrieve value
-//     return GetAt(key.GetInt());
-//   }
+  virtual Value Get(Value const& key)
+  {
+    if(key.Type() == Value::tInt)
+    {
+      return GetAt(key.GetInt());
+    }
+    return NativeGet(key);
+  }
 
   //
-  // Set a member by index
+  // Try to retrieve a member by key
   //
-//   virtual Value const& Set(Value const& key, Value const& value)
-//   {
-//     // Check key
-//     if(key.Type() != Value::tInt)
-//     {
-//       throw std::runtime_error("Invalid key type for list");
-//     }
-//     
-//     // Set value
-//     GetAt(key.GetInt()) = value;
-//     
-//     // Return value
-//     return value;
-//   }
+  virtual bool TryGet(Value const& key, Value& value)
+  {
+    if(key.Type() == Value::tInt)
+    {
+      value = GetAt(key.GetInt());
+      return true;
+    }
+    return NativeTryGet(key, value);
+  }
+
+  //
+  // Set a member
+  //
+  virtual Value const& Set(Value const& key, Value const& value)
+  {
+    if(key.Type() == Value::tInt)
+    {
+      return GetAt(key.GetInt()) = value;
+    }
+    return NativeSet(key, value);
+  }
+
+  //
+  // Try to set a member
+  //
+  virtual bool TrySet(Value const& key, Value const& value)
+  {
+    if(key.Type() == Value::tInt)
+    {
+      GetAt(key.GetInt()) = value;
+      return true;
+    }
+    return NativeTrySet(key, value);
+  }
+
+protected:
 
   //
   // Implement garbage collector hook
@@ -197,8 +218,6 @@ public:
       }
     }
   }
-
-private:
 
   //
   // The list instance
