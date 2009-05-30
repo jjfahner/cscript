@@ -38,6 +38,7 @@ class MemberVariable;
 // Member map
 //
 typedef std::map<String, MemberVariable> MemberMap;
+typedef MemberMap::iterator MemberIterator;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -106,11 +107,6 @@ public:
   // Is a certain key present
   //
   virtual bool ContainsKey(String const& key, bool checkProto = true) const;
-
-  //
-  // Find a member
-  //
-  virtual bool Find(String const& key, RValue*& pValue, bool checkProto = true) const;
 
 protected:
 
