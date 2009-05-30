@@ -30,7 +30,7 @@ class File : public Object
 {
 public:
 
-  IMPL_NATIVECALLS(File, Object)
+  DEF_NATIVE_CALLS(File, Object)
 
   //
   // Open file

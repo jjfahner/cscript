@@ -31,7 +31,7 @@ class List : public Object
 {
 public:
 
-  IMPL_NATIVECALLS(List, Object)
+  DEF_NATIVE_CALLS(List, Object)
 
   //
   // The implementation list type
@@ -84,18 +84,10 @@ public:
   //
   // Add to end of list
   //
-  __native_method void Append(ValueCRef v)
+  __native_method ValueCRef Append(ValueCRef value)
   {
-    m_list.push_back(v);
-  }
-
-  //
-  // Append new item
-  //
-  Value const& FastAppend(Value const& v = Value())
-  {
-    m_list.push_back(v);
-    return m_list.back();
+    m_list.push_back(value);
+    return value;
   }
 
   //

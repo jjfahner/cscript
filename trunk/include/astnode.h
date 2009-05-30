@@ -35,7 +35,7 @@ class AstNode : public Object
 {
 public:
 
-  IMPL_NATIVECALLS(AstNode, Object)
+  DEF_NATIVE_CALLS(AstNode, Object)
   
   //
   // Constructors

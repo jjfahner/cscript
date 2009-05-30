@@ -30,7 +30,7 @@ class Socket : public Object
 {
 public:
 
-  IMPL_NATIVECALLS(Socket, Object);
+  DEF_NATIVE_CALLS(Socket, Object);
 
   //
   // Construction

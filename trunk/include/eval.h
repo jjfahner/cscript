@@ -193,10 +193,11 @@ private:
   Value EvalTypeConversion(Object* node);
   Value EvalOperatorDeclaration(Object* node);
   Value EvalIndex(Object* node);
-  Value EvalObjectIndex(Object* node, Object* lhs);
-  Value EvalListIndex(Object* node, List* lhs);
   Value EvalListAppend(Object* node);
 
+  //
+  // Eval expression to yield lvalue
+  //
   void EvalLValue(Object* node, Object*& obj, Value& key);
 
   //
