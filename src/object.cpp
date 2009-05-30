@@ -99,34 +99,6 @@ Object::GetEnumerator()
   return new ObjectEnumerator(this);
 }
 
-bool 
-Object::ContainsKey(String const& key, bool checkProto) const
-{
-  MemberMap::const_iterator it;
-
-  // Find in own members
-  if(m_members.count(key))
-  {
-    return true;
-  }
-
-  // Prototype checking
-  if(!checkProto)
-  {
-    return false;
-  }
-
-  // Find prototype object
-  it = m_members.find(g_prototype);
-  if(it == m_members.end())
-  {
-    return false;
-  }
-
-  // Lookup in prototype
-  return it->second->ContainsKey(key, true);
-}
-
 Value
 Object::Get(Value const& key)
 {
