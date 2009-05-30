@@ -75,7 +75,7 @@ public:
   virtual Value const& Set(Value const& key, Value const& value);
 
   //
-  // Set a member
+  // Try to set a member
   //
   virtual bool TrySet(Value const& key, Value const& value);
 
