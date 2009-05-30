@@ -106,6 +106,12 @@ inline ValueCRef __stub_arg_to_ValueCRef(Value const& v) {
 bool 
 NativeCallTryGet(struct NativeCall* pTable, Object* instance, Value const& key, Value& pValue)
 {
+  if(key.Type() != Value::tString)
+  {
+    throw std::runtime_error(
+      "Invalid key type for object");
+  }
+
   while(pTable->m_name)
   {
     if(key.GetString() == pTable->m_name)
@@ -125,6 +131,12 @@ NativeCallTryGet(struct NativeCall* pTable, Object* instance, Value const& key, 
 bool 
 NativeCallTrySet(struct NativeCall* pTable, Object* instance, Value const& key, Value const& value)
 {
+  if(key.Type() != Value::tString)
+  {
+    throw std::runtime_error(
+      "Invalid key type for object");
+  }
+
   while(pTable->m_name)
   {
     if(key.GetString() == pTable->m_name)
@@ -144,6 +156,12 @@ NativeCallTrySet(struct NativeCall* pTable, Object* instance, Value const& key, 
 bool
 NativeCallEvaluate(struct NativeCall* pTable, Object* instance, Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
 {
+  if(key.Type() != Value::tString)
+  {
+    throw std::runtime_error(
+      "Invalid key type for object");
+  }
+
   while(pTable->m_name)
   {
     if(key.GetString() == pTable->m_name)
