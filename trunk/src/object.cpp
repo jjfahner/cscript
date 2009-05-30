@@ -127,64 +127,17 @@ Object::ContainsKey(String const& key, bool checkProto) const
   return it->second->ContainsKey(key, true);
 }
 
-bool 
-Object::Find(String const& key, RValue*& pValue, bool checkProto) const
-{
-  MemberMap::iterator it;
-
-  // Initialize return value
-  pValue = 0;
-  
-  // Find in own members
-  it = m_members.find(key);
-  if(it != m_members.end())
-  {
-    pValue = &it->second;
-    return true;
-  }
-
-  // Prototype checking
-  if(!checkProto)
-  {
-    return false;
-  }
-  
-  // Find prototype
-  it = m_members.find(g_prototype);
-  if(it == m_members.end())
-  {
-    return false;
-  }
-  
-  // Lookup in prototype
-  if(!it->second->Find(key, pValue, true))
-  {
-    return false;
-  }
-
-  // Clone value
-  pValue = &m_members.insert(std::make_pair(key, pValue->GetValue())).first->second;
-
-  // Done
-  return true;
-}
-
 Value
 Object::Get(Value const& key)
 {
-  if(key.Type() != Value::tString)
+  Value value;
+  
+  if(TryGet(key, value))
   {
-    throw std::runtime_error(
-      "Invalid key type for object");
-  }
-
-  RValue* pValue;
-  if(Find(key, pValue, true))
-  {
-    return *pValue;
+    return value;
   }
   
-  return m_members[key];
+  throw std::runtime_error("Property not found");
 }
 
 bool 
@@ -196,41 +149,60 @@ Object::TryGet(Value const& key, Value& value)
       "Invalid key type for object");
   }
 
-  RValue* pValue;
-  if(Find(key, pValue, true))
+  // Find locally
+  MemberIterator it = m_members.find(key);
+  if(it != m_members.end())
   {
-    value = *pValue;
+    value = it->second;
     return true;
   }
 
+  // Find in prototype
+  it = m_members.find(g_prototype);
+  if(it != m_members.end())
+  {
+    return it->second->TryGet(key, value);
+  }
+
+  // Not found
   return false;
 }
 
 Value const&
 Object::Set(Value const& key, Value const& value)
 {
-  if(key.Type() != Value::tString)
+  if(!TrySet(key, value))
   {
-    throw std::runtime_error(
-      "Invalid key type for object");
+    m_members[key] = value;
   }
-  
-  MemberVariable& result = m_members[key];
-  result.SetValue(value);
-
-  return result;
+  return value;
 }
 
 bool
 Object::TrySet(Value const& key, Value const& value)
 {
-  RValue* pValue;
-  if(Find(key, pValue, true))
+  if(key.Type() != Value::tString)
   {
-    //pValue->GetLValue() = value;
+    throw std::runtime_error(
+      "Invalid key type for object");
+  }
+
+  // Find locally
+  MemberIterator it = m_members.find(key);
+  if(it != m_members.end())
+  {
+    it->second = value;
     return true;
   }
 
+  // Find in prototype
+  it = m_members.find(g_prototype);
+  if(it != m_members.end())
+  {
+    return it->second->TrySet(key, value);
+  }
+
+  // Not found
   return false;
 }
 
