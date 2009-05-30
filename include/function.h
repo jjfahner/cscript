@@ -23,7 +23,6 @@
 
 #include <cscript.h>
 #include <object.h>
-#include <variable.h>
 #include <args.h>
 #include <astnode.h>
 #include <value.h>

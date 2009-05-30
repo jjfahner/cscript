@@ -20,7 +20,6 @@
 //////////////////////////////////////////////////////////////////////////
 #include "object.h"
 #include "datatype.h"
-#include "variable.h"
 #include "function.h"
 #include "enumerator.h"
 
@@ -31,12 +30,10 @@ static const String g_prototype("prototype");
 
 //////////////////////////////////////////////////////////////////////////
 
-class ObjectEnumerator : public Enumerator
+class Object::ObjectEnumerator : public Enumerator
 {
-  typedef MemberMap::iterator Iterator;
-
-  Object*  m_obj;
-  Iterator m_cur;
+  Object*         m_obj;
+  MemberIterator  m_cur;
 
 public:
 

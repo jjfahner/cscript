@@ -19,7 +19,6 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include <stubs.h>
-#include <variable.h>
 #include <args.h>
 #include <native.h>
 #include <native/socket.h>

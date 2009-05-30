@@ -21,7 +21,6 @@
 #include <cscript.h>
 #include <xmllexer.h>
 #include <lexstream.h>
-#include <variable.h>
 #include <ctype.h>
 
 #include "xmlparser.gen.h"

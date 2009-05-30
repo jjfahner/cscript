@@ -23,9 +23,7 @@
 
 #include <cscript.h>
 #include <report.h>
-#include <variable.h>
-#include <ast.h>
-#include <gc.h>
+#include <value.h>
 
 #include <vector>
 #include <iosfwd>

@@ -23,22 +23,13 @@
 
 #include <gc.h>
 #include <map>
-#include <map_iter.h>
 
-class Object;
-class RValue;
 class Value;
+class Object;
 class DataType;
-class Enumerator;
-class Evaluator;
 class Arguments;
-class MemberVariable;
-
-//
-// Member map
-//
-typedef std::map<String, Value> MemberMap;
-typedef MemberMap::iterator MemberIterator;
+class Evaluator;
+class Enumerator;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -113,13 +104,22 @@ protected:
 
 private:
 
-  friend class ObjectEnumerator;
+  //
+  // Enumerator class
+  //
+  class ObjectEnumerator;
+
+  //
+  // Member map
+  //
+  typedef std::map<String, Value> MemberMap;
+  typedef MemberMap::iterator MemberIterator;
 
   //
   // Object members
   //
-  mutable DataType* m_dataType;
-  mutable MemberMap m_members;
+  DataType* m_dataType;
+  MemberMap m_members;
 
 };
 

@@ -23,7 +23,6 @@
 
 #include <cscript.h>
 #include <value.h>
-#include <variable.h>
 #include <function.h>
 
 //////////////////////////////////////////////////////////////////////////
