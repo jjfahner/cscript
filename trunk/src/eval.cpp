@@ -1033,88 +1033,7 @@ Evaluator::EvalFunctionCall(Object* node)
   EvalArguments(node, argsource, args);
 
   // Evaluate the function call
-  Value result;
-  if(obj->Evaluate(key, this, args, result))
-  {
-    return result;
-  }
-
-  // Failed
-  throw ScriptException(node, "Failed to execute function");
-/*
-  // Evaluate left-hand side
-  Object* obj;
-  Value key;
-  EvalLValue(Ast_A1(node), obj, key, false);
-  
-  // Retrieve function
-  Value lhs = (obj ? obj : m_scope)->Get(key);
-  if(lhs.Type() != Value::tObject)
-  {
-    throw ScriptException(node, "Function call on non-function object");
-  }
-
-//   // See whether the object overloads the function call operator
-//   String opfun = "operator()";
-//   if(lhs->ContainsKey(opfun))
-//   {
-//     // Retrieve function
-//     Object* funObj = lhs->GetRValue(opfun).GetObject();
-//     ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
-// 
-//     // Invoke as function call
-//     return EvalFunctionCall(node, fun, lhs.GetObject(), Ast_A2(node));
-//   }
-  
-  // Cast result to function
-  Function* fun = ValueToType<Function>(lhs.GetObject());
-  if(fun == 0)
-  {
-    throw ScriptException(node, "Function call on non-function object");
-  }
-
-  // Add object context to arguments
-  Object* owner = obj;
-
-  // Determine arguments
-  Object* args = 0;
-  if(!Ast_A2(node).Empty())
-  {
-    args = Ast_A2(node);
-  }
-
-  // Continue in overload
-  return EvalFunctionCall(node, fun, owner, args);
-  */
-}
-
-Value
-Evaluator::EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* arguments)
-{
-  throw std::runtime_error("Not supported");
-  /*
-  Arguments args;
-
-  // Add object context to arguments
-  args.SetObject(owner);
-  args.SetNode(node);
-
-  // Add parameters to arguments
-  args.SetParameters(fun->GetParameters());
-
-  // Evaluate arguments
-  EvalArguments(node, fun, arguments, args);
-
-  // Evaluate function
-  try
-  {
-    return fun->Execute(this, args);
-  }
-  catch(ReturnException const& e)
-  {
-    return e.m_value;
-  }
-  */
+  return obj->Eval(key, this, args);
 }
 
 Value
@@ -1148,7 +1067,14 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   pe = fun->GetParameters()->End();
   for(size_t index = 0; pi != pe; ++pi, ++index)
   {
-    m_scope->Add(Ast_A1(pi->GetObject()), args[index]);
+    if(index >= args.size())
+    {
+      m_scope->Add(Ast_A1(pi->GetObject()), Value());
+    }
+    else
+    {
+      m_scope->Add(Ast_A1(pi->GetObject()), args[index]);
+    }
   }
 
   // Create function execution scope
@@ -1624,8 +1550,16 @@ Evaluator::EvalNewExpression(Object* node)
   // Assign prototype object
   inst->Set("prototype", rval.GetObject());
 
-  // Find constructor
-//   RValue* funObj;
+  // Prepare arguments
+  // TODO evaluate constructor arguments
+  Arguments args;
+  args.SetNode(node);
+  args.SetObject(inst);
+
+  // Execute constructor
+  Value result;
+  inst->TryEval("constructor", this, args, result);
+
 //   if(inst->Find("constructor", funObj))
 //   {
 //     // Check whether it's a function
@@ -1638,7 +1572,7 @@ Evaluator::EvalNewExpression(Object* node)
 //     // Evaluate constructor
 //     EvalFunctionCall(node, fun, inst, Ast_A2(node));
 //   }
-
+// 
   // Return temporary
   return inst;
 }

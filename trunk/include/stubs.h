@@ -45,7 +45,7 @@ typedef String const& StringCRef;
 //
 bool NativeCallTryGet(struct NativeCall*, Object* instance, Value const& key, Value& value);
 bool NativeCallTrySet(struct NativeCall*, Object* instance, Value const& key, Value const& value);
-bool NativeCallEvaluate(struct NativeCall*, Object* instance, Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
+bool NativeCallTryEval(struct NativeCall*, Object* instance, Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,31 +136,51 @@ Set(Value const& key, Value const& value)         \
 
 #define IMPL_NATIVE_EVAL(class, base)             \
 bool                                              \
-NativeEvaluate(Value const& key,                  \
-      Evaluator* evaluator,                       \
-      Arguments& arguments,                       \
-      Value& result)                              \
+NativeTryEval(Value const& key,                   \
+              Evaluator* evaluator,               \
+              Arguments& arguments,               \
+              Value& result)                      \
 {                                                 \
   extern struct NativeCall __stublist_##class[];  \
-  if(NativeCallEvaluate(__stublist_##class,       \
+  if(NativeCallTryEval(__stublist_##class,        \
     this, key, evaluator, arguments, result))     \
   {                                               \
     return true;                                  \
   }                                               \
-  return base::Evaluate(key, evaluator,           \
+  return base::TryEval(key, evaluator,            \
                     arguments, result);           \
+}                                                 \
+Value                                             \
+NativeEval(Value const& key,                      \
+           Evaluator* evaluator,                  \
+           Arguments& arguments)                  \
+{                                                 \
+  Value result;                                   \
+  if(TryEval(key, evaluator, arguments, result))  \
+  {                                               \
+    return result;                                \
+  }                                               \
+  throw std::runtime_error("Method not found");   \
 }
 
 #define DEF_NATIVE_EVAL(class, base)              \
 IMPL_NATIVE_EVAL(class, base)                     \
 virtual bool                                      \
-Evaluate(Value const& key,                        \
-      Evaluator* evaluator,                       \
-      Arguments& arguments,                       \
-      Value& result)                              \
+TryEval(Value const& key,                         \
+        Evaluator* evaluator,                     \
+        Arguments& arguments,                     \
+        Value& result)                            \
 {                                                 \
-  return NativeEvaluate(key, evaluator,           \
-                    arguments, result);           \
+  return NativeTryEval(key, evaluator,            \
+                   arguments, result);            \
+}                                                 \
+virtual Value                                     \
+Eval(Value const& key,                            \
+     Evaluator* evaluator,                        \
+     Arguments& arguments,                        \
+     Value& result)                               \
+{                                                 \
+  return NativeEval(key, evaluator, arguments);   \
 }
 
 //////////////////////////////////////////////////////////////////////////
