@@ -20,7 +20,6 @@
 //////////////////////////////////////////////////////////////////////////
 #include "value.h"
 #include "object.h"
-#include "variable.h"
 #include "datatype.h"
 
 #include <typeinfo>

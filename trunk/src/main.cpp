@@ -33,7 +33,6 @@
 
 // Link to windows-only native functions
 #ifdef WIN32
-#include <native/comobject.h>
 #include <native/winapi.h>
 #endif
 

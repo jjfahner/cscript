@@ -391,10 +391,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\native\comobject.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\src\native\comtype.cpp"
 					>
 				</File>
@@ -560,10 +556,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\variable.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\xmllexer.h"
 				>
 			</File>
@@ -576,14 +568,6 @@
 				>
 				<File
 					RelativePath="..\..\include\native\array.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\native\comobject.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\native\comobject_i.h"
 					>
 				</File>
 				<File

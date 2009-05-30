@@ -105,12 +105,4 @@ enum ParameterTypes
   ptVariadic,
 };
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Ast accessors
-//
-
-#include <object.h>
-#include <variable.h>
-
 #endif // CSCRIPT_AST_H

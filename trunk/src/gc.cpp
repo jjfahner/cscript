@@ -19,10 +19,11 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "cscript.h"
-#include "variable.h"
+#include "gc.h"
 #include "object.h"
 #include "timer.h"
-#include "gc.h"
+#include "object.h"
+#include "value.h"
 
 //
 // Global object list
