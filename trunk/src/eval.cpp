@@ -924,15 +924,13 @@ Evaluator::EvalQualifiedId(Object* node)
     // Retrieve name
     String name = Ast_A1(cur);
 
-    // Lookup name in scope
-    if(!scope->ContainsKey(name))
+    // Retrieve node
+    Value const& rval = scope->Get(name);
+    if(rval.Empty())
     {
       throw ScriptException(node, "Namespace '" + scope->GetName() + 
                       "' does not contain a member '" + name + "'");
     }
-
-    // Retrieve node
-    Value const& rval = scope->Get(name);
 
     // If nested, descend, else retrieve value
     if(!Ast_A2(cur).Empty())
@@ -1442,11 +1440,12 @@ Evaluator::EvalJsonLiteral(Object* node)
         key = EvalExpression(Ast_A1(Ast_A1(child))).GetString();
       }
 
-      // Check for duplicate key in object, ignore prototype
-      if(o->ContainsKey(key, false))
-      {
-        throw ScriptException(node, "Duplicate key in JSON literal");
-      }
+//       // Check for duplicate key in object, ignore prototype
+      // FIXME
+//       if(o->ContainsKey(key, false))
+//       {
+//         throw ScriptException(node, "Duplicate key in JSON literal");
+//       }
 
       // Evaluate element
       Value const& element = EvalExpression(Ast_A2(Ast_A1(child)));
@@ -1846,27 +1845,27 @@ Evaluator::ConvertInPlace(Object* node, Value& value, Value::Types newType)
   }
 
   // Objects may implement certain type conversions themselves
-  if(value.Type() == Value::tObject)
-  {
-    String opfun = "operator " + Value::TypeToString(newType);
-    if(value->ContainsKey(opfun))
-    {
-      Object* funObj = value->Get(opfun);
-      ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
-
-      Arguments args;
-      args.SetObject(value);
-
-      value = EvalScriptCall(fun, args);
-      
-      if(value.Type() != newType)
-      {
-        throw ScriptException(node, "Conversion operator yields wrong type");
-      }
-
-      return;
-    }
-  }
+//   if(value.Type() == Value::tObject)
+//   {
+//     String opfun = "operator " + Value::TypeToString(newType);
+//     if(value->ContainsKey(opfun))
+//     {
+//       Object* funObj = value->Get(opfun);
+//       ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
+// 
+//       Arguments args;
+//       args.SetObject(value);
+// 
+//       value = EvalScriptCall(fun, args);
+//       
+//       if(value.Type() != newType)
+//       {
+//         throw ScriptException(node, "Conversion operator yields wrong type");
+//       }
+// 
+//       return;
+//     }
+//   }
 
   // Convert to basic types
   switch(newType)

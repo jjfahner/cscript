@@ -101,9 +101,9 @@ NATIVE_CALL("read()")
 }
 
 //////////////////////////////////////////////////////////////////////////
-
 void print_ast(Object& node, std::set<Object*>& done, int level)
 {
+#if 0
   for(int i = 0; i < level; ++i)
   {
     std::cout << "  ";
@@ -153,6 +153,7 @@ void print_ast(Object& node, std::set<Object*>& done, int level)
       print_ast(**it, done, level + 1);
     }
   }
+#endif
 }
 
 NATIVE_CALL("print_ast(node)")

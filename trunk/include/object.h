@@ -37,7 +37,7 @@ class MemberVariable;
 //
 // Member map
 //
-typedef std::map<String, MemberVariable> MemberMap;
+typedef std::map<String, Value> MemberMap;
 typedef MemberMap::iterator MemberIterator;
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,16 +97,6 @@ public:
   // Evaluate a method
   //
   virtual bool Evaluate(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
-
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Deprecated interface
-  //
-
-  //
-  // Is a certain key present
-  //
-  virtual bool ContainsKey(String const& key, bool checkProto = true) const;
 
 protected:
 
