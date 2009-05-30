@@ -47,12 +47,15 @@ bool NativeCallTryGet(struct NativeCall*, Object* instance, Value const& key, Va
 bool NativeCallTrySet(struct NativeCall*, Object* instance, Value const& key, Value const& value);
 bool NativeCallEvaluate(struct NativeCall*, Object* instance, Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
 
+
+//////////////////////////////////////////////////////////////////////////
 //
-// Implement native calls for a class by using this macro
+// Native get implementation
 //
-#define IMPL_NATIVECALLS(class, base)             \
-virtual bool                                      \
-TryGet(Value const& key, Value& value)            \
+
+#define IMPL_NATIVE_GET(class, base)              \
+bool                                              \
+NativeTryGet(Value const& key, Value& value)      \
 {                                                 \
   extern struct NativeCall __stublist_##class[];  \
   if(NativeCallTryGet(__stublist_##class,         \
@@ -62,7 +65,8 @@ TryGet(Value const& key, Value& value)            \
   }                                               \
   return base::TryGet(key, value);                \
 }                                                 \
-virtual Value Get(Value const& key)               \
+Value                                             \
+NativeGet(Value const& key)                       \
 {                                                 \
   Value value;                                    \
   if(TryGet(key, value))                          \
@@ -70,9 +74,29 @@ virtual Value Get(Value const& key)               \
     return value;                                 \
   }                                               \
   throw std::runtime_error("Cannot get value");   \
-}                                                 \
+}
+
+#define DEF_NATIVE_GET(class, base)               \
+IMPL_NATIVE_GET(class, base)                      \
 virtual bool                                      \
-TrySet(Value const& key, Value const& value)      \
+TryGet(Value const& key, Value& value)            \
+{                                                 \
+  return NativeTryGet(key, value);                \
+}                                                 \
+virtual Value                                     \
+Get(Value const& key)                             \
+{                                                 \
+  return NativeGet(key);                          \
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Native set implementation
+//
+
+#define IMPL_NATIVE_SET(class, base)              \
+bool                                              \
+NativeTrySet(Value const& key, Value const& value)\
 {                                                 \
   extern struct NativeCall __stublist_##class[];  \
   if(NativeCallTrySet(__stublist_##class,         \
@@ -82,16 +106,37 @@ TrySet(Value const& key, Value const& value)      \
   }                                               \
   return base::TrySet(key, value);                \
 }                                                 \
-virtual Value const&                              \
-Set(Value const& key, Value const& value)         \
+Value const&                                      \
+NativeSet(Value const& key, Value const& value)   \
 {                                                 \
   if(TrySet(key, value))                          \
   {                                               \
     return value;                                 \
   }                                               \
   throw std::runtime_error("Cannot set value");   \
+}
+
+#define DEF_NATIVE_SET(class, base)               \
+IMPL_NATIVE_SET(class, base)                      \
+virtual bool                                      \
+TrySet(Value const& key, Value const& value)      \
+{                                                 \
+  return NativeTrySet(key, value);                \
 }                                                 \
-virtual bool Evaluate(Value const& key,           \
+virtual Value const&                              \
+Set(Value const& key, Value const& value)         \
+{                                                 \
+  return NativeSet(key, value);                   \
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Nstive Evaluate implementation
+//
+
+#define IMPL_NATIVE_EVAL(class, base)             \
+bool                                              \
+NativeEvaluate(Value const& key,                  \
       Evaluator* evaluator,                       \
       Arguments& arguments,                       \
       Value& result)                              \
@@ -103,7 +148,34 @@ virtual bool Evaluate(Value const& key,           \
     return true;                                  \
   }                                               \
   return base::Evaluate(key, evaluator,           \
-                        arguments, result);       \
+                    arguments, result);           \
 }
+
+#define DEF_NATIVE_EVAL(class, base)              \
+IMPL_NATIVE_EVAL(class, base)                     \
+virtual bool                                      \
+Evaluate(Value const& key,                        \
+      Evaluator* evaluator,                       \
+      Arguments& arguments,                       \
+      Value& result)                              \
+{                                                 \
+  return NativeEvaluate(key, evaluator,           \
+                    arguments, result);           \
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Some easy macros
+//
+
+#define IMPL_NATIVE_CALLS(class, base)  \
+  IMPL_NATIVE_GET (class, base)         \
+  IMPL_NATIVE_SET (class, base)         \
+  IMPL_NATIVE_EVAL(class, base)
+
+#define DEF_NATIVE_CALLS(class, base)   \
+  DEF_NATIVE_GET (class, base)          \
+  DEF_NATIVE_SET (class, base)          \
+  DEF_NATIVE_EVAL(class, base)
 
 #endif // CSCRIPT_STUBS_H

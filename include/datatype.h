@@ -37,7 +37,7 @@ public:
   //
   // Native calls
   //
-  IMPL_NATIVECALLS(DataType, Object)
+  DEF_NATIVE_CALLS(DataType, Object)
 
   //
   // Construction
@@ -86,7 +86,7 @@ public:
   //
   // Native calls
   //
-  IMPL_NATIVECALLS(ScalarType, DataType)
+  DEF_NATIVE_CALLS(ScalarType, DataType)
 
   //
   // Convert to string
@@ -140,7 +140,7 @@ public:
   //
   // Native calls
   //
-  IMPL_NATIVECALLS(IntegerType, ScalarType)
+  DEF_NATIVE_CALLS(IntegerType, ScalarType)
 
   //
   // Declaration type
@@ -165,7 +165,7 @@ class StringType : public ScalarType
 {
 public:
 
-  IMPL_NATIVECALLS(StringType, ScalarType);
+  DEF_NATIVE_CALLS(StringType, ScalarType);
 
   //
   // Type declaration

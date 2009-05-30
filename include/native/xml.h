@@ -29,7 +29,7 @@ class XmlNode : public Object
 {
 public:
 
-  IMPL_NATIVECALLS(XmlNode, Object)
+  DEF_NATIVE_CALLS(XmlNode, Object)
 
   //
   // Retrieve parent node

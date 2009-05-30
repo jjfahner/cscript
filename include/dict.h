@@ -32,7 +32,7 @@ public:
   //
   // Native call mapping
   //
-  IMPL_NATIVECALLS(Dictionary, Object)
+  DEF_NATIVE_CALLS(Dictionary, Object)
 
   //
   // Map type

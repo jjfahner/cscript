@@ -794,78 +794,6 @@ Evaluator::EvalIndex(Object* node)
 
   // Retrieve the list
   return obj->Get(key);
-// 
-//   // Retrieve container object
-//   Object* container = 0;
-//   if(lhs.Type() == Value::tNull)
-//   {
-//     container = new Dictionary();
-//   }
-//   else
-//   {
-//     container = lhs.GetObject();
-//   }
-// 
-//   // Delegate to typed implementation
-//   switch(lhs.Type())
-//   {
-//   case Value::tNull:
-//     {
-//       Dictionary* dict = new Dictionary();
-//       return EvalListIndex(node, list);
-//     }
-// 
-//   case Value::tObject:
-//     return EvalObjectIndex(node, lhs.GetObject());
-// 
-//   default:  
-//     throw ScriptException(node, "Invalid type for index operator");
-//   }
-//  throw ScriptException(node, "Invalid index operator");
-}
-
-Value
-Evaluator::EvalObjectIndex(Object* node, Object* lhs)
-{
-//   RValue* val = 0;
-//   if(Ast_A2(node).Empty())
-//   {
-//     // Append value
-//     val = &lhs->GetAt(lhs->Count());
-//   }
-//   else
-//   {
-//     // Evaluate index expression
-//     RValue& rhs = EvalExpression(Ast_A2(node));
-// 
-//     // Retrieve value
-//     val = &lhs->GetAt(rhs);
-//   }
-// 
-//   // Convert to bound value
-//   if(LValue* lval = dynamic_cast<LValue*>(val))
-//   {
-//     return StoreTemp(new BoundLValue(*lval, lhs));
-//   }
-//   return StoreTemp(new BoundRValue(*val, lhs));
-  throw ScriptException(node, "Invalid index operator");
-}
-
-Value
-Evaluator::EvalListIndex(Object* node, List* lhs)
-{
-//   // No index expression; refers to newly added element
-//   if(Ast_A2(node).Empty())
-//   {
-//     return lhs->FastAppend();
-//   }
-// 
-//   // Evaluate index expression
-//   RValue& rhs = EvalExpression(Ast_A2(node));
-// 
-//   // Retrieve from list
-//   return lhs->GetAt(rhs.GetValue());
-  throw ScriptException(node, "Invalid index operator");
 }
 
 Value
@@ -878,7 +806,7 @@ Evaluator::EvalListAppend(Object* node)
     throw ScriptException(node, "Invalid type for list append operator");
   }
   
-  return list->FastAppend(EvalExpression(Ast_A4(node)));
+  return list->Append(EvalExpression(Ast_A4(node)));
 }
 
 Value
