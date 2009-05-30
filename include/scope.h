@@ -119,6 +119,29 @@ public:
   }
 
   //
+  // Try to retrieve a variable
+  //
+  virtual bool TryGet(Value const& key, Value& value)
+  {
+    // Find in this scope
+    Iter it = m_vars.find(key);
+    if(it != m_vars.end())
+    {
+      value = it->second;
+      return true;
+    }
+
+    // Find in parent scope
+    if(Scope* parent = GetParent())
+    {
+      return parent->TryGet(key, value);
+    }
+
+    // Unknown variable
+    return false;
+  }
+
+  //
   // Set an existing variable
   //
   virtual Value const& Set(Value const& key, Value const& value)
@@ -138,6 +161,29 @@ public:
 
     // Unknown variable
     throw std::runtime_error("Variable not found");
+  }
+
+  //
+  // Try to set a variable
+  //
+  virtual bool TrySet(Value const& key, Value const& value)
+  {
+    // Find in this scope
+    Iter it = m_vars.find(key);
+    if(it != m_vars.end())
+    {
+      it->second = value;
+      return true;
+    }
+
+    // Find in parent scope
+    if(Scope* parent = GetParent())
+    {
+      return parent->TrySet(key, value);
+    }
+
+    // Unknown variable
+    return false;
   }
 
   //
@@ -231,6 +277,21 @@ public:
   }
 
   //
+  // Try to retrieve a variable
+  //
+  virtual bool TryGet(Value const& key, Value& value)
+  {
+    // Lookup in object
+    if(m_inst->TryGet(key, value))
+    {
+      return true;
+    }
+
+    // Continue in scope
+    return Scope::TryGet(key, value);
+  }
+
+  //
   // Set a variable
   //
   virtual Value const& Set(Value const& key, Value const& value)
@@ -243,6 +304,21 @@ public:
 
     // Continue in scope
     return Scope::Set(key, value);
+  }
+
+  //
+  // Try to set a variable
+  //
+  virtual bool TrySet(Value const& key, Value const& value)
+  {
+    // Try to set in instance
+    if(m_inst->TrySet(key, value))
+    {
+      return true;
+    }
+
+    // Continue in scope
+    return Scope::TrySet(key, value);
   }
 
 protected:

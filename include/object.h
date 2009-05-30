@@ -87,7 +87,12 @@ public:
   //
   // Evaluate a method
   //
-  virtual bool Evaluate(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
+  virtual Value Eval(Value const& key, Evaluator* evaluator, Arguments& arguments);
+
+  //
+  // Try to evaluate a method
+  //
+  virtual bool TryEval(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
 
 protected:
 

@@ -205,7 +205,6 @@ private:
   //
   friend class ScriptFunction;
   Value EvalFunctionCall(Object* node);
-  Value EvalFunctionCall(Object* node, Function* fun, Object* owner, Object* arguments);
   Value EvalScriptCall(ScriptFunction* fun, Arguments& args);
 
   //

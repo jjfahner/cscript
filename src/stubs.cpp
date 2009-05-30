@@ -154,7 +154,7 @@ NativeCallTrySet(struct NativeCall* pTable, Object* instance, Value const& key, 
 }
 
 bool
-NativeCallEvaluate(struct NativeCall* pTable, Object* instance, Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
+NativeCallTryEval(struct NativeCall* pTable, Object* instance, Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
 {
   if(key.Type() != Value::tString)
   {

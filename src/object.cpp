@@ -182,13 +182,17 @@ Object::Unset(Value const& key)
 }
 
 bool
-Object::Evaluate(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
+Object::TryEval(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
 {
   // Find method
-  Object* method = Get(key);
+  Value method;
+  if(!TryGet(key, method))
+  {
+    return false;
+  }
 
   // Try to convert to function
-  Function* fun = dynamic_cast<Function*>(method);
+  Function* fun = dynamic_cast<Function*>(method.GetObject());
   if(fun == 0)
   {
     return false;
@@ -199,6 +203,20 @@ Object::Evaluate(Value const& key, Evaluator* evaluator, Arguments& arguments, V
 
   // Success
   return true;
+}
+
+Value 
+Object::Eval(Value const& key, Evaluator* evaluator, Arguments& arguments)
+{
+  // Delegate to TryEval
+  Value result;
+  if(TryEval(key, evaluator, arguments, result))
+  {
+    return result;
+  }
+
+  // Failed to evaluate method
+  throw std::runtime_error("Method not found");
 }
 
 void 
