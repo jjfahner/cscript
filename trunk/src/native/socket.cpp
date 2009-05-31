@@ -82,7 +82,7 @@ Socket::~Socket()
 }
 
 Value
-Socket::Connect(String host, int port)
+Socket::Connect(StringCRef host, int64 port)
 { 
   // Disconnect previous connection
   if(m_socket != INVALID_SOCKET)
@@ -99,7 +99,7 @@ Socket::Connect(String host, int port)
 
   // Convert port to string
   char portString[10];
-  sprintf(portString, "%d", port);
+  sprintf(portString, "%d", (int)port);
 
   // Retrieve info
   addrinfo* ai;
@@ -144,7 +144,7 @@ Socket::Disconnect()
 }
 
 Value
-Socket::Send(String data, int64 length)
+Socket::Send(StringCRef data, int64 length)
 {
   // Check connection
   if(m_socket == INVALID_SOCKET)
@@ -232,7 +232,10 @@ Socket::Receive(int64 length, int64 timeout)
   return result;
 }
 
+/*
+TODO
 NATIVE_CALL("CreateSocket()")
 {
   return new Socket();
 }
+*/

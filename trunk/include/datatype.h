@@ -22,8 +22,7 @@
 #define CSCRIPT_DATATYPE_H
 
 #include <cscript.h>
-#include <object.h>
-#include <stubs.h>
+#include <native.h>
 
 class Evaluator;
 class Arguments;
@@ -185,12 +184,12 @@ public:
   //
   // Retrieve substring
   //
-  __native_method virtual String Substr(int start, int length) = 0;
+  __native_method virtual String Substr(int64 start, int64 length) = 0;
 
   //
   // Find offset of substring
   //
-  __native_method virtual int64 Find(StringCRef what, int start) = 0;
+  __native_method virtual int64 Find(StringCRef what, int64 start) = 0;
 
 };
 

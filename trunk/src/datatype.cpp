@@ -213,14 +213,14 @@ public:
     return m_value.length();
   }
 
-  virtual String Substr(int start, int length)
+  virtual String Substr(int64 start, int64 length)
   {
-    return m_value.substr(start, length ? length : DeclType::npos);
+    return m_value.substr((size_t)start, (size_t)(length ? length : DeclType::npos));
   }
 
-  virtual int64 Find(StringCRef what, int start)
+  virtual int64 Find(StringCRef what, int64 start)
   {
-    return m_value.find(what, start ? start : DeclType::npos);
+    return m_value.find(what, (size_t)(start ? start : DeclType::npos));
   }
 
 protected:

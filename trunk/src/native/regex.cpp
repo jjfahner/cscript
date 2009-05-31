@@ -22,8 +22,6 @@
 #include <native/regex_i.h>
 #include <ctype.h>
 
-DEFINE_NATIVE_LINKAGE(Regex)
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Helpers
@@ -947,6 +945,8 @@ Regex::MatchTypeString(MatchTypes type)
 #include <value.h>
 #include <cscript.h>
 
+// TODO
+/*
 NATIVE_CALL("match(string pattern, string data, int offset = 0)")
 {
   // Fetch string pointers
@@ -967,3 +967,4 @@ NATIVE_CALL("match(string pattern, string data, int offset = 0)")
   // Return matched result
   return Value(mr.m_complete);
 }
+*/

@@ -53,7 +53,10 @@ XmlNode::Setxml(StringCRef xml)
 
 //////////////////////////////////////////////////////////////////////////
 
+/*
+TODO
 NATIVE_CALL("CreateXmlNode()")
 {
   return new XmlNode();
 }
+*/
