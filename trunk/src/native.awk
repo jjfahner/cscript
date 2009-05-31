@@ -183,9 +183,9 @@ $1 ~ /__native_rwprop/ {
     printf("\n/////////////////////////////////////////////////////////////////////\n");
     
     # Generate an include statement
-    file = gensub("\\\\", "/", "g", filename);
-    file = gensub("include/",  "", "", file);
-    printf("\n#include <%s>\n\n", file);
+    #file = gensub("\\\\", "/", "g", filename);
+    #file = gensub("include/",  "", "", file);
+    printf("\n#include <%s>\n\n", filename);
   }
 
   # Generate index for arrays
