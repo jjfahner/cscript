@@ -23,6 +23,27 @@
 
 #include <native.h>
 
-DECLARE_NATIVE_LINKAGE(Consio)
+class Console : public Object
+{
+public:
+
+  DEF_NATIVE_CALLS(Console, Object);
+
+  //
+  // Print supplied arguments
+  //
+  __native_method void Write(ArgsCRef args);
+
+  //
+  // Print supplied arguments, append newline
+  //
+  __native_method void WriteLn(ArgsCRef args);
+
+  //
+  // Read a string
+  //
+  __native_method String Read();
+
+};
 
 #endif // CSCRIPT_NATIVE_CONSIO_H

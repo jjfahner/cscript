@@ -54,15 +54,15 @@ $2 ~ /__native_method/ {
   
   # Enumerate parameters
   p = 0;
-  for(; i <= NF; i++) {
+  for(; i <= NF; ++i) {
     if($i == "" || $i == "=" || $i == ";" || $i == "{" || $i == "const" || $i == "\r") {
       break;
     }
     else {
       # Store parameter type and name
-      p++;
+      ++p;
       ptype[p] = $i;
-      i++;
+      ++i;
       pname[p] = $i;
     }
   }
@@ -82,7 +82,14 @@ $2 ~ /__native_method/ {
   {
     comma = "";
     if(i < p) comma = ",";
-    printf("\n    __stub_arg_to_%s(args[%d])%s", ptype[i], (i-1), comma);
+    if(ptype[i] == "ArgsRef" || ptype[i] == "ArgsCRef")
+    {
+      printf("\n    args");
+    }
+    else
+    {
+      printf("\n    __stub_arg_to_%s(args[%d])%s", ptype[i], (i-1), comma);
+    }
   }
   printf(");\n");
   if(returns == "void")

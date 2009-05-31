@@ -37,6 +37,7 @@
 #include "csparser.gen.h"
 
 #include <native/path.h>
+#include <native/consio.h>
 
 #include <list>
 #include <iostream>
@@ -146,6 +147,10 @@ m_debugParser(0)
     // Register native calls
     nativeCallsRegistered = true;
     NativeCallRegistrar::RegisterCalls();
+
+    // Register native classes
+    GetGlobalScope()->Add("Path", new Path());
+    GetGlobalScope()->Add("Console", new Console());
 
     // Cleanup after native call registration
     Collect();
