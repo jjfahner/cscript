@@ -21,7 +21,7 @@ libcs_a_SOURCES = args.cpp \
 		  object.cpp \
 		  opcodes.cpp \
 		  report.cpp \
-		  srcfile.cpp \
+		  scriptobj.cpp \
 		  stubs.cpp \
 		  timer.cpp \
 		  value.cpp \
