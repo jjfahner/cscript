@@ -46,6 +46,11 @@ public:
   typedef ImplType::iterator Iterator;
 
   //
+  // List type
+  //
+  virtual DataType* GetType();
+
+  //
   // Retrieve enumerator
   //
   virtual Enumerator* GetEnumerator();

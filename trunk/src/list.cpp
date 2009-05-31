@@ -81,7 +81,11 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-// TODO Implement GetType
+DataType* 
+List::GetType()
+{
+  return ListType::Instance();
+}
 
 Enumerator* 
 List::GetEnumerator()

@@ -307,6 +307,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\scriptobj.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\srcfile.cpp"
 				>
 			</File>
@@ -536,6 +540,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\scriptobj.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\srcfile.h"
 				>
 			</File>
@@ -612,14 +620,6 @@
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath="..\..\src\scriptobj.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\..\include\scriptobj.h"
-			>
-		</File>
 		<File
 			RelativePath="..\..\TODO"
 			>
