@@ -530,23 +530,23 @@ function print(value)
 //
 
 // Cleanup any garbage objects and store current count
-collect();
+CScript.Collect();
 
 // Invoke main program
-var elapsed = ticks();
+var elapsed = CScript.Ticks;
 for(var i = 0; i < 10; ++i) 
 {
   Console.WriteLn("Iteration {i}");
   main();
 }
-elapsed = ticks() - elapsed;
+elapsed = CScript.Ticks - elapsed;
 
 // Show elapsed time
 Console.WriteLn("Executed in {elapsed} ms");
 
 // Run garbage collector
 Console.WriteLn("Collecting...");
-var ci = collect();
+var ci = CScript.Collect();
 Console.WriteLn(ci);
 
 // EOF

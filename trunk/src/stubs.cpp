@@ -27,6 +27,7 @@
 #include <dict.h>
 #include <native/path.h>
 #include <native/consio.h>
+#include <native/standard.h>
 
 //////////////////////////////////////////////////////////////////////////
 

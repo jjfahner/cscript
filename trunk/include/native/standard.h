@@ -23,6 +23,59 @@
 
 #include <native.h>
 
-DECLARE_NATIVE_LINKAGE(Standard)
+class CScriptMethods : public Object
+{
+public:
+
+  DEF_NATIVE_CALLS(CScriptMethods, Object);
+
+  //
+  // Evaluate code
+  // TODO add default value = false
+  __native_method Value Eval(StringCRef code, bool isFile, EvalRef evaluator);
+
+  //
+  // Reset the evaluator
+  //
+  __native_method void Reset();
+
+  //
+  // Perform garbage collection cycle
+  //
+  __native_method Value Collect(EvalRef evaluator);
+
+  //
+  // Retrieve total number of objects
+  //
+  __native_method int64 ObjectCount();
+
+  //
+  // Exit process
+  // TODO add default value = 0
+  __native_method void Exit(int64 exitcode);
+
+  //
+  // Exit process
+  // TODO add default value = 0
+  __native_method void Quit(int64 exitcode);
+
+  //
+  // Lookup a symbol value
+  //
+  __native_method Value Lookup(StringCRef name, EvalRef evaluator);
+
+  //
+  // Current number of ticks
+  // TODO this doesn't really belong here
+  __native_roprop int64 Ticks();
+
+  //
+  // Only in debug versions
+  //
+#ifdef _DEBUG
+  __native_method void DebugParser(bool value, EvalRef evaluator);
+#endif
+
+};
 
 #endif // CSCRIPT_NATIVE_STANDARD_H

@@ -21,14 +21,6 @@
 #include <cmdargs.h>
 #include <eval.h>
 
-// Link to native functions
-#include <native/diskio.h>
-#include <native/file.h>
-#include <native/regex.h>
-#include <native/socket.h>
-#include <native/standard.h>
-#include <native/string.h>
-
 // Link to windows-only native functions
 #ifdef WIN32
 #include <native/winapi.h>

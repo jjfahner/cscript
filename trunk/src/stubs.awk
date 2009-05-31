@@ -69,7 +69,7 @@ $2 ~ /__native_method/ {
   
   # Generate call stub
   stub = sprintf("__stub_%s_%s", className, memberName);
-  printf("static Value %s(Evaluator*, Object* instance, Arguments const& args) {\n", stub);
+  printf("static Value %s(Evaluator* evaluator, Object* instance, Arguments const& args) {\n", stub);
   if(returns == "void")
   {
     printf("  dynamic_cast<%s*>(instance)->%s(", className, memberName);
@@ -84,7 +84,11 @@ $2 ~ /__native_method/ {
     if(i < p) comma = ",";
     if(ptype[i] == "ArgsRef" || ptype[i] == "ArgsCRef")
     {
-      printf("\n    args");
+      printf("\n    args%s", comma);
+    }
+    else if(ptype[i] == "EvalRef")
+    {
+      printf("\n    *evaluator");
     }
     else
     {
