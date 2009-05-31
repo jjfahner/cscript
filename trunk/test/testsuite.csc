@@ -299,7 +299,7 @@ function main()
   a[] = 0;
   a[] = 1;
   a[] = 2;
-  assert("Array entries", count(a), 3);
+  assert("Array entries", a.Length, 3);
   assert("Array entries", a[0], 0);
   assert("Array entries", a[1], 1);
   assert("Array entries", a[2], 2);
@@ -516,34 +516,37 @@ function main()
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Wrap Console.Write in a function so it can be disabled easily
+//
+
+function print(value)
+{
+  //Console.Write(value);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Start by invoking main()
 //
 
 // Cleanup any garbage objects and store current count
 collect();
 
-// Replace print
-var tprint = print;
-var print = function(arg) {};
-
 // Invoke main program
 var elapsed = ticks();
 for(var i = 0; i < 10; ++i) 
 {
-  tprint("Iteration {i}\n");
+  Console.WriteLn("Iteration {i}");
   main();
 }
 elapsed = ticks() - elapsed;
 
-// Restore print
-unset print;
-
-print("Executed in {elapsed} ms\n");
+// Show elapsed time
+Console.WriteLn("Executed in {elapsed} ms");
 
 // Run garbage collector
-print("Collecting...\n");
+Console.WriteLn("Collecting...");
 var ci = collect();
-print(ci);
-print("\n");
+Console.WriteLn(ci);
 
 // EOF

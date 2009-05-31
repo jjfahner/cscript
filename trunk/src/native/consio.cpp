@@ -25,7 +25,34 @@
 #include <list>
 #include <iostream>
 
-DEFINE_NATIVE_LINKAGE(Consio)
+void PrintValue(Value const& val);
+
+void 
+Console::Write(ArgsCRef args)
+{
+  for(size_t i = 0; i < args.size(); ++i)
+  {
+    PrintValue(args[i]);
+  }
+}
+
+void 
+Console::WriteLn(ArgsCRef args)
+{
+  for(size_t i = 0; i < args.size(); ++i)
+  {
+    PrintValue(args[i]);
+  }
+  PrintValue("\n");
+}
+
+String 
+Console::Read()
+{
+  String line;
+  std::cin >> line;
+  return Value(line);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -87,19 +114,19 @@ void PrintValue(Value const& val)
 //   std::cout << "]";
 }
 
-NATIVE_CALL("print(value)")
-{
-  PrintValue(args[0]);
-  return args[0];
-}
-
-NATIVE_CALL("read()")
-{
-  String line;
-  std::cin >> line;
-  return Value(line);
-}
-
+// NATIVE_CALL("print(value)")
+// {
+//   PrintValue(args[0]);
+//   return args[0];
+// }
+// 
+// NATIVE_CALL("read()")
+// {
+//   String line;
+//   std::cin >> line;
+//   return Value(line);
+// }
+// 
 //////////////////////////////////////////////////////////////////////////
 void print_ast(Object& node, std::set<Object*>& done, int level)
 {

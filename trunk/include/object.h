@@ -78,7 +78,7 @@ public:
   //
   virtual Value Get(Value const& key)
   {
-    throw std::runtime_error("Member not found");
+    throw std::runtime_error("Member '" + key.GetString() + "' not found");
   }
 
   //
@@ -94,7 +94,7 @@ public:
   //
   virtual Value const& Set(Value const& key, Value const& value)
   {
-    throw std::runtime_error("Member not found");
+    throw std::runtime_error("Member '" + key.GetString() + "' not found");
   }
 
   //
@@ -115,7 +115,7 @@ public:
     {
       return result;
     }
-    throw std::runtime_error("Method not found");
+    throw std::runtime_error("Method '" + key.GetString() + "' not found");
   }
 
   //

@@ -258,6 +258,7 @@
 						Name="VCCustomBuildTool"
 						Description="Generating native method stubs..."
 						CommandLine="cd ..\..&#x0D;&#x0A;tools\win32\awk.exe -f src\stubs.awk include\*.h &gt; src\stubs.gen.cpp&#x0D;&#x0A;tools\win32\awk.exe -f src\stubs.awk include\native\*.h &gt;&gt; src\stubs.gen.cpp&#x0D;&#x0A;"
+						AdditionalDependencies=""
 						Outputs="..\..\src\stubs.gen.cpp"
 					/>
 				</FileConfiguration>
@@ -277,10 +278,6 @@
 			<Filter
 				Name="native"
 				>
-				<File
-					RelativePath="..\..\src\native\array.cpp"
-					>
-				</File>
 				<File
 					RelativePath="..\..\src\native\comtype.cpp"
 					>
@@ -433,10 +430,6 @@
 			<Filter
 				Name="native"
 				>
-				<File
-					RelativePath="..\..\include\native\array.h"
-					>
-				</File>
 				<File
 					RelativePath="..\..\include\native\comtype.h"
 					>

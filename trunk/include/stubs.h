@@ -35,10 +35,9 @@ class Arguments;
 // Forward declare single-word types that have a wrapper function
 //
 typedef Object* ObjectPtr;
-typedef Value& ValueRef;
 typedef Value const& ValueCRef;
-typedef String& StringRef;
 typedef String const& StringCRef;
+typedef Arguments const& ArgsCRef;
 
 //
 // Forward declare generic native call handlers
@@ -73,7 +72,8 @@ NativeGet(Value const& key)                       \
   {                                               \
     return value;                                 \
   }                                               \
-  throw std::runtime_error("Cannot get value");   \
+  throw std::runtime_error("Member '" +           \
+      key.GetString() + "' not found");           \
 }
 
 #define DEF_NATIVE_GET(class, base)               \
@@ -113,7 +113,8 @@ NativeSet(Value const& key, Value const& value)   \
   {                                               \
     return value;                                 \
   }                                               \
-  throw std::runtime_error("Cannot set value");   \
+  throw std::runtime_error("Member '" +           \
+      key.GetString() + "' not found");           \
 }
 
 #define DEF_NATIVE_SET(class, base)               \
@@ -160,7 +161,8 @@ NativeEval(Value const& key,                      \
   {                                               \
     return result;                                \
   }                                               \
-  throw std::runtime_error("Method not found");   \
+  throw std::runtime_error("Method '" +           \
+      key.GetString() + "' not found");           \
 }
 
 #define DEF_NATIVE_EVAL(class, base)              \

@@ -22,8 +22,6 @@
 #include <eval.h>
 
 // Link to native functions
-#include <native/array.h>
-#include <native/consio.h>
 #include <native/diskio.h>
 #include <native/file.h>
 #include <native/regex.h>
