@@ -23,6 +23,4 @@
 
 #include <native.h>
 
-DECLARE_NATIVE_LINKAGE(Regex)
-
 #endif // CSCRIPT_NATIVE_REGEX_H

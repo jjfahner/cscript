@@ -22,9 +22,9 @@
 #define CSCRIPT_NATIVE_FILE_H
 
 #include <native.h>
-#include <fstream>
+#include <object.h>
 
-DECLARE_NATIVE_LINKAGE(File)
+#include <fstream>
 
 class File : public Object
 {
@@ -35,12 +35,12 @@ public:
   //
   // Open file
   //
-  __native_method Value Open(String s_name, String s_mode, bool b_binary, bool b_atend, bool b_truncate);
+  __native_method void Open(StringCRef s_name, StringCRef s_mode, bool b_binary, bool b_atend, bool b_truncate);
 
   //
   // Close file
   //
-  __native_method Value Close();
+  __native_method void Close();
 
   //
   // Read string
@@ -50,7 +50,7 @@ public:
   //
   // Write string
   //
-  __native_method Value Write(String data, int length);
+  __native_method void Write(StringCRef data, int64 length);
 
 private:
 

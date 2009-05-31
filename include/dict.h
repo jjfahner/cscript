@@ -21,9 +21,12 @@
 #ifndef CSCRIPT_NATIVE_ARRAY_H
 #define CSCRIPT_NATIVE_ARRAY_H
 
-#include <stubs.h>
-#include <map>
+#include <native.h>
+#include <object.h>
+#include <enumerator.h>
+
 #include <iterator>
+#include <map>
 
 class Dictionary : public Object
 {

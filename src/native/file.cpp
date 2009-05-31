@@ -21,12 +21,8 @@
 #include <native/file.h>
 #include <eval.h>
 
-DEFINE_NATIVE_LINKAGE(File)
-
-//////////////////////////////////////////////////////////////////////////
-
-Value 
-File::Open(String s_name, String s_mode, bool b_binary, bool b_atend, bool b_truncate)
+void 
+File::Open(StringCRef s_name, StringCRef s_mode, bool b_binary, bool b_atend, bool b_truncate)
 {
   // Close current file
   Close();
@@ -52,12 +48,9 @@ File::Open(String s_name, String s_mode, bool b_binary, bool b_atend, bool b_tru
   {
     throw CatchableException("Failed to open file");
   }
-
-  // Return nothing
-  return Value();
 }
 
-Value 
+void 
 File::Close()
 {
   // Close current file
@@ -65,9 +58,6 @@ File::Close()
   {
     m_stream.close();
   }
-
-  // No return value
-  return Value();
 }
 
 Value 
@@ -76,8 +66,8 @@ File::Read()
   return Value();
 }
 
-Value 
-File::Write(String data, int length)
+void
+File::Write(StringCRef data, int64 length)
 {
   // Check file
   if(!m_stream.is_open())
@@ -94,7 +84,7 @@ File::Write(String data, int length)
   // Check for no output
   if(length == 0)
   {
-    return true;
+    return;
   }
 
   // Check for buffer underflow
@@ -104,21 +94,19 @@ File::Write(String data, int length)
   }
 
   // Write the string
-  m_stream.write(data.c_str(), length);
+  m_stream.write(data.c_str(), (int)length);
 
   // Check stream
   if(m_stream.bad())
   {
     throw CatchableException("Failed to write to file");
   }
-
-  // Return nothing
-  return Value();    
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-NATIVE_CALL("CreateFile()")
-{
-  return new File();
-};
+// TODO
+// NATIVE_CALL("CreateFile()")
+// {
+//   return new File();
+// };

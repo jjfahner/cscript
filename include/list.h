@@ -22,8 +22,8 @@
 #define CSCRIPT_LISTOBJECT_H
 
 #include <cscript.h>
+#include <native.h>
 #include <enumerator.h>
-#include <stubs.h>
 
 #include <vector>
 

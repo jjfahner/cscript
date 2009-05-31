@@ -26,8 +26,8 @@
 #include <value.h>
 #include <ast.h>
 #include <list.h>
-#include <stubs.h>
 #include <datatype.h>
+#include <native.h>
 
 class DataType;
 

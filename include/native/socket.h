@@ -22,7 +22,7 @@
 #define CSCRIPT_SOCKET_H
 
 #include <native.h>
-#include <stubs.h>
+#include <object.h>
 
 class Socket : public Object
 {
@@ -43,7 +43,7 @@ public:
   //
   // Connect to peer
   //
-  __native_method Value Connect(String host, int port);
+  __native_method Value Connect(StringCRef host, int64 port);
 
   //
   // Close connection
@@ -53,7 +53,7 @@ public:
   //
   // Send data
   //
-  __native_method Value Send(String data, int64 length);
+  __native_method Value Send(StringCRef data, int64 length);
 
   //
   // Receive data

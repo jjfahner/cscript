@@ -21,9 +21,7 @@
 #ifndef CSCRIPT_XML_H
 #define CSCRIPT_XML_H
 
-#include <cscript.h>
-#include <stubs.h>
-#include <object.h>
+#include <native.h>
 
 class XmlNode : public Object
 {

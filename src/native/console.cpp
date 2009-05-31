@@ -18,7 +18,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#include <native/consio.h>
+#include <native/console.h>
+#include <args.h>
 #include <eval.h>
 
 #include <set>
@@ -181,14 +182,4 @@ void print_ast(Object& node, std::set<Object*>& done, int level)
     }
   }
 #endif
-}
-
-NATIVE_CALL("print_ast(node)")
-{
-  Object* root = args[0].GetObject();
-
-  std::set<Object*> done;
-  print_ast(*root, done, 0);
-
-  return Value();
 }

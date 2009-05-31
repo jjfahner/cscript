@@ -21,9 +21,7 @@
 #ifndef CSCRIPT_NATIVE_PATH_H
 #define CSCRIPT_NATIVE_PATH_H
 
-#include <cscript.h>
-#include <object.h>
-#include <stubs.h>
+#include <native.h>
 
 class Path : public Object
 {

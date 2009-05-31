@@ -18,11 +18,33 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#ifndef CSCRIPT_NATIVE_STRING_H
-#define CSCRIPT_NATIVE_STRING_H
+#ifndef CSCRIPT_NATIVE_CONSIO_H
+#define CSCRIPT_NATIVE_CONSIO_H
 
 #include <native.h>
+#include <object.h>
 
-DECLARE_NATIVE_LINKAGE(String)
+class Console : public Object
+{
+public:
 
-#endif // CSCRIPT_NATIVE_STRING_H
+  DEF_NATIVE_CALLS(Console, Object);
+
+  //
+  // Print supplied arguments
+  //
+  __native_method void Write(ArgsCRef args);
+
+  //
+  // Print supplied arguments, append newline
+  //
+  __native_method void WriteLn(ArgsCRef args);
+
+  //
+  // Read a string
+  //
+  __native_method String Read();
+
+};
+
+#endif // CSCRIPT_NATIVE_CONSIO_H

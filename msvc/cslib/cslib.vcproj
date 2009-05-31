@@ -229,6 +229,20 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\native.awk"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating native stubs..."
+						CommandLine="cd ..\..&#x0D;&#x0A;tools\win32\awk.exe -f src\native.awk include\*.h &gt; src\native.gen.cpp&#x0D;&#x0A;tools\win32\awk.exe -f src\native.awk include\native\*.h &gt;&gt; src\native.gen.cpp&#x0D;&#x0A;"
+						Outputs="..\..\src\native.gen.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\src\native.cpp"
 				>
 			</File>
@@ -249,50 +263,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\stubgen.awk"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="cd ..\..&#x0D;&#x0A;tools\win32\awk.exe -f src\stubgen.awk include\*.h &gt; src\stubgen.gen.cpp&#x0D;&#x0A;tools\win32\awk.exe -f src\stubgen.awk include\native\*.h &gt;&gt; src\stubgen.gen.cpp&#x0D;&#x0A;"
-						Outputs="..\..\src\stubgen.gen.cpp"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\src\stubgen.gen.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\src\stubs.awk"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating native method stubs..."
-						CommandLine="cd ..\..&#x0D;&#x0A;tools\win32\awk.exe -f src\stubs.awk include\*.h &gt; src\stubs.gen.cpp&#x0D;&#x0A;tools\win32\awk.exe -f src\stubs.awk include\native\*.h &gt;&gt; src\stubs.gen.cpp&#x0D;&#x0A;"
-						AdditionalDependencies=""
-						Outputs="..\..\src\stubs.gen.cpp"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\src\stubs.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\timer.cpp"
 				>
 			</File>
@@ -308,11 +278,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\native\consio.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\native\diskio.cpp"
+					RelativePath="..\..\src\native\console.cpp"
 					>
 				</File>
 				<File
@@ -333,14 +299,6 @@
 				</File>
 				<File
 					RelativePath="..\..\src\native\standard.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\native\string.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\native\winapi.cpp"
 					>
 				</File>
 				<File
@@ -437,10 +395,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\stubs.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\timer.h"
 				>
 			</File>
@@ -460,11 +414,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\include\native\consio.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\native\diskio.h"
+					RelativePath="..\..\include\native\console.h"
 					>
 				</File>
 				<File
@@ -485,14 +435,6 @@
 				</File>
 				<File
 					RelativePath="..\..\include\native\standard.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\native\string.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\native\winapi.h"
 					>
 				</File>
 				<File
