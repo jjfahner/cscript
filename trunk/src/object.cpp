@@ -77,36 +77,10 @@ m_dataType (dataType ? dataType : ObjectType::Instance())
 {
 }
 
-DataType* 
-Object::GetType() const
-{
-  return m_dataType;
-}
-
-size_t 
-Object::Count() const 
-{
-  // Return size
-  return m_members.size();
-}
-
 Enumerator* 
 Object::GetEnumerator()
 {
   return new ObjectEnumerator(this);
-}
-
-Value
-Object::Get(Value const& key)
-{
-  Value value;
-  
-  if(TryGet(key, value))
-  {
-    return value;
-  }
-  
-  throw std::runtime_error("Property not found");
 }
 
 bool 
@@ -137,16 +111,6 @@ Object::TryGet(Value const& key, Value& value)
   return false;
 }
 
-Value const&
-Object::Set(Value const& key, Value const& value)
-{
-  if(!TrySet(key, value))
-  {
-    m_members[key] = value;
-  }
-  return value;
-}
-
 bool
 Object::TrySet(Value const& key, Value const& value)
 {
@@ -175,12 +139,6 @@ Object::TrySet(Value const& key, Value const& value)
   return false;
 }
 
-void 
-Object::Unset(Value const& key)
-{
-  m_members.erase(key);
-}
-
 bool
 Object::TryEval(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
 {
@@ -203,20 +161,6 @@ Object::TryEval(Value const& key, Evaluator* evaluator, Arguments& arguments, Va
 
   // Success
   return true;
-}
-
-Value 
-Object::Eval(Value const& key, Evaluator* evaluator, Arguments& arguments)
-{
-  // Delegate to TryEval
-  Value result;
-  if(TryEval(key, evaluator, arguments, result))
-  {
-    return result;
-  }
-
-  // Failed to evaluate method
-  throw std::runtime_error("Method not found");
 }
 
 void 

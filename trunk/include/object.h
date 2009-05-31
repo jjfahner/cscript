@@ -23,9 +23,8 @@
 
 #include <gc.h>
 #include <map>
+#include <value.h>
 
-class Value;
-class Object;
 class DataType;
 class Arguments;
 class Evaluator;
@@ -127,5 +126,58 @@ private:
   MemberMap m_members;
 
 };
+
+//////////////////////////////////////////////////////////////////////////
+
+inline DataType* 
+Object::GetType() const
+{
+  return m_dataType;
+}
+
+inline size_t 
+Object::Count() const 
+{
+  // Return size
+  return m_members.size();
+}
+
+inline void 
+Object::Unset(Value const& key)
+{
+  m_members.erase(key);
+}
+
+inline Value
+Object::Get(Value const& key)
+{
+  Value value;
+  if(TryGet(key, value))
+  {
+    return value;
+  }
+  throw std::runtime_error("Property not found");
+}
+
+inline Value const&
+Object::Set(Value const& key, Value const& value)
+{
+  if(!TrySet(key, value))
+  {
+    m_members[key] = value;
+  }
+  return value;
+}
+
+inline Value 
+Object::Eval(Value const& key, Evaluator* evaluator, Arguments& arguments)
+{
+  Value result;
+  if(TryEval(key, evaluator, arguments, result))
+  {
+    return result;
+  }
+  throw std::runtime_error("Method not found");
+}
 
 #endif // CSCRIPT_OBJECT_H
