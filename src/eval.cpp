@@ -38,6 +38,7 @@
 
 #include <native/path.h>
 #include <native/consio.h>
+#include <native/standard.h>
 
 #include <list>
 #include <iostream>
@@ -151,6 +152,7 @@ m_debugParser(0)
     // Register native classes
     GetGlobalScope()->Add("Path", new Path());
     GetGlobalScope()->Add("Console", new Console());
+    GetGlobalScope()->Add("CScript", new CScriptMethods());
 
     // Cleanup after native call registration
     Collect();

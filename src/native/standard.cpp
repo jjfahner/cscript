@@ -25,28 +25,29 @@
 #include <lexstream.h>
 #include <scriptobj.h>
 
-DEFINE_NATIVE_LINKAGE(Standard)
-
 //////////////////////////////////////////////////////////////////////////
 
-NATIVE_CALL("eval(string code, bool isFile = false)")
+Value 
+CScriptMethods::Eval(StringCRef code, bool isFile, EvalRef evaluator)
 {
-  return evaluator->Eval(args[0].GetString(), args[1].GetBool());
+  return evaluator.Eval(code, isFile);
 }
 
-NATIVE_CALL("reset()")
+void 
+CScriptMethods::Reset()
 {
   throw ResetException();
 }
 
-NATIVE_CALL("collect()")
+Value
+CScriptMethods::Collect(EvalRef evaluator)
 {
   // Perform collection
-  GC::CollectInfo const& ci = evaluator->Collect();
+  GC::CollectInfo const& ci = evaluator.Collect();
 
   // Create result object
   Object* obj = new ScriptObject();
-  evaluator->MakeTemp(obj);
+  evaluator.MakeTemp(obj);
 
   // Copy fields
   obj->Set("markPhase",    (Value::Int) ci.m_markPhase);
@@ -59,55 +60,56 @@ NATIVE_CALL("collect()")
   return obj;
 }
 
-NATIVE_CALL("object_count()")
+int64 
+CScriptMethods::ObjectCount()
 {
   return GC::ObjectCount();
 };
 
-NATIVE_CALL("exit(int exitcode = 0)")
+void 
+CScriptMethods::Exit(int64 exitcode)
 {
   // Exit with specified exit code
-  exit((int) args[0].GetInt());
+  exit((int)exitcode);
 
   // Never executed
-  throw std::runtime_error("exit() failed");
+  throw std::runtime_error("Exit() failed");
 }
 
-NATIVE_CALL("quit(int exitcode = 0)")
+void 
+CScriptMethods::Quit(int64 exitcode)
 {
   // Exit with specified exit code
-  exit((int) args[0].GetInt());
+  exit((int)exitcode);
 
   // Never executed
-  throw std::runtime_error("exit() failed");
+  throw std::runtime_error("Quit() failed");
 }
 
-//////////////////////////////////////////////////////////////////////////
-
-NATIVE_CALL("lookup(name)")
+Value 
+CScriptMethods::Lookup(StringCRef name, EvalRef evaluator)
 {
-  return evaluator->GetScope()->Get(args[0]);
+  return evaluator.GetScope()->Get(name);
 }
 
-//////////////////////////////////////////////////////////////////////////
-
-NATIVE_CALL("ticks()")
+int64 
+CScriptMethods::Ticks()
 {
-  return (Value::Int) Timer::Ticks();
+  return (int64)Timer::Ticks();
 }
-
-//////////////////////////////////////////////////////////////////////////
 
 #ifdef _DEBUG
-NATIVE_CALL("dbgparser(bool enable)")
+
+void 
+CScriptMethods::DebugParser(bool value, EvalRef evaluator)
 {
-  evaluator->DebugParser(args[0].GetBool());
-  return Value();
+  evaluator.DebugParser(value);
 }
+
 #endif
 
 //////////////////////////////////////////////////////////////////////////
-
+/*
 #include <xmlparser.h>
 #include <fstream>
 
@@ -127,3 +129,4 @@ NATIVE_CALL("parseXml(string file)")
   XmlParser parser;
   return parser.Parse(ls);
 }
+*/

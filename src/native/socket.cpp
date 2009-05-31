@@ -21,8 +21,6 @@
 #include <native/socket.h>
 #include <eval.h>
 
-DEFINE_NATIVE_LINKAGE(Socket)
-
 // Include windows socket headers
 #ifdef _MSC_VER
 #	include <winsock2.h>

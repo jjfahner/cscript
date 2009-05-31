@@ -24,8 +24,6 @@
 #include <native.h>
 #include <stubs.h>
 
-DECLARE_NATIVE_LINKAGE(Socket)
-
 class Socket : public Object
 {
 public:

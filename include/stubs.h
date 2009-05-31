@@ -38,6 +38,7 @@ typedef Object* ObjectPtr;
 typedef Value const& ValueCRef;
 typedef String const& StringCRef;
 typedef Arguments const& ArgsCRef;
+typedef Evaluator& EvalRef;
 
 //
 // Forward declare generic native call handlers
