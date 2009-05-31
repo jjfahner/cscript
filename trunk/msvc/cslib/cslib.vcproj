@@ -613,6 +613,14 @@
 			</Filter>
 		</Filter>
 		<File
+			RelativePath="..\..\src\scriptobj.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\include\scriptobj.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\TODO"
 			>
 		</File>
