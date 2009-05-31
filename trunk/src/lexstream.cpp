@@ -121,8 +121,9 @@ LexStream::FillBuffer(int minRead)
 
   // Check fill count
   int gcount = m_stream.gcount();
-  if(gcount < minRead)
+  if(gcount == 0)
   {
+    // This check ought to read 'gcount < minRead', but that simply doesn't work...
     throw std::runtime_error("Unexpected end of file");
   }
 
