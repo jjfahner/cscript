@@ -90,11 +90,4 @@ typedef char Char;
 //
 typedef std::string String;
 
-//
-// Marker for native methods
-//
-#define __native_method
-#define __native_roprop
-#define __native_rwprop
-
 #endif // #ifndef CSCRIPT_H

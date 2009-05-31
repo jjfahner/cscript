@@ -23,31 +23,35 @@
 
 #include <cscript.h>
 #include <object.h>
-#include <value.h>
+
+//
+// Markers for native calls
+//
+#define __native_method
+#define __native_roprop
+#define __native_rwprop
 
 //
 // Forward declare some required types
 //
-class Object;
 class Evaluator;
 class Arguments;
 
 //
 // Forward declare single-word types that have a wrapper function
 //
-typedef Object* ObjectPtr;
-typedef Value const& ValueCRef;
-typedef String const& StringCRef;
-typedef Arguments const& ArgsCRef;
-typedef Evaluator& EvalRef;
+typedef Object*             ObjectPtr;
+typedef Value const&        ValueCRef;
+typedef String const&       StringCRef;
+typedef Arguments const&    ArgsCRef;
+typedef Evaluator&          EvalRef;
 
 //
 // Forward declare generic native call handlers
 //
-bool NativeCallTryGet(struct NativeCall*, Object* instance, Value const& key, Value& value);
-bool NativeCallTrySet(struct NativeCall*, Object* instance, Value const& key, Value const& value);
-bool NativeCallTryEval(struct NativeCall*, Object* instance, Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
-
+bool NativeCallTryGet (struct NativeCall*, Object*, Value const&, Value&);
+bool NativeCallTrySet (struct NativeCall*, Object*, Value const&, Value const&);
+bool NativeCallTryEval(struct NativeCall*, Object*, Value const&, Evaluator*, Arguments&, Value&);
 
 //////////////////////////////////////////////////////////////////////////
 //
