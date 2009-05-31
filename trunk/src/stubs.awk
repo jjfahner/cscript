@@ -37,7 +37,7 @@ $2 ~ /__native_method/ {
   for(i = 1; i <= NF; i++) {
     if($i == "__native_method") {
       i++;
-      if($i == "virtual") {
+      if($i == "virtual" || $i == "static") {
         i++;
       }
       break;
@@ -126,7 +126,7 @@ $2 ~ /__native_roprop/ || $2 ~ /__native_rwprop/ {
   }
   
   # Strip virtual
-  if($i == "virtual") {
+  if($i == "virtual" || $i == "static") {
     i++;
   }
   
