@@ -21,7 +21,6 @@
 #ifndef CSCRIPT_OBJECT_H
 #define CSCRIPT_OBJECT_H
 
-#include <gc.h>
 #include <value.h>
 
 class DataType;
