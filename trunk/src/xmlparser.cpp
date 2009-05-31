@@ -25,6 +25,7 @@
 #include <lexstream.h>
 #include <lemon.h>
 #include <iostream>
+#include <scriptobj.h>
 
 #include "xmlparser.gen.h"
 #include "xmlparser.gen.c"
@@ -164,7 +165,7 @@ XmlParser::OnSyntaxError()
 Object*
 XmlParser::createNode(XmlNodeTypes type)
 {
-  Object* node = new Object();
+  Object* node = new ScriptObject();
   node->Set("ownerDocument",  m_document);
   node->Set("nodeType",  (int)type);
   node->Set("nodeName",  XmlNodeName(type));
@@ -176,8 +177,8 @@ XmlParser::createNode(XmlNodeTypes type)
   case xmlDocument:
   case xmlDocumentFragment:
   case xmlElement:
-    node->Set("childNodes",  new Object());
-    node->Set("attributes",  new Object());
+    node->Set("childNodes",  new ScriptObject());
+    node->Set("attributes",  new ScriptObject());
     break;
   }
 

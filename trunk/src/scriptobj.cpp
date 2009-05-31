@@ -73,11 +73,13 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-ScriptObject::ScriptObject(DataType* dataType) :
-Object (dataType)
-{
-}
+// TODO Implement GetType
 
+// ScriptObject::ScriptObject(DataType* dataType) :
+// Object (dataType)
+// {
+// }
+// 
 Enumerator* 
 ScriptObject::GetEnumerator()
 {
@@ -138,30 +140,6 @@ ScriptObject::TrySet(Value const& key, Value const& value)
 
   // Not found
   return false;
-}
-
-bool
-ScriptObject::TryEval(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
-{
-  // Find method
-  Value method;
-  if(!TryGet(key, method))
-  {
-    return false;
-  }
-
-  // Try to convert to function
-  Function* fun = dynamic_cast<Function*>(method.GetObject());
-  if(fun == 0)
-  {
-    return false;
-  }
-
-  // Evaluate the function
-  result = fun->Execute(evaluator, arguments);
-
-  // Success
-  return true;
 }
 
 void 

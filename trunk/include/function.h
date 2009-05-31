@@ -22,10 +22,9 @@
 #define CSCRIPT_FUNCTION_H
 
 #include <cscript.h>
-#include <object.h>
+#include <scriptobj.h>
 #include <args.h>
 #include <astnode.h>
-#include <value.h>
 
 class Evaluator;
 
@@ -34,7 +33,7 @@ class Evaluator;
 // Base class for functions
 //
 
-class Function : public Object
+class Function : public ScriptObject
 {
 public:
 
@@ -42,18 +41,14 @@ public:
   // Construction
   //
   Function(String name, DataType* dataType = FunctionType::Instance()) :
-  Object (dataType),
   m_name (name)
   {
   }
 
-
   //
-  // Destruction
+  // Data type
   //
-  virtual ~Function()
-  {
-  }
+  virtual DataType* GetType();
 
   //
   // Function name

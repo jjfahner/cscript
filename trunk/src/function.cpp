@@ -21,6 +21,13 @@
 #include "function.h"
 #include "eval.h"
 
+DataType* 
+Function::GetType()
+{
+  return FunctionType::Instance();
+}
+
+
 Value 
 ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
 {
