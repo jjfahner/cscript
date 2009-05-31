@@ -123,36 +123,34 @@ struct VecRestore
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Evaluator implementation
+// Global scope
 //
 
-/*static*/ Scope*
-Evaluator::GetGlobalScope()
+Scope* CreateGlobalScope()
 {
-  static Scope scope;
-  return &scope;
+  Scope* scope = new Scope();
+  scope->Add("Path", new Path());
+  scope->Add("Console", new Console());
+  scope->Add("CScript", new CScriptMethods());
+  return scope;
 }
+
+
+Scope* GetGlobalScope()
+{
+  static Scope* scope = CreateGlobalScope();
+  return scope;
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 Evaluator::Evaluator() :
 m_scope   (0),
 m_allocs  (0),
 m_debugParser(0)
 {
-  // Create global scope
-  m_global = new NamespaceScope(GetGlobalScope(), "");
-
-  // Native calls
-  static bool nativeCallsRegistered = false;
-  if(!nativeCallsRegistered)
-  {
-    // Register native classes
-    GetGlobalScope()->Add("Path", new Path());
-    GetGlobalScope()->Add("Console", new Console());
-    GetGlobalScope()->Add("CScript", new CScriptMethods());
-
-    // Cleanup after native call registration
-    Collect();
-  }
+  // Initialize the evaluator
+  Reset();
 }
 
 void 
