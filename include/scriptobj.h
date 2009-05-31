@@ -22,20 +22,16 @@
 #define CSCRIPT_SCRIPTOBJ_H
 
 #include <object.h>
+#include <map>
 
 class ScriptObject : public Object
 {
 public:
 
   //
-  // Construction
-  //
-  ScriptObject(DataType* dataType = 0);
-
-  //
   // Member count
   //
-  virtual size_t Count() const;
+  virtual int64 Count();
 
   //
   // Generic enumerator object
@@ -67,16 +63,6 @@ public:
   //
   virtual void Unset(Value const& key);
 
-  //
-  // Evaluate a method
-  //
-  virtual Value Eval(Value const& key, Evaluator* evaluator, Arguments& arguments);
-
-  //
-  // Try to evaluate a method
-  //
-  virtual bool TryEval(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
-
 protected:
 
   //
@@ -102,5 +88,40 @@ protected:
   MemberMap m_members;
 
 };
+
+//////////////////////////////////////////////////////////////////////////
+
+inline int64
+ScriptObject::Count()
+{
+  return m_members.size();
+}
+
+inline void 
+ScriptObject::Unset(Value const& key)
+{
+  m_members.erase(key);
+}
+
+inline Value
+ScriptObject::Get(Value const& key)
+{
+  Value value;
+  if(TryGet(key, value))
+  {
+    return value;
+  }
+  throw std::runtime_error("Property not found");
+}
+
+inline Value const&
+ScriptObject::Set(Value const& key, Value const& value)
+{
+  if(!TrySet(key, value))
+  {
+    m_members[key] = value;
+  }
+  return value;
+}
 
 #endif // CSCRIPT_SCRIPTOBJ_H

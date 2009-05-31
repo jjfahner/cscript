@@ -21,122 +21,11 @@
 #include "object.h"
 #include "datatype.h"
 #include "function.h"
-#include "enumerator.h"
 
-#include <algorithm>
-
-// Literals
-static const String g_prototype("prototype");
-
-//////////////////////////////////////////////////////////////////////////
-
-class Object::ObjectEnumerator : public Enumerator
+DataType* 
+Object::GetType()
 {
-  Object*         m_obj;
-  MemberIterator  m_cur;
-
-public:
-
-  ObjectEnumerator(Object* object) :
-  m_obj (object)
-  {
-    // Initialize iterator
-    Reset();
-  }
-
-  virtual void Reset()
-  {
-    // Set iterator to start
-    m_cur = m_obj->m_members.begin();
-  }
-
-  virtual bool GetNext(Value& value)
-  {
-    // Check current position
-    if(m_cur == m_obj->m_members.end())
-    {
-      return false;
-    }
-
-    // Retrieve value from iterator
-    value = m_cur->second;
-
-    // Advance to next position
-    ++m_cur;
-
-    // Succeeded
-    return true;
-  }
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
-Object::Object(DataType* dataType) :
-m_dataType (dataType ? dataType : ObjectType::Instance())
-{
-}
-
-Enumerator* 
-Object::GetEnumerator()
-{
-  return new ObjectEnumerator(this);
-}
-
-bool 
-Object::TryGet(Value const& key, Value& value)
-{
-  if(key.Type() != Value::tString)
-  {
-    throw std::runtime_error(
-      "Invalid key type for object");
-  }
-
-  // Find locally
-  MemberIterator it = m_members.find(key);
-  if(it != m_members.end())
-  {
-    value = it->second;
-    return true;
-  }
-
-  // Find in prototype
-  it = m_members.find(g_prototype);
-  if(it != m_members.end())
-  {
-    return it->second->TryGet(key, value);
-  }
-
-  // Not found
-  return false;
-}
-
-bool
-Object::TrySet(Value const& key, Value const& value)
-{
-  if(key.Type() != Value::tString)
-  {
-    throw std::runtime_error(
-      "Invalid key type for object");
-  }
-
-  // Find locally
-  MemberIterator it = m_members.find(key);
-  if(it != m_members.end())
-  {
-    it->second = value;
-    return true;
-  }
-
-  // Find in prototype
-  it = m_members.find(g_prototype);
-  if(it != m_members.end())
-  {
-    return it->second->TrySet(key, value);
-  }
-
-  // Not found
-  return false;
+  return ObjectType::Instance();
 }
 
 bool
@@ -161,16 +50,4 @@ Object::TryEval(Value const& key, Evaluator* evaluator, Arguments& arguments, Va
 
   // Success
   return true;
-}
-
-void 
-Object::MarkObjects(GC::ObjectVec& grey)
-{
-  MemberMap::iterator it;
-  for(it = m_members.begin(); it != m_members.end(); ++it)
-  {
-    if(GC::Object* o = it->second.GetGCObject()) {
-      GC::Mark(grey, o);
-    }
-  }
 }

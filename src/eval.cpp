@@ -33,7 +33,7 @@
 #include "list.h"
 #include "dict.h"
 #include "datatype.h"
-
+#include "scriptobj.h"
 
 #include "csparser.h"
 #include "csparser.gen.h"
@@ -1069,6 +1069,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   {
     if(index >= args.size())
     {
+      // FIXME add default values here
       m_scope->Add(Ast_A1(pi->GetObject()), Value());
     }
     else
@@ -1100,6 +1101,7 @@ Evaluator::EvalArguments(Object* node, Object* argptr, Arguments& args)
   AstIterator ae;
 
 //   // No formal parameter list
+  // FIXME
 //   if(fun->GetParameters() == 0)
 //   {
     // Evaluate arguments
@@ -1274,7 +1276,7 @@ Value
 Evaluator::EvalJsonLiteral(Object* node)
 {
   // Create empty map
-  Value v(new Object());
+  Value v(new ScriptObject());
   Object* o = v.GetObject();
 
   // Recurse into map values
@@ -1545,7 +1547,7 @@ Evaluator::EvalNewExpression(Object* node)
   }
 
   // Construct an instance from the source object
-  Object* inst = new Object();
+  Object* inst = new ScriptObject();
   
   // Assign prototype object
   inst->Set("prototype", rval.GetObject());

@@ -81,10 +81,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-List::List() : 
-Object(ListType::Instance())
-{
-}
+// TODO Implement GetType
 
 Enumerator* 
 List::GetEnumerator()

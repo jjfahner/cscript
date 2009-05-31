@@ -23,6 +23,7 @@
 #include <scope.h>
 #include <timer.h>
 #include <lexstream.h>
+#include <scriptobj.h>
 
 DEFINE_NATIVE_LINKAGE(Standard)
 
@@ -44,7 +45,7 @@ NATIVE_CALL("collect()")
   GC::CollectInfo const& ci = evaluator->Collect();
 
   // Create result object
-  Object* obj = new Object();
+  Object* obj = new ScriptObject();
   evaluator->MakeTemp(obj);
 
   // Copy fields

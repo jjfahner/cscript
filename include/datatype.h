@@ -37,12 +37,12 @@ public:
   //
   // Native calls
   //
-  DEF_NATIVE_CALLS(DataType, Object)
+  DEF_NATIVE_CALLS(DataType, Object);
 
   //
-  // Construction
+  // Data type
   //
-  DataType();
+  virtual DataType* GetType();
 
   //
   // Type name as string
