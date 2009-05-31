@@ -25,6 +25,7 @@
 #include <native/file.h>
 #include <native/xml.h>
 #include <dict.h>
+#include <native/path.h>
 
 //////////////////////////////////////////////////////////////////////////
 

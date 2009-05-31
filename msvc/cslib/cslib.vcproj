@@ -205,64 +205,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\cslexer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\cslexer.gen.in"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating cscript lexer..."
-						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\re2c.exe -iswb --no-generation-date -o cslexer.gen.c cslexer.gen.in&#x0D;&#x0A;"
-						AdditionalDependencies="..\..\include\csparser.gen.h"
-						Outputs="..\..\src\cslexer.gen.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating cslexer..."
-						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\re2c.exe -iswb --no-generation-date -o cslexer.gen.c cslexer.gen.in&#x0D;&#x0A;"
-						AdditionalDependencies="..\..\include\csparser.gen.h"
-						Outputs="..\..\src\cslexer.gen.c"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\src\csparser.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\csparser.gen.in"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating cscript parser..."
-						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe csparser.gen.in &amp;&amp; move csparser.gen.h ..\include&#x0D;&#x0A;"
-						Outputs="..\..\src\csparser.gen.c;..\..\include\csparser.gen.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating cs parser..."
-						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe csparser.gen.in &amp;&amp; move csparser.gen.h ..\include&#x0D;&#x0A;"
-						Outputs="..\..\src\csparser.gen.c;..\..\include\csparser.gen.h"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\src\datatype.cpp"
 				>
 			</File>
@@ -280,10 +222,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\gc.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\lexstream.cpp"
 				>
 			</File>
 			<File
@@ -308,10 +246,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\scriptobj.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\srcfile.cpp"
 				>
 			</File>
 			<File
@@ -340,53 +274,6 @@
 				RelativePath="..\..\src\value.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\..\src\xmllexer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\xmllexer.gen.in"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating xml lexer..."
-						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\re2c.exe -iswb --no-generation-date -o xmllexer.gen.c xmllexer.gen.in&#x0D;&#x0A;"
-						AdditionalDependencies="..\..\include\xmlparser.gen.h"
-						Outputs="..\..\src\xmllexer.gen.c"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\src\xmlparser.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\xmlparser.gen.in"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating xml parser..."
-						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe xmlparser.gen.in &amp;&amp; move xmlparser.gen.h ..\include&#x0D;&#x0A;"
-						Outputs="..\..\src\xmlparser.gen.c;..\..\include\xmlparser.gen.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating xml parser..."
-						CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe xmlparser.gen.in &amp;&amp; move xmlparser.gen.h ..\include&#x0D;&#x0A;"
-						Outputs="..\..\src\xmlparser.gen.c;..\..\include\xmlparser.gen.h"
-					/>
-				</FileConfiguration>
-			</File>
 			<Filter
 				Name="native"
 				>
@@ -408,6 +295,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\native\file.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\native\path.cpp"
 					>
 				</File>
 				<File
@@ -460,14 +351,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\cslexer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\csparser.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\datatype.h"
 				>
 			</File>
@@ -500,19 +383,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\lemon.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\lexstream.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\list.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\map_iter.h"
 				>
 			</File>
 			<File
@@ -544,10 +415,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\srcfile.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\stubs.h"
 				>
 			</File>
@@ -561,14 +428,6 @@
 			</File>
 			<File
 				RelativePath="..\..\include\value.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\xmllexer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\xmlparser.h"
 				>
 			</File>
 			<Filter
@@ -595,6 +454,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\native\path.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\native\regex.h"
 					>
 				</File>
@@ -617,6 +480,151 @@
 				<File
 					RelativePath="..\..\include\native\xml.h"
 					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="parser"
+			>
+			<Filter
+				Name="include"
+				>
+				<File
+					RelativePath="..\..\include\cslexer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\csparser.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\lemon.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\lexstream.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\xmllexer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\xmlparser.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="src"
+				>
+				<File
+					RelativePath="..\..\src\cslexer.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cslexer.gen.in"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Generating cscript lexer..."
+							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\re2c.exe -iswb --no-generation-date -o cslexer.gen.c cslexer.gen.in&#x0D;&#x0A;"
+							AdditionalDependencies="..\..\include\csparser.gen.h"
+							Outputs="..\..\src\cslexer.gen.c"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Generating cslexer..."
+							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\re2c.exe -iswb --no-generation-date -o cslexer.gen.c cslexer.gen.in&#x0D;&#x0A;"
+							AdditionalDependencies="..\..\include\csparser.gen.h"
+							Outputs="..\..\src\cslexer.gen.c"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\csparser.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\csparser.gen.in"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Generating cscript parser..."
+							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe csparser.gen.in &amp;&amp; move csparser.gen.h ..\include&#x0D;&#x0A;"
+							Outputs="..\..\src\csparser.gen.c;..\..\include\csparser.gen.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Generating cs parser..."
+							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe csparser.gen.in &amp;&amp; move csparser.gen.h ..\include&#x0D;&#x0A;"
+							Outputs="..\..\src\csparser.gen.c;..\..\include\csparser.gen.h"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\lexstream.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\xmllexer.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\xmllexer.gen.in"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Generating xml lexer..."
+							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\re2c.exe -iswb --no-generation-date -o xmllexer.gen.c xmllexer.gen.in&#x0D;&#x0A;"
+							AdditionalDependencies="..\..\include\xmlparser.gen.h"
+							Outputs="..\..\src\xmllexer.gen.c"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\xmlparser.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\xmlparser.gen.in"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Generating xml parser..."
+							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe xmlparser.gen.in &amp;&amp; move xmlparser.gen.h ..\include&#x0D;&#x0A;"
+							Outputs="..\..\src\xmlparser.gen.c;..\..\include\xmlparser.gen.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Generating xml parser..."
+							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe xmlparser.gen.in &amp;&amp; move xmlparser.gen.h ..\include&#x0D;&#x0A;"
+							Outputs="..\..\src\xmlparser.gen.c;..\..\include\xmlparser.gen.h"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 		</Filter>

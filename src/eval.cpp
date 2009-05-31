@@ -22,10 +22,8 @@
 #include "ast.h"
 #include "scope.h"
 #include "function.h"
-#include "srcfile.h"
 #include "cslexer.h"
 #include "tokens.h"
-#include "map_iter.h"
 #include "native.h"
 #include "timer.h"
 #include "enumerator.h"
@@ -38,18 +36,12 @@
 #include "csparser.h"
 #include "csparser.gen.h"
 
+#include <native/path.h>
+
 #include <list>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
-//
-// Parser functions
-//
-void *CScriptParseAlloc(void *(*mallocProc)(size_t));
-void CScriptParseFree(void *p, void (*freeProc)(void*));
-void CScriptParse(void*, int,Token, Evaluator*);
-void CScriptParseTrace(FILE*, char*);
 
 /*static*/ const GCString& Scope::parentName = *new GCString("__parent", true);
 
