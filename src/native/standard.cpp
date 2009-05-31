@@ -98,15 +98,14 @@ CScriptMethods::Ticks()
   return (int64)Timer::Ticks();
 }
 
-#ifdef _DEBUG
-
 void 
 CScriptMethods::DebugParser(bool value, EvalRef evaluator)
 {
+#ifdef _DEBUG
   evaluator.DebugParser(value);
+#endif
 }
 
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 /*

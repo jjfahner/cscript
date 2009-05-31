@@ -70,11 +70,9 @@ public:
   __native_roprop int64 Ticks();
 
   //
-  // Only in debug versions
+  // Enable parser debugging. Only works in debug versions
   //
-#ifdef _DEBUG
   __native_method void DebugParser(bool value, EvalRef evaluator);
-#endif
 
 };
 
