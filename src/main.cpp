@@ -21,11 +21,6 @@
 #include <cmdargs.h>
 #include <eval.h>
 
-// Link to windows-only native functions
-#ifdef WIN32
-#include <native/winapi.h>
-#endif
-
 // Standard library stuff
 #include <iostream>
 
