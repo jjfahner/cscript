@@ -241,6 +241,16 @@
 						Outputs="..\..\src\native.gen.cpp"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating native stubs..."
+						CommandLine="cd ..\..\src&#x0D;&#x0A;..\tools\win32\awk.exe -f native.awk ../include/*.h &gt; native.gen.cpp&#x0D;&#x0A;..\tools\win32\awk.exe -f native.awk ../include/native/*.h &gt;&gt; native.gen.cpp&#x0D;&#x0A;"
+						Outputs="..\..\src\native.gen.cpp"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\src\native.cpp"
