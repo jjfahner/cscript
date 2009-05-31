@@ -65,6 +65,7 @@ $2 ~ /__native_method/ {
       ++i;
       pname[p] = $i;
     }
+    
   }
   
   # Generate call stub
@@ -187,13 +188,12 @@ END {
       printf("\nNativeCall __stublist_%s[] = {\n", className);
       for(i = 1; i <= numStubs; ++i)
       {
-        printf("  { %s, \"%s\", %s, %s, %s, 0 },\n", \
-          stubType[className i],   \
-          stubName[className i],   \
-          stubMethod[className i], \
-          stubRoProp[className i], \
-          stubRwProp[className i]  \
-          );
+        printf("  { %s, \"%s\", %s, %s, %s, 0 },\n",
+          stubType[className i],
+          stubName[className i],
+          stubMethod[className i],
+          stubRoProp[className i],
+          stubRwProp[className i]);
       }
       printf("  { stMethod, 0, 0, 0, 0, 0 }\n");
       printf("};\n");
