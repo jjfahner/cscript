@@ -191,3 +191,4 @@ cscript_arg_to_bool(Value const& value)
 #include "native.gen.cpp"
 
 // EOF
+

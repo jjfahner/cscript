@@ -271,4 +271,7 @@ END {
 
   # Flush last table
   GenerateTable();
+
+  # Output end of file 
+  printf("// EOF\n\n");
 }
