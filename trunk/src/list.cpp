@@ -77,6 +77,21 @@ public:
     return true;
   }
 
+  virtual bool GetNext(Value& key, Value& value)
+  {
+    if(m_cur == m_end)
+    {
+      return false;
+    }
+
+    key   = std::distance(m_beg, m_cur);
+    value = *m_cur;
+
+    ++m_cur;
+
+    return true;
+  }
+
 };
 
 //////////////////////////////////////////////////////////////////////////

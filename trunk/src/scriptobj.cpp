@@ -41,34 +41,42 @@ public:
   MemberEnumerator(ScriptObject* object) :
   m_obj (object)
   {
-    // Initialize iterator
     Reset();
   }
 
   virtual void Reset()
   {
-    // Set iterator to start
     m_cur = m_obj->m_members.begin();
   }
 
   virtual bool GetNext(Value& value)
   {
-    // Check current position
     if(m_cur == m_obj->m_members.end())
     {
       return false;
     }
 
-    // Retrieve value from iterator
     value = m_cur->second;
 
-    // Advance to next position
     ++m_cur;
 
-    // Succeeded
     return true;
   }
 
+  virtual bool GetNext(Value& key, Value& value)
+  {
+    if(m_cur == m_obj->m_members.end())
+    {
+      return false;
+    }
+    
+    key   = m_cur->first;
+    value = m_cur->second;
+
+    ++m_cur;
+
+    return true;
+  }
 };
 
 //////////////////////////////////////////////////////////////////////////
