@@ -171,8 +171,8 @@ conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON
 
 // Binary expressions
 binary_expression(R) ::= unary_expression(A) . { R = A; }
-binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = AllocBinOp(p, op_logor,   A, B); }
-binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = AllocBinOp(p, op_logand,  A, B); }
+binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = p->AllocNode(logical_or_expression,   A, B); }
+binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = p->AllocNode(logical_and_expression,  A, B); }
 binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = AllocBinOp(p, op_bitor,   A, B); }
 binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R = AllocBinOp(p, op_bitxor,  A, B); }
 binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = AllocBinOp(p, op_bitand,  A, B); }

@@ -95,7 +95,9 @@ enum AstTypes
   conversion_expression,
   closure_expression,
   function_member_expression,
-  function_index_expression
+  function_index_expression,
+  logical_or_expression,
+  logical_and_expression
 };
 
 enum ParameterTypes
