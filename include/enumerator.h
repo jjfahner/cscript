@@ -43,6 +43,11 @@ public:
   //
   virtual bool GetNext(Value& value) = 0;
 
+  //
+  // Retrieve next key and value
+  //
+  virtual bool GetNext(Value& key, Value& value) = 0;
+
 };
 
 #endif // CSCRIPT_ENUMERATOR_H

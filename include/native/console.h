@@ -33,12 +33,12 @@ public:
   //
   // Print supplied arguments
   //
-  __native_method void Write(ArgsCRef args);
+  __native_method void Write(ArgsCRef args, EvalRef evaluator);
 
   //
   // Print supplied arguments, append newline
   //
-  __native_method void WriteLn(ArgsCRef args);
+  __native_method void WriteLn(ArgsCRef args, EvalRef evaluator);
 
   //
   // Read a string

@@ -120,6 +120,21 @@ public:
       value = (++m_it)->second;
       return true;
     }
+
+    virtual bool GetNext(Value& key, Value& value)
+    {
+      if(m_it == m_ie) 
+      {
+        return false;
+      }
+      
+      key   = m_it->first;
+      value = m_it->second;
+      
+      ++m_it;
+      
+      return true;
+    }
   };
 
   ////////////////////////////////////////////////////////////////////////
