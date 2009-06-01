@@ -286,43 +286,6 @@ Evaluator::ReportError(String text, Object* source)
   std::cout << text << "\n";
 }
 
-/*static*/ Object* 
-Evaluator::ParseNativeCall(String const& declaration)
-{
-  Evaluator eval;
-
-  // Parse the call
-  try
-  {
-    // Reset reporter
-    eval.m_reporter.Reset();
-
-    // Reset native call pointer
-    eval.m_resultNode = 0;
-
-    // Parse code
-    Value result = eval.ParseText((String("__native ") + declaration).c_str(), false);
-
-    // Check error count
-    if(eval.m_reporter.GetErrorCount())
-    {
-      return 0;
-    }
-
-    // Done
-    return result.GetObject();
-  }
-  catch(std::runtime_error const& e)
-  {
-    std::cout << e.what() << "\n";
-    throw;
-  }
-  catch(...)
-  {
-    return 0;
-  }
-}
-
 GC::CollectInfo
 Evaluator::Collect()
 {
@@ -421,18 +384,6 @@ Evaluator::Eval(Object* astRoot)
   return EvalStatement(astRoot);
 }
 
-void 
-Evaluator::EvalStatementSeq(Object* node)
-{
-  List* list = AstList_A1(node);
-  List::Iterator it = list->Begin();
-  List::Iterator ie = list->End();
-  for(; it != ie; ++it)
-  {
-    EvalStatement(it->GetObject());
-  }  
-}
-
 Value
 Evaluator::EvalStatement(Object* node)
 {
@@ -444,33 +395,32 @@ Evaluator::EvalStatement(Object* node)
   case empty_statement:       break;
 
   case translation_unit:      EvalStatement(Ast_A1(node));    break;
-  case statement_sequence:    EvalStatementSeq(node);         break;
   case namespace_declaration: EvalNamespace(node);            break;
   case variable_declaration:  EvalVariableDeclaration(node);  break;
   case function_declaration:  EvalFunctionDeclaration(node);  break;
-  case native_declaration:    EvalNativeDeclaration(node);    break;
   case extern_declaration:    EvalExternDeclaration(node);    break;
   case try_statement:         EvalTryStatement(node);         break;
   case include_statement:     EvalIncludeStatement(node);     break;
   case for_statement:         EvalForStatement(node);         break;
   case foreach_statement:     EvalForeachStatement(node);     break;
-  case if_statement:          EvalIfStatement(node);          break;
   case while_statement:       EvalWhileStatement(node);       break;
   case return_statement:      EvalReturnStatement(node);      break;
   case switch_statement:      EvalSwitchStatement(node);      break;
   case unset_statement:       EvalUnsetStatement(node);       break;
 
-  case break_statement:       throw BreakException(node);
-  case continue_statement:    throw ContinueException(node);
+  case break_statement:       
+    throw BreakException(node);
 
-  case expression_statement:  
-    result = EvalExpression(Ast_A1(node));   
+  case compound_statement:
+    if(!Ast_A1(node).Empty())
+    {
+      AutoScope as(this, new Scope(m_scope));
+      EvalStatement(Ast_A1(node));
+    }
     break;
-  
-  case declarator_sequence:
-    EvalStatement(Ast_A1(node));
-    EvalStatement(Ast_A2(node));
-    break;
+
+  case continue_statement:    
+    throw ContinueException(node);
 
   case declaration_sequence:
     EvalStatement(Ast_A1(node));
@@ -480,12 +430,33 @@ Evaluator::EvalStatement(Object* node)
     }
     break;
 
-  case compound_statement:
-    if(!Ast_A1(node).Empty())
+  case declarator_sequence:
+    EvalStatement(Ast_A1(node));
+    EvalStatement(Ast_A2(node));
+    break;
+
+  case expression_statement:  
+    result = EvalExpression(Ast_A1(node));   
+    break;
+  
+  case if_statement:
+    if(ValBool(EvalExpression(Ast_A1(node))))
     {
-      AutoScope as(this, new Scope(m_scope));
-      EvalStatement(Ast_A1(node));
+      EvalStatement(Ast_A2(node));
     }
+    else if(!Ast_A3(node).Empty())
+    {
+      EvalStatement(Ast_A3(node));
+    }
+    break;
+
+  case statement_sequence:
+    for(List::Iterator it = AstList_A1(node)->Begin(),
+                       ie = AstList_A1(node)->End()
+                       ; it != ie; ++it)
+    {
+      EvalStatement(it->GetObject());
+    }  
     break;
 
   default: 
@@ -554,15 +525,10 @@ Evaluator::EvalExpression(Object* node)
   {
   case assignment_expression: return EvalAssignment(node);
   case binary_expression:     return EvalBinary(node);
-  case ternary_expression:    return EvalTernary(node);
   case prefix_expression:     return EvalPrefix(node);
   case postfix_expression:    return EvalPostfix(node);
-  case typeof_expression:     return EvalTypeOf(node);
   case index_expression:      return EvalIndex(node);
   case function_call:         return EvalFunctionCall(node);
-  case literal_value:         return Ast_A1(node);
-  case null_literal:          return Value();
-  case unqualified_id:        return EvalUnqualifiedId(node);
   case qualified_id_g:        return EvalQualifiedId(node);
   case qualified_id_l:        return EvalQualifiedId(node);
   case list_literal:          return EvalListLiteral(node);
@@ -578,10 +544,38 @@ Evaluator::EvalExpression(Object* node)
   case operator_declaration:  return EvalOperatorDeclaration(node);
   case function_member_expression:  return EvalFunctionMember(node);
   case function_index_expression:   return EvalFunctionIndex(node);
+  
+  case literal_value:         
+    return Ast_A1(node);
+
+  case logical_and_expression:
+    return ValBool(EvalExpression(Ast_A1(node))) &&
+           ValBool(EvalExpression(Ast_A2(node))) ;
+
+  case logical_or_expression:
+    return ValBool(EvalExpression(Ast_A1(node))) ||
+           ValBool(EvalExpression(Ast_A2(node))) ;
+
+  case null_literal:          
+    return Value();
+
+  case ternary_expression:
+    return ValBool(EvalExpression(Ast_A1(node))) ?
+      EvalExpression(Ast_A2(node)) :
+      EvalExpression(Ast_A3(node)) ;
+
   case throw_expression:      
     throw UserException(node, EvalExpression(Ast_A1(node)));
+
+  case typeof_expression:
+    return EvalExpression(Ast_A1(node)).GetDataType();
+
+  case unqualified_id:
+    return m_scope->Get(Ast_A1(node));
+
+  default:
+    throw ScriptException(node, "Invalid expression type");
   }
-  throw ScriptException(node, "Invalid expression type");
 }
 
 Value
@@ -659,16 +653,6 @@ Evaluator::EvalBinary(Object* node)
 }
 
 Value
-Evaluator::EvalTernary(Object* node)
-{
-  if(ValBool(EvalExpression(Ast_A1(node))))
-  {
-    return EvalExpression(Ast_A2(node));
-  }
-  return EvalExpression(Ast_A3(node));
-}
-
-Value
 Evaluator::EvalPrefix(Object* node)
 {
   // Unary operators
@@ -732,12 +716,6 @@ Evaluator::EvalPostfix(Object* node)
 }
 
 Value
-Evaluator::EvalTypeOf(Object* node)
-{
-  return EvalExpression(Ast_A1(node)).GetDataType();
-}
-
-Value
 Evaluator::EvalIndex(Object* node)
 {
   // Retrieve the container
@@ -760,12 +738,6 @@ Evaluator::EvalListAppend(Object* node)
   }
   
   return list->Append(EvalExpression(Ast_A4(node)));
-}
-
-Value
-Evaluator::EvalUnqualifiedId(Object* node)
-{
-  return m_scope->Get(Ast_A1(node));
 }
 
 NamespaceScope* 
@@ -837,11 +809,11 @@ Evaluator::EvalQualifiedId(Object* node)
 void 
 Evaluator::EvalUnsetStatement(Object* node)
 {
-  if(Ast_Type(Ast_A1(node)) == unqualified_id)
-  {
-    String name = Ast_A1(Ast_A1(node));
-    m_scope->Unset(name);
-  }
+  Object* obj;
+  Value key;
+  EvalLValue(node, obj, key);
+
+  obj->Unset(key);
 }
 
 Value
@@ -894,7 +866,6 @@ Evaluator::EvalVariableDeclaration(Object* node)
   }
 
   // Create variable
-  // TODO deletion of newed variable
   m_scope->Add(Ast_A1(node), value);
 }
 
@@ -909,12 +880,6 @@ Evaluator::EvalFunctionDeclaration(Object* node)
   fun->Set("scope", FindNamespace(m_scope));
 
   m_scope->Add(name, fun);
-}
-
-void
-Evaluator::EvalNativeDeclaration(Object* node)
-{
-  m_resultNode = node;
 }
 
 Value
@@ -1408,19 +1373,6 @@ Evaluator::EvalForeachStatement(Object* node)
   }
 }
 
-void
-Evaluator::EvalIfStatement(Object* node)
-{
-  if(ValBool(EvalExpression(Ast_A1(node))))
-  {
-    EvalStatement(Ast_A2(node));
-  }
-  else if(!Ast_A3(node).Empty())
-  {
-    EvalStatement(Ast_A3(node));
-  }
-}
-
 void        
 Evaluator::EvalWhileStatement(Object* node)
 {
@@ -1515,19 +1467,6 @@ Evaluator::EvalNewExpression(Object* node)
   Value result;
   inst->TryEval("constructor", this, args, result);
 
-//   if(inst->Find("constructor", funObj))
-//   {
-//     // Check whether it's a function
-//     Function* fun = dynamic_cast<Function*>(funObj->GetObject());
-//     if(fun == 0)
-//     {
-//       throw ScriptException(node, "Class has invalid constructor");
-//     }
-//     
-//     // Evaluate constructor
-//     EvalFunctionCall(node, fun, inst, Ast_A2(node));
-//   }
-// 
   // Return temporary
   return inst;
 }

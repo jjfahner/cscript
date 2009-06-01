@@ -85,23 +85,11 @@ public:
   Value Eval(Object* astRoot);
 
   //
-  // Set result node from parsing
-  //
-  void SetResultNode(Object* node) {
-    m_resultNode = node;
-  }
-
-  //
   // Enable parser debugging
   //
   void DebugParser(bool debug) {
     m_debugParser = true;
   }
-
-  //
-  // Parse native call
-  //
-  static Object* ParseNativeCall(String const& declaration);
 
   //
   // Error handlers
@@ -145,17 +133,14 @@ private:
   //
   // Statement handlers
   //
-  void EvalStatementSeq(Object* node);
   void EvalNamespace(Object* node);
   void EvalVariableDeclaration(Object* node);
   void EvalFunctionDeclaration(Object* node);
-  void EvalNativeDeclaration(Object* node);
   void EvalIncludeStatement(Object* node);
   void EvalForStatement(Object* node);
   void EvalForeachStatement(Object* node);
   void EvalWhileStatement(Object* node);
   void EvalSwitchStatement(Object* node);
-  void EvalIfStatement(Object* node);
   void EvalReturnStatement(Object* node);
   void EvalExternDeclaration(Object* node);
   void EvalTryStatement(Object* node);
@@ -165,7 +150,6 @@ private:
   // Expression handlers
   //
   Value EvalAssignment(Object* node);
-  Value EvalUnqualifiedId(Object* node);
   Value EvalQualifiedId(Object* node);
   Value EvalListLiteral(Object* node);
   Value EvalMapLiteral(Object* node);
@@ -174,10 +158,8 @@ private:
   Value EvalMemberExpression(Object* node);
   Value EvalThisExpression(Object* node);
   Value EvalBinary(Object* node);
-  Value EvalTernary(Object* node);
   Value EvalPrefix(Object* node);
   Value EvalPostfix(Object* node);
-  Value EvalTypeOf(Object* node);
   Value EvalConversion(Object* node);
   Value EvalClosure(Object* node);
   Value EvalXmlExpression(Object* node);
@@ -226,14 +208,15 @@ private:
   //
   bool OpenFile(String const& filename, std::ifstream& file);
 
+  //
+  // More types
+  //
   typedef std::vector<Value> TempVec;
-
   typedef std::vector<String> StringVec;
 
   //
   // Members
   //
-  Object*         m_resultNode;
   NamespaceScope* m_global;
   Scope*          m_scope;
   size_t          m_allocs;
