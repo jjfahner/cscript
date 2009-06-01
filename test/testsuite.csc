@@ -542,11 +542,12 @@ for(var i = 0; i < 10; ++i)
 elapsed = CScript.Ticks - elapsed;
 
 // Show elapsed time
-Console.WriteLn("Executed in {elapsed} ms");
+Console.WriteLn("Executed in {elapsed} ms\n");
 
 // Run garbage collector
 Console.WriteLn("Collecting...");
 var ci = CScript.Collect();
-Console.WriteLn(ci);
 
-// EOF
+Console.WriteLn("Collection statistics: ", ci);
+
+// 

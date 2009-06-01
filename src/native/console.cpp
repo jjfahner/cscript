@@ -21,30 +21,29 @@
 #include <native/console.h>
 #include <args.h>
 #include <eval.h>
-
-#include <set>
-#include <list>
+#include <enumerator.h>
+#include <datatype.h>
 #include <iostream>
 
-void PrintValue(Value const& val);
+void PrintValue(Value const& val, EvalRef evaluator, bool recurse);
 
 void 
-Console::Write(ArgsCRef args)
+Console::Write(ArgsCRef args, EvalRef evaluator)
 {
   for(size_t i = 0; i < args.size(); ++i)
   {
-    PrintValue(args[i]);
+    PrintValue(args[i], evaluator, true);
   }
 }
 
 void 
-Console::WriteLn(ArgsCRef args)
+Console::WriteLn(ArgsCRef args, EvalRef evaluator)
 {
   for(size_t i = 0; i < args.size(); ++i)
   {
-    PrintValue(args[i]);
+    PrintValue(args[i], evaluator, true);
   }
-  PrintValue("\n");
+  std::cout << "\n";
 }
 
 String 
@@ -60,7 +59,7 @@ Console::Read()
 // Native call implementations
 //
 
-void PrintValue(Value const& val)
+void PrintValue(Value const& val, EvalRef evaluator, bool recurse)
 {
   switch(val.Type())
   {
@@ -83,103 +82,36 @@ void PrintValue(Value const& val)
     return;
 
   case Value::tObject:
+    if(!recurse)
+    {
+      std::cout << "[" << val.GetDataType()->TypeName() << " ]";
+    }
     break;
 
   default: 
     throw std::runtime_error("Invalid subtype");
   }
 
-  // FIXME
-//   Object::MemberIterator it = val->Begin();
-//   Object::MemberIterator ie = val->End();
-// 
-//   std::cout << "[";
-// 
-//   String sep;
-//   for(; it != ie; ++it)
-//   {
-//     std::cout << sep;
-//     sep = ",";
-//     PrintValue(it->first);
-//     std::cout << ":";
-//     if(it->second.Type() == Value::tObject)
-//     {
-//       std::cout << it->second.GetObject()->GetType()->TypeName();
-//     }
-//     else
-//     {
-//       PrintValue(it->second.GetValue());
-//     }
-//   }
-// 
-//   std::cout << "]";
-}
+  Value key, value;
 
-// NATIVE_CALL("print(value)")
-// {
-//   PrintValue(args[0]);
-//   return args[0];
-// }
-// 
-// NATIVE_CALL("read()")
-// {
-//   String line;
-//   std::cin >> line;
-//   return Value(line);
-// }
-// 
-//////////////////////////////////////////////////////////////////////////
-void print_ast(Object& node, std::set<Object*>& done, int level)
-{
-#if 0
-  for(int i = 0; i < level; ++i)
+  Arguments args;
+  if(val->TryEval("ToString", &evaluator, args, value))
   {
-    std::cout << "  ";
+    std::cout << value.GetString();
   }
 
-  std::list<Object*> next;
+  std::cout << "[";
 
-  std::cout << std::ios::hex << &node;
-  for(int i = 0; i < 5; ++i)
+  String sep;
+  Enumerator* pEnum = val->GetEnumerator();
+  while(pEnum->GetNext(key, value))
   {
-    // This is broken; members are now called "a{n}"
-    if(node.ContainsKey(ValString(i)))
-    {
-      Value const& v = node.Get(ValString(i));
-      std::cout << " [" << i << "] : ";
-      switch(v.Type())
-      {
-      case Value::tNull:
-        std::cout << "<null>";
-        break;
-      case Value::tBool:
-        std::cout << v.GetBool();
-        break;
-      case Value::tInt:
-        std::cout << v.GetInt();
-        break;
-      case Value::tString:
-        std::cout << '"' << v.GetString() << '"';
-        break;
-      case Value::tObject:
-        next.push_back(v.GetObject());
-        std::cout << std::ios::hex << v.GetObject();
-        break;
-      }
-    }
+    std::cout << sep;
+    PrintValue(key, evaluator, false);
+    std::cout << ":";
+    PrintValue(value, evaluator, false);
+    sep = ", ";
   }
-  std::cout << "\n";
-
-  std::list<Object*>::iterator it, ie;
-  it = next.begin();
-  ie = next.end();
-  for(; it != ie; ++it)
-  {
-    if(!done.count(*it))
-    {
-      done.insert(*it);
-      print_ast(**it, done, level + 1);
-    }
-  }
-#endif
+  
+  std::cout << "]";
 }
