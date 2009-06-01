@@ -1,2 +1,3 @@
-var a = [];
-a[1] = 2;
+var a = 10;
+a = a + 10;
+Console.WriteLn(a);

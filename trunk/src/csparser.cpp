@@ -136,7 +136,7 @@ CSParser::GetDataType(AstNode* node)
     return AstNode_A1(node)->m_dataType;
 
   case assignment_expression: 
-    return AstNode_A3(node)->m_dataType;
+    return AstNode_A2(node)->m_dataType;
 
   case binary_expression:
     switch(Ast_A1(node).GetInt())

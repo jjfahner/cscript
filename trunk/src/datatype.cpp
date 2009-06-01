@@ -140,7 +140,7 @@ class IntegerTypeImpl : public IntegerType
 {
 public:
 
-  IntegerTypeImpl(DeclType value = DeclType()) :
+  IntegerTypeImpl(int64 value = int64()) :
   m_value (value)
   {
   }
@@ -162,16 +162,41 @@ public:
     return new IntegerTypeImpl(value.GetInt());
   }
 
-  DeclType ParseInt(StringCRef source)
+  int64 ParseInt(StringCRef source)
   {
     int v;
     sscanf(source.c_str(), "%d", &v);
     return v;
   }
 
+  int64 Add(int64 rhs)
+  {
+    return m_value + rhs;
+  }
+
+  int64 Sub(int64 rhs)
+  {
+    return m_value - rhs;
+  }
+
+  int64 Mul(int64 rhs)
+  {
+    return m_value * rhs;
+  }
+
+  int64 Div(int64 rhs)
+  {
+    return m_value / rhs;
+  }
+
+  int64 Mod(int64 rhs)
+  {
+    return m_value % rhs;
+  }
+
 protected:
 
-  DeclType m_value;
+  int64 m_value;
 
 };
 
@@ -213,14 +238,19 @@ public:
     return m_value.length();
   }
 
+  virtual String Add(ValueCRef rhs)
+  {
+    return m_value + ValString(rhs);
+  }
+
   virtual String Substr(int64 start, int64 length)
   {
-    return m_value.substr((size_t)start, (size_t)(length ? length : DeclType::npos));
+    return m_value.substr((size_t)start, (size_t)(length == 0 ? DeclType::npos : length));
   }
 
   virtual int64 Find(StringCRef what, int64 start)
   {
-    return m_value.find(what, (size_t)(start ? start : DeclType::npos));
+    return m_value.find(what, (size_t)(start == -1 ? DeclType::npos : start));
   }
 
 protected:

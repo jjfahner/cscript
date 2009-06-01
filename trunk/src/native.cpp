@@ -155,6 +155,16 @@ cscript_arg_to_StringCRef(Value const& value)
   return value.GetString();
 }
 
+inline String
+cscript_arg_to_String(Value const& value)
+{
+  if(value.Type() == Value::tString)
+  {
+    return value.GetString();
+  }
+  return ValString(value);
+}
+
 inline ValueCRef
 cscript_arg_to_ValueCRef(Value const& value)
 {

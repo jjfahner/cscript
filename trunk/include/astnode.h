@@ -41,15 +41,15 @@ public:
   // Constructors
   //
   AstNode(AstTypes type) : 
-    m_type (type), m_updateDone(false) {}
+    m_type (type), m_dataType (0), m_updateDone(false) {}
   AstNode(AstTypes type, Value const& a1) : 
-    m_type (type), m_a1 (a1), m_updateDone(false) {}
+    m_type (type), m_dataType (0), m_a1 (a1), m_updateDone(false) {}
   AstNode(AstTypes type, Value const& a1, Value const& a2) : 
-    m_type (type), m_a1 (a1), m_a2 (a2), m_updateDone(false) {}
+    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2), m_updateDone(false) {}
   AstNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3) : 
-    m_type (type), m_a1 (a1), m_a2 (a2), m_a3 (a3), m_updateDone(false) {}
+    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2), m_a3 (a3), m_updateDone(false) {}
   AstNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4) : 
-    m_type (type), m_a1 (a1), m_a2 (a2), m_a3 (a3), m_a4 (a4), m_updateDone(false) {}
+    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2), m_a3 (a3), m_a4 (a4), m_updateDone(false) {}
 
   //
   // Members
@@ -62,7 +62,7 @@ public:
   Value     m_a4;
   bool      m_updateDone;
 
-  __native_roprop IntegerType::DeclType Type() { return m_type; }
+  __native_roprop int64 Type() { return m_type; }
   __native_roprop Value a1() { return m_a1; }
   __native_roprop Value a2() { return m_a2; }
   __native_roprop Value a3() { return m_a3; }
