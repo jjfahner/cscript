@@ -519,10 +519,6 @@ Evaluator::EvalLValue(Object* node, Object*& obj, Value& name)
     return;
 
   case index_expression:
-    if(Ast_A2(node).Empty())
-    {
-      int i = 1;
-    }
     obj = EvalExpression(Ast_A1(node));
     if(Ast_A2(node).Empty())
     {
@@ -591,39 +587,16 @@ Evaluator::EvalExpression(Object* node)
 Value
 Evaluator::EvalAssignment(Object* node)
 {
-  // Opcode for the assignment
-  opcodes opcode = (opcodes)Ast_A1(node).GetInt();
+  // Evaluate right-hand side
+  Value rhs = EvalExpression(Ast_A2(node));
 
   // Determine left-hand side
   Object* obj;
   Value key;
-  EvalLValue(Ast_A2(node), obj, key);
-
-  // Evaluate right-hand side
-  Value rhs = EvalExpression(Ast_A3(node));
+  EvalLValue(Ast_A1(node), obj, key);
 
   // Direct assignment
-  if(opcode == op_assign)
-  {
-    return obj->Set(key, rhs);
-  }
-
-  // Retrieve current value
-  Value const& lhs = obj->Get(key);
-
-  // Convert right-hand side to left-hand type
-  ConvertInPlace(node, rhs, lhs.Type());
-
-  // Perform assignment
-  switch(opcode)
-  {
-  case op_assadd: return obj->Set(key, ValAdd(lhs, rhs));
-  case op_asssub: return obj->Set(key, ValSub(lhs, rhs));
-  case op_assmul: return obj->Set(key, ValMul(lhs, rhs));
-  case op_assdiv: return obj->Set(key, ValDiv(lhs, rhs));
-  case op_assmod: return obj->Set(key, ValMod(lhs, rhs));
-  default: throw ScriptException(node, "Invalid assignment operator");
-  }
+  return obj->Set(key, rhs);
 }
 
 Value
@@ -634,19 +607,6 @@ Evaluator::EvalBinary(Object* node)
 
   // Evaluate left-hand side
   Value const& lhs = EvalExpression(Ast_A2(node));
-
-  // Handle object
-//   if(lhs.Type() == Value::tObject)
-//   {
-//     String opfun = "operator" + OpcodeToString(opcode);
-//     if(lhs->ContainsKey(opfun))
-//     {
-//       Object* funObj = lhs->GetRValue(opfun).GetObject();
-//       ScriptFunction* fun = dynamic_cast<ScriptFunction*>(funObj);
-// 
-//       return EvalFunctionCall(node, fun, lhs.GetObject(), Ast_A3(node));
-//     }
-//   }
 
   // Short-circuited operators
   if(opcode == op_logor)

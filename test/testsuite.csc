@@ -14,7 +14,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // 
-// You should have receiv ed a copy of the GNU General Public License
+// You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -358,9 +358,9 @@ function main()
   
   // Substring
   a = "Hello world";
-  assert("String.Find", a.Substr(0, 5), "Hello");
-  assert("String.Find", a.Substr(6, 0), "world");
-  assert("String.Find", a.Length,         11);
+  assert("String.Length", a.Length,         11);
+  assert("String.Substr", a.Substr(0, 5), "Hello");
+  assert("String.Substr", a.Substr(6, 0), "world");
   assert("String.Find", a.Find("H", 0),  0);
   assert("String.Find", a.Find("h", 0), -1);
   assert("String.Find", a.Find("o", 0),  4);

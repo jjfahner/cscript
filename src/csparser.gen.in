@@ -39,7 +39,32 @@
 
 #pragma warning(disable:4065)
 
-} 
+inline Object* 
+AllocBinOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
+{
+  String opName;
+  switch(opcode)
+  {
+  case op_add: opName = "Add"; break;
+  case op_sub: opName = "Sub"; break;
+  case op_mul: opName = "Mul"; break;
+  case op_div: opName = "Div"; break;
+  case op_mod: opName = "Mod"; break;
+  default: return p->AllocNode(binary_expression, opcode, lhs, rhs);
+  }
+  Object* unq = p->AllocNode(unqualified_id, opName);
+  Object* mem = p->AllocNode(member_expression, lhs, unq);
+  return p->AllocNode(function_call, mem, rhs);
+}
+
+inline Object* 
+AllocAssOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
+{
+  return p->AllocNode(assignment_expression, lhs, 
+                AllocBinOp(p, opcode, lhs, rhs));
+}
+
+}
 //
 // End inclusion block
 //
@@ -132,17 +157,12 @@ expression_opt(R) ::= expression(A) . { R = A; }
 // Assignment
 assignment_expression(R) ::= conditional_expression(A) . { R = A; }
 assignment_expression(R) ::= throw_expression(A) .       { R = A; }
-assignment_expression(R) ::= binary_expression(A) assignment_operator(B) 
-                             assignment_expression(C) .  { R = p->AllocNode(assignment_expression, B, A, C); }
-
-// Assignment operator
-%type assignment_operator { opcodes }
-assignment_operator(R) ::= ASSIGN . { R = op_assign; }
-assignment_operator(R) ::= ASSADD . { R = op_assadd; }
-assignment_operator(R) ::= ASSSUB . { R = op_asssub; }
-assignment_operator(R) ::= ASSMUL . { R = op_assmul; }
-assignment_operator(R) ::= ASSDIV . { R = op_assdiv; }
-assignment_operator(R) ::= ASSMOD . { R = op_assmod; }
+assignment_expression(R) ::= binary_expression(A) ASSIGN assignment_expression(B) .  { R = p->AllocNode(assignment_expression, A, B); }
+assignment_expression(R) ::= binary_expression(A) ASSADD binary_expression(B) . { R = AllocAssOp(p, op_add, A, B); }
+assignment_expression(R) ::= binary_expression(A) ASSSUB binary_expression(B) . { R = AllocAssOp(p, op_sub, A, B); }
+assignment_expression(R) ::= binary_expression(A) ASSMUL binary_expression(B) . { R = AllocAssOp(p, op_mul, A, B); }
+assignment_expression(R) ::= binary_expression(A) ASSDIV binary_expression(B) . { R = AllocAssOp(p, op_div, A, B); }
+assignment_expression(R) ::= binary_expression(A) ASSMOD binary_expression(B) . { R = AllocAssOp(p, op_mod, A, B); }
 
 // Conditional
 conditional_expression(R) ::= binary_expression(A) . { R = A; }
@@ -151,24 +171,24 @@ conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON
 
 // Binary expressions
 binary_expression(R) ::= unary_expression(A) . { R = A; }
-binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = p->AllocNode(binary_expression, op_logor,   A, B); }
-binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = p->AllocNode(binary_expression, op_logand,  A, B); }
-binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = p->AllocNode(binary_expression, op_bitor,   A, B); }
-binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R = p->AllocNode(binary_expression, op_bitxor,  A, B); }
-binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = p->AllocNode(binary_expression, op_bitand,  A, B); }
-binary_expression(R) ::= binary_expression(A) EQUALS  binary_expression(B). { R = p->AllocNode(binary_expression, op_eq,      A, B); }
-binary_expression(R) ::= binary_expression(A) NEQUALS binary_expression(B). { R = p->AllocNode(binary_expression, op_ne,      A, B); }
-binary_expression(R) ::= binary_expression(A) LT      binary_expression(B). { R = p->AllocNode(binary_expression, op_lt,      A, B); }
-binary_expression(R) ::= binary_expression(A) LE      binary_expression(B). { R = p->AllocNode(binary_expression, op_le,      A, B); }
-binary_expression(R) ::= binary_expression(A) GT      binary_expression(B). { R = p->AllocNode(binary_expression, op_gt,      A, B); }
-binary_expression(R) ::= binary_expression(A) GE      binary_expression(B). { R = p->AllocNode(binary_expression, op_ge,      A, B); }
-binary_expression(R) ::= binary_expression(A) ADDOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_add,     A, B); }
-binary_expression(R) ::= binary_expression(A) SUBOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_sub,     A, B); }
-binary_expression(R) ::= binary_expression(A) MULOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_mul,     A, B); }
-binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_div,     A, B); }
-binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = p->AllocNode(binary_expression, op_mod,     A, B); }
-binary_expression(R) ::= binary_expression(A) SEQ     binary_expression(B). { R = p->AllocNode(binary_expression, op_seq,     A, B); }
-binary_expression(R) ::= binary_expression(A) SNE     binary_expression(B). { R = p->AllocNode(binary_expression, op_sne,     A, B); }
+binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = AllocBinOp(p, op_logor,   A, B); }
+binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = AllocBinOp(p, op_logand,  A, B); }
+binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = AllocBinOp(p, op_bitor,   A, B); }
+binary_expression(R) ::= binary_expression(A) BITXOR  binary_expression(B). { R = AllocBinOp(p, op_bitxor,  A, B); }
+binary_expression(R) ::= binary_expression(A) BITAND  binary_expression(B). { R = AllocBinOp(p, op_bitand,  A, B); }
+binary_expression(R) ::= binary_expression(A) EQUALS  binary_expression(B). { R = AllocBinOp(p, op_eq,      A, B); }
+binary_expression(R) ::= binary_expression(A) NEQUALS binary_expression(B). { R = AllocBinOp(p, op_ne,      A, B); }
+binary_expression(R) ::= binary_expression(A) LT      binary_expression(B). { R = AllocBinOp(p, op_lt,      A, B); }
+binary_expression(R) ::= binary_expression(A) LE      binary_expression(B). { R = AllocBinOp(p, op_le,      A, B); }
+binary_expression(R) ::= binary_expression(A) GT      binary_expression(B). { R = AllocBinOp(p, op_gt,      A, B); }
+binary_expression(R) ::= binary_expression(A) GE      binary_expression(B). { R = AllocBinOp(p, op_ge,      A, B); }
+binary_expression(R) ::= binary_expression(A) ADDOP   binary_expression(B). { R = AllocBinOp(p, op_add,     A, B); }
+binary_expression(R) ::= binary_expression(A) SUBOP   binary_expression(B). { R = AllocBinOp(p, op_sub,     A, B); }
+binary_expression(R) ::= binary_expression(A) MULOP   binary_expression(B). { R = AllocBinOp(p, op_mul,     A, B); }
+binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R = AllocBinOp(p, op_div,     A, B); }
+binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = AllocBinOp(p, op_mod,     A, B); }
+binary_expression(R) ::= binary_expression(A) SEQ     binary_expression(B). { R = AllocBinOp(p, op_seq,     A, B); }
+binary_expression(R) ::= binary_expression(A) SNE     binary_expression(B). { R = AllocBinOp(p, op_sne,     A, B); }
 
 // Unary expression
 unary_expression(R) ::= postfix_expression(A) .      { R = A; } 

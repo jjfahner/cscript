@@ -142,11 +142,6 @@ public:
   DEF_NATIVE_CALLS(IntegerType, ScalarType)
 
   //
-  // Declaration type
-  //
-  typedef int64 DeclType;
-
-  //
   // Retrieve singleton instance
   //
   static DataType* Instance();
@@ -154,7 +149,16 @@ public:
   //
   // Parse an integer
   //
-  __native_method virtual DeclType ParseInt(StringCRef source) = 0;
+  __native_method virtual int64 ParseInt(StringCRef source) = 0;
+
+  //
+  // Operators
+  //
+  __native_method virtual int64 Add(int64 rhs) = 0;
+  __native_method virtual int64 Sub(int64 rhs) = 0;
+  __native_method virtual int64 Mul(int64 rhs) = 0;
+  __native_method virtual int64 Div(int64 rhs) = 0;
+  __native_method virtual int64 Mod(int64 rhs) = 0;
 
 };
 
@@ -180,6 +184,11 @@ public:
   // Length of string
   //
   __native_roprop virtual int64 Length() = 0;
+
+  //
+  // Binary operators
+  //
+  __native_method virtual String Add(ValueCRef rhs) = 0;
 
   //
   // Retrieve substring
