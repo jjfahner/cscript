@@ -142,7 +142,7 @@ CSLexer::LexString(Token& token)
   char wch;
   while(true)
   {
-    while(end - cur)
+    while(end - cur > 1)
     {
       switch(*cur)
       {
@@ -175,7 +175,7 @@ CSLexer::LexString(Token& token)
     }
 
     m_stream.m_marker = m_stream.m_cursor;
-    if(m_stream.FillBuffer() == 0)
+    if(m_stream.FillBuffer(2) < 2)
     {
       throw std::runtime_error("Unterminated string constant");
     }
