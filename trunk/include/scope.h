@@ -114,8 +114,8 @@ public:
       return parent->Get(key);
     }
     
-    // Unknown variable
-    throw std::runtime_error("Variable not found");
+    // Pass to base
+    return Object::Get(key);
   }
 
   //
@@ -159,8 +159,8 @@ public:
       return parent->Set(key, value);
     }
 
-    // Unknown variable
-    throw std::runtime_error("Variable not found");
+    // Pass to base
+    return Object::Set(key, value);
   }
 
   //
