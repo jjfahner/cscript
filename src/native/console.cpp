@@ -54,6 +54,15 @@ Console::Read()
   return Value(line);
 }
 
+String 
+Console::ReadChar()
+{
+  char c[2];
+  std::cin.read(c, 1);
+  c[1] = 0;
+  return c;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Native call implementations
@@ -85,6 +94,7 @@ void PrintValue(Value const& val, EvalRef evaluator, bool recurse)
     if(!recurse)
     {
       std::cout << "[" << val.GetDataType()->TypeName() << " ]";
+      return;
     }
     break;
 

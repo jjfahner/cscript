@@ -45,6 +45,11 @@ public:
   //
   __native_method String Read();
 
+  //
+  // Read a keystroke
+  //
+  __native_method String ReadChar();
+
 };
 
 #endif // CSCRIPT_NATIVE_CONSIO_H
