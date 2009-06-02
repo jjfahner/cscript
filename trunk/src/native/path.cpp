@@ -20,11 +20,15 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <native/path.h>
+#include <list.h>
+#include <eval.h>
 
 //////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSC_VER)
 #include <windows.h>
+#include <io.h>
+#include <errno.h>
 #elif defined(__GNUC__)
 #include <unistd.h>
 #else
@@ -88,4 +92,74 @@ Path::WorkingDirectory()
   getcwd(buf, 1024);
 #endif
   return buf;
+}
+
+Value 
+Path::GetFiles(StringCRef path)
+{
+#ifdef WIN32
+  
+  _finddata_t wfd;
+
+  intptr_t hFind = _findfirst(path.c_str(), &wfd);
+  if(hFind == -1)
+  {
+    if(errno == ENOENT)
+    {
+      return new List();
+    }
+    throw CatchableException("Invalid path");
+  }
+
+  List* list = new List;
+  do
+  {
+    if(!(wfd.attrib & _A_SUBDIR))
+    {
+      list->Append(wfd.name);
+    }
+  } while(_findnext(hFind, &wfd) == 0);
+
+  _findclose(hFind);
+
+  return list;
+
+#else
+# error GetFiles not implemented on this platform
+#endif
+}
+
+Value 
+Path::GetDirectories(StringCRef path)
+{
+#ifdef WIN32
+
+  _finddata_t wfd;
+
+  intptr_t hFind = _findfirst(path.c_str(), &wfd);
+  if(hFind == -1)
+  {
+    if(errno == ENOENT)
+    {
+      return new List();
+    }
+    throw CatchableException("Invalid path");
+  }
+
+  List* list = new List();
+  do
+  {
+    if(wfd.attrib & _A_SUBDIR)
+    {
+      list->Append(wfd.name);
+    }
+  } while(_findnext(hFind, &wfd) == 0);
+
+  _findclose(hFind);
+
+  return list;
+
+#else
+# error GetDirectories not implemented on this platform
+#endif
 }

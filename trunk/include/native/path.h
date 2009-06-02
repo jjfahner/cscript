@@ -59,6 +59,16 @@ public:
   //
   __native_roprop static String WorkingDirectory();
 
+  //
+  // Retrieve list of files in a directory
+  //
+  __native_method static Value GetFiles(StringCRef path);
+
+  //
+  // Retrieve list of subdirectories in a directory
+  //
+  __native_method static Value GetDirectories(StringCRef path);
+
 };
 
 #endif // CSCRIPT_NATIVE_PATH_H
