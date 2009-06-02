@@ -106,26 +106,30 @@ CScriptMethods::DebugParser(bool value, EvalRef evaluator)
 #endif
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-/*
-#include <xmlparser.h>
-#include <fstream>
-
-NATIVE_CALL("parseXml(string file)")
+Value
+CScriptMethods::Exec(StringCRef command)
 {
-  // Open file
-  std::ifstream is(args[0].GetString().c_str());
-  if(!is.is_open())
+  // Run the command
+  FILE* file = _popen(command.c_str(), "rt");
+  if(file == 0)
   {
-    throw std::runtime_error("Failed to open file");
+    return Value();
   }
 
-  // Create lexer stream
-  LexStream ls(is);
+  // Wait for completion
+  return _pclose(file);
 
-  // Run parser
-  XmlParser parser;
-  return parser.Parse(ls);
+  //   // Read from handle until done
+  //   for(;;)
+  //   {
+  //     char buf[1024];
+  //     size_t read = fread(buf, 1, sizeof(buf), file);
+  //     buf[read] = 0;
+  //     std::cout << buf;
+  //     if(read < sizeof(buf))
+  //     {
+  //       break;
+  //     }
+  //   }
+  // 
 }
-*/
