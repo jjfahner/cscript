@@ -126,10 +126,13 @@ int execute(String const& file)
 {
   // Execute code in file
   Evaluator eval;
-  eval.Eval(file, true);
+  Value result = eval.Eval(file, true);
+
+  // Determine exit code
+  int code = (int)ValInt(result);
 
   // Exit
-  return 0;
+  return code;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,10 +144,13 @@ int commandline(int argc, Char** argv)
 {
   // Execute code in file
   Evaluator eval;
-  eval.Eval(argv[2], false);
+  Value result = eval.Eval(argv[2], false);
+
+  // Determine exit code
+  int code = (int)ValInt(result);
 
   // Exit
-  return 0;
+  return code;
 }
 
 //////////////////////////////////////////////////////////////////////////
