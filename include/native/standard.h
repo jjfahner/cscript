@@ -74,6 +74,11 @@ public:
   //
   __native_method void DebugParser(bool value, EvalRef evaluator);
 
+  //
+  // Execute a command
+  //
+  __native_method Value Exec(StringCRef command);
+
 };
 
 #endif // CSCRIPT_NATIVE_STANDARD_H
