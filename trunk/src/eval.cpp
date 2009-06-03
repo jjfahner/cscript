@@ -339,7 +339,7 @@ Evaluator::Eval(String text, bool isFileName)
   // Uncaught user_exception in script
   catch(CatchableException const& e)
   {
-    ReportError("Error: Uncaught exception '" + e.m_value.GetString() + "'", e.m_node);
+    ReportError("Error: Uncaught exception '" + ValString(e.m_value) + "'", e.m_node);
   }
   // Invalid break statement
   catch(BreakException const& e)
