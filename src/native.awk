@@ -47,7 +47,7 @@ function GenerateTable()
 #
 
 function GenerateMethod(name, type,
-                        arg, sep, partype, parname, returns, stubname)
+                        arg, sep, num, partype, parname, returns, stubname)
 {
   # Generate stub name
   stubname = sprintf("cscript_native_method_%s_%s", className, name);
@@ -59,11 +59,12 @@ function GenerateMethod(name, type,
   
   # Generate function call
   returns = type == "void" ? "" : "return ";
-  printf("  %sstatic_cast<%s*>(instance)->%s(", returns, className, name);
+  call = sprintf("  %sstatic_cast<%s*>(instance)->%s(", returns, className, name);
   
   # Generate parameters
   arg = 0;
   sep = " ";
+  num = 0;
   while(++i <= NF && $i != ")")
   {
     # Find name and type
@@ -79,15 +80,16 @@ function GenerateMethod(name, type,
     # Generate parameter
     if(partype == "ArgsCRef")
     {
-      printf("\n    %sarguments", sep);
+      call = call sprintf("\n    %sarguments", sep);
     }
     else if(partype == "EvalRef")
     {
-      printf("\n    %s*evaluator", sep);
+      call = call sprintf("\n    %s*evaluator", sep);
     }
     else
     {
-      printf("\n    %scscript_arg_to_%s(arguments[%d])", sep, partype, arg++);
+      call = call sprintf("\n    %scscript_arg_to_%s(arguments[%d])", sep, partype, arg++);
+      ++num;
     }
     
     # Following args need comma
@@ -95,7 +97,13 @@ function GenerateMethod(name, type,
   }
   
   # Close function call
-  printf(");\n");
+  call = call sprintf(");\n");
+  
+  # Generate argument count check
+  printf("  cscript_check_argcount(\"%s\", \"%s\", %d, arguments.size());\n", className, name, num);
+  
+  # Generate call to member
+  printf(call);
   
   # Generate return statement
   if(type == "void")

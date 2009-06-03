@@ -7,14 +7,13 @@ var path = "../test/testcases/";
 // Enumerate all files in the test path
 var number = 0;
 var errors = 0;
-for(var f in Path.GetFiles(path + "*.csc"))
+for(var file in Path.GetFiles(path + "*.csc"))
 {
   // Build path
-  var file = path + f;
-  Console.Write("Executing {f}... ");
+  Console.Write("Executing {file}... ");
 
   // Execute the script
-  var res = CScript.Exec("test.exe \"{file}\"");
+  var res = CScript.Exec("test.exe \"{path}{file}\"");
   if(res == 1)
   {
     Console.WriteLn("Ok");
