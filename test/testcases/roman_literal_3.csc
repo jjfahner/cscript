@@ -1,0 +1,1 @@
+return 0rMCMXCIX == 1999;
