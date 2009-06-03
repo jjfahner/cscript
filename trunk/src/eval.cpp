@@ -375,7 +375,8 @@ Evaluator::Eval(Object* astRoot)
   VecRestore<TempVec> vr(m_temporaries);
 
   // Place global scope on the scope stack
-  AutoScope as(this, m_global);
+  //AutoScope as(this, m_global);
+  AutoScope at(this, new Scope(m_global));
 
   // Keep ast around during evaluation
   MakeTemp(astRoot);
