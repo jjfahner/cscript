@@ -1,1 +1,1 @@
-return true || true == true;
+return (true || true) == true;
