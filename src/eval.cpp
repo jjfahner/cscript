@@ -236,7 +236,7 @@ Evaluator::ParseFile(String const& filename, bool executeImmediate)
   CSParser parser;
 
   // Parse source code
-  Object* root = parser.Parse(ls);
+  Object* root = parser.Parse(ls, false);
 
   // Execute or return code tree
   if(executeImmediate)
@@ -262,7 +262,7 @@ Evaluator::ParseText(String const& text, bool executeImmediate)
   CSParser parser;
 
   // Parse source code
-  Object* root = parser.Parse(ls, executeImmediate);
+  Object* root = parser.Parse(ls, false);
 
   // Execute or return code tree
   if(executeImmediate)
