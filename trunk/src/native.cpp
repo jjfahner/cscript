@@ -146,8 +146,23 @@ NativeCallTryEval(NativeCall* pTable,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Native call conversion functions
+// Native call support functions
 //
+
+void 
+cscript_check_argcount(char const* className, 
+                       char const* methodName, 
+                       int expected, int actual)
+{
+  if(actual < expected)
+  {
+    char buf[1024];
+    sprintf(buf, "Method %s::%s expected %d arguments, got %d", 
+                      className, methodName, expected, actual);
+    
+    throw std::runtime_error(buf);
+  }
+}
 
 inline StringCRef 
 cscript_arg_to_StringCRef(Value const& value)
