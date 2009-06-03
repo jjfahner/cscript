@@ -1,0 +1,1 @@
+return 1234.ToString() == "1234";
