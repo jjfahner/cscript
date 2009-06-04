@@ -102,7 +102,7 @@ void
 CScriptMethods::DebugParser(bool value)
 {
 #ifdef _DEBUG
-  evaluator.DebugParser(value);
+  CurEval.DebugParser(value);
 #endif
 }
 
