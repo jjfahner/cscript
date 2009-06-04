@@ -201,6 +201,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\context.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\convert.cpp"
 				>
 			</File>
@@ -330,6 +334,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\astnode.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\context.h"
 				>
 			</File>
 			<File

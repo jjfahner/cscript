@@ -29,9 +29,9 @@ Function::GetType()
 
 
 Value 
-ScriptFunction::Execute(Evaluator* evaluator, Arguments& args)
+ScriptFunction::Execute(Arguments& args)
 {
-  return evaluator->EvalScriptCall(this, args);
+  return CurEval.EvalScriptCall(this, args);
 }
 
 List* 
@@ -45,7 +45,7 @@ ExternFunction::GetParameters() const
 #include <windows.h>
 
 Value
-ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
+ExternFunction::Execute(Arguments& args)
 {
   throw std::runtime_error("External functions are disabled");
 
@@ -117,7 +117,7 @@ ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
 #else
 
 Value
-ExternFunction::Execute(Evaluator* evaluator, Arguments& args)
+ExternFunction::Execute(Arguments& args)
 {
   throw std::runtime_error("Extern calls not implemented on this platform");
 }

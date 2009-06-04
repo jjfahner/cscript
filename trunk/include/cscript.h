@@ -57,6 +57,8 @@ typedef unsigned __int8   Byte;
 
 #define strcmp_nocase _stricmp
 
+#define TLS __declspec(thread)
+
 #elif defined(__GNUC__)
 
 #include <stdint.h>
@@ -73,6 +75,8 @@ typedef uint64_t          uint64;
 typedef uint8_t           Byte;
 
 #define strcmp_nocase strcasecmp
+
+#define TLS static __thread
 
 #else
 

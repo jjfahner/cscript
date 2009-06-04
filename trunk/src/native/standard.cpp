@@ -28,9 +28,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 Value 
-CScriptMethods::Eval(StringCRef code, bool isFile, EvalRef evaluator)
+CScriptMethods::Eval(StringCRef code, bool isFile)
 {
-  return evaluator.Eval(code, isFile);
+  return CurEval.Eval(code, isFile);
 }
 
 void 
@@ -40,14 +40,14 @@ CScriptMethods::Reset()
 }
 
 Value
-CScriptMethods::Collect(EvalRef evaluator)
+CScriptMethods::Collect()
 {
   // Perform collection
-  GC::CollectInfo const& ci = evaluator.Collect();
+  GC::CollectInfo const& ci = CurEval.Collect();
 
   // Create result object
   Object* obj = new ScriptObject();
-  evaluator.MakeTemp(obj);
+  CurEval.MakeTemp(obj);
 
   // Copy fields
   obj->Set("markPhase",    (Value::Int) ci.m_markPhase);
@@ -87,9 +87,9 @@ CScriptMethods::Quit(int64 exitcode)
 }
 
 Value 
-CScriptMethods::Lookup(StringCRef name, EvalRef evaluator)
+CScriptMethods::Lookup(StringCRef name)
 {
-  return evaluator.GetScope()->Get(name);
+  return CurEval.GetScope()->Get(name);
 }
 
 int64 
@@ -99,7 +99,7 @@ CScriptMethods::Ticks()
 }
 
 void 
-CScriptMethods::DebugParser(bool value, EvalRef evaluator)
+CScriptMethods::DebugParser(bool value)
 {
 #ifdef _DEBUG
   evaluator.DebugParser(value);
