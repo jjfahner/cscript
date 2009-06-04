@@ -107,10 +107,10 @@ public:
   //
   // Evaluate a method
   //
-  Value Eval(Value const& key, Evaluator* evaluator, Arguments& arguments)
+  Value Eval(Value const& key, Arguments& arguments)
   {
     Value result;
-    if(TryEval(key, evaluator, arguments, result))
+    if(TryEval(key, arguments, result))
     {
       return result;
     }
@@ -120,7 +120,7 @@ public:
   //
   // Try to evaluate a method
   //
-  virtual bool TryEval(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result);
+  virtual bool TryEval(Value const& key, Arguments& arguments, Value& result);
 
 protected:
 

@@ -56,8 +56,7 @@ class Evaluator::AutoScope
 {
 public:
 
-  AutoScope(Evaluator* eval, Scope* scope = 0) : 
-  m_eval (eval), 
+  AutoScope(Scope* scope = 0) : 
   m_prv  (0),
   m_cur  (0)
   {
@@ -76,7 +75,7 @@ public:
   {
     if(m_prv)
     {
-      m_eval->m_scope = m_prv;
+      CurEval.m_scope = m_prv;
       m_prv = 0;
       m_cur = 0;
     }
@@ -88,9 +87,9 @@ public:
     {
       Reset();
     }
-    m_prv = m_eval->m_scope;
+    m_prv = CurEval.m_scope;
     m_cur = scope;
-    m_eval->m_scope = m_cur;
+    CurEval.m_scope = m_cur;
   }
   
 private:
@@ -98,7 +97,6 @@ private:
   //
   // MemberMap
   //
-  Evaluator*  m_eval;
   Scope*      m_prv;
   Scope*      m_cur;
 
@@ -372,11 +370,15 @@ Evaluator::Eval(String text, bool isFileName)
 Value
 Evaluator::Eval(Object* astRoot)
 {
+  // Set TLS instance
+  Context ctx(this);
+
+  // Temporary guard
   VecRestore<TempVec> vr(m_temporaries);
 
   // Place global scope on the scope stack
-  //AutoScope as(this, m_global);
-  AutoScope at(this, new Scope(m_global));
+  //AutoScope as(m_global);
+  AutoScope at(new Scope(m_global));
 
   // Keep ast around during evaluation
   MakeTemp(astRoot);
@@ -415,7 +417,7 @@ Evaluator::EvalStatement(Object* node)
   case compound_statement:
     if(!Ast_A1(node).Empty())
     {
-      AutoScope as(this, new Scope(m_scope));
+      AutoScope as(new Scope(m_scope));
       EvalStatement(Ast_A1(node));
     }
     break;
@@ -842,7 +844,7 @@ Evaluator::EvalNamespace(Object* node)
   String const& name = Ast_A1(node);
 
   // Create namespace scope
-  AutoScope as(this, new NamespaceScope(curNS, name));
+  AutoScope as(new NamespaceScope(curNS, name));
 
   // Evaluate declarations in scope
   if(!Ast_A2(node).Empty())
@@ -952,14 +954,14 @@ Evaluator::EvalFunctionCall(Object* node)
   EvalArguments(node, argsource, args);
 
   // Evaluate the function call
-  return obj->Eval(key, this, args);
+  return obj->Eval(key, args);
 }
 
 Value
 Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
 {
   // Class scope
-  AutoScope cs(this);
+  AutoScope cs;
 
   // Determine base scope for function
   Scope* parentScope = dynamic_cast<Scope*>(fun->Get("scope").GetObject());
@@ -975,10 +977,10 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   }
 
   // Create function scope
-  AutoScope asf(this, new ObjectScope(parentScope, fun));
+  AutoScope asf(new ObjectScope(parentScope, fun));
 
   // Create argument scope
-  AutoScope asa(this, new Scope(m_scope));
+  AutoScope asa(new Scope(m_scope));
 
   // Insert arguments into argument scope
   List::Iterator pi, pe;
@@ -998,7 +1000,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   }
 
   // Create function execution scope
-  AutoScope es(this, new Scope(m_scope));
+  AutoScope es(new Scope(m_scope));
 
   // Execute expression
   try
@@ -1285,7 +1287,7 @@ void
 Evaluator::EvalForStatement(Object* node)
 {
   // Outer scope
-  AutoScope scope(this, new Scope(m_scope));
+  AutoScope scope(new Scope(m_scope));
   
   // Evaluate init expression
   EvalStatement(Ast_A1(node));
@@ -1302,7 +1304,7 @@ Evaluator::EvalForStatement(Object* node)
     // For body
     try 
     {
-      AutoScope scope(this, new Scope(m_scope));
+      AutoScope scope(new Scope(m_scope));
       EvalStatement(Ast_A4(node));
     }
     catch(BreakException const&)
@@ -1321,7 +1323,7 @@ Evaluator::EvalForStatement(Object* node)
 void 
 Evaluator::EvalForeachStatement(Object* node)
 {
-  AutoScope scope(this, new Scope(m_scope));
+  AutoScope scope(new Scope(m_scope));
   
   Object* obj;
   Value key;
@@ -1361,7 +1363,7 @@ Evaluator::EvalForeachStatement(Object* node)
     // Evaluate expression
     try
     {
-      AutoScope scope(this, new Scope(m_scope));
+      AutoScope scope(new Scope(m_scope));
       EvalStatement(Ast_A3(node));
     }
     catch(BreakException const&)
@@ -1386,7 +1388,7 @@ Evaluator::EvalWhileStatement(Object* node)
 
     try
     {
-      AutoScope scope(this, new Scope(m_scope));
+      AutoScope scope(new Scope(m_scope));
       EvalStatement(Ast_A2(node));
     }
     catch(BreakException const&)
@@ -1433,7 +1435,7 @@ Evaluator::EvalSwitchStatement(Object* node)
   {
     try
     {
-      AutoScope as(this, new Scope(m_scope));
+      AutoScope as(new Scope(m_scope));
       EvalStatement(statement);
     }
     catch(BreakException const&)
@@ -1466,7 +1468,7 @@ Evaluator::EvalNewExpression(Object* node)
 
   // Execute constructor
   Value result;
-  inst->TryEval("constructor", this, args, result);
+  inst->TryEval("constructor", args, result);
 
   // Return temporary
   return inst;
@@ -1538,7 +1540,7 @@ Evaluator::EvalTryStatement(Object* node)
       {
         // Insert exception into scope
         // TODO this maketemp might crash horribly during exception cleanup!!!
-        AutoScope scope(this, new Scope(m_scope));
+        AutoScope scope(new Scope(m_scope));
         m_scope->Add(Ast_A1(Ast_A2(node)), e.m_value);
 
         // Evaluate catch block

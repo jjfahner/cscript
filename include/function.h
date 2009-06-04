@@ -66,7 +66,7 @@ public:
   //
   // Execute function 
   //
-  virtual Value Execute(Evaluator* evaluator, Arguments& args) = 0;
+  virtual Value Execute(Arguments& args) = 0;
 
 protected:
 
@@ -114,7 +114,7 @@ public:
   //
   // Execution
   //
-  virtual Value Execute(Evaluator* evaluator, Arguments& args);
+  virtual Value Execute(Arguments& args);
 
 };
 
@@ -152,7 +152,7 @@ public:
   //
   // Execution
   //
-  virtual Value Execute(Evaluator* evaluator, Arguments& args);
+  virtual Value Execute(Arguments& args);
 
 };
 

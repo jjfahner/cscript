@@ -25,23 +25,23 @@
 #include <datatype.h>
 #include <iostream>
 
-void PrintValue(Value const& val, EvalRef evaluator, bool recurse);
+void PrintValue(Value const& val, bool recurse);
 
 void 
-Console::Write(ArgsCRef args, EvalRef evaluator)
+Console::Write(ArgsCRef args)
 {
   for(size_t i = 0; i < args.size(); ++i)
   {
-    PrintValue(args[i], evaluator, true);
+    PrintValue(args[i], true);
   }
 }
 
 void 
-Console::WriteLn(ArgsCRef args, EvalRef evaluator)
+Console::WriteLn(ArgsCRef args)
 {
   for(size_t i = 0; i < args.size(); ++i)
   {
-    PrintValue(args[i], evaluator, true);
+    PrintValue(args[i], true);
   }
   std::cout << "\n";
 }
@@ -68,7 +68,7 @@ Console::ReadChar()
 // Native call implementations
 //
 
-void PrintValue(Value const& val, EvalRef evaluator, bool recurse)
+void PrintValue(Value const& val, bool recurse)
 {
   switch(val.Type())
   {
@@ -105,7 +105,7 @@ void PrintValue(Value const& val, EvalRef evaluator, bool recurse)
   Value key, value;
 
   Arguments args;
-  if(val->TryEval("ToString", &evaluator, args, value))
+  if(val->TryEval("ToString", args, value))
   {
     std::cout << value.GetString();
   }
@@ -117,9 +117,9 @@ void PrintValue(Value const& val, EvalRef evaluator, bool recurse)
   while(pEnum->GetNext(key, value))
   {
     std::cout << sep;
-    PrintValue(key, evaluator, false);
+    PrintValue(key, false);
     std::cout << ":";
-    PrintValue(value, evaluator, false);
+    PrintValue(value, false);
     sep = ", ";
   }
   

@@ -54,7 +54,7 @@ function GenerateMethod(name, type,
 
   # Generate stub prolog
   printf("static Value %s\n", stubname);
-  printf("  (Evaluator* evaluator, Object* instance, Arguments const& arguments)\n");
+  printf("  (Object* instance, Arguments const& arguments)\n");
   printf("{\n");
   
   # Generate function call
@@ -84,7 +84,7 @@ function GenerateMethod(name, type,
     }
     else if(partype == "EvalRef")
     {
-      call = call sprintf("\n    %s*evaluator", sep);
+      call = call sprintf("\n    %sCurEval", sep);
     }
     else
     {

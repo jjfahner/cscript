@@ -51,7 +51,7 @@ typedef Evaluator&          EvalRef;
 //
 bool NativeCallTryGet (struct NativeCall*, Object*, Value const&, Value&);
 bool NativeCallTrySet (struct NativeCall*, Object*, Value const&, Value const&);
-bool NativeCallTryEval(struct NativeCall*, Object*, Value const&, Evaluator*, Arguments&, Value&);
+bool NativeCallTryEval(struct NativeCall*, Object*, Value const&, Arguments&, Value&);
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -148,7 +148,6 @@ Set(Value const& key, Value const& value)         \
 #define IMPL_NATIVE_EVAL(class, base)             \
 bool                                              \
 NativeTryEval(Value const& key,                   \
-              Evaluator* evaluator,               \
               Arguments& arguments,               \
               Value& result)                      \
 {                                                 \
@@ -156,20 +155,18 @@ NativeTryEval(Value const& key,                   \
                  cscript_native_table_##class[];  \
   if(NativeCallTryEval(                           \
              cscript_native_table_##class,        \
-    this, key, evaluator, arguments, result))     \
+            this, key, arguments, result))        \
   {                                               \
     return true;                                  \
   }                                               \
-  return base::TryEval(key, evaluator,            \
-                    arguments, result);           \
+  return base::TryEval(key, arguments, result);   \
 }                                                 \
 Value                                             \
 NativeEval(Value const& key,                      \
-           Evaluator* evaluator,                  \
            Arguments& arguments)                  \
 {                                                 \
   Value result;                                   \
-  if(TryEval(key, evaluator, arguments, result))  \
+  if(TryEval(key, arguments, result))             \
   {                                               \
     return result;                                \
   }                                               \
@@ -181,20 +178,17 @@ NativeEval(Value const& key,                      \
 IMPL_NATIVE_EVAL(class, base)                     \
 virtual bool                                      \
 TryEval(Value const& key,                         \
-        Evaluator* evaluator,                     \
         Arguments& arguments,                     \
         Value& result)                            \
 {                                                 \
-  return NativeTryEval(key, evaluator,            \
-                   arguments, result);            \
+  return NativeTryEval(key, arguments, result);   \
 }                                                 \
 virtual Value                                     \
 Eval(Value const& key,                            \
-     Evaluator* evaluator,                        \
      Arguments& arguments,                        \
      Value& result)                               \
 {                                                 \
-  return NativeEval(key, evaluator, arguments);   \
+  return NativeEval(key, arguments);              \
 }
 
 //////////////////////////////////////////////////////////////////////////

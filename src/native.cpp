@@ -21,6 +21,7 @@
 
 #include <native.h>
 #include <args.h>
+#include <context.h>
 
 //
 // Types of stubs
@@ -36,7 +37,7 @@ enum StubType
 //
 // Stub signatures
 //
-typedef Value (*MethodStub)(Evaluator*, Object*, Arguments const&);
+typedef Value (*MethodStub)(Object*, Arguments const&);
 typedef Value (*RoPropStub)(Object*);
 typedef void  (*RwPropStub)(Object*, Value const&);
 
@@ -118,7 +119,6 @@ bool
 NativeCallTryEval(NativeCall* pTable, 
                   Object* instance, 
                   Value const& key, 
-                  Evaluator* evaluator, 
                   Arguments& arguments, 
                   Value& result)
 {
@@ -134,7 +134,7 @@ NativeCallTryEval(NativeCall* pTable,
     {
       if(pTable->m_method)
       {
-        result = pTable->m_method(evaluator, instance, arguments);
+        result = pTable->m_method(instance, arguments);
         return true;
       }
       return false;

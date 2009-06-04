@@ -24,6 +24,7 @@
 #include <cscript.h>
 #include <report.h>
 #include <value.h>
+#include <context.h>
 
 #include <vector>
 #include <iosfwd>

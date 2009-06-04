@@ -32,7 +32,7 @@ public:
   //
   // Evaluate code
   // TODO add default value = false
-  __native_method Value Eval(StringCRef code, bool isFile, EvalRef evaluator);
+  __native_method Value Eval(StringCRef code, bool isFile);
 
   //
   // Reset the evaluator
@@ -42,7 +42,7 @@ public:
   //
   // Perform garbage collection cycle
   //
-  __native_method Value Collect(EvalRef evaluator);
+  __native_method Value Collect();
 
   //
   // Retrieve total number of objects
@@ -62,7 +62,7 @@ public:
   //
   // Lookup a symbol value
   //
-  __native_method Value Lookup(StringCRef name, EvalRef evaluator);
+  __native_method Value Lookup(StringCRef name);
 
   //
   // Current number of ticks
@@ -72,7 +72,7 @@ public:
   //
   // Enable parser debugging. Only works in debug versions
   //
-  __native_method void DebugParser(bool value, EvalRef evaluator);
+  __native_method void DebugParser(bool value);
 
   //
   // Execute a command

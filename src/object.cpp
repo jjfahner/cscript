@@ -29,7 +29,7 @@ Object::GetType()
 }
 
 bool
-Object::TryEval(Value const& key, Evaluator* evaluator, Arguments& arguments, Value& result)
+Object::TryEval(Value const& key, Arguments& arguments, Value& result)
 {
   // Find method
   Value method;
@@ -46,7 +46,7 @@ Object::TryEval(Value const& key, Evaluator* evaluator, Arguments& arguments, Va
   }
 
   // Evaluate the function
-  result = fun->Execute(evaluator, arguments);
+  result = fun->Execute(arguments);
 
   // Success
   return true;
