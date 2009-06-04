@@ -26,12 +26,21 @@
 #include "value.h"
 
 //
+// TLS based instance
+//
+TLS_SLOT GC::ObjectVec* g_objects = 0;
+
+//
 // Global object list
 //
-static GC::ObjectVec& GetObjects()
+inline static 
+GC::ObjectVec& GetObjects()
 {
-  static GC::ObjectVec g_objects;
-  return g_objects;
+  if(g_objects == 0)
+  {
+    g_objects = new GC::ObjectVec();
+  }
+  return *g_objects;
 }
 
 /*static*/ size_t 
@@ -70,7 +79,7 @@ GC::Mark(ObjectVec& vec, Object* obj)
 GC::Object::Object(bool complex)
 {
   // Store reference to objects list
-  static ObjectVec& g_objects = GetObjects();
+  ObjectVec& g_objects = GetObjects();
 
   // Set collectable
   m_collect = true;
@@ -117,7 +126,7 @@ GC::Collect(ObjectVec const& roots)
   ObjectVec::iterator it, ie;
 
   // Store reference to objects list
-  static ObjectVec& g_objects = GetObjects();
+  ObjectVec& g_objects = GetObjects();
 
   // Init collect information
   CollectInfo ci;
