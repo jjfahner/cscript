@@ -120,27 +120,6 @@ struct VecRestore
 };
 
 //////////////////////////////////////////////////////////////////////////
-//
-// Global scope
-//
-
-Scope* CreateGlobalScope()
-{
-  Scope* scope = new Scope();
-  scope->Add("Path", new Path());
-  scope->Add("Console", new Console());
-  scope->Add("CScript", new CScriptMethods());
-  return scope;
-}
-
-
-Scope* GetGlobalScope()
-{
-  static Scope* scope = CreateGlobalScope();
-  return scope;
-}
-
-//////////////////////////////////////////////////////////////////////////
 
 Evaluator::Evaluator() :
 m_scope   (0),
@@ -154,8 +133,14 @@ m_debugParser(0)
 void 
 Evaluator::Reset()
 {
+  // Create superglobal scope
+  Scope* scope = new Scope();
+  scope->Add("Path", new Path());
+  scope->Add("Console", new Console());
+  scope->Add("CScript", new CScriptMethods());
+
   // Create a new global scope
-  m_global = new NamespaceScope(GetGlobalScope(), "");
+  m_global = new NamespaceScope(scope, "");
 
   // Collect all remaining objects
   Collect();
@@ -308,21 +293,40 @@ Evaluator::Collect()
 Value 
 Evaluator::Eval(String text, bool isFileName)
 {
+  // Reset error reporter
+  m_reporter.Reset();
+
+  // Parse code - this evaluates 
+  // every statement in the code
+  if(isFileName)
+  {
+    return ParseFile(text);
+  }
+  else
+  {
+    return ParseText(text.c_str());
+  }
+}
+
+Value
+Evaluator::Eval(Object* astRoot, Scope* scope)
+{
+  // Set TLS instance
+  Context ctx(this);
+
+  // Temporary guard
+  VecRestore<TempVec> vr(m_temporaries);
+
+  // Place scope on the scope stack
+  AutoScope at(new Scope(scope ? scope : m_global));
+
+  // Keep ast around during evaluation
+  MakeTemp(astRoot);
+
   try
   {
-    // Reset error reporter
-    m_reporter.Reset();
-
-    // Parse code - this evaluates 
-    // every statement in the code
-    if(isFileName)
-    {
-      return ParseFile(text);
-    }
-    else
-    {
-      return ParseText(text.c_str());
-    }
+    // Perform evaluation of ast tree
+    return EvalStatement(astRoot);
   }
   // Return statement
   catch(ReturnException const& e)
@@ -365,26 +369,6 @@ Evaluator::Eval(String text, bool isFileName)
     ReportError("Runtime error: Unexpected exception");
   }
   return Value();
-}
-
-Value
-Evaluator::Eval(Object* astRoot)
-{
-  // Set TLS instance
-  Context ctx(this);
-
-  // Temporary guard
-  VecRestore<TempVec> vr(m_temporaries);
-
-  // Place global scope on the scope stack
-  //AutoScope as(m_global);
-  AutoScope at(new Scope(m_global));
-
-  // Keep ast around during evaluation
-  MakeTemp(astRoot);
-
-  // Perform evaluation of ast tree
-  return EvalStatement(astRoot);
 }
 
 Value
@@ -548,6 +532,9 @@ Evaluator::EvalExpression(Object* node)
   case function_member_expression:  return EvalFunctionMember(node);
   case function_index_expression:   return EvalFunctionIndex(node);
   
+  case lambda_expression:
+    return Ast_A1(node);
+
   case literal_value:         
     return Ast_A1(node);
 

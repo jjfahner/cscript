@@ -189,6 +189,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\test\threads.csc"
+				>
+			</File>
+			<File
 				RelativePath="..\..\test\xml.csc"
 				>
 			</File>
@@ -274,6 +278,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\scriptobj.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\thread.cpp"
 				>
 			</File>
 			<File
@@ -410,6 +418,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\scriptobj.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\thread.h"
 				>
 			</File>
 			<File

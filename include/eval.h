@@ -83,7 +83,7 @@ public:
   //
   // Evaluation of ast tree
   //
-  Value Eval(Object* astRoot);
+  Value Eval(Object* astRoot, Scope* scope = 0);
 
   //
   // Enable parser debugging
