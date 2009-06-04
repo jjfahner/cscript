@@ -79,6 +79,11 @@ public:
   //
   __native_method Value Exec(StringCRef command);
 
+  //
+  // Run code in a different thread
+  //
+  __native_method void StartThread(ValueCRef code);
+
 };
 
 #endif // CSCRIPT_NATIVE_STANDARD_H

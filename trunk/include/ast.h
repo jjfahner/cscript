@@ -97,7 +97,8 @@ enum AstTypes
   function_member_expression,
   function_index_expression,
   logical_or_expression,
-  logical_and_expression
+  logical_and_expression,
+  lambda_expression
 };
 
 enum ParameterTypes

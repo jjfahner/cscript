@@ -24,6 +24,7 @@
 #include <timer.h>
 #include <lexstream.h>
 #include <scriptobj.h>
+#include <thread.h>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -132,4 +133,10 @@ CScriptMethods::Exec(StringCRef command)
   //     }
   //   }
   // 
+}
+
+void 
+CScriptMethods::StartThread(ValueCRef code)
+{
+  Thread::Eval(code, CurEval.GetScope());
 }

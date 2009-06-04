@@ -135,6 +135,7 @@ CSLexer::ParseNextToken()
   "{"     { return CS_LBRACE; }
   "}"     { return CS_RBRACE; }
   "!"     { return CS_NOT; }
+  "'"     { return CS_LAMBDA; }
   
   */
 }
