@@ -138,5 +138,5 @@ CScriptMethods::Exec(StringCRef command)
 void 
 CScriptMethods::StartThread(ValueCRef code)
 {
-  Thread::Eval(code, CurEval.GetScope());
+  Thread::Eval(code);
 }

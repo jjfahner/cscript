@@ -45,8 +45,6 @@
 #include <sstream>
 #include <fstream>
 
-/*static*/ const GCString& Scope::parentName = *new GCString("__parent", true);
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Autoscoping implementation
@@ -73,11 +71,26 @@ public:
 
   void Reset()
   {
+    Scope* cur = m_cur;
+    m_cur = 0;
+
     if(m_prv)
     {
       CurEval.m_scope = m_prv;
       m_prv = 0;
-      m_cur = 0;
+    }
+
+    if(cur)
+    {
+      if(cur->HasRefs())
+      {
+        return;
+      }
+      else
+      {
+        cur->Clear();
+        CurEval.m_scopeCache.push_back(cur);
+      }
     }
   }
 
@@ -97,8 +110,8 @@ private:
   //
   // MemberMap
   //
-  Scope*      m_prv;
-  Scope*      m_cur;
+  Scope* m_prv;
+  Scope* m_cur;
 
 };
 
@@ -134,7 +147,7 @@ void
 Evaluator::Reset()
 {
   // Create superglobal scope
-  Scope* scope = new Scope();
+  Scope* scope = NewScope();
   scope->Add("Path", new Path());
   scope->Add("Console", new Console());
   scope->Add("CScript", new CScriptMethods());
@@ -157,6 +170,35 @@ open_file(String const& path, std::ifstream& file)
   
   // Check whether open succeeded
   return file.is_open();
+}
+
+inline Scope* 
+Evaluator::NewScope(Scope* parent, Object* object)
+{
+  // Create new when out of scopes
+  if(m_scopeCache.size() == 0)
+  {
+    return new Scope(parent, object);
+  }
+
+  // Retrieve scope from cache
+  Scope* scope = m_scopeCache.back();
+  m_scopeCache.pop_back();
+  
+  // Set parent pointer
+  if(parent)
+  {
+    scope->SetParent(parent);
+  }
+  
+  // Set object pointer
+  if(object) 
+  {
+    scope->SetObject(object);
+  }
+  
+  // Done
+  return scope;
 }
 
 bool 
@@ -309,7 +351,7 @@ Evaluator::Eval(String text, bool isFileName)
 }
 
 Value
-Evaluator::Eval(Object* astRoot, Scope* scope)
+Evaluator::Eval(Object* astRoot)
 {
   // Set TLS instance
   Context ctx(this);
@@ -317,8 +359,16 @@ Evaluator::Eval(Object* astRoot, Scope* scope)
   // Temporary guard
   VecRestore<TempVec> vr(m_temporaries);
 
+  // Retrieve stack from node
+  Scope* scope = 0;
+  if(Ast_Type(astRoot) == expression_statement &&
+     !Ast_A2(astRoot).Empty())
+  {
+    scope = (Scope*)Ast_A2(astRoot).GetObject();
+  }
+
   // Place scope on the scope stack
-  AutoScope at(new Scope(scope ? scope : m_global));
+  AutoScope at(NewScope(scope ? scope : m_global));
 
   // Keep ast around during evaluation
   MakeTemp(astRoot);
@@ -401,7 +451,7 @@ Evaluator::EvalStatement(Object* node)
   case compound_statement:
     if(!Ast_A1(node).Empty())
     {
-      AutoScope as(new Scope(m_scope));
+      AutoScope as(NewScope(m_scope));
       EvalStatement(Ast_A1(node));
     }
     break;
@@ -533,7 +583,8 @@ Evaluator::EvalExpression(Object* node)
   case function_index_expression:   return EvalFunctionIndex(node);
   
   case lambda_expression:
-    return Ast_A1(node);
+    m_scope->AddRef();
+    return new AstNode(expression_statement, Ast_A1(node), m_scope);
 
   case literal_value:         
     return Ast_A1(node);
@@ -892,11 +943,11 @@ Evaluator::EvalFunctionMember(Object* node)
   Scope* s = m_scope;
   while(s)
   {
-    if(ObjectScope* c = dynamic_cast<ObjectScope*>(s))
+    if(Object* object = s->GetObject())
     {
-      if(Function* f = dynamic_cast<Function*>(c->GetObject()))
+      if(Function* function = dynamic_cast<Function*>(object))
       {
-        return f->Get(name);
+        return function->Get(name);
       }
     }
     s = s->GetParent();
@@ -957,17 +1008,17 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   if(args.GetObject())
   {
     // Create class scope
-    cs.Set(new ObjectScope(parentScope, args.GetObject()));
+    cs.Set(NewScope(parentScope, args.GetObject()));
 
     // Adjust parent scope
     parentScope = m_scope;
   }
 
   // Create function scope
-  AutoScope asf(new ObjectScope(parentScope, fun));
+  AutoScope asf(NewScope(parentScope, fun));
 
   // Create argument scope
-  AutoScope asa(new Scope(m_scope));
+  AutoScope asa(NewScope(m_scope));
 
   // Insert arguments into argument scope
   List::Iterator pi, pe;
@@ -987,7 +1038,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   }
 
   // Create function execution scope
-  AutoScope es(new Scope(m_scope));
+  AutoScope es(NewScope(m_scope));
 
   // Execute expression
   try
@@ -1274,7 +1325,7 @@ void
 Evaluator::EvalForStatement(Object* node)
 {
   // Outer scope
-  AutoScope scope(new Scope(m_scope));
+  AutoScope scope(NewScope(m_scope));
   
   // Evaluate init expression
   EvalStatement(Ast_A1(node));
@@ -1291,7 +1342,7 @@ Evaluator::EvalForStatement(Object* node)
     // For body
     try 
     {
-      AutoScope scope(new Scope(m_scope));
+      AutoScope scope(NewScope(m_scope));
       EvalStatement(Ast_A4(node));
     }
     catch(BreakException const&)
@@ -1310,7 +1361,7 @@ Evaluator::EvalForStatement(Object* node)
 void 
 Evaluator::EvalForeachStatement(Object* node)
 {
-  AutoScope scope(new Scope(m_scope));
+  AutoScope scope(NewScope(m_scope));
   
   Object* obj;
   Value key;
@@ -1350,7 +1401,7 @@ Evaluator::EvalForeachStatement(Object* node)
     // Evaluate expression
     try
     {
-      AutoScope scope(new Scope(m_scope));
+      AutoScope scope(NewScope(m_scope));
       EvalStatement(Ast_A3(node));
     }
     catch(BreakException const&)
@@ -1375,7 +1426,7 @@ Evaluator::EvalWhileStatement(Object* node)
 
     try
     {
-      AutoScope scope(new Scope(m_scope));
+      AutoScope scope(NewScope(m_scope));
       EvalStatement(Ast_A2(node));
     }
     catch(BreakException const&)
@@ -1422,7 +1473,7 @@ Evaluator::EvalSwitchStatement(Object* node)
   {
     try
     {
-      AutoScope as(new Scope(m_scope));
+      AutoScope as(NewScope(m_scope));
       EvalStatement(statement);
     }
     catch(BreakException const&)
@@ -1500,10 +1551,10 @@ Evaluator::EvalThisExpression(Object* node)
   Scope* scope = m_scope;
   while(scope)
   {
-    ObjectScope* cs = dynamic_cast<ObjectScope*>(scope);
-    if(cs && dynamic_cast<Function*>(cs->GetObject()) == 0)
+    Object* object = scope->GetObject();
+    if(dynamic_cast<Function*>(object) == 0)
     {
-      return cs->GetObject();
+      return object;
     }
     scope = scope->GetParent();
   }
@@ -1527,7 +1578,7 @@ Evaluator::EvalTryStatement(Object* node)
       {
         // Insert exception into scope
         // TODO this maketemp might crash horribly during exception cleanup!!!
-        AutoScope scope(new Scope(m_scope));
+        AutoScope scope(NewScope(m_scope));
         m_scope->Add(Ast_A1(Ast_A2(node)), e.m_value);
 
         // Evaluate catch block

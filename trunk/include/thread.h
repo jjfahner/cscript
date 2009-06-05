@@ -33,7 +33,7 @@ public:
   //
   // Evaluate code in thread
   //
-  static void Eval(Object* ast, Scope* scope);
+  static void Eval(Object* ast);
 
 private:
 

@@ -67,9 +67,10 @@ public:
   //
   // Unset a member
   //
-  virtual void Unset(Value const& key)
+  virtual bool Unset(Value const& key)
   {
     // Nothing to do
+    return false;
   }
 
   //
