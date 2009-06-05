@@ -66,10 +66,15 @@ function RunTests(doPrint)
 }
 
 // Run test suite
-for(var i = 0; i < 100; ++i)
+var n = CScript.IsDebugBuild ? 10 : 100;
+for(var i = 0; i < n; ++i)
 {
   RunTests();
 }
+
+// Run garbage collector
+Console.WriteLn("\nCollecting...");
+Console.WriteLn(CScript.Collect());
 
 // Wait for input
 Console.WriteLn("\nDone. Press any key to quit");
