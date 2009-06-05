@@ -107,6 +107,16 @@ CScriptMethods::DebugParser(bool value)
 #endif
 }
 
+bool 
+CScriptMethods::IsDebugBuild()
+{
+#ifdef _DEBUG
+  return true;
+#else
+  return false;
+#endif
+}
+
 Value
 CScriptMethods::Exec(StringCRef command)
 {

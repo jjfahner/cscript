@@ -75,6 +75,11 @@ public:
   __native_method void DebugParser(bool value);
 
   //
+  // Debug/release version of CScript
+  //
+  __native_roprop bool IsDebugBuild();
+
+  //
   // Execute a command
   //
   __native_method Value Exec(StringCRef command);
