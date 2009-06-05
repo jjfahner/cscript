@@ -34,8 +34,6 @@ class Scope : public Object
 {
 public:
 
-  static const GCString& parentName;
-
   //
   // Variable map
   //
@@ -45,23 +43,61 @@ public:
   //
   // Construction
   //
-  Scope(Scope* parent = 0)
+  Scope(Scope* parent = 0, Object* object = 0) :
+  m_parent  (0),
+  m_object  (0),
+  m_refs    (0)
   {
     if(parent)
     {
       SetParent(parent);
     }
+    if(object)
+    {
+      SetObject(object);
+    }
   }
 
   //
-  // Retrieve parent scope or 0
+  // Reference the scope
   //
-  virtual Scope* GetParent()
+  void AddRef()
   {
-    Iter it = m_vars.find(parentName);
-    return it == m_vars.end() ? 0 : 
-      dynamic_cast<Scope*>(
-        it->second.GetObject());
+    // Set own ref
+    ++m_refs;
+
+    // Set parent ref
+    if(m_parent)
+    {
+      return m_parent->AddRef();
+    }
+  }
+  
+  //
+  // Is Scope reffed
+  //
+  bool HasRefs() const
+  {
+    return m_refs != 0;
+  }
+
+  //
+  // Clear the scope
+  //
+  virtual void Clear()
+  {
+    m_parent = 0;
+    m_object = 0;
+    m_refs   = 0;
+    m_vars.clear();
+  }
+
+  //
+  // Retrieve parent scope
+  //
+  virtual Scope* GetParent() const
+  {
+    return m_parent;
   }
 
   //
@@ -69,7 +105,25 @@ public:
   //
   virtual void SetParent(Scope* parent)
   {
-    m_vars[parentName] = parent;
+    m_parent = parent;
+    m_vars["__parent"] = parent;
+  }
+
+  //
+  // Retrieve object
+  //
+  virtual Object* GetObject() const
+  {
+    return m_parent;
+  }
+
+  //
+  // Set object
+  //
+  virtual void SetObject(Object* object)
+  {
+    m_object = object;
+    m_vars["__object"] = object;
   }
 
   //
@@ -101,19 +155,13 @@ public:
   //
   virtual Value Get(Value const& key)
   {
-    // Find in this scope
-    Iter it = m_vars.find(key);
-    if(it != m_vars.end())
+    // Find value
+    Value value;
+    if(TryGet(key, value))
     {
-      return it->second;
+      return value;
     }
 
-    // Find in parent scope
-    if(Scope* parent = GetParent())
-    {
-      return parent->Get(key);
-    }
-    
     // Pass to base
     return Object::Get(key);
   }
@@ -123,6 +171,12 @@ public:
   //
   virtual bool TryGet(Value const& key, Value& value)
   {
+    // Find in object
+    if(m_object && m_object->TryGet(key, value))
+    {
+      return true;
+    }
+
     // Find in this scope
     Iter it = m_vars.find(key);
     if(it != m_vars.end())
@@ -132,13 +186,13 @@ public:
     }
 
     // Find in parent scope
-    if(Scope* parent = GetParent())
+    if(m_parent)
     {
-      return parent->TryGet(key, value);
+      return m_parent->TryGet(key, value);
     }
 
     // Unknown variable
-    return false;
+    return Object::TryGet(key, value);
   }
 
   //
@@ -146,17 +200,10 @@ public:
   //
   virtual Value const& Set(Value const& key, Value const& value)
   {
-    // Find in this scope
-    Iter it = m_vars.find(key);
-    if(it != m_vars.end())
+    // Try to set the value
+    if(TrySet(key, value))
     {
-      return it->second = value;
-    }
-
-    // Find in parent scope
-    if(Scope* parent = GetParent())
-    {
-      return parent->Set(key, value);
+      return value;
     }
 
     // Pass to base
@@ -168,6 +215,12 @@ public:
   //
   virtual bool TrySet(Value const& key, Value const& value)
   {
+    // Find in object scope
+    if(m_object && m_object->TrySet(key, value))
+    {
+      return true;
+    }
+
     // Find in this scope
     Iter it = m_vars.find(key);
     if(it != m_vars.end())
@@ -177,34 +230,42 @@ public:
     }
 
     // Find in parent scope
-    if(Scope* parent = GetParent())
+    if(m_parent)
     {
-      return parent->TrySet(key, value);
+      return m_parent->TrySet(key, value);
     }
 
     // Unknown variable
-    return false;
+    return Object::TrySet(key, value);
   }
 
   //
   // Unset a variable
   //
-  virtual void Unset(Value const& key)
+  virtual bool Unset(Value const& key)
   {
+    // Unset in object
+    if(m_object && m_object->Unset(key))
+    {
+      return true;
+    }
+
     // Find in this scope
     Iter it = m_vars.find(key);
     if(it != m_vars.end())
     {
       m_vars.erase(it);
-      return;
+      return true;
     }
 
     // Find in parent scope
     if(Scope* parent = GetParent())
     {
-      parent->Unset(key);
-      return;
+      return parent->Unset(key);
     }
+
+    // Failed
+    return Object::Unset(key);
   }
 
 protected:
@@ -229,104 +290,10 @@ protected:
   //
   // Members
   //
-  VarMap m_vars;  
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Object scope
-//
-class ObjectScope : public Scope
-{
-public:
-
-  //
-  // Construction
-  //
-  ObjectScope(Scope* parent, Object* inst) :
-  Scope  (parent),
-  m_inst (inst)
-  {
-    // Store in map for GC reference
-    Add("__object", inst);
-  }
-
-  //
-  // Object instance
-  //
-  Object* GetObject() const
-  {
-    return m_inst;
-  }
-
-  //
-  // Retrieve a variable
-  //
-  virtual Value Get(Value const& key)
-  {
-    // Find in object
-    Value value;
-    if(m_inst->TryGet(key, value))
-    {
-      return value;
-    }
-
-    // Continue in scope
-    return Scope::Get(key);
-  }
-
-  //
-  // Try to retrieve a variable
-  //
-  virtual bool TryGet(Value const& key, Value& value)
-  {
-    // Lookup in object
-    if(m_inst->TryGet(key, value))
-    {
-      return true;
-    }
-
-    // Continue in scope
-    return Scope::TryGet(key, value);
-  }
-
-  //
-  // Set a variable
-  //
-  virtual Value const& Set(Value const& key, Value const& value)
-  {
-    // Try to set in instance
-    if(m_inst->TrySet(key, value))
-    {
-      return value;
-    }
-
-    // Continue in scope
-    return Scope::Set(key, value);
-  }
-
-  //
-  // Try to set a variable
-  //
-  virtual bool TrySet(Value const& key, Value const& value)
-  {
-    // Try to set in instance
-    if(m_inst->TrySet(key, value))
-    {
-      return true;
-    }
-
-    // Continue in scope
-    return Scope::TrySet(key, value);
-  }
-
-protected:
-
-  //
-  // Members
-  //
-  Object* m_inst;
+  Scope*    m_parent;
+  Object*   m_object;
+  int       m_refs;
+  VarMap    m_vars;
 
 };
 
@@ -349,6 +316,15 @@ public:
     {
       SetParent(parent);
     }
+  }
+
+  //
+  // Clear the scope
+  //
+  virtual void Clear()
+  {
+    m_name.clear();
+    Scope::Clear();
   }
 
   //

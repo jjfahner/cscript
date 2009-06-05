@@ -191,7 +191,7 @@ binary_expression(R) ::= binary_expression(A) SEQ     binary_expression(B). { R 
 binary_expression(R) ::= binary_expression(A) SNE     binary_expression(B). { R = AllocBinOp(p, op_sne,     A, B); }
 
 // Unary expression
-unary_expression(R) ::= LAMBDA unary_expression(A) . { R = p->AllocNode(lambda_expression, p->AllocNode(expression_statement, A)); }
+unary_expression(R) ::= LAMBDA unary_expression(A) . { R = p->AllocNode(lambda_expression, A); }
 unary_expression(R) ::= postfix_expression(A) .      { R = A; } 
 unary_expression(R) ::= SUBOP  unary_expression(A) . { R = p->AllocNode(prefix_expression, op_negate, A); }
 unary_expression(R) ::= ADDADD unary_expression(A) . { R = p->AllocNode(prefix_expression, op_preinc, A); }

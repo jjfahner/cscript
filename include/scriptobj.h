@@ -61,7 +61,7 @@ public:
   //
   // Unset a member
   //
-  virtual void Unset(Value const& key);
+  virtual bool Unset(Value const& key);
 
 protected:
 
@@ -97,10 +97,10 @@ ScriptObject::Count()
   return m_members.size();
 }
 
-inline void 
+inline bool 
 ScriptObject::Unset(Value const& key)
 {
-  m_members.erase(key);
+  return m_members.erase(key) > 0;
 }
 
 inline Value

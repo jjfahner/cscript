@@ -22,33 +22,18 @@
 #include <eval.h>
 #include <process.h>
 
-struct Params
-{
-  Object* m_code;
-  Scope* m_scope;
-};
-
 /*static*/ void 
-Thread::Eval(Object* code, Scope* scope)
+Thread::Eval(Object* code)
 {
-  Params* p = new Params;
-  p->m_code = code;
-  p->m_scope = scope;
-  _beginthread(&Thread::ThreadProc, 0, p);
+  _beginthread(&Thread::ThreadProc, 0, code);
 }
 
 /*static*/ void
 Thread::ThreadProc(void* pvoid)
 {
-  // Retrieve arguments
-  Params* p = (Params*)pvoid;
-  Object* code = p->m_code;
-  Scope* scope = p->m_scope;
-  delete p;
-
   // Create an evaluator
   Evaluator eval;
 
   // Run code
-  eval.Eval(code, scope);
+  eval.Eval((Object*)pvoid);
 }

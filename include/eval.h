@@ -32,11 +32,12 @@
 class Object;
 class List;
 class CSLexer;
-class Scope;
 class Function;
 class ScriptFunction;
 class Arguments;
 class SourceFile;
+
+class Scope;
 class NamespaceScope;
 
 struct ScriptException;
@@ -83,7 +84,7 @@ public:
   //
   // Evaluation of ast tree
   //
-  Value Eval(Object* astRoot, Scope* scope = 0);
+  Value Eval(Object* astRoot);
 
   //
   // Enable parser debugging
@@ -210,10 +211,17 @@ private:
   bool OpenFile(String const& filename, std::ifstream& file);
 
   //
+  // Create a scope
+  //
+  Scope* NewScope(Scope* parent = 0, Object* object = 0);
+
+  //
   // More types
   //
   typedef std::vector<Value> TempVec;
   typedef std::vector<String> StringVec;
+  typedef std::vector<Scope*> ScopeCache;
+
 
   //
   // Members
@@ -225,6 +233,7 @@ private:
   Reporter        m_reporter;
   bool            m_debugParser;
   StringVec       m_fileNames;
+  ScopeCache      m_scopeCache;
 
 };
 
