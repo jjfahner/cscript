@@ -30,7 +30,8 @@ function RunTests(doPrint)
     }
     else
     {
-      res = CScript.Exec("test.exe \"{path}{file}\"");
+      var exe = CScript.IsDebugBuild ? "testd.exe" : "test.exe";
+      res = CScript.Exec("..\\bin\\{exe} \"{path}{file}\"");
     }
   
     // Check result
@@ -69,7 +70,7 @@ function RunTests(doPrint)
 var n = CScript.IsDebugBuild ? 10 : 100;
 for(var i = 0; i < n; ++i)
 {
-  RunTests();
+  RunTests(false);
 }
 
 // Run garbage collector

@@ -13,8 +13,10 @@ function IsPrime(n)
 
 function TestPrime(number)
 {
+  var ticks = CScript.Ticks;
   var isPrime = IsPrime(number) ? "is" : "is not";
-  Console.WriteLn("{number} {isPrime} prime");
+  ticks = CScript.Ticks - ticks;
+  Console.WriteLn("{number} {isPrime} prime (in {ticks} ms)");
 }
 
 CScript.StartThread('TestPrime(15485867));

@@ -1,1 +1,2 @@
-return { f : function() { return 1; } }.f() == 1;
+var a = { f : function() { return 1; } };
+return a.f() == 1;

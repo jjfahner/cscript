@@ -1,3 +1,2 @@
 var a = 0;
-++a || ++a;
-return a == 1;
+return (++a || ++a) == 1;
