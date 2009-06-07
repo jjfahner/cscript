@@ -129,13 +129,13 @@ private:
   //
   // Evaluation of expression/statement
   //
-  Value EvalExpression(Object* node);
-  Value EvalStatement(Object* node);
+  void EvalExpression(Object* node);
+  void EvalStatement(Object* node);
 
   //
   // Statement handlers
   //
-  void EvalNamespace(Object* node);
+  //void EvalNamespace(Object* node);
   void EvalVariableDeclaration(Object* node);
   void EvalFunctionDeclaration(Object* node);
   void EvalIncludeStatement(Object* node);
@@ -151,27 +151,27 @@ private:
   //
   // Expression handlers
   //
-  Value EvalAssignment(Object* node);
-  Value EvalQualifiedId(Object* node);
-  Value EvalListLiteral(Object* node);
-  Value EvalMapLiteral(Object* node);
-  Value EvalJsonLiteral(Object* node);
-  Value EvalNewExpression(Object* node);
-  Value EvalMemberExpression(Object* node);
-  Value EvalThisExpression(Object* node);
-  Value EvalBinary(Object* node);
-  Value EvalPrefix(Object* node);
-  Value EvalPostfix(Object* node);
-  Value EvalConversion(Object* node);
-  Value EvalClosure(Object* node);
-  Value EvalXmlExpression(Object* node);
-  Value EvalFunctionMember(Object* node);
-  Value EvalFunctionIndex(Object* node);
-  Value EvalShellCommand(Object* node);
-  Value EvalTypeConversion(Object* node);
-  Value EvalOperatorDeclaration(Object* node);
-  Value EvalIndex(Object* node);
-  Value EvalListAppend(Object* node);
+  void EvalAssignment(Object* node);
+  //void EvalQualifiedId(Object* node);
+  void EvalListLiteral(Object* node);
+  void EvalMapLiteral(Object* node);
+  void EvalJsonLiteral(Object* node);
+  void EvalNewExpression(Object* node);
+  void EvalMemberExpression(Object* node);
+  void EvalThisExpression(Object* node);
+  void EvalBinary(Object* node);
+  void EvalPrefix(Object* node);
+  void EvalPostfix(Object* node);
+  void EvalConversion(Object* node);
+  void EvalClosure(Object* node);
+  void EvalXmlExpression(Object* node);
+  void EvalFunctionMember(Object* node);
+  void EvalFunctionIndex(Object* node);
+  void EvalShellCommand(Object* node);
+  void EvalTypeConversion(Object* node);
+  void EvalOperatorDeclaration(Object* node);
+  void EvalIndex(Object* node);
+  void EvalListAppend(Object* node);
 
   //
   // Eval expression to yield lvalue
@@ -182,7 +182,7 @@ private:
   // Function handlers
   //
   friend class ScriptFunction;
-  Value EvalFunctionCall(Object* node);
+  void EvalFunctionCall(Object* node);
   Value EvalScriptCall(ScriptFunction* fun, Arguments& args);
 
   //

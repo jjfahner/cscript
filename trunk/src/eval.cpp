@@ -32,6 +32,7 @@
 #include "dict.h"
 #include "datatype.h"
 #include "scriptobj.h"
+#include "stack.h"
 
 #include "csparser.h"
 #include "csparser.gen.h"
@@ -44,6 +45,8 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+
+Stack g_stack(1024*1024);
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -376,7 +379,9 @@ Evaluator::Eval(Object* astRoot)
   try
   {
     // Perform evaluation of ast tree
-    return EvalStatement(astRoot);
+    EvalStatement(astRoot);
+    return Value();
+    //return g_stack.Pop();
   }
   // Return statement
   catch(ReturnException const& e)
@@ -421,7 +426,7 @@ Evaluator::Eval(Object* astRoot)
   return Value();
 }
 
-Value
+void 
 Evaluator::EvalStatement(Object* node)
 {
   VecRestore<TempVec> vr(m_temporaries);
@@ -432,7 +437,7 @@ Evaluator::EvalStatement(Object* node)
   case empty_statement:       break;
 
   case translation_unit:      EvalStatement(Ast_A1(node));    break;
-  case namespace_declaration: EvalNamespace(node);            break;
+//  case namespace_declaration: EvalNamespace(node);            break;
   case variable_declaration:  EvalVariableDeclaration(node);  break;
   case function_declaration:  EvalFunctionDeclaration(node);  break;
   case extern_declaration:    EvalExternDeclaration(node);    break;
@@ -472,12 +477,14 @@ Evaluator::EvalStatement(Object* node)
     EvalStatement(Ast_A2(node));
     break;
 
-  case expression_statement:  
-    result = EvalExpression(Ast_A1(node));   
+  case expression_statement:
+    EvalExpression(Ast_A1(node));   
+    result = g_stack.Pop();
     break;
   
   case if_statement:
-    if(ValBool(EvalExpression(Ast_A1(node))))
+    EvalExpression(Ast_A1(node));
+    if(ValBool(g_stack.Pop()))
     {
       EvalStatement(Ast_A2(node));
     }
@@ -499,9 +506,6 @@ Evaluator::EvalStatement(Object* node)
   default: 
     throw ScriptException(node, "Invalid node type");
   }
-
-  // Done
-  return result;
 }
 
 void
@@ -517,17 +521,20 @@ Evaluator::EvalLValue(Object* node, Object*& obj, Value& name)
 
   case qualified_id_g:
   case qualified_id_l:
-    obj = EvalExpression(Ast_A1(Ast_A1(node)));
+    EvalExpression(Ast_A1(Ast_A1(node)));
+    obj = g_stack.Pop();
     name = Ast_A2(obj);
     return;
 
   case member_expression:
-    obj = ValObject(EvalExpression(Ast_A1(node)));
+    EvalExpression(Ast_A1(node));
+    obj = ValObject(g_stack.Pop());
     name = Ast_A1(Ast_A2(node));
     return;
 
   case index_expression:
-    obj = EvalExpression(Ast_A1(node));
+    EvalExpression(Ast_A1(node));
+    obj = ValObject(g_stack.Pop());
     if(Ast_A2(node).Empty())
     {
       if(List* list = dynamic_cast<List*>(obj))
@@ -542,7 +549,8 @@ Evaluator::EvalLValue(Object* node, Object*& obj, Value& name)
     }
     else
     {
-      name = EvalExpression(Ast_A2(node));
+      EvalExpression(Ast_A2(node));
+      name = g_stack.Pop();
     }
     return;
 
@@ -555,7 +563,7 @@ Evaluator::EvalLValue(Object* node, Object*& obj, Value& name)
   throw ScriptException(node, "Expression must yield an lvalue");
 }
 
-Value
+void
 Evaluator::EvalExpression(Object* node)
 {
   switch(Ast_Type(node))
@@ -565,9 +573,8 @@ Evaluator::EvalExpression(Object* node)
   case prefix_expression:     return EvalPrefix(node);
   case postfix_expression:    return EvalPostfix(node);
   case index_expression:      return EvalIndex(node);
-  case function_call:         return EvalFunctionCall(node);
-  case qualified_id_g:        return EvalQualifiedId(node);
-  case qualified_id_l:        return EvalQualifiedId(node);
+//  case qualified_id_g:        return EvalQualifiedId(node);
+//  case qualified_id_l:        return EvalQualifiedId(node);
   case list_literal:          return EvalListLiteral(node);
   case list_append:           return EvalListAppend(node);
   case map_literal:           return EvalMapLiteral(node);
@@ -582,48 +589,79 @@ Evaluator::EvalExpression(Object* node)
   case function_member_expression:  return EvalFunctionMember(node);
   case function_index_expression:   return EvalFunctionIndex(node);
   
+  case function_call:
+    EvalFunctionCall(node);
+    break;
+
   case lambda_expression:
     m_scope->AddRef();
-    return new AstNode(expression_statement, Ast_A1(node), m_scope);
+    g_stack.Push(new AstNode(expression_statement, Ast_A1(node), m_scope));
+    break;
 
   case literal_value:         
-    return Ast_A1(node);
+    g_stack.Push(Ast_A1(node));
+    break;
 
-  case logical_and_expression:
-    return ValBool(EvalExpression(Ast_A1(node))) &&
-           ValBool(EvalExpression(Ast_A2(node))) ;
+  case logical_and_expression:    
+    EvalExpression(Ast_A1(node));
+    if(!ValBool(g_stack.Top()))
+    {
+      break;
+    }
+    g_stack.Pop();
+    EvalExpression(Ast_A2(node));
+    break;
 
   case logical_or_expression:
-    return ValBool(EvalExpression(Ast_A1(node))) ||
-           ValBool(EvalExpression(Ast_A2(node))) ;
+    EvalExpression(Ast_A1(node));
+    if(ValBool(g_stack.Top()))
+    {
+      break;
+    }
+    g_stack.Pop();
+    EvalExpression(Ast_A2(node));
+    break;
 
   case null_literal:          
-    return Value();
+    g_stack.Push(Value());
+    break;
 
   case ternary_expression:
-    return ValBool(EvalExpression(Ast_A1(node))) ?
-      EvalExpression(Ast_A2(node)) :
-      EvalExpression(Ast_A3(node)) ;
+    EvalExpression(Ast_A1(node));
+    if(ValBool(g_stack.Pop()))
+    {
+      EvalExpression(Ast_A2(node));
+    }
+    else
+    {
+      EvalExpression(Ast_A3(node));
+    }
+    break;
 
-  case throw_expression:      
-    throw UserException(node, EvalExpression(Ast_A1(node)));
+  case throw_expression:
+    EvalExpression(Ast_A1(node));
+    throw UserException(node, g_stack.Pop());
 
   case typeof_expression:
-    return EvalExpression(Ast_A1(node)).GetDataType();
+    EvalExpression(Ast_A1(node));
+    g_stack.Push(g_stack.Pop().GetDataType());
+    break;
 
   case unqualified_id:
-    return m_scope->Get(Ast_A1(node));
+    g_stack.Push(m_scope->Get(Ast_A1(node)));
+    break;
 
   default:
     throw ScriptException(node, "Invalid expression type");
   }
 }
 
-Value
+void
 Evaluator::EvalAssignment(Object* node)
 {
   // Evaluate right-hand side
-  Value rhs = EvalExpression(Ast_A2(node));
+  EvalExpression(Ast_A2(node));
+  Value rhs = g_stack.Pop();
 
   // Determine left-hand side
   Object* obj;
@@ -631,41 +669,33 @@ Evaluator::EvalAssignment(Object* node)
   EvalLValue(Ast_A1(node), obj, key);
 
   // Direct assignment
-  return obj->Set(key, rhs);
+  g_stack.Push(obj->Set(key, rhs));
 }
 
-Value
+void
 Evaluator::EvalBinary(Object* node)
 {
   // Retrieve operator
   opcodes opcode = (opcodes)Ast_A1(node).GetInt();
 
-  // Evaluate left-hand side
-  Value const& lhs = EvalExpression(Ast_A2(node));
-
-  // Short-circuited operators
-  if(opcode == op_logor)
-  {
-    // TODO type conversion
-    return ValBool(lhs) || ValBool(EvalExpression(Ast_A3(node)));
-  }
-  if(opcode == op_logand)
-  {
-    // TODO type conversion
-    return ValBool(lhs) && ValBool(EvalExpression(Ast_A3(node)));
-  }
-  
-  // Evaluate right-hand side
-  Value rhs = EvalExpression(Ast_A3(node));
+  // Evaluate expressions
+  EvalExpression(Ast_A2(node));
+  Value lhs = g_stack.Pop();
+  EvalExpression(Ast_A3(node));
+  Value rhs = g_stack.Pop();
 
   // Comparison without implicit type conversion
   if(opcode == op_seq)
   {
-    return lhs.Type() == rhs.Type() && ValCmp(lhs, rhs) == 0;
+    bool res = lhs.Type() == rhs.Type() && ValCmp(lhs, rhs) == 0;
+    g_stack.Push(res);
+    return;
   }
   if(opcode == op_sne)
   {
-    return lhs.Type() == rhs.Type() && ValCmp(lhs, rhs) != 0;
+    bool res = lhs.Type() == rhs.Type() && ValCmp(lhs, rhs) != 0;
+    g_stack.Push(res);
+    return;
   }
 
   // Convert to type of lhs
@@ -675,35 +705,35 @@ Evaluator::EvalBinary(Object* node)
   Value result;
   switch(opcode)
   {
-  case op_add:    result = ValAdd(lhs, rhs); break;
-  case op_sub:    result = ValSub(lhs, rhs); break;
-  case op_mul:    result = ValMul(lhs, rhs); break;
-  case op_div:    result = ValDiv(lhs, rhs); break;
-  case op_mod:    result = ValMod(lhs, rhs); break;
-  case op_eq:     result = ValCmp(lhs, rhs) == 0; break;
-  case op_ne:     result = ValCmp(lhs, rhs) != 0; break;
-  case op_lt:     result = ValCmp(lhs, rhs) <  0; break;
-  case op_le:     result = ValCmp(lhs, rhs) <= 0; break;
-  case op_gt:     result = ValCmp(lhs, rhs) >  0; break;
-  case op_ge:     result = ValCmp(lhs, rhs) >= 0; break;
+  case op_add: g_stack.Push(ValAdd(lhs, rhs));      break;
+  case op_sub: g_stack.Push(ValSub(lhs, rhs));      break;
+  case op_div: g_stack.Push(ValDiv(lhs, rhs));      break;
+  case op_mod: g_stack.Push(ValMod(lhs, rhs));      break;
+  case op_eq:  g_stack.Push(ValCmp(lhs, rhs) == 0); break;
+  case op_ne:  g_stack.Push(ValCmp(lhs, rhs) != 0); break;
+  case op_lt:  g_stack.Push(ValCmp(lhs, rhs) <  0); break;
+  case op_le:  g_stack.Push(ValCmp(lhs, rhs) <= 0); break;
+  case op_gt:  g_stack.Push(ValCmp(lhs, rhs) >  0); break;
+  case op_ge:  g_stack.Push(ValCmp(lhs, rhs) >= 0); break;
   default: throw ScriptException(node, "Invalid binary operator");
   }  
-
-  // Return new temporary
-  return result;
 }
 
-Value
+void
 Evaluator::EvalPrefix(Object* node)
 {
   // Unary operators
   switch(Ast_A1(node).GetInt())
   {
   case op_negate: 
-    return ValNeg(EvalExpression(Ast_A2(node)));
+    EvalExpression(Ast_A2(node));
+    g_stack.Push(ValNeg(g_stack.Pop()));
+    return;
 
   case op_not:    
-    return ValNot(EvalExpression(Ast_A2(node)));
+    EvalExpression(Ast_A2(node));
+    g_stack.Push(ValNot(g_stack.Pop()));
+    return;
   }
 
   // Resolve lvalue
@@ -718,19 +748,21 @@ Evaluator::EvalPrefix(Object* node)
   case op_preinc:
     result = ValAdd(obj->Get(key), 1);
     obj->Set(key, result);
-    return result;
+    g_stack.Push(result);
+    return;
 
   case op_predec: 
     result = ValAdd(obj->Get(key), 1);
     obj->Set(key, result);
-    return result;
+    g_stack.Push(result);
+    return;
   }
 
   // Failed
   throw ScriptException(node, "Invalid prefix operator");
 }
 
-Value
+void
 Evaluator::EvalPostfix(Object* node)
 {
   // Evaluate lhs
@@ -746,17 +778,19 @@ Evaluator::EvalPostfix(Object* node)
   {
   case op_postinc:
     obj->Set(key, ValAdd(v, 1));
-    return v;
+    g_stack.Push(v);
+    return;
 
   case op_postdec:
     obj->Set(key, ValSub(v, 1));
-    return v;
+    g_stack.Push(v);
+    return;
   }
   
   throw ScriptException(node, "Invalid postfix operator");
 }
 
-Value
+void
 Evaluator::EvalIndex(Object* node)
 {
   // Retrieve the container
@@ -765,20 +799,23 @@ Evaluator::EvalIndex(Object* node)
   EvalLValue(node, obj, key);
 
   // Retrieve the list
-  return obj->Get(key);
+  g_stack.Push(obj->Get(key));
 }
 
-Value
+void
 Evaluator::EvalListAppend(Object* node)
 {
-  Object* obj = EvalExpression(Ast_A2(node));
+  EvalExpression(Ast_A2(node));
+  Object* obj = g_stack.Pop();
+
   List* list = dynamic_cast<List*>(obj);
   if(list == 0)
   {
     throw ScriptException(node, "Invalid type for list append operator");
   }
   
-  return list->Append(EvalExpression(Ast_A4(node)));
+  EvalExpression(Ast_A4(node));
+  list->Append(g_stack.Top());
 }
 
 NamespaceScope* 
@@ -795,57 +832,57 @@ FindNamespace(Scope* from)
   return 0;
 }
 
-Value
-Evaluator::EvalQualifiedId(Object* node)
-{
-  // Find starting scope
-  NamespaceScope* scope;
-  if(Ast_Type(node) == qualified_id_g)
-  {
-    // Start lookups in global scope
-    scope = m_global;
-  }
-  else
-  {
-    // Start lookups in current namespace
-    scope = FindNamespace(m_scope);
-  }
-
-  // Perform lookup
-  Object* cur = node;
-  for(;;)
-  {
-    // Retrieve name
-    String name = Ast_A1(cur);
-
-    // Retrieve node
-    Value const& rval = scope->Get(name);
-    if(rval.Empty())
-    {
-      throw ScriptException(node, "Namespace '" + scope->GetName() + 
-                      "' does not contain a member '" + name + "'");
-    }
-
-    // If nested, descend, else retrieve value
-    if(!Ast_A2(cur).Empty())
-    {
-      // Retrieve namespace scope
-      scope = dynamic_cast<NamespaceScope*>(rval.GetObject());
-      if(scope == 0)
-      {
-        throw ScriptException(node, "Expected namespace, found function or variable");
-      }
-
-      // Descend into id
-      cur = Ast_A2(cur);
-    }
-    else
-    {
-      // Found it
-      return rval;
-    }
-  }
-}
+// Value
+// Evaluator::EvalQualifiedId(Object* node)
+// {
+//   // Find starting scope
+//   NamespaceScope* scope;
+//   if(Ast_Type(node) == qualified_id_g)
+//   {
+//     // Start lookups in global scope
+//     scope = m_global;
+//   }
+//   else
+//   {
+//     // Start lookups in current namespace
+//     scope = FindNamespace(m_scope);
+//   }
+// 
+//   // Perform lookup
+//   Object* cur = node;
+//   for(;;)
+//   {
+//     // Retrieve name
+//     String name = Ast_A1(cur);
+// 
+//     // Retrieve node
+//     Value const& rval = scope->Get(name);
+//     if(rval.Empty())
+//     {
+//       throw ScriptException(node, "Namespace '" + scope->GetName() + 
+//                       "' does not contain a member '" + name + "'");
+//     }
+// 
+//     // If nested, descend, else retrieve value
+//     if(!Ast_A2(cur).Empty())
+//     {
+//       // Retrieve namespace scope
+//       scope = dynamic_cast<NamespaceScope*>(rval.GetObject());
+//       if(scope == 0)
+//       {
+//         throw ScriptException(node, "Expected namespace, found function or variable");
+//       }
+// 
+//       // Descend into id
+//       cur = Ast_A2(cur);
+//     }
+//     else
+//     {
+//       // Found it
+//       return rval;
+//     }
+//   }
+// }
 
 void 
 Evaluator::EvalUnsetStatement(Object* node)
@@ -857,7 +894,7 @@ Evaluator::EvalUnsetStatement(Object* node)
   obj->Unset(key);
 }
 
-Value
+void
 Evaluator::EvalOperatorDeclaration(Object* node)
 {
   String oper;
@@ -869,27 +906,27 @@ Evaluator::EvalOperatorDeclaration(Object* node)
   {
     oper = "operator " + Ast_A2(Ast_A1(node)).GetString();
   }
-  return oper;
+  g_stack.Push(oper);
 }
 
-void 
-Evaluator::EvalNamespace(Object* node)
-{
-  // Find current namespace
-  NamespaceScope* curNS = FindNamespace(m_scope);
-
-  // Determine namespace name
-  String const& name = Ast_A1(node);
-
-  // Create namespace scope
-  AutoScope as(new NamespaceScope(curNS, name));
-
-  // Evaluate declarations in scope
-  if(!Ast_A2(node).Empty())
-  {
-    EvalStatement(Ast_A2(node));
-  }
-}
+// void 
+// Evaluator::EvalNamespace(Object* node)
+// {
+//   // Find current namespace
+//   NamespaceScope* curNS = FindNamespace(m_scope);
+// 
+//   // Determine namespace name
+//   String const& name = Ast_A1(node);
+// 
+//   // Create namespace scope
+//   AutoScope as(new NamespaceScope(curNS, name));
+// 
+//   // Evaluate declarations in scope
+//   if(!Ast_A2(node).Empty())
+//   {
+//     EvalStatement(Ast_A2(node));
+//   }
+// }
 
 void
 Evaluator::EvalVariableDeclaration(Object* node)
@@ -903,7 +940,8 @@ Evaluator::EvalVariableDeclaration(Object* node)
   else
   {
     // Assign value-of rhs
-    value = EvalExpression(Ast_A2(node));
+    EvalExpression(Ast_A2(node));
+    value = g_stack.Pop();
   }
 
   // Create variable
@@ -923,7 +961,7 @@ Evaluator::EvalFunctionDeclaration(Object* node)
   m_scope->Add(name, fun);
 }
 
-Value
+void
 Evaluator::EvalClosure(Object* node)
 {
   Function* fun = new ScriptFunction(Ast_A1(node), node);
@@ -932,10 +970,10 @@ Evaluator::EvalClosure(Object* node)
   fun->Set("parent", m_scope);
   fun->Set("scope", FindNamespace(m_scope));
   
-  return fun;
+  g_stack.Push(fun);
 }
 
-Value
+void
 Evaluator::EvalFunctionMember(Object* node)
 {
   String name = Ast_A1(Ast_A1(node));
@@ -947,7 +985,7 @@ Evaluator::EvalFunctionMember(Object* node)
     {
       if(Function* function = dynamic_cast<Function*>(object))
       {
-        return function->Get(name);
+        g_stack.Push(function->Get(name));
       }
     }
     s = s->GetParent();
@@ -956,7 +994,7 @@ Evaluator::EvalFunctionMember(Object* node)
   throw ScriptException(node, "Invalid scope for function keyword");
 }
 
-Value
+void
 Evaluator::EvalFunctionIndex(Object* node)
 {
   throw ScriptException(node, "Fail");
@@ -968,7 +1006,7 @@ Evaluator::EvalExternDeclaration(Object* node)
   m_scope->Add(Ast_A1(node), new ExternFunction(Ast_A1(node), node));
 }
 
-Value
+void
 Evaluator::EvalFunctionCall(Object* node)
 {
   // Evaluate left-hand side
@@ -992,7 +1030,7 @@ Evaluator::EvalFunctionCall(Object* node)
   EvalArguments(node, argsource, args);
 
   // Evaluate the function call
-  return obj->Eval(key, args);
+  g_stack.Push(obj->Eval(key, args));
 }
 
 Value
@@ -1066,7 +1104,8 @@ Evaluator::EvalArguments(Object* node, Object* argptr, Arguments& args)
     // Evaluate arguments
     for(; ai != ae; ++ai)
     {
-      args.push_back(EvalExpression(*ai));
+      EvalExpression(*ai);
+      args.push_back(g_stack.Pop());
     }
 
     // Done
@@ -1160,12 +1199,12 @@ Evaluator::EvalArguments(Object* node, Object* argptr, Arguments& args)
   */
 }
 
-Value
+void
 Evaluator::EvalListLiteral(Object* node)
 {
   // Create empty list
   List* list = new List();
-  MakeTemp(list);
+  g_stack.Push(list);
   
   // Recurse into map values
   if(!Ast_A1(node).Empty())
@@ -1175,7 +1214,8 @@ Evaluator::EvalListLiteral(Object* node)
     while(child)
     {
       // Add element to list
-      list->Append(EvalExpression(Ast_A1(Ast_A1(child))));
+      EvalExpression(Ast_A1(Ast_A1(child)));
+      list->Append(g_stack.Pop());
 
       // Check for next element
       if(Ast_A2(child).Empty()) 
@@ -1187,17 +1227,14 @@ Evaluator::EvalListLiteral(Object* node)
       child = Ast_A2(child);
     }
   }
-
-  // Done
-  return list;
 }
 
-Value
+void
 Evaluator::EvalMapLiteral(Object* node)
 {
   // Create empty map
   Dictionary* dict = new Dictionary();
-  MakeTemp(dict);
+  g_stack.Push(dict);
 
   // Recurse into map values
   if(!Ast_A1(node).Empty())
@@ -1207,8 +1244,10 @@ Evaluator::EvalMapLiteral(Object* node)
     while(child)
     {
       // Evaluate key and value
-      Value const& key = EvalExpression(Ast_A1(Ast_A1(child)));
-      Value const& val = EvalExpression(Ast_A2(Ast_A1(child)));
+      EvalExpression(Ast_A1(Ast_A1(child)));
+      Value key = g_stack.Pop();
+      EvalExpression(Ast_A2(Ast_A1(child)));
+      Value val = g_stack.Pop();
 
       // Check for duplicate key in object, ignore prototype
       if(!dict->Insert(key, val))
@@ -1226,17 +1265,17 @@ Evaluator::EvalMapLiteral(Object* node)
       child = Ast_A2(child);
     }
   }
-
-  // Done
-  return dict;
 }
 
-Value
+void
 Evaluator::EvalJsonLiteral(Object* node)
 {
   // Create empty map
   Value v(new ScriptObject());
   Object* o = v.GetObject();
+
+  // Place on stack
+  g_stack.Push(o);
 
   // Recurse into map values
   if(!Ast_A1(node).Empty())
@@ -1252,7 +1291,8 @@ Evaluator::EvalJsonLiteral(Object* node)
       }
       else
       {
-        key = EvalExpression(Ast_A1(Ast_A1(child))).GetString();
+        EvalExpression(Ast_A1(Ast_A1(child)));
+        key = g_stack.Pop();
       }
 
 //       // Check for duplicate key in object, ignore prototype
@@ -1263,7 +1303,8 @@ Evaluator::EvalJsonLiteral(Object* node)
 //       }
 
       // Evaluate element
-      Value const& element = EvalExpression(Ast_A2(Ast_A1(child)));
+      EvalExpression(Ast_A2(Ast_A1(child)));
+      Value element = g_stack.Pop();
 
       // Insert into member variables
       o->Set(key, element);
@@ -1278,19 +1319,16 @@ Evaluator::EvalJsonLiteral(Object* node)
       child = Ast_A2(child);
     }
   }
-
-  // Done
-  return v;
 }
 
-Value
+void
 Evaluator::EvalShellCommand(Object* node)
 {
   // Extract command
   String command = Ast_A1(node).GetString();
 
   // Execute the command
-  return system(command.c_str());
+  g_stack.Push(system(command.c_str()));
 }
 
 void 
@@ -1304,7 +1342,8 @@ Evaluator::EvalReturnStatement(Object* node)
   }
   else
   {
-    value = EvalExpression(Ast_A1(node));
+    EvalExpression(Ast_A1(node));
+    value = g_stack.Pop();
   }
 
   // Throw return exception
@@ -1315,10 +1354,10 @@ void
 Evaluator::EvalIncludeStatement(Object* node)
 {
   // Evaluate include expression
-  Value const& rval = EvalExpression(Ast_A1(node));
+  EvalExpression(Ast_A1(node));
 
   // Parse include file
-  ParseFile(ValString(rval));
+  ParseFile(ValString(g_stack.Pop()));
 }
 
 void 
@@ -1334,7 +1373,8 @@ Evaluator::EvalForStatement(Object* node)
   for(;;)
   {
     // Check condition
-    if(!ValBool(EvalExpression(Ast_A2(node))))
+    EvalExpression(Ast_A2(node));
+    if(!ValBool(g_stack.Pop()))
     {
       break;
     }
@@ -1355,6 +1395,9 @@ Evaluator::EvalForStatement(Object* node)
 
     // Evaluate post expression
     EvalExpression(Ast_A3(node));
+
+    // Discard result
+    g_stack.Pop();
   }  
 }
 
@@ -1379,7 +1422,8 @@ Evaluator::EvalForeachStatement(Object* node)
   }
 
   // Evaluate expression
-  Value const& rhs = EvalExpression(Ast_A2(node));
+  EvalExpression(Ast_A2(node));
+  Value rhs = g_stack.Pop();
 
   // Retrieve enumerator
   Enumerator* enumerator = rhs->GetEnumerator();
@@ -1419,7 +1463,8 @@ Evaluator::EvalWhileStatement(Object* node)
 {
   for(;;)
   {
-    if(!ValBool(EvalExpression(Ast_A1(node))))
+    EvalExpression(Ast_A1(node));
+    if(!ValBool(g_stack.Pop()))
     {
       break;
     }
@@ -1443,7 +1488,8 @@ void
 Evaluator::EvalSwitchStatement(Object* node)
 {
   // Switch value
-  Value value = EvalExpression(Ast_A1(node));
+  EvalExpression(Ast_A1(node));
+  Value value = g_stack.Pop();
 
   // Create iterators
   List::Iterator it = AstList_A2(node)->Begin();
@@ -1461,10 +1507,14 @@ Evaluator::EvalSwitchStatement(Object* node)
       }
       statement = Ast_A1(*it);
     }
-    else if(ValCmp(EvalExpression(Ast_A1(*it)), value) == 0)
+    else 
     {
-      statement = Ast_A2(*it);
-      break;
+      EvalExpression(Ast_A1(*it));
+      if(ValCmp(g_stack.Pop(), value) == 0)
+      {
+        statement = Ast_A2(*it);
+        break;
+      }
     }
   }
 
@@ -1482,7 +1532,7 @@ Evaluator::EvalSwitchStatement(Object* node)
   }
 }
 
-Value
+void
 Evaluator::EvalNewExpression(Object* node)
 {
   // Find object
@@ -1494,6 +1544,7 @@ Evaluator::EvalNewExpression(Object* node)
 
   // Construct an instance from the source object
   Object* inst = new ScriptObject();
+  g_stack.Push(inst);
   
   // Assign prototype object
   inst->Set("prototype", rval.GetObject());
@@ -1507,16 +1558,16 @@ Evaluator::EvalNewExpression(Object* node)
   // Execute constructor
   Value result;
   inst->TryEval("constructor", args, result);
-
-  // Return temporary
-  return inst;
 }
 
-Value
+void
 Evaluator::EvalMemberExpression(Object* node)
 {
-  // Retrieve left-hand side
-  Value const& lhs = EvalExpression(Ast_A1(node));
+  // Evaluate lhs
+  EvalExpression(Ast_A1(node));
+  Value lhs = g_stack.Pop();
+
+  // Retrieve objsect
   Object* object;
   if(lhs.Type() == Value::tObject)
   {
@@ -1542,10 +1593,10 @@ Evaluator::EvalMemberExpression(Object* node)
   }
 
   // Done
-  return rval;
+  g_stack.Push(rval);
 }
 
-Value
+void
 Evaluator::EvalThisExpression(Object* node)
 {
   Scope* scope = m_scope;
@@ -1554,7 +1605,8 @@ Evaluator::EvalThisExpression(Object* node)
     Object* object = scope->GetObject();
     if(dynamic_cast<Function*>(object) == 0)
     {
-      return object;
+      g_stack.Push(object);
+      return;
     }
     scope = scope->GetParent();
   }
@@ -1577,7 +1629,6 @@ Evaluator::EvalTryStatement(Object* node)
       if(!Ast_A2(node).Empty())
       {
         // Insert exception into scope
-        // TODO this maketemp might crash horribly during exception cleanup!!!
         AutoScope scope(NewScope(m_scope));
         m_scope->Add(Ast_A1(Ast_A2(node)), e.m_value);
 
@@ -1611,17 +1662,18 @@ Evaluator::EvalTryStatement(Object* node)
   }
 }
 
-Value
+void
 Evaluator::EvalTypeConversion(Object* node)
 {
   // Evaluate the expression
-  Value const& rhs = EvalExpression(Ast_A2(node));
+  EvalExpression(Ast_A2(node));
+  Value rhs = g_stack.Pop();
   
   // Determine type
   Value::Types newType = (Value::Types)Ast_A1(Ast_A1(node)).GetInt();
 
   // Perform conversion
-  return Convert(node, rhs, newType);
+  g_stack.Push(Convert(node, rhs, newType));
 }
 
 Value 
