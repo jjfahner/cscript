@@ -67,10 +67,10 @@ function RunTests(doPrint)
 }
 
 // Run test suite
-var n = CScript.IsDebugBuild ? 10 : 100;
+var n = eval ? CScript.IsDebugBuild ? 10 : 100 : 1;
 for(var i = 0; i < n; ++i)
 {
-  RunTests(false);
+  RunTests(!eval);
 }
 
 // Run garbage collector

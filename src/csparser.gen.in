@@ -155,7 +155,8 @@ statement(R) ::= eos .                      {
 // Expression statement
 expression_statement(R) ::= function_call(A) eos .         { R = p->AllocNode(expression_statement, A); }
 expression_statement(R) ::= assignment_expression(A) eos . { R = p->AllocNode(expression_statement, A); }
-expression_statement(R) ::= prefix_expression(A) eos.      { R = p->AllocNode(expression_statement, A); }
+expression_statement(R) ::= prefix_expression_m(A) eos.    { R = p->AllocNode(expression_statement, A); }
+expression_statement(R) ::= postfix_expression_m(A) eos.   { R = p->AllocNode(expression_statement, A); }
 
 // Optional expression
 expression_opt(R) ::= .               { R = 0; }
@@ -164,15 +165,15 @@ expression_opt(R) ::= expression(A) . { R = A; }
 // Expression
 expression(R) ::= assignment_expression(A) .  { R = A; }
 expression(R) ::= conditional_expression(A) . { R = A; }
-expression(R) ::= json_literal(A) .  { R = A; }
+expression(R) ::= json_literal(A) .           { R = A; }
 
 // Assignment
-assignment_expression(R) ::= lvalue_expression(A) ASSIGN conditional_expression(B) . { R = p->AllocNode(assignment_expression, A, B); }
-assignment_expression(R) ::= lvalue_expression(A) ASSADD conditional_expression(B) . { R = AllocAssOp(p, op_add, A, B); }
-assignment_expression(R) ::= lvalue_expression(A) ASSSUB conditional_expression(B) . { R = AllocAssOp(p, op_sub, A, B); }
-assignment_expression(R) ::= lvalue_expression(A) ASSMUL conditional_expression(B) . { R = AllocAssOp(p, op_mul, A, B); }
-assignment_expression(R) ::= lvalue_expression(A) ASSDIV conditional_expression(B) . { R = AllocAssOp(p, op_div, A, B); }
-assignment_expression(R) ::= lvalue_expression(A) ASSMOD conditional_expression(B) . { R = AllocAssOp(p, op_mod, A, B); }
+assignment_expression(R) ::= lvalue_expression(A) ASSIGN expression(B) . { R = p->AllocNode(assignment_expression, A, B); }
+assignment_expression(R) ::= lvalue_expression(A) ASSADD expression(B) . { R = AllocAssOp(p, op_add, A, B); }
+assignment_expression(R) ::= lvalue_expression(A) ASSSUB expression(B) . { R = AllocAssOp(p, op_sub, A, B); }
+assignment_expression(R) ::= lvalue_expression(A) ASSMUL expression(B) . { R = AllocAssOp(p, op_mul, A, B); }
+assignment_expression(R) ::= lvalue_expression(A) ASSDIV expression(B) . { R = AllocAssOp(p, op_div, A, B); }
+assignment_expression(R) ::= lvalue_expression(A) ASSMOD expression(B) . { R = AllocAssOp(p, op_mod, A, B); }
 
 // Assignment targets
 lvalue_expression(R) ::= id_expression(A) .     { R = A; }
@@ -181,15 +182,18 @@ lvalue_expression(R) ::= member_expression(A) . { R = A; }
 
 // Conditional
 conditional_expression(R) ::= binary_expression(A) . { R = A; }
-conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON 
-                              binary_expression(C) . { R = p->AllocNode(ternary_expression, A, B, C); }
-conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON 
-                              throw_expression(C) . { R = p->AllocNode(ternary_expression, A, B, C); }
-conditional_expression(R) ::= binary_expression(A) QUESTION throw_expression(B) COLON 
-                              binary_expression(C) . { R = p->AllocNode(ternary_expression, A, B, C); }
+conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON expression(C) . { 
+  R = p->AllocNode(ternary_expression, A, B, C); 
+}
+conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON throw_expression(C) . { 
+  R = p->AllocNode(ternary_expression, A, B, C); 
+}
+conditional_expression(R) ::= binary_expression(A) QUESTION throw_expression(B) COLON expression(C) . { 
+  R = p->AllocNode(ternary_expression, A, B, C); 
+}
 
 // Binary expressions
-binary_expression(R) ::= unary_expression(A) . { R = A; }
+binary_expression(R) ::= prefix_expression(A) . { R = A; }
 binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = p->AllocNode(logical_or_expression,   A, B); }
 binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = p->AllocNode(logical_and_expression,  A, B); }
 binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = AllocBinOp(p, op_bitor,   A, B); }
@@ -210,27 +214,30 @@ binary_expression(R) ::= binary_expression(A) SEQ     binary_expression(B). { R 
 binary_expression(R) ::= binary_expression(A) SNE     binary_expression(B). { R = AllocBinOp(p, op_sne,     A, B); }
 
 // Unary expression
-unary_expression(R) ::= LAMBDA unary_expression(A) . { R = p->AllocNode(lambda_expression, A); }
-unary_expression(R) ::= postfix_expression(A) .      { R = A; } 
-unary_expression(R) ::= prefix_expression(A) .       { R = A; }
-unary_expression(R) ::= SUBOP unary_expression(A) .  { R = p->AllocNode(prefix_expression, op_negate, A); }
-unary_expression(R) ::= new_expression(A) . 			   { R = A; }
-unary_expression(R) ::= NOT unary_expression(A) .    { R = p->AllocNode(prefix_expression, op_not,    A); }
+prefix_expression(R) ::= postfix_expression(A) .       { R = A; } 
+prefix_expression(R) ::= prefix_expression_m(A) .      { R = A; }
+prefix_expression(R) ::= LAMBDA prefix_expression(A) . { R = p->AllocNode(lambda_expression, A); }
+prefix_expression(R) ::= SUBOP prefix_expression(A) .  { R = p->AllocNode(prefix_expression, op_negate, A); }
+prefix_expression(R) ::= new_expression(A) . 			     { R = A; }
+prefix_expression(R) ::= NOT prefix_expression(A) .    { R = p->AllocNode(prefix_expression, op_not,    A); }
 
 // Modifying unary expression
-prefix_expression(R) ::= ADDADD unary_expression(A) . { R = p->AllocNode(prefix_expression, op_preinc, A); }
-prefix_expression(R) ::= SUBSUB unary_expression(A) . { R = p->AllocNode(prefix_expression, op_predec, A); }
+prefix_expression_m(R) ::= ADDADD prefix_expression(A) . { R = p->AllocNode(prefix_expression, op_preinc, A); }
+prefix_expression_m(R) ::= SUBSUB prefix_expression(A) . { R = p->AllocNode(prefix_expression, op_predec, A); }
 
 // Postfix expression
-postfix_expression(R) ::= primary_expression(A) . { R = A; }
-postfix_expression(R) ::= member_expression(A) .  { R = A; }
-postfix_expression(R) ::= index_expression(A) .   { R = A; }
-postfix_expression(R) ::= function_call(A).       { R = A; }
-postfix_expression(R) ::= postfix_expression(A) ADDADD .             { R = p->AllocNode(postfix_expression, op_postinc, A); }
-postfix_expression(R) ::= postfix_expression(A) SUBSUB .             { R = p->AllocNode(postfix_expression, op_postdec, A); }
+postfix_expression(R) ::= primary_expression(A) .     { R = A; }
+postfix_expression(R) ::= postfix_expression_m(A) .   { R = A; } 
+postfix_expression(R) ::= member_expression(A) .      { R = A; }
+postfix_expression(R) ::= index_expression(A) .       { R = A; }
+postfix_expression(R) ::= function_call(A).           { R = A; }
 postfix_expression(R) ::= FUNCTION DOT unqualified_id(A) .					 { R = p->AllocNode(function_member_expression, A); }
 postfix_expression(R) ::= FUNCTION LBRACKET expression(A) RBRACKET . { R = p->AllocNode(function_index_expression, A); }
 postfix_expression(R) ::= TYPEOF LPAREN expression(A) RPAREN .       { R = p->AllocNode(typeof_expression, A); }
+
+// Modifying postfix expression
+postfix_expression_m(R) ::= postfix_expression(A) ADDADD . { R = p->AllocNode(postfix_expression, op_postinc, A); }
+postfix_expression_m(R) ::= postfix_expression(A) SUBSUB . { R = p->AllocNode(postfix_expression, op_postdec, A); }
 
 // Member expression
 member_expression(R) ::= postfix_expression(A) DOT unqualified_id(B). { R = p->AllocNode(member_expression, A, B); }
@@ -263,7 +270,11 @@ literal(R) ::= NULL .             { R = p->AllocNode(null_literal); }
 literal(R) ::= list_literal(A) .  { R = A; }
 literal(R) ::= map_literal (A) .  { R = A; }
 
-// Id expression
+//////////////////////////////////////////////////////////////////////////
+//
+// Id expressions
+//
+
 id_expression(R) ::= unqualified_id(A) . { 
   R = A; 
   R->m_a2 = p->GetName(A->m_a1); 
@@ -283,23 +294,34 @@ qualified_id(R) ::= IDENTIFIER(A) nested_name_specifier(B) . { R = p->AllocNode(
 nested_name_specifier(R) ::= NS_SEP IDENTIFIER(A) . { R = p->AllocNode(qualified_id_g, String(A)); }
 nested_name_specifier(R) ::= NS_SEP IDENTIFIER(A) nested_name_specifier(B) . { R = p->AllocNode(qualified_id_g, String(A), B); }
 
+//////////////////////////////////////////////////////////////////////////
+//
 // List literal
+//
+
 list_literal(R) ::= LBRACKET list_content(A) RBRACKET .       { R = p->AllocNode(list_literal, A); }
 list_literal(R) ::= LBRACKET RBRACKET .                       { R = p->AllocNode(list_literal); }
 list_content(R) ::= list_entry(A) .                           { R = p->AllocNode(list_content, A); }
 list_content(R) ::= list_entry(A) COMMA list_content(B) .     { R = p->AllocNode(list_content, A, B); }
 list_entry(R)   ::= expression(A) .                           { R = p->AllocNode(list_entry, A); }
 
+//////////////////////////////////////////////////////////////////////////
 //
 // Map literal
 //
+
 map_literal(R) ::= LBRACKET map_content(A) RBRACKET .         { R = p->AllocNode(map_literal, A); }
 map_content(R) ::= map_entry(A) .                             { R = p->AllocNode(map_content, A); }
 map_content(R) ::= map_entry(A) COMMA map_content(B) .        { R = p->AllocNode(map_content, A, B); }
 map_entry(R)   ::= expression(A)    COLON expression(B) .     { R = p->AllocNode(map_entry, A, B); }
 map_entry(R)   ::= operator_decl(A) COLON expression(B) .     { R = p->AllocNode(map_entry, A, B); }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
 // JSON literal
+//
+
 json_literal(R) ::= LBRACE RBRACE . { R = p->AllocNode(json_literal); }
 json_literal(R) ::= LBRACE json_content(A) RBRACE . { R = p->AllocNode(json_literal, A); }
 
@@ -309,15 +331,20 @@ json_content(R) ::= json_entry(A) COMMA json_content(B) . { R = p->AllocNode(jso
 json_entry(R)   ::= IDENTIFIER(A)     COLON expression(B) .  { R = p->AllocNode(json_entry, String(A), B); }
 json_entry(R)   ::= operator_decl(A)  COLON expression(B) .  { R = p->AllocNode(json_entry, A, B); }
 
+//////////////////////////////////////////////////////////////////////////
+//
 // New expression
+//
+
 new_expression(R) ::= NEW IDENTIFIER(A) . { R = p->AllocNode(new_expression, String(A)); }
 new_expression(R) ::= NEW IDENTIFIER(A) LPAREN arguments(B) RPAREN . { R = p->AllocNode(new_expression, String(A), B); }
 
+//////////////////////////////////////////////////////////////////////////
+//
 // Shell commands
-shell_command(R) ::= SHELLCMD(A) . { String cmd(A); R = p->AllocNode(shell_command, cmd.substr(1, cmd.length() - 2)); }
+//
 
-// Type conversions
-type_conversion(R) ::= type(A) LPAREN expression(B) RPAREN . { R = p->AllocNode(type_conversion, A, B); }
+shell_command(R) ::= SHELLCMD(A) . { String cmd(A); R = p->AllocNode(shell_command, cmd.substr(1, cmd.length() - 2)); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -328,6 +355,9 @@ type(R) ::= BOOL(A) .   { R = p->AllocNode(type_specifier, Value::tBool,   Strin
 type(R) ::= INT(A) .    { R = p->AllocNode(type_specifier, Value::tInt,    String(A)); }
 type(R) ::= STRING(A) . { R = p->AllocNode(type_specifier, Value::tString, String(A)); }
 type(R) ::= TYPE(A) .   { R = p->AllocNode(type_specifier, Value::tObject, String(A)); }
+
+// Type conversions
+type_conversion(R) ::= type(A) LPAREN expression(B) RPAREN . { R = p->AllocNode(type_conversion, A, B); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -347,7 +377,7 @@ arguments(R) ::= argument_list(A) . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Simple statements
+// Compound statements
 //
 
 // Compound statement
@@ -366,12 +396,20 @@ cse ::= RBRACE . {
   p->LeaveScope(0); 
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
 // Include statement
+//
+
 include_statement(R) ::= INCLUDE expression(A) eos . { 
   R = p->AllocNode(include_statement, A); 
 }
 
-// Return statement - leaves return expression on the stack
+//////////////////////////////////////////////////////////////////////////
+//
+// Return statement
+//
+
 return_statement(R) ::= RETURN expression(A) eos . { 
   R = p->AllocNode(return_statement, A); 
 }
@@ -379,7 +417,11 @@ return_statement(R) ::= RETURN eos . {
   R = p->AllocNode(return_statement);    
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
 // Break/continue
+//
+
 break_statement(R)    ::= BREAK eos .    { R = p->AllocNode(break_statement); }
 continue_statement(R) ::= CONTINUE eos . { R = p->AllocNode(continue_statement); }
 
@@ -575,9 +617,16 @@ for_init_statement(R) ::= variable_declaration(A) eos . { R = A; }
 // Foreach statement
 //
 
-foreach_statement(R) ::= FOR LPAREN id_expression(A) IN expression(B) RPAREN statement(C) . { R = p->AllocNode(foreach_statement, A, B, C); }
-foreach_statement(R) ::= FOR LPAREN foreach_decl(A)  IN expression(B) RPAREN statement(C) . { R = p->AllocNode(foreach_statement, A, B, C); }
-foreach_decl(R)      ::= VAR IDENTIFIER(A) . { R = p->AllocNode(variable_declaration, String(A)); p->AddName(R, String(A)); }
+foreach_statement(R) ::= FOR LPAREN id_expression(A) IN expression(B) RPAREN statement(C) . { 
+  R = p->AllocNode(foreach_statement, A, B, C); 
+}
+foreach_statement(R) ::= FOR LPAREN foreach_decl(A) IN expression(B) RPAREN statement(C) . { 
+  R = p->AllocNode(foreach_statement, A, B, C); 
+}
+foreach_decl(R)      ::= VAR IDENTIFIER(A) . { 
+  R = p->AllocNode(variable_declaration, String(A)); 
+  p->AddName(R, String(A)); 
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
