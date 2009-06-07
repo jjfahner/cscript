@@ -25,12 +25,31 @@
 #include <object.h>
 #include <astnode.h>
 
+#include <vector>
+
 enum AstTypes;
 class LexStream;
 
 class CSParser
 {
 public:
+
+  struct Variable
+  {
+    AstNode* m_node;
+    String   m_name;
+  };
+
+  typedef std::vector<Variable> VarVec;
+
+  struct LexScope
+  {
+    AstNode*  m_node;
+    String    m_name;
+    VarVec    m_vars;
+  };
+
+  typedef std::vector<LexScope> LexScopes;
 
   //
   // Parse contents of stream
@@ -52,6 +71,18 @@ public:
   //
   void OnParseFailure();
   void OnSyntaxError();
+
+  //
+  // Called by parser when entering/exiting lexical scopes
+  //
+  void EnterScope(AstNode* node, String name = "");
+  void LeaveScope(AstNode* node);
+
+  //
+  // Add a name to the current scope
+  //
+  void AddName(AstNode* node, String name);
+  AstNode* GetName(String name);
 
   //
   // Used by the parser to allocate nodes
@@ -80,6 +111,7 @@ private:
   Object*     m_root;
   LexStream*  m_stream;
   uint64      m_elapsed;
+  LexScopes   m_scopes;
 
 };
 

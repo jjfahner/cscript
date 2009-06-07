@@ -421,6 +421,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\stack.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\thread.h"
 				>
 			</File>

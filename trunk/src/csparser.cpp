@@ -30,6 +30,9 @@
 #include "csparser.gen.h"
 #include "csparser.gen.c"
 
+#include <algorithm>
+#include <iostream>
+
 //////////////////////////////////////////////////////////////////////////
 
 void CSParseTraceDummy(FILE*, char*) {}
@@ -64,6 +67,10 @@ CSParser::Parse(LexStream& stream, bool debug)
   // Allocate parser
   CSParserImpl parser(this, "CScript Parser: ", debug);
 
+  // Initialize stack
+  m_scopes.clear();
+  EnterScope(0);
+
   // Parse tokens
   Token token;
   while(lexer.Lex(token))
@@ -78,6 +85,9 @@ CSParser::Parse(LexStream& stream, bool debug)
       break;
     }
   }
+
+  // Leave stack
+  LeaveScope(0);
 
   // Swap root node
   Object* root = 0;
@@ -106,6 +116,8 @@ CSParser::ParseXml()
   return parser.Parse(*m_stream);
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void 
 CSParser::OnParseFailure()
 {
@@ -118,11 +130,71 @@ CSParser::OnSyntaxError()
   throw std::runtime_error("CSParser: Syntax error");
 }
 
+//////////////////////////////////////////////////////////////////////////
+
+void 
+CSParser::EnterScope(AstNode* node, String name)
+{
+  LexScope scope;
+  scope.m_node = node;
+  scope.m_name = name;
+  m_scopes.push_back(scope);
+}
+
+void 
+CSParser::LeaveScope(AstNode* node)
+{
+  if(node && m_scopes.back().m_node != node)
+  {
+    std::cout << "Parser stack corrupted!\n";
+  }
+  m_scopes.pop_back();
+}
+
+void 
+CSParser::AddName(AstNode* node, String name)
+{
+  LexScope& scope = m_scopes.back();
+  for(size_t i = 0; i < scope.m_vars.size(); ++i)
+  {
+    if(scope.m_vars[i].m_name == name)
+    {
+      std::cout << "Duplicate name '" << name << "'\n";
+    }
+  }
+  Variable var;
+  var.m_node = node;
+  var.m_name = name;
+  scope.m_vars.push_back(var);
+}
+
+AstNode* 
+CSParser::GetName(String name)
+{
+  for(size_t s = m_scopes.size(); s--; )
+  {
+    LexScope& scope = m_scopes[s];
+    for(size_t i = 0; i < scope.m_vars.size(); ++i)
+    {
+      if(scope.m_vars[i].m_name == name)
+      {
+        return scope.m_vars[i].m_node;
+      }
+    }
+  }
+  std::cout << "Unknown name '" << name << "'\n";
+  return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 void 
 CSParser::SetRoot(Object* root)
 {
    m_root = root;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 DataType* 
 CSParser::GetDataType(AstNode* node)
