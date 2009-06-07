@@ -21,11 +21,26 @@
 #include "value.h"
 #include "object.h"
 #include "datatype.h"
+#include "gc.h"
 
 #include <typeinfo>
 #include <cstdio>
 
-GC::Object* 
+//////////////////////////////////////////////////////////////////////////
+
+GCString::GCString(char const* str, bool) : String(str) 
+{ 
+  GC::Pin(this); 
+}
+
+GCString::GCString(String const& str, bool) : String(str) 
+{
+  GC::Pin(this);  
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+GCObject* 
 Value::GetGCObject() const
 {
   switch(m_type)

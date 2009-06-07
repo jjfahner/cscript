@@ -168,9 +168,9 @@ public:
   }
 
   //
-  // Implement GC::Mark
+  // Implement GC::MarkObjects
   //
-  virtual void Mark(GC::ObjectVec& grey)
+  virtual void MarkObjects(GCObjectVec& grey)
   {
     // Mark object members
     Object::MarkObjects(grey);
@@ -178,12 +178,8 @@ public:
     // Mark map contents
     for(Iter it = m_map.begin(); it != m_map.end(); ++it)
     {
-      if(GC::Object* o = it->first.GetGCObject()) {
-        grey.push_back(o);
-      }
-      if(GC::Object* o = it->second.GetGCObject()) {
-        grey.push_back(o);
-      }
+      GC::Mark(grey, it->first);
+      GC::Mark(grey, it->second);
     }
   }
 

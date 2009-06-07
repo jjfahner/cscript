@@ -151,13 +151,11 @@ ScriptObject::TrySet(Value const& key, Value const& value)
 }
 
 void 
-ScriptObject::MarkObjects(GC::ObjectVec& grey)
+ScriptObject::MarkObjects(GCObjectVec& grey)
 {
   MemberMap::iterator it;
   for(it = m_members.begin(); it != m_members.end(); ++it)
   {
-    if(GC::Object* o = it->second.GetGCObject()) {
-      GC::Mark(grey, o);
-    }
+    GC::Mark(grey, it->second);
   }
 }

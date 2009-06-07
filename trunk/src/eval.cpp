@@ -317,7 +317,7 @@ Evaluator::ReportError(String text, Object* source)
 GC::CollectInfo
 Evaluator::Collect()
 {
-  GC::ObjectVec valid;
+  GCObjectVec valid;
 
   // Insert root object in scope
   valid.push_back(m_scope ? m_scope : m_global);
@@ -325,7 +325,7 @@ Evaluator::Collect()
   // Append temporaries
   for(size_t i = 0; i < m_temporaries.size(); ++i)
   {
-    if(GC::Object* o = m_temporaries[i].GetGCObject())
+    if(GCObject* o = m_temporaries[i].GetGCObject())
     {
       valid.push_back(o);
     }

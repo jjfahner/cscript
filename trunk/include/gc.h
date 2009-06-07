@@ -22,21 +22,18 @@
 #define CSCRIPT_GCOBJECT_H
 
 #include <cscript.h>
+#include <gcobj.h>
 #include <vector>
+#include <value.h>
 
 class GC
 {
 public:
 
   //
-  // Forward declare Object class
-  //
-  class Object;
-
-  //
   // Vector of collectable objects
   //
-  typedef std::vector<Object*> ObjectVec;
+  typedef std::vector<GCObject*> GCObjectVec;
 
   //
   // Collect results
@@ -53,7 +50,7 @@ public:
   //
   // Invoke collection cycle
   //
-  static CollectInfo Collect(ObjectVec const& roots);
+  static CollectInfo Collect(GCObjectVec const& roots);
 
   //
   // Current number of objects
@@ -63,127 +60,33 @@ public:
   //
   // Pin an object to avoid it being collected
   //
-  static void Pin(Object* obj);
-  static void Unpin(Object* obj);
+  static void Pin(GCObject* obj);
+  static void Unpin(GCObject* obj);
 
   //
   // Mark an object into a set
   //
-  static void Mark(ObjectVec& vec, Object* obj);
-
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Base class for collectable objects
-  //
-
-  class Object
-  {
-  protected:
-
-    //
-    // Virtual destructor
-    //
-    virtual ~Object() {}
-
-    //
-    // Virtual destruction
-    //
-    virtual void Delete() { 
-      delete this; 
-    }
-
-    //
-    // Assignment
-    //
-    Object& operator = (Object&) { return *this; }
-
-  private:
-
-    //
-    // Friends
-    //
-    friend class GC;
-    friend class SimpleObject;
-    friend class ComplexObject;
-
-    //
-    // Construction
-    //
-    Object(bool complex);
-
-    //
-    // Copy construction not allowed
-    //
-    Object(Object&);
-
-    //
-    // Members
-    //
-    unsigned m_complex : 1;
-    unsigned m_collect : 1;
-    unsigned m_pinned  : 1;
-
-  };
-
-  //////////////////////////////////////////////////////////////////////////
-  //
-  // Simple 
-  //
-
-  class SimpleObject : public Object
-  {
-  protected:
-
-    //
-    // Construction
-    //
-    SimpleObject() : Object(false) {}
-
-    //
-    // Copy construction
-    //
-    SimpleObject(SimpleObject const&) : Object(false) {}
-
-  private:
-
-    //
-    // Friends
-    //
-    friend class GC;
-    
-  };
-
-  ///////////////////////////////////////////////////////////////////////////
-  //
-  // Complex objects
-  //
-  
-  class ComplexObject : public Object
-  {
-  protected:
-
-    //
-    // Construction
-    //
-    ComplexObject() : Object(true) {}
-
-    //
-    // Copy construction
-    //
-    ComplexObject(ComplexObject const&) : Object(true) {}
-
-    //
-    // Mark subobjects
-    //
-    virtual void MarkObjects(ObjectVec& grey) {}
-
-    //
-    // Friends
-    //
-    friend class GC;
-
-  };
+  static void Mark(GCObjectVec& vec, GCObject* obj);
+  static void Mark(GCObjectVec& vec, Value const& obj);
 
 }; // class GC
+
+inline void 
+GC::Mark(GCObjectVec& vec, GCObject* obj)
+{
+  if(obj->m_collect)
+  {
+    vec.push_back(obj);
+  }
+}
+
+inline void 
+GC::Mark(GCObjectVec& vec, Value const& val)
+{
+  if(GCObject* obj = val.GetGCObject())
+  {
+    Mark(vec, obj);
+  }
+}
 
 #endif // CSCRIPT_GCOBJECT_H

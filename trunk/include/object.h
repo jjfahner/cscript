@@ -21,7 +21,9 @@
 #ifndef CSCRIPT_OBJECT_H
 #define CSCRIPT_OBJECT_H
 
+#include <cscript.h>
 #include <value.h>
+#include <gcobj.h>
 
 class DataType;
 class Arguments;
@@ -32,7 +34,7 @@ class Enumerator;
 //
 // Object class
 //
-class Object : public GC::ComplexObject
+class Object : public GCComplexObject
 {
 protected:
 

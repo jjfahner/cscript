@@ -20,25 +20,23 @@
 //////////////////////////////////////////////////////////////////////////
 #include "cscript.h"
 #include "gc.h"
-#include "object.h"
 #include "timer.h"
-#include "object.h"
 #include "value.h"
 
 //
 // TLS based instance
 //
-TLS_SLOT GC::ObjectVec* g_objects = 0;
+TLS_SLOT GCObjectVec* g_objects = 0;
 
 //
-// Global object list
+// Global GCObject list
 //
 inline static 
-GC::ObjectVec& GetObjects()
+GCObjectVec& GetObjects()
 {
   if(g_objects == 0)
   {
-    g_objects = new GC::ObjectVec();
+    g_objects = new GCObjectVec();
   }
   return *g_objects;
 }
@@ -50,36 +48,27 @@ GC::ObjectCount()
 }
 
 void 
-GC::Pin(Object* obj)
+GC::Pin(GCObject* obj)
 {
 //   if(!obj->m_complex)
 //   {
-    static_cast<SimpleObject*>(obj)->m_pinned = true;
+    static_cast<GCSimpleObject*>(obj)->m_pinned = true;
 //   }
 }
 
 void 
-GC::Unpin(Object* obj)
+GC::Unpin(GCObject* obj)
 {
 //   if(!obj->m_complex)
 //   {
-    static_cast<SimpleObject*>(obj)->m_pinned = false;
+    static_cast<GCSimpleObject*>(obj)->m_pinned = false;
 //   }
 }
 
-void 
-GC::Mark(ObjectVec& vec, Object* obj)
-{
-  if(obj->m_collect)
-  {
-    vec.push_back(obj);
-  }
-}
-
-GC::Object::Object(bool complex)
+GCObject::GCObject(bool complex)
 {
   // Store reference to objects list
-  ObjectVec& g_objects = GetObjects();
+  GCObjectVec& g_objects = GetObjects();
 
   // Set collectable
   m_collect = true;
@@ -94,7 +83,7 @@ GC::Object::Object(bool complex)
     g_objects.reserve(reserve);
   }
 
-  // Add object to object list
+  // Add GCObject to GCObject list
   g_objects.push_back(this);
 }
 
@@ -106,11 +95,11 @@ and are inserted at the end of g_objects. Collection then proceeds
 as follows:
 
 1. Add root objects to the grey set.
-2. For each object in the grey set:
-a. Mark object non-collectable
+2. For each GCObject in the grey set:
+a. Mark GCObject non-collectable
 b. Append all referred objects to the grey set
 3. Repeat 2. until grey set is empty.
-4. For each object in g_objects:
+4. For each GCObject in g_objects:
 If collectable, delete it.
 Else, copy it to the first available empty slot,
 and mark it collectable for the next cycle.
@@ -120,13 +109,13 @@ and mark it collectable for the next cycle.
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ GC::CollectInfo 
-GC::Collect(ObjectVec const& roots)
+GC::Collect(GCObjectVec const& roots)
 {
-  ObjectVec grey, next;
-  ObjectVec::iterator it, ie;
+  GCObjectVec grey, next;
+  GCObjectVec::iterator it, ie;
 
   // Store reference to objects list
-  ObjectVec& g_objects = GetObjects();
+  GCObjectVec& g_objects = GetObjects();
 
   // Init collect information
   CollectInfo ci;
@@ -148,16 +137,16 @@ GC::Collect(ObjectVec const& roots)
     ie = grey.end();
     for(; it != ie; ++it)
     {
-      Object* obj = *it;
+      GCObject* obj = *it;
       if(obj->m_collect)
       {
-        // Set object as non-collectable
+        // Set GCObject as non-collectable
         obj->m_collect = false;
 
         // Mark subobjects
         if(obj->m_complex)
         {
-          static_cast<ComplexObject*>(obj)->MarkObjects(next);
+          static_cast<GCComplexObject*>(obj)->MarkObjects(next);
         }
       }
     }
@@ -167,7 +156,7 @@ GC::Collect(ObjectVec const& roots)
     next.clear();
   }
 
-  // TODO Resurrect pinned object structures
+  // TODO Resurrect pinned GCObject structures
 
   // Record time again
   ci.m_markPhase = Timer::Ticks() - ci.m_markPhase;
@@ -177,7 +166,7 @@ GC::Collect(ObjectVec const& roots)
   size_t pos = 0, ins = 0, len = g_objects.size();
   for(; pos < len; ++pos)
   {
-    GC::Object*& obj = g_objects[pos];
+    GCObject*& obj = g_objects[pos];
     if(obj->m_collect && !obj->m_pinned)
     {
       obj->Delete();

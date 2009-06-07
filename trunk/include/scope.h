@@ -273,7 +273,7 @@ protected:
   //
   // Override GC::MarkObjects
   //
-  virtual void MarkObjects(GC::ObjectVec& grey)
+  virtual void MarkObjects(GCObjectVec& grey)
   {
     // Mark object members
     Object::MarkObjects(grey);
@@ -281,9 +281,7 @@ protected:
     // Mark map contents
     for(Iter mi = m_vars.begin(); mi != m_vars.end(); ++mi)
     {
-      if(GC::Object* o = mi->second.GetGCObject()) {
-        GC::Mark(grey, o);
-      }
+      GC::Mark(grey, mi->second);
     }
   }
 

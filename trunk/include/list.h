@@ -24,6 +24,7 @@
 #include <cscript.h>
 #include <native.h>
 #include <enumerator.h>
+#include <gc.h>
 
 #include <vector>
 
@@ -202,7 +203,7 @@ protected:
   //
   // Implement garbage collector hook
   //
-  virtual void MarkObjects(GC::ObjectVec& grey) 
+  virtual void MarkObjects(GCObjectVec& grey) 
   {
     // Mark object members
     Object::MarkObjects(grey);
@@ -212,7 +213,7 @@ protected:
     Iterator ie = m_list.end();
     for(; it != ie; ++it)
     {
-      if(GC::Object* o = it->GetGCObject())
+      if(GCObject* o = it->GetGCObject())
       {
         GC::Mark(grey, o);
       }
