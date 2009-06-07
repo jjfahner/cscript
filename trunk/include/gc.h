@@ -26,6 +26,8 @@
 #include <vector>
 #include <value.h>
 
+class Stack;
+
 class GC
 {
 public:
@@ -50,7 +52,7 @@ public:
   //
   // Invoke collection cycle
   //
-  static CollectInfo Collect(GCObjectVec const& roots);
+  static CollectInfo Collect(Stack const& stack);
 
   //
   // Current number of objects

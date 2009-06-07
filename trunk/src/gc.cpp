@@ -22,6 +22,7 @@
 #include "gc.h"
 #include "timer.h"
 #include "value.h"
+#include "stack.h"
 
 //
 // TLS based instance
@@ -109,7 +110,7 @@ and mark it collectable for the next cycle.
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ GC::CollectInfo 
-GC::Collect(GCObjectVec const& roots)
+GC::Collect(Stack const& stack)
 {
   GCObjectVec grey, next;
   GCObjectVec::iterator it, ie;
@@ -122,8 +123,16 @@ GC::Collect(GCObjectVec const& roots)
   memset(&ci, 0, sizeof(ci));
   ci.m_numRemaining = g_objects.size();
 
-  // Start with the root objects
-  grey = roots;
+  // Scan the stack
+  Value const* sit = stack.Begin();
+  Value const* sie = stack.End();
+  for(; sit != sie; ++sit)
+  {
+    if(GCObject* obj = sit->GetGCObject())
+    {
+      grey.push_back(obj);
+    }
+  }
 
   // Run until no more objects are grey
   ci.m_markPhase = Timer::Ticks();

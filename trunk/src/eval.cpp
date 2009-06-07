@@ -120,23 +120,6 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-struct VecRestore
-{
-  T& m_vec;
-  size_t m_size;
-  VecRestore(T& vec) : m_vec (vec)
-  {
-    m_size = m_vec.size();
-  }
-  ~VecRestore()
-  {
-    m_vec.resize(m_size);
-  }
-};
-
-//////////////////////////////////////////////////////////////////////////
-
 Evaluator::Evaluator() :
 m_scope   (0),
 m_allocs  (0),
@@ -317,22 +300,15 @@ Evaluator::ReportError(String text, Object* source)
 GC::CollectInfo
 Evaluator::Collect()
 {
-  GCObjectVec valid;
+  // Push root scope onto stack
+  StackFrame s(g_stack);
+  g_stack.Push(m_scope ? m_scope : m_global);
 
-  // Insert root object in scope
-  valid.push_back(m_scope ? m_scope : m_global);
-
-  // Append temporaries
-  for(size_t i = 0; i < m_temporaries.size(); ++i)
-  {
-    if(GCObject* o = m_temporaries[i].GetGCObject())
-    {
-      valid.push_back(o);
-    }
-  }
+  // Clear scope cache
+  m_scopeCache.clear();
 
   // Collect invalid objects
-  return GC::Collect(valid);
+  return GC::Collect(g_stack);
 }
 
 Value 
@@ -343,14 +319,21 @@ Evaluator::Eval(String text, bool isFileName)
 
   // Parse code - this evaluates 
   // every statement in the code
+  Value result;
   if(isFileName)
   {
-    return ParseFile(text);
+    result = ParseFile(text);
   }
   else
   {
-    return ParseText(text.c_str());
+    result = ParseText(text.c_str());
   }
+
+  // Collect objects
+  Collect();
+
+  // Done
+  return result;
 }
 
 Value
@@ -359,8 +342,11 @@ Evaluator::Eval(Object* astRoot)
   // Set TLS instance
   Context ctx(this);
 
-  // Temporary guard
-  VecRestore<TempVec> vr(m_temporaries);
+  // Guard stack pointer
+  StackFrame sf(g_stack);
+
+  // Store current scope on stack
+  g_stack.Push(m_scope);
 
   // Retrieve stack from node
   Scope* scope = 0;
@@ -374,7 +360,7 @@ Evaluator::Eval(Object* astRoot)
   AutoScope at(NewScope(scope ? scope : m_global));
 
   // Keep ast around during evaluation
-  MakeTemp(astRoot);
+  g_stack.Push(astRoot);
 
   try
   {
@@ -429,7 +415,7 @@ Evaluator::Eval(Object* astRoot)
 void 
 Evaluator::EvalStatement(Object* node)
 {
-  VecRestore<TempVec> vr(m_temporaries);
+  StackFrame sf(g_stack);
 
   Value result;
   switch(Ast_Type(node))
@@ -1404,6 +1390,7 @@ Evaluator::EvalForStatement(Object* node)
 void 
 Evaluator::EvalForeachStatement(Object* node)
 {
+  StackFrame s(g_stack);
   AutoScope scope(NewScope(m_scope));
   
   Object* obj;
@@ -1423,7 +1410,7 @@ Evaluator::EvalForeachStatement(Object* node)
 
   // Evaluate expression
   EvalExpression(Ast_A2(node));
-  Value rhs = g_stack.Pop();
+  Value rhs = g_stack.Top();
 
   // Retrieve enumerator
   Enumerator* enumerator = rhs->GetEnumerator();
@@ -1432,8 +1419,8 @@ Evaluator::EvalForeachStatement(Object* node)
     throw ScriptException(node, "Invalid type specified in foreach");
   }
 
-  // Add to local scope
-  MakeTemp(enumerator);
+  // Store enumerator on stack
+  g_stack.Push(enumerator);
 
   // Enumerate members
   Value value;

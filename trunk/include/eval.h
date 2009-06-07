@@ -100,11 +100,6 @@ public:
   void OnParseFailure();
   void OnSyntaxError();
 
-  //
-  // Create a temporary
-  //
-  void MakeTemp(Value const& value);
-
 private:
 
   //
@@ -219,7 +214,6 @@ private:
   //
   // More types
   //
-  typedef std::vector<Value> TempVec;
   typedef std::vector<String> StringVec;
   typedef std::vector<Scope*> ScopeCache;
 
@@ -230,19 +224,12 @@ private:
   NamespaceScope* m_global;
   Scope*          m_scope;
   size_t          m_allocs;
-  TempVec         m_temporaries;
   Reporter        m_reporter;
   bool            m_debugParser;
   StringVec       m_fileNames;
   ScopeCache      m_scopeCache;
 
 };
-
-inline void
-Evaluator::MakeTemp(Value const& value)
-{
-  m_temporaries.push_back(value);
-}
 
 //////////////////////////////////////////////////////////////////////////
 //
