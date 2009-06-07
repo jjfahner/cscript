@@ -146,7 +146,8 @@ CSParser::LeaveScope(AstNode* node)
 {
   if(node && m_scopes.back().m_node != node)
   {
-    std::cout << "Parser stack corrupted!\n";
+    //std::cout << "Parser stack corrupted!\n";
+    return;
   }
   m_scopes.pop_back();
 }
@@ -159,7 +160,8 @@ CSParser::AddName(AstNode* node, String name)
   {
     if(scope.m_vars[i].m_name == name)
     {
-      std::cout << "Duplicate name '" << name << "'\n";
+      //std::cout << "Duplicate name '" << name << "'\n";
+      return;
     }
   }
   Variable var;
@@ -182,7 +184,7 @@ CSParser::GetName(String name)
       }
     }
   }
-  std::cout << "Unknown name '" << name << "'\n";
+  //std::cout << "Unknown name '" << name << "'\n";
   return 0;
 }
 

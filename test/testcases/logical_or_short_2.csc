@@ -1,3 +1,3 @@
 var a = 0;
-a++ || a++;
+if(a++ || a++);
 return a == 2;

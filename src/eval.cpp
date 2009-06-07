@@ -503,6 +503,10 @@ Evaluator::EvalStatement(Object* node)
     }  
     break;
 
+  case throw_expression:
+    EvalExpression(Ast_A1(node));
+    throw UserException(node, g_stack.Pop());
+
   default: 
     throw ScriptException(node, "Invalid node type");
   }
@@ -637,10 +641,6 @@ Evaluator::EvalExpression(Object* node)
       EvalExpression(Ast_A3(node));
     }
     break;
-
-  case throw_expression:
-    EvalExpression(Ast_A1(node));
-    throw UserException(node, g_stack.Pop());
 
   case typeof_expression:
     EvalExpression(Ast_A1(node));
