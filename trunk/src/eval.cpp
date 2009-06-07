@@ -745,13 +745,13 @@ Evaluator::EvalPrefix(Object* node)
   Value result;
   switch(Ast_A1(node).GetInt())
   {
-  case op_preinc:
+  case op_add:
     result = ValAdd(obj->Get(key), 1);
     obj->Set(key, result);
     g_stack.Push(result);
     return;
 
-  case op_predec: 
+  case op_sub: 
     result = ValAdd(obj->Get(key), 1);
     obj->Set(key, result);
     g_stack.Push(result);
@@ -776,12 +776,12 @@ Evaluator::EvalPostfix(Object* node)
   // Perform postfix operation
   switch(Ast_A1(node).GetInt())
   {
-  case op_postinc:
+  case op_add:
     obj->Set(key, ValAdd(v, 1));
     g_stack.Push(v);
     return;
 
-  case op_postdec:
+  case op_sub:
     obj->Set(key, ValSub(v, 1));
     g_stack.Push(v);
     return;

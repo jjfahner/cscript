@@ -208,10 +208,12 @@ int main(int argc, Char** argv)
   catch(std::exception const& e)
   {
     std::cout << "\nException: " << e.what() << "\n";
+    std::cin.get();
   }
   catch(...)
   {
     std::cout << "\nUnexpected exception\n";
+    std::cin.get();
   }
 
 	return result;

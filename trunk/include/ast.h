@@ -108,4 +108,6 @@ enum ParameterTypes
   ptVariadic,
 };
 
+String AstTypeToString(AstTypes type);
+
 #endif // CSCRIPT_AST_H

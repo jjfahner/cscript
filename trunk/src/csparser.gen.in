@@ -222,8 +222,8 @@ prefix_expression(R) ::= new_expression(A) . 			     { R = A; }
 prefix_expression(R) ::= NOT prefix_expression(A) .    { R = p->AllocNode(prefix_expression, op_not,    A); }
 
 // Modifying unary expression
-prefix_expression_m(R) ::= ADDADD prefix_expression(A) . { R = p->AllocNode(prefix_expression, op_preinc, A); }
-prefix_expression_m(R) ::= SUBSUB prefix_expression(A) . { R = p->AllocNode(prefix_expression, op_predec, A); }
+prefix_expression_m(R) ::= ADDADD prefix_expression(A) . { R = p->AllocNode(prefix_expression, op_add, A); }
+prefix_expression_m(R) ::= SUBSUB prefix_expression(A) . { R = p->AllocNode(prefix_expression, op_sub, A); }
 
 // Postfix expression
 postfix_expression(R) ::= primary_expression(A) .     { R = A; }
@@ -236,8 +236,8 @@ postfix_expression(R) ::= FUNCTION LBRACKET expression(A) RBRACKET . { R = p->Al
 postfix_expression(R) ::= TYPEOF LPAREN expression(A) RPAREN .       { R = p->AllocNode(typeof_expression, A); }
 
 // Modifying postfix expression
-postfix_expression_m(R) ::= postfix_expression(A) ADDADD . { R = p->AllocNode(postfix_expression, op_postinc, A); }
-postfix_expression_m(R) ::= postfix_expression(A) SUBSUB . { R = p->AllocNode(postfix_expression, op_postdec, A); }
+postfix_expression_m(R) ::= postfix_expression(A) ADDADD . { R = p->AllocNode(postfix_expression, op_add, A); }
+postfix_expression_m(R) ::= postfix_expression(A) SUBSUB . { R = p->AllocNode(postfix_expression, op_sub, A); }
 
 // Member expression
 member_expression(R) ::= postfix_expression(A) DOT unqualified_id(B). { R = p->AllocNode(member_expression, A, B); }
@@ -277,7 +277,7 @@ literal(R) ::= map_literal (A) .  { R = A; }
 
 id_expression(R) ::= unqualified_id(A) . { 
   R = A; 
-  R->m_a2 = p->GetName(A->m_a1); 
+  R->m_a2 = p->GetVar(A->m_a1); 
 }
 id_expression(R) ::= qualified_id(A) . { 
   R = A;
@@ -393,7 +393,7 @@ csp(R) ::= LBRACE . {
   p->EnterScope(R); 
 }
 cse ::= RBRACE . { 
-  p->LeaveScope(0); 
+  p->LeaveScope(); 
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -441,11 +441,11 @@ variable_declaration(R) ::= VAR declarator_sequence(A) . { R = A; }
 
 declarator(R) ::= IDENTIFIER(A) . { 
   R = p->AllocNode(variable_declaration, String(A));
-  p->AddName(R, String(A)); 
+  p->AddVar(R, String(A)); 
 }
 declarator(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { 
   R = p->AllocNode(variable_declaration, String(A), B); 
-  p->AddName(R, String(A)); 
+  p->AddVar(R, String(A)); 
 }
 
 declarator_sequence(R) ::= declarator(A) . { R = A; }
@@ -469,7 +469,7 @@ declaration_sequence(R) ::= declaration_sequence(A) declaration_statement(B) . {
 
 unset_statement(R) ::= UNSET id_expression(A) eos . { 
   R = p->AllocNode(unset_statement, A); 
-  R->m_a2 = p->GetName(A->m_a1); 
+  R->m_a2 = p->GetVar(A->m_a1); 
   // TODO remove name from scope again
 }
 
@@ -488,51 +488,58 @@ function_declaration(R) ::= function_prolog(A) LPAREN parameter_list(B) RPAREN f
   R = A; 
   R->m_a2 = B; 
   R->m_a3 = C; 
-  p->LeaveScope(R); 
+  p->LeaveScope(); 
 }
 function_prolog(R) ::= FUNCTION IDENTIFIER(A) . { 
   R = p->AllocNode(function_declaration, String(A)); 
-  p->AddName(R, String(A)); 
+  p->AddVar(R, String(A)); 
   p->EnterScope(R, String(A)); 
 }
 
 // Closure declaration
-closure_expression(R) ::= FUNCTION LPAREN parameter_list(B) RPAREN function_body(C) . { 
-  R = p->AllocNode(closure_expression, String("function"), B, C); 
+closure_expression(R) ::= closure_prolog(A) LPAREN parameter_list(B) RPAREN function_body(C) . { 
+  R = A; 
+  R->m_a2 = B;
+  R->m_a3 = C;
+  p->LeaveScope(); 
+}
+closure_prolog(R) ::= FUNCTION . {
+  R = p->AllocNode(closure_expression, String("function"));
+  p->EnterScope(R);
 }
 
 // Single parameter
 parameter(R) ::= type(A) IDENTIFIER(B) . { 
   R = p->AllocNode(parameter, String(B), ptByVal, A); 
-  p->AddName(R, String(B)); 
+  p->AddVar(R, String(B)); 
 }
 parameter(R) ::= IDENTIFIER(B) . { 
   R = p->AllocNode(parameter, String(B), ptByVal);
-  p->AddName(R, String(B)); 
+  p->AddVar(R, String(B)); 
 }
 parameter(R) ::= type(A) BITAND IDENTIFIER(B) . { 
   R = p->AllocNode(parameter, String(B), ptByRef, A); 
-  p->AddName(R, String(B)); 
+  p->AddVar(R, String(B)); 
 }
 parameter(R) ::= BITAND IDENTIFIER(B) . { 
   R = p->AllocNode(parameter, String(B), ptByRef);
-  p->AddName(R, String(B)); 
+  p->AddVar(R, String(B)); 
 }
 
 // Single optional parameter
 opt_parameter(R) ::= type(A) IDENTIFIER(B) ASSIGN expression(C) . { 
   R = p->AllocNode(parameter, String(B), ptByVal, A, C); 
-  p->AddName(R, String(B)); 
+  p->AddVar(R, String(B)); 
 }
 opt_parameter(R) ::= IDENTIFIER(B) ASSIGN expression(C) . { 
   R = p->AllocNode(parameter, String(B), ptByVal, Value(), C); 
-  p->AddName(R, String(B)); 
+  p->AddVar(R, String(B)); 
 }
 
 // Variadic argument
 variadic_parameter(R) ::= IDENTIFIER(A) VARIADIC . { 
   R = p->AllocNode(parameter, String(A), ptVariadic); 
-  p->AddName(R, String(A)); 
+  p->AddVar(R, String(A)); 
 }
 
 // Parameter list
@@ -595,7 +602,7 @@ extern_declaration(R) ::= EXTERN LIT_STRING(A) type(B) IDENTIFIER(C)
   LPAREN parameter_list(D) RPAREN eos . 
 { 
   R = p->AllocNode(extern_declaration, String(C), D, String(A), B);
-  p->AddName(R, String(A));
+  p->AddVar(R, String(A));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -625,7 +632,7 @@ foreach_statement(R) ::= FOR LPAREN foreach_decl(A) IN expression(B) RPAREN stat
 }
 foreach_decl(R)      ::= VAR IDENTIFIER(A) . { 
   R = p->AllocNode(variable_declaration, String(A)); 
-  p->AddName(R, String(A)); 
+  p->AddVar(R, String(A)); 
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -689,12 +696,12 @@ try_statement(R) ::= TRY compound_statement(A) catch_block(B) finally_block(C) .
 catch_block(R) ::= catch_prolog(A) compound_statement(B) . { 
   R = A; 
   R->m_a2 = B; 
-  p->LeaveScope(R); 
+  p->LeaveScope(); 
 }
 catch_prolog(R) ::= CATCH LPAREN IDENTIFIER(A) RPAREN . { 
   R = p->AllocNode(catch_block, String(A)); 
   p->EnterScope(R); 
-  p->AddName(R, String(A)); 
+  p->AddVar(R, String(A)); 
 }
 
 finally_block(R) ::= FINALLY compound_statement(A) . { 

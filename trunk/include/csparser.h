@@ -26,6 +26,7 @@
 #include <astnode.h>
 
 #include <vector>
+#include <map>
 
 enum AstTypes;
 class LexStream;
@@ -37,6 +38,7 @@ public:
   struct Variable
   {
     AstNode* m_node;
+    String   m_full;
     String   m_name;
   };
 
@@ -46,6 +48,7 @@ public:
   {
     AstNode*  m_node;
     String    m_name;
+    String    m_full;
     VarVec    m_vars;
   };
 
@@ -76,13 +79,13 @@ public:
   // Called by parser when entering/exiting lexical scopes
   //
   void EnterScope(AstNode* node, String name = "");
-  void LeaveScope(AstNode* node);
+  void LeaveScope();
 
   //
-  // Add a name to the current scope
+  // Add a variable to the current scope
   //
-  void AddName(AstNode* node, String name);
-  AstNode* GetName(String name);
+  void AddVar(AstNode* node, String name);
+  AstNode* GetVar(String name);
 
   //
   // Used by the parser to allocate nodes
@@ -100,6 +103,8 @@ public:
 
 private:
 
+  typedef std::map<AstTypes, int64> AutoIds;
+
   //
   // Determine node data type
   //
@@ -112,6 +117,7 @@ private:
   LexStream*  m_stream;
   uint64      m_elapsed;
   LexScopes   m_scopes;
+  AutoIds     m_autoIds;
 
 };
 

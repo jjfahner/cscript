@@ -1,12 +1,32 @@
-// Start
-Console.WriteLn("Starting test suite...\n");
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2007 - 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
 
-// Location of scripts
+// Execution parameters
 var path = "testcases/";
-var eval = true;
+var eval  = true;
+var print = !eval;
+var count = 1;
 
 // Test function
-function RunTests(doPrint)
+function RunTests()
 {
   // Store start time
   var ticks = CScript.Ticks;
@@ -17,7 +37,7 @@ function RunTests(doPrint)
   for(var file in Path.GetFiles(path + "*.csc"))
   {
     // Build path
-    if(doPrint)
+    if(print)
     {
       Console.Write("{file}: ");
     }
@@ -37,7 +57,7 @@ function RunTests(doPrint)
     // Check result
     if(res == 1)
     {
-      if(doPrint)
+      if(print)
       {
         Console.WriteLn("Ok");
       }
@@ -45,7 +65,7 @@ function RunTests(doPrint)
     else
     {
       ++errors;
-      if(doPrint)
+      if(print)
       {
         Console.WriteLn("Failed");
       }
@@ -66,11 +86,13 @@ function RunTests(doPrint)
   return ticks;
 }
 
+// Start
+Console.WriteLn("Starting test suite...\n");
+
 // Run test suite
-var n = eval ? CScript.IsDebugBuild ? 10 : 100 : 1;
-for(var i = 0; i < n; ++i)
+for(var i = 0; i < count; ++i)
 {
-  RunTests(!eval);
+  RunTests();
 }
 
 // Run garbage collector
