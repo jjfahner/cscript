@@ -48,7 +48,6 @@ CScriptMethods::Collect()
 
   // Create result object
   Object* obj = new ScriptObject();
-  CurEval.MakeTemp(obj);
 
   // Copy fields
   obj->Set("markPhase",    (Value::Int) ci.m_markPhase);

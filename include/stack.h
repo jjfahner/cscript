@@ -83,13 +83,21 @@ public:
   }
 
   //
-  // Swap two entries
+  // Stack usage
   //
-  void Swap(int64 off1, int64 off2)
+  int64 Used() const
   {
-    Value t = *(m_top + off1);
-    *(m_top + off1) = *(m_top + off2);
-    *(m_top + off2) = t;
+    return m_size - (m_top - m_stack);
+  }
+
+  //
+  // Iterators
+  //
+  Value const* Begin() const {
+    return m_top;
+  }
+  Value const* End() const {
+    return m_stack + m_size;
   }
 
 private:
@@ -113,31 +121,27 @@ public:
   //
   // Construction
   //
-  StackFrame(Stack* stack)
+  StackFrame(Stack& stack) :
+  m_stack (stack),
+  m_base  (stack.m_top)
   {
-    m_stack = stack;
-    m_base  = stack->m_top;
   }
 
   //
-  // Add variable
+  // Destruction
   //
-  void Add(StringCRef name)
+  ~StackFrame()
   {
-    //if(m_)
+    m_stack.m_top = m_base;
   }
-
 
 private:
-
-  typedef std::map<String, int64> Offsets;
 
   //
   // Members
   //
-  Stack*  m_stack;
+  Stack&  m_stack;
   Value*  m_base;
-  Offsets m_offset;
 
 };
 
