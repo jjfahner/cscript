@@ -87,7 +87,7 @@ CSParser::Parse(LexStream& stream, bool debug)
   }
 
   // Leave stack
-  LeaveScope(0);
+  LeaveScope();
 
   // Swap root node
   Object* root = 0;
@@ -135,44 +135,61 @@ CSParser::OnSyntaxError()
 void 
 CSParser::EnterScope(AstNode* node, String name)
 {
+  // Build name for unnamed nodes
+  if(node && name.empty())
+  {
+    int64 id = ++m_autoIds[node->m_type];
+    name = AstTypeToString(node->m_type) + "_" + ValString(id);
+  }
+
+  // Create scope
   LexScope scope;
   scope.m_node = node;
   scope.m_name = name;
+
+  // Build full name
+  if(node)
+  {
+    scope.m_full = m_scopes.back().m_full + "::" + name;
+  }
+  
+  // Append scope
   m_scopes.push_back(scope);
 }
 
 void 
-CSParser::LeaveScope(AstNode* node)
+CSParser::LeaveScope()
 {
-  if(node && m_scopes.back().m_node != node)
-  {
-    //std::cout << "Parser stack corrupted!\n";
-    return;
-  }
   m_scopes.pop_back();
 }
 
-void 
-CSParser::AddName(AstNode* node, String name)
+void
+CSParser::AddVar(AstNode* node, String name)
 {
+  // Check for duplicates
   LexScope& scope = m_scopes.back();
   for(size_t i = 0; i < scope.m_vars.size(); ++i)
   {
     if(scope.m_vars[i].m_name == name)
     {
-      //std::cout << "Duplicate name '" << name << "'\n";
-      return;
+      throw std::runtime_error("Variable '" + name + "' already declared\n");
     }
   }
+
+  // Create variable
   Variable var;
   var.m_node = node;
   var.m_name = name;
+  var.m_full = m_scopes.back().m_full + "::" + name;
+
+  // Add to list
   scope.m_vars.push_back(var);
 }
 
 AstNode* 
-CSParser::GetName(String name)
+CSParser::GetVar(String name)
 {
+  // Walk scopes backwards to find name
   for(size_t s = m_scopes.size(); s--; )
   {
     LexScope& scope = m_scopes[s];
@@ -184,8 +201,11 @@ CSParser::GetName(String name)
       }
     }
   }
-  //std::cout << "Unknown name '" << name << "'\n";
+  
+  // Name not found
+  //std::cout << "Variable '" << name << "' not declared\n";
   return 0;
+  //throw std::runtime_error("Variable '" + name + "' not declared");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -251,8 +271,8 @@ CSParser::GetDataType(AstNode* node)
   case prefix_expression: 
     switch(Ast_A1(node).GetInt())
     {
-    case op_preinc:
-    case op_predec:
+    case op_add:
+    case op_sub:
       return AstNode_A2(node)->m_dataType;
     case op_negate:
     case op_not:
@@ -264,8 +284,8 @@ CSParser::GetDataType(AstNode* node)
   case postfix_expression: 
     switch(Ast_A1(node).GetInt())
     {
-    case op_postinc:
-    case op_postdec:
+    case op_add:
+    case op_sub:
       return AstNode_A2(node)->m_dataType;
     default:
       throw std::runtime_error("Invalid postfix operator");

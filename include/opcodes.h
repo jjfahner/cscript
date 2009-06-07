@@ -21,13 +21,11 @@
 #ifndef CSCRIPT_OPCODES_H
 #define CSCRIPT_OPCODES_H
 
+#include <cscript.h>
+
 enum opcodes
 {
   op_negate,
-  op_preinc,
-  op_predec,
-  op_postinc,
-  op_postdec,
   op_not,
   op_add,
   op_sub,

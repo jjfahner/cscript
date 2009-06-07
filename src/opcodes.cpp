@@ -27,10 +27,6 @@ OpcodeToString(opcodes opcode)
   switch(opcode)
   {
   case op_negate: return "!";
-  case op_preinc: return "++";
-  case op_predec: return "--";
-  case op_postinc: return "++";
-  case op_postdec: return "--";
   case op_not: return "!";
   case op_add: return "+";
   case op_sub: return "-";
