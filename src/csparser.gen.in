@@ -39,25 +39,26 @@
 
 #pragma warning(disable:4065)
 
-inline Object* 
+inline AstNode* 
 AllocBinOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
 {
-  String opName;
-  switch(opcode)
-  {
-  case op_add: opName = "Add"; break;
-  case op_sub: opName = "Sub"; break;
-  case op_mul: opName = "Mul"; break;
-  case op_div: opName = "Div"; break;
-  case op_mod: opName = "Mod"; break;
-  default: return p->AllocNode(binary_expression, opcode, lhs, rhs);
-  }
-  Object* unq = p->AllocNode(unqualified_id, opName);
-  Object* mem = p->AllocNode(member_expression, lhs, unq);
-  return p->AllocNode(function_call, mem, rhs);
+  return p->AllocNode(binary_expression, opcode, lhs, rhs);
+//   String opName;
+//   switch(opcode)
+//   {
+//   case op_add: opName = "Add"; break;
+//   case op_sub: opName = "Sub"; break;
+//   case op_mul: opName = "Mul"; break;
+//   case op_div: opName = "Div"; break;
+//   case op_mod: opName = "Mod"; break;
+//   default: return p->AllocNode(binary_expression, opcode, lhs, rhs);
+//   }
+//   Object* unq = p->AllocNode(unqualified_id, opName);
+//   Object* mem = p->AllocNode(member_expression, lhs, unq);
+//   return p->AllocNode(function_call, mem, rhs);
 }
 
-inline Object* 
+inline AstNode* 
 AllocAssOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
 {
   return p->AllocNode(assignment_expression, lhs, 
@@ -75,7 +76,7 @@ AllocAssOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
 %token_prefix     CS_
 %token_type       { Token }
 %extra_argument   { CSParser* p }
-%default_type     { Object* }
+%default_type     { AstNode* }
 
 // Error handlers
 %parse_failure {
@@ -237,11 +238,17 @@ literal(R) ::= FALSE .            { R = p->AllocNode(literal_value, Value(false)
 literal(R) ::= NULL .             { R = p->AllocNode(null_literal); }
 literal(R) ::= list_literal(A) .  { R = A; }
 literal(R) ::= map_literal (A) .  { R = A; }
-literal(R) ::= json_literal(A) .  { R = A; }
+//literal(R) ::= json_literal(A) .  { R = A; }
 
 // Id expression
-id_expression(R) ::= unqualified_id(A) . { R = A; }
-id_expression(R) ::= qualified_id(A)   . { R = A; }
+id_expression(R) ::= unqualified_id(A) . { 
+  R = A; 
+  R->m_a2 = p->GetName(A->m_a1); 
+}
+id_expression(R) ::= qualified_id(A) . { 
+  R = A;
+  // TODO perform lookup
+}
 
 // Unqualified name
 unqualified_id(R) ::= IDENTIFIER(A) . { R = p->AllocNode(unqualified_id, String(A)); }
@@ -271,13 +278,13 @@ map_entry(R)   ::= operator_decl(A) COLON expression(B) .     { R = p->AllocNode
 
 
 // JSON literal
-json_literal(R) ::= LBRACE json_content(A) RBRACE . { R = p->AllocNode(json_literal, A); }
-
-json_content(R) ::= json_entry(A) . { R = p->AllocNode(json_content, A); }
-json_content(R) ::= json_entry(A) COMMA json_content(B) . { R = p->AllocNode(json_content, A, B); }
-
-json_entry(R)   ::= IDENTIFIER(A)     COLON expression(B) .  { R = p->AllocNode(json_entry, String(A), B); }
-json_entry(R)   ::= operator_decl(A)  COLON expression(B) .  { R = p->AllocNode(json_entry, A, B); }
+// json_literal(R) ::= LBRACE json_content(A) RBRACE . { R = p->AllocNode(json_literal, A); }
+// 
+// json_content(R) ::= json_entry(A) . { R = p->AllocNode(json_content, A); }
+// json_content(R) ::= json_entry(A) COMMA json_content(B) . { R = p->AllocNode(json_content, A, B); }
+// 
+// json_entry(R)   ::= IDENTIFIER(A)     COLON expression(B) .  { R = p->AllocNode(json_entry, String(A), B); }
+// json_entry(R)   ::= operator_decl(A)  COLON expression(B) .  { R = p->AllocNode(json_entry, A, B); }
 
 // New expression
 new_expression(R) ::= NEW IDENTIFIER(A) . { R = p->AllocNode(new_expression, String(A)); }
@@ -321,19 +328,41 @@ arguments(R) ::= argument_list(A) . { R = A; }
 //
 
 // Expression statement
-expression_statement(R) ::= eos .               { R = p->AllocNode(empty_statement); }
-expression_statement(R) ::= expression(A) eos . { R = p->AllocNode(expression_statement, A); }
+expression_statement(R) ::= eos . { 
+  R = p->AllocNode(empty_statement); 
+}
+expression_statement(R) ::= expression(A) eos . { 
+  R = p->AllocNode(expression_statement, A); 
+}
 
 // Compound statement
-compound_statement(R) ::= LBRACE RBRACE .                       { R = p->AllocNode(compound_statement); }
-compound_statement(R) ::= LBRACE statement_sequence(A) RBRACE . { R = p->AllocNode(compound_statement, A); }
+compound_statement(R) ::= csp(A) cse . { 
+  R = A; 
+}
+compound_statement(R) ::= csp(A) statement_sequence(B) cse . { 
+  R = A; 
+  A->m_a1 = B; 
+}
+csp(R) ::= LBRACE . { 
+  R = p->AllocNode(compound_statement); 
+  p->EnterScope(R); 
+}
+cse ::= RBRACE . { 
+  p->LeaveScope(0); 
+}
 
 // Include statement
-include_statement(R) ::= INCLUDE expression(A) eos . { R = p->AllocNode(include_statement, A); }
+include_statement(R) ::= INCLUDE expression(A) eos . { 
+  R = p->AllocNode(include_statement, A); 
+}
 
 // Return statement - leaves return expression on the stack
-return_statement(R) ::= RETURN expression(A) eos . { R = p->AllocNode(return_statement, A); }
-return_statement(R) ::= RETURN eos .               { R = p->AllocNode(return_statement);    }
+return_statement(R) ::= RETURN expression(A) eos . { 
+  R = p->AllocNode(return_statement, A); 
+}
+return_statement(R) ::= RETURN eos . { 
+  R = p->AllocNode(return_statement);    
+}
 
 // Break/continue
 break_statement(R)    ::= BREAK eos .    { R = p->AllocNode(break_statement); }
@@ -353,19 +382,39 @@ vardecl_statement(R) ::= variable_declaration(A) eos . { R = A; }
 
 variable_declaration(R) ::= VAR declarator_sequence(A) . { R = A; }
 
-declarator(R) ::= IDENTIFIER(A) .                      { R = p->AllocNode(variable_declaration, String(A));    }
-declarator(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { R = p->AllocNode(variable_declaration, String(A), B); }
+declarator(R) ::= IDENTIFIER(A) . { 
+  R = p->AllocNode(variable_declaration, String(A));
+  p->AddName(R, String(A)); 
+}
+declarator(R) ::= IDENTIFIER(A) ASSIGN expression(B) . { 
+  R = p->AllocNode(variable_declaration, String(A), B); 
+  p->AddName(R, String(A)); 
+}
 
 declarator_sequence(R) ::= declarator(A) . { R = A; }
-declarator_sequence(R) ::= declarator_sequence(A) COMMA declarator(B) . { R = p->AllocNode(declarator_sequence, A, B); }
+declarator_sequence(R) ::= declarator_sequence(A) COMMA declarator(B) . { 
+  R = p->AllocNode(declarator_sequence, A, B); 
+}
 
-namespace_declaration(R) ::= NAMESPACE IDENTIFIER(A) LBRACE RBRACE .                         { R = p->AllocNode(namespace_declaration, String(A)); }
-namespace_declaration(R) ::= NAMESPACE IDENTIFIER(A) LBRACE declaration_sequence(B) RBRACE . { R = p->AllocNode(namespace_declaration, String(A), B); }
+namespace_declaration(R) ::= NAMESPACE IDENTIFIER(A) LBRACE RBRACE . { 
+  R = p->AllocNode(namespace_declaration, String(A)); 
+}
+namespace_declaration(R) ::= NAMESPACE IDENTIFIER(A) LBRACE declaration_sequence(B) RBRACE . { 
+  R = p->AllocNode(namespace_declaration, String(A), B); 
+}
 
-declaration_sequence(R) ::= declaration_statement(A) .                          { R = p->AllocNode(declaration_sequence, A); }
-declaration_sequence(R) ::= declaration_sequence(A) declaration_statement(B) .  { R = p->AllocNode(declaration_sequence, A, B); }
+declaration_sequence(R) ::= declaration_statement(A) . { 
+  R = p->AllocNode(declaration_sequence, A); 
+}
+declaration_sequence(R) ::= declaration_sequence(A) declaration_statement(B) . { 
+  R = p->AllocNode(declaration_sequence, A, B); 
+}
 
-unset_statement(R) ::= UNSET id_expression(A) eos . { R = p->AllocNode(unset_statement, A); }
+unset_statement(R) ::= UNSET id_expression(A) eos . { 
+  R = p->AllocNode(unset_statement, A); 
+  R->m_a2 = p->GetName(A->m_a1); 
+  // TODO remove name from scope again
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -373,24 +422,61 @@ unset_statement(R) ::= UNSET id_expression(A) eos . { R = p->AllocNode(unset_sta
 //
 
 // Native declaration
-native_declaration(R) ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN eos. { R = p->AllocNode(native_declaration, String(A), B); }
+native_declaration(R) ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN eos. { 
+  R = p->AllocNode(native_declaration, String(A), B); 
+}
 
 // Function declaration
-function_declaration(R) ::= FUNCTION IDENTIFIER(A) LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocNode(function_declaration, String(A),  B, C); }
-closure_expression(R)   ::= FUNCTION LPAREN parameter_list(B) RPAREN function_body(C) . { R = p->AllocNode(closure_expression, String("function"), B, C); }
+function_declaration(R) ::= function_prolog(A) LPAREN parameter_list(B) RPAREN function_body(C) . { 
+  R = A; 
+  R->m_a2 = B; 
+  R->m_a3 = C; 
+  p->LeaveScope(R); 
+}
+function_prolog(R) ::= FUNCTION IDENTIFIER(A) . { 
+  R = p->AllocNode(function_declaration, String(A)); 
+  p->AddName(R, String(A)); 
+  p->EnterScope(R, String(A)); 
+}
+
+// Closure declaration
+closure_expression(R) ::= FUNCTION LPAREN parameter_list(B) RPAREN function_body(C) . { 
+  R = p->AllocNode(closure_expression, String("function"), B, C); 
+}
 
 // Single parameter
-parameter(R) ::= type(A) IDENTIFIER(B) .        { R = p->AllocNode(parameter, String(B), ptByVal, A); }
-parameter(R) ::=         IDENTIFIER(B) .        { R = p->AllocNode(parameter, String(B), ptByVal);    }
-parameter(R) ::= type(A) BITAND IDENTIFIER(B) . { R = p->AllocNode(parameter, String(B), ptByRef, A); }
-parameter(R) ::=         BITAND IDENTIFIER(B) . { R = p->AllocNode(parameter, String(B), ptByRef);    }
+parameter(R) ::= type(A) IDENTIFIER(B) . { 
+  R = p->AllocNode(parameter, String(B), ptByVal, A); 
+  p->AddName(R, String(B)); 
+}
+parameter(R) ::= IDENTIFIER(B) . { 
+  R = p->AllocNode(parameter, String(B), ptByVal);
+  p->AddName(R, String(B)); 
+}
+parameter(R) ::= type(A) BITAND IDENTIFIER(B) . { 
+  R = p->AllocNode(parameter, String(B), ptByRef, A); 
+  p->AddName(R, String(B)); 
+}
+parameter(R) ::= BITAND IDENTIFIER(B) . { 
+  R = p->AllocNode(parameter, String(B), ptByRef);
+  p->AddName(R, String(B)); 
+}
 
 // Single optional parameter
-opt_parameter(R) ::= type(A) IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocNode(parameter, String(B), ptByVal, A,       C); }
-opt_parameter(R) ::=         IDENTIFIER(B) ASSIGN expression(C) . { R = p->AllocNode(parameter, String(B), ptByVal, Value(), C); }
+opt_parameter(R) ::= type(A) IDENTIFIER(B) ASSIGN expression(C) . { 
+  R = p->AllocNode(parameter, String(B), ptByVal, A, C); 
+  p->AddName(R, String(B)); 
+}
+opt_parameter(R) ::= IDENTIFIER(B) ASSIGN expression(C) . { 
+  R = p->AllocNode(parameter, String(B), ptByVal, Value(), C); 
+  p->AddName(R, String(B)); 
+}
 
 // Variadic argument
-variadic_parameter(R) ::= IDENTIFIER(A) VARIADIC . { R = p->AllocNode(parameter, String(A), ptVariadic); }
+variadic_parameter(R) ::= IDENTIFIER(A) VARIADIC . { 
+  R = p->AllocNode(parameter, String(A), ptVariadic); 
+  p->AddName(R, String(A)); 
+}
 
 // Parameter list
 %type parameter_list { List* }
@@ -451,7 +537,8 @@ operator_decl(R) ::= OPERATOR LPAREN RPAREN . { R = p->AllocNode(operator_declar
 extern_declaration(R) ::= EXTERN LIT_STRING(A) type(B) IDENTIFIER(C) 
   LPAREN parameter_list(D) RPAREN eos . 
 { 
-  R = p->AllocNode(extern_declaration, String(C), D, String(A), B); 
+  R = p->AllocNode(extern_declaration, String(C), D, String(A), B);
+  p->AddName(R, String(A));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -460,7 +547,9 @@ extern_declaration(R) ::= EXTERN LIT_STRING(A) type(B) IDENTIFIER(C)
 //
 
 // For statement - main structure
-for_statement(R) ::= FOR LPAREN for_init_statement(A) expression(B) eos expression_opt(C) RPAREN statement(D) . { R = p->AllocNode(for_statement, A, B, C, D); }
+for_statement(R) ::= FOR LPAREN for_init_statement(A) expression(B) eos expression_opt(C) RPAREN statement(D) . { 
+  R = p->AllocNode(for_statement, A, B, C, D); 
+}
 
 // For init statement
 for_init_statement(R) ::= expression_statement(A) .     { R = A; }
@@ -473,7 +562,7 @@ for_init_statement(R) ::= variable_declaration(A) eos . { R = A; }
 
 foreach_statement(R) ::= FOR LPAREN id_expression(A) IN expression(B) RPAREN statement(C) . { R = p->AllocNode(foreach_statement, A, B, C); }
 foreach_statement(R) ::= FOR LPAREN foreach_decl(A)  IN expression(B) RPAREN statement(C) . { R = p->AllocNode(foreach_statement, A, B, C); }
-foreach_decl(R)      ::= VAR IDENTIFIER(A) . { R = p->AllocNode(variable_declaration, String(A)); }
+foreach_decl(R)      ::= VAR IDENTIFIER(A) . { R = p->AllocNode(variable_declaration, String(A)); p->AddName(R, String(A)); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -523,13 +612,31 @@ case_statements(R) ::= statement_sequence(A) . { R = A; }
 // Exception handling
 //
 
-try_statement(R) ::= TRY compound_statement(A) catch_block(B) .                   { R = p->AllocNode(try_statement, A, B); }
-try_statement(R) ::= TRY compound_statement(A) finally_block(B) .                 { R = p->AllocNode(try_statement, A, Value(), B); }
-try_statement(R) ::= TRY compound_statement(A) catch_block(B) finally_block(C) .  { R = p->AllocNode(try_statement, A, B, C); }
+try_statement(R) ::= TRY compound_statement(A) catch_block(B) . { 
+  R = p->AllocNode(try_statement, A, B); 
+}
+try_statement(R) ::= TRY compound_statement(A) finally_block(B) . { 
+  R = p->AllocNode(try_statement, A, Value(), B); 
+}
+try_statement(R) ::= TRY compound_statement(A) catch_block(B) finally_block(C) . { 
+  R = p->AllocNode(try_statement, A, B, C); 
+}
 
-catch_block(R) ::= CATCH LPAREN IDENTIFIER(A) RPAREN compound_statement(B) . { R = p->AllocNode(catch_block, String(A), B); }
+catch_block(R) ::= catch_prolog(A) compound_statement(B) . { 
+  R = A; 
+  R->m_a2 = B; 
+  p->LeaveScope(R); 
+}
+catch_prolog(R) ::= CATCH LPAREN IDENTIFIER(A) RPAREN . { 
+  R = p->AllocNode(catch_block, String(A)); 
+  p->EnterScope(R); 
+  p->AddName(R, String(A)); 
+}
 
-finally_block(R) ::= FINALLY compound_statement(A) . { R = p->AllocNode(finally_block, A); }
+finally_block(R) ::= FINALLY compound_statement(A) . { 
+  R = p->AllocNode(finally_block, A); 
+}
 
-throw_expression(R) ::= THROW assignment_expression(A) . { R = p->AllocNode(throw_expression, A); }
-
+throw_expression(R) ::= THROW assignment_expression(A) . { 
+  R = p->AllocNode(throw_expression, A); 
+}
