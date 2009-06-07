@@ -79,7 +79,7 @@ protected:
   //
   // Mark subobjects
   //
-  virtual void MarkObjects(GC::ObjectVec& grey);
+  virtual void MarkObjects(GCObjectVec& grey);
 
   //
   // Object members

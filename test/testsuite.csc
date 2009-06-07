@@ -23,7 +23,7 @@
 var path = "testcases/";
 var eval  = true;
 var print = !eval;
-var count = 1;
+var count = 10;
 
 // Test function
 function RunTests()

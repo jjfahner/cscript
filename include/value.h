@@ -176,7 +176,7 @@ public:
     return GetObject();
   }
 
-  GC::Object* GetGCObject() const;
+  GCObject* GetGCObject() const;
 
   //
   // Set value

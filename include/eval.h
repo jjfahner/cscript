@@ -25,6 +25,7 @@
 #include <report.h>
 #include <value.h>
 #include <context.h>
+#include <gc.h>
 
 #include <vector>
 #include <iosfwd>

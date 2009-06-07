@@ -29,7 +29,14 @@
 #include <datatype.h>
 #include <native.h>
 
+#include <map>
+
 class DataType;
+
+enum AstAttributes
+{
+
+};
 
 class AstNode : public Object 
 {
@@ -41,26 +48,31 @@ public:
   // Constructors
   //
   AstNode(AstTypes type) : 
-    m_type (type), m_dataType (0), m_updateDone(false) {}
+    m_type (type), m_dataType (0) {}
   AstNode(AstTypes type, Value const& a1) : 
-    m_type (type), m_dataType (0), m_a1 (a1), m_updateDone(false) {}
+    m_type (type), m_dataType (0), m_a1 (a1) {}
   AstNode(AstTypes type, Value const& a1, Value const& a2) : 
-    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2), m_updateDone(false) {}
+    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2) {}
   AstNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3) : 
-    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2), m_a3 (a3), m_updateDone(false) {}
+    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2), m_a3 (a3) {}
   AstNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4) : 
-    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2), m_a3 (a3), m_a4 (a4), m_updateDone(false) {}
+    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2), m_a3 (a3), m_a4 (a4) {}
+
+  //
+  // Attributes
+  //
+  typedef std::map<AstAttributes, Value> Attributes;
 
   //
   // Members
   //
-  AstTypes  m_type;
-  DataType* m_dataType;
-  Value     m_a1;
-  Value     m_a2;
-  Value     m_a3;
-  Value     m_a4;
-  bool      m_updateDone;
+  AstTypes    m_type;
+  DataType*   m_dataType;
+  Value       m_a1;
+  Value       m_a2;
+  Value       m_a3;
+  Value       m_a4;
+  Attributes  m_attrs;
 
   __native_roprop int64 Type() { return m_type; }
   __native_roprop Value a1() { return m_a1; }
@@ -71,18 +83,25 @@ public:
   //
   // Mark reachable objects
   //
-  virtual void MarkObjects(GC::ObjectVec& grey)
+  virtual void MarkObjects(GCObjectVec& grey)
   {
     // Mark object members
     Object::MarkObjects(grey);
 
-    // Mark members
-    if(!m_updateDone)
+    // Mark ast parts
+    GC::Mark(grey, m_a1);
+    GC::Mark(grey, m_a2);
+    GC::Mark(grey, m_a3);
+    GC::Mark(grey, m_a4);
+
+    // Mark attributes
+    if(!m_attrs.empty())
     {
-      if(GC::Object* obj = m_a1.GetGCObject()) grey.push_back(obj);
-      if(GC::Object* obj = m_a2.GetGCObject()) grey.push_back(obj);
-      if(GC::Object* obj = m_a3.GetGCObject()) grey.push_back(obj);
-      if(GC::Object* obj = m_a4.GetGCObject()) grey.push_back(obj);
+      Attributes::iterator it, ie;
+      for(it = m_attrs.begin(), ie = m_attrs.end(); it != ie; ++it)
+      {
+        GC::Mark(grey, it->second);
+      }
     }
   }
 };

@@ -22,12 +22,12 @@
 #define CSCRIPT_CSTRING_H
 
 #include <cscript.h>
-#include <gc.h>
+#include <gcobj.h>
 
 //
 // Garbage collected string class
 //
-class GCString : public GC::SimpleObject, public String
+class GCString : public GCSimpleObject, public String
 {
 public:
   
@@ -53,18 +53,12 @@ public:
   //
   // Construct from literal, pin in gc
   //
-  GCString(char const* str, bool) : String(str) 
-  { 
-    GC::Pin(this); 
-  }
+  GCString(char const* str, bool);
 
   //
   // Construct from regular string, pin in gc
   //
-  GCString(String const& str, bool) : String(str) 
-  {
-    GC::Pin(this);  
-  }
+  GCString(String const& str, bool);
 
 };
 
