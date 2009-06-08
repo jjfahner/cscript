@@ -110,7 +110,6 @@ eos ::= EOF .
 
 // Translation unit
 translation_unit ::= .
-translation_unit ::= native_declaration(A) . { if(A) p->SetRoot(A); }
 translation_unit ::= statement_sequence(A) . { if(A) p->SetRoot(A); }
 
 // Statement sequence
@@ -477,11 +476,6 @@ unset_statement(R) ::= UNSET id_expression(A) eos . {
 //
 // Function declaration
 //
-
-// Native declaration
-native_declaration(R) ::= NATIVE IDENTIFIER(A) LPAREN parameter_list(B) RPAREN eos. { 
-  R = p->AllocNode(native_declaration, String(A), B); 
-}
 
 // Function declaration
 function_declaration(R) ::= function_prolog(A) LPAREN parameter_list(B) RPAREN function_body(C) . { 

@@ -22,8 +22,8 @@
 // Execution parameters
 var path = "testcases/";
 var eval  = true;
-var print = !eval;
-var count = 100;
+var print = false;
+var count = print ? 1 : eval ? 10 : 100;
 
 // Test function
 function RunTests()

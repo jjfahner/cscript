@@ -55,7 +55,6 @@ String AstTypeToString(AstTypes type)
   case json_content: return "json_content";
   case json_entry: return "json_entry";
   case function_declaration: return "function_declaration";
-  case native_declaration: return "native_declaration";
   case parameter: return "parameter";
   case parameter_list: return "parameter_list";
   case namespace_declaration: return "namespace_declaration";

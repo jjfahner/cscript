@@ -33,52 +33,68 @@
 
 class DataType;
 
-enum AstAttributes
+//
+// Ast attributes
+//
+enum AstAttrs
 {
-
+  aaResultType,
+  aaSideEffects,
+  aaDeclaration,
 };
+
 
 class AstNode : public Object 
 {
 public:
 
-  DEF_NATIVE_CALLS(AstNode, Object)
+  DEF_NATIVE_CALLS(AstNode, Object);
+
+  //
+  // Attributes map
+  //
+  typedef std::map<AstAttrs, Value> AttrMap;
   
   //
   // Constructors
   //
   AstNode(AstTypes type) : 
-    m_type (type), m_dataType (0) {}
+    m_type (type) {}
   AstNode(AstTypes type, Value const& a1) : 
-    m_type (type), m_dataType (0), m_a1 (a1) {}
+    m_type (type), m_a1 (a1) {}
   AstNode(AstTypes type, Value const& a1, Value const& a2) : 
-    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2) {}
+    m_type (type), m_a1 (a1), m_a2 (a2) {}
   AstNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3) : 
-    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2), m_a3 (a3) {}
+    m_type (type), m_a1 (a1), m_a2 (a2), m_a3 (a3) {}
   AstNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4) : 
-    m_type (type), m_dataType (0), m_a1 (a1), m_a2 (a2), m_a3 (a3), m_a4 (a4) {}
-
-  //
-  // Attributes
-  //
-  typedef std::map<AstAttributes, Value> Attributes;
+    m_type (type), m_a1 (a1), m_a2 (a2), m_a3 (a3), m_a4 (a4) {}
 
   //
   // Members
   //
-  AstTypes    m_type;
-  DataType*   m_dataType;
-  Value       m_a1;
-  Value       m_a2;
-  Value       m_a3;
-  Value       m_a4;
-  Attributes  m_attrs;
+  AstTypes  m_type;
+  Value     m_a1;
+  Value     m_a2;
+  Value     m_a3;
+  Value     m_a4;
+  AttrMap   m_attrs;
 
+  //
+  // Native accessors
+  //
   __native_roprop int64 Type() { return m_type; }
   __native_roprop Value a1() { return m_a1; }
   __native_roprop Value a2() { return m_a2; }
   __native_roprop Value a3() { return m_a3; }
   __native_roprop Value a4() { return m_a4; }
+
+  //
+  // Easy attribute access
+  //
+  Value& operator [] (AstAttrs attr)
+  {
+    return m_attrs[attr];
+  }
 
   //
   // Mark reachable objects
@@ -97,7 +113,7 @@ public:
     // Mark attributes
     if(!m_attrs.empty())
     {
-      Attributes::iterator it, ie;
+      AttrMap::iterator it, ie;
       for(it = m_attrs.begin(), ie = m_attrs.end(); it != ie; ++it)
       {
         GC::Mark(grey, it->second);
@@ -145,6 +161,35 @@ inline List* AstList_A1(Object* obj) {
 inline List* AstList_A2(Object* obj) {
   List* l = dynamic_cast<List*>(Ast_A2(obj).GetObject());
   return l ? l : throw std::runtime_error("Object is not a list");
+}
+
+
+inline AstTypes Ast_Type(Object& obj) {
+  return static_cast<AstNode&>(obj).m_type;
+}
+inline Value const& Ast_A1(Object& obj) {
+  return static_cast<AstNode&>(obj).m_a1;
+}
+inline Value const& Ast_A2(Object& obj) {
+  return static_cast<AstNode&>(obj).m_a2;
+}
+inline Value const& Ast_A3(Object& obj) {
+  return static_cast<AstNode&>(obj).m_a3;
+}
+inline Value const& Ast_A4(Object& obj) {
+  return static_cast<AstNode&>(obj).m_a4;
+}
+inline AstNode& AstNode_A1(Object& obj) {
+  return static_cast<AstNode&>(*Ast_A1(obj).GetObject());
+}
+inline AstNode& AstNode_A2(Object& obj) {
+  return static_cast<AstNode&>(*Ast_A2(obj).GetObject());
+}
+inline AstNode& AstNode_A3(Object& obj) {
+  return static_cast<AstNode&>(*Ast_A3(obj).GetObject());
+}
+inline AstNode& AstNode_A4(Object& obj) {
+  return static_cast<AstNode&>(*Ast_A4(obj).GetObject());
 }
 
 //////////////////////////////////////////////////////////////////////////

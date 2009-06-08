@@ -128,10 +128,7 @@ GC::Collect(Stack const& stack)
   Value const* sie = stack.End();
   for(; sit != sie; ++sit)
   {
-    if(GCObject* obj = sit->GetGCObject())
-    {
-      grey.push_back(obj);
-    }
+    GC::Mark(grey, *sit);
   }
 
   // Run until no more objects are grey
