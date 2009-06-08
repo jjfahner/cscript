@@ -329,9 +329,6 @@ Evaluator::Eval(String text, bool isFileName)
     result = ParseText(text.c_str());
   }
 
-  // Collect objects
-  Collect();
-
   // Done
   return result;
 }
@@ -367,7 +364,6 @@ Evaluator::Eval(Object* astRoot)
     // Perform evaluation of ast tree
     EvalStatement(astRoot);
     return Value();
-    //return g_stack.Pop();
   }
   // Return statement
   catch(ReturnException const& e)
@@ -1012,11 +1008,14 @@ Evaluator::EvalFunctionCall(Object* node)
   args.SetObject(obj);
   args.SetNode(node);
 
+  // Stack frame for arguments
+  StackFrame s(g_stack);
+
   // Evaluate arguments
   EvalArguments(node, argsource, args);
 
-  // Evaluate the function call
-  g_stack.Push(obj->Eval(key, args));
+  // Evaluate function call
+  s.Return(obj->Eval(key, args));
 }
 
 Value
