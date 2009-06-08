@@ -132,7 +132,28 @@ public:
   //
   ~StackFrame()
   {
-    m_stack.m_top = m_base;
+    Return();
+  }
+
+  //
+  // Return without pushing a value
+  //
+  void Return()
+  {
+    if(m_base)
+    {
+      m_stack.m_top = m_base;
+      m_base = 0;
+    }    
+  }
+
+  //
+  // Return and push value
+  //
+  void Return(Value const& value)
+  {
+    Return();
+    m_stack.Push(value);
   }
 
 private:
