@@ -45,7 +45,6 @@ CSLexer::ParseNextToken()
   "/*"                      { return CS_MLCOMMENT; }
 
   /* Keywords */
-  "__native"                { return CS_NATIVE; }
   "bool"                    { return CS_BOOL; }
   "break"                   { return CS_BREAK; }
   "case"                    { return CS_CASE; }

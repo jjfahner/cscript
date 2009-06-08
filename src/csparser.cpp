@@ -218,19 +218,30 @@ CSParser::SetRoot(Object* root)
 
 //////////////////////////////////////////////////////////////////////////
 
-DataType* 
-CSParser::GetDataType(AstNode* node)
+void
+CSParser::SetNodeAttributes(AstNode& node)
 {
-  switch(node->m_type)
+  // Initialize attributes
+  node[aaResultType]  = VoidType::Instance();
+  node[aaSideEffects] = false;
+
+  // Set attributes based on type
+  switch(node.m_type)
   {
-  default: 
-    return VoidType::Instance();
 
   case expression_statement: 
-    return AstNode_A1(node)->m_dataType;
+    node[aaResultType]  = AstNode_A1(node)[aaResultType];
+    node[aaSideEffects] = AstNode_A1(node)[aaSideEffects];
+    if(!ValBool(node[aaSideEffects]))
+    {
+      throw std::runtime_error("Invalid expression statement");
+    }
+    break;
 
   case assignment_expression: 
-    return AstNode_A2(node)->m_dataType;
+    node[aaResultType]  = AstNode_A2(node)[aaResultType];
+    node[aaSideEffects] = true;
+    break;
 
   case binary_expression:
     switch(Ast_A1(node).GetInt())
@@ -240,14 +251,17 @@ CSParser::GetDataType(AstNode* node)
     case op_mul:
     case op_div:
     case op_mod:
-      return AstNode_A2(node)->m_dataType; 
+      node[aaResultType]  = AstNode_A2(node)[aaResultType];
+      break;
     case op_logor:
     case op_logand:
-      return BooleanType::Instance();
+      node[aaResultType] = BooleanType::Instance();
+      break;
     case op_bitor:
     case op_bitxor:
     case op_bitand:
-      return IntegerType::Instance();
+      node[aaResultType] = IntegerType::Instance();
+      break;
     case op_seq:
     case op_sne:
     case op_eq:
@@ -256,97 +270,145 @@ CSParser::GetDataType(AstNode* node)
     case op_le:
     case op_gt:
     case op_ge:
-      return BooleanType::Instance();
-    default:
-      throw std::runtime_error("Invalid binary operator");
+      node[aaResultType] = BooleanType::Instance();
+      break;
     }
+    node[aaSideEffects] = 
+      ValBool(AstNode_A2(node)[aaSideEffects]) ||
+      ValBool(AstNode_A3(node)[aaSideEffects]) ;
+    break;
 
   case ternary_expression:
-    if(AstNode_A2(node)->m_dataType != AstNode_A3(node)->m_dataType)
+    if(AstNode_A2(node)[aaResultType].GetObject() != 
+       AstNode_A3(node)[aaResultType].GetObject() )
     {
       throw std::runtime_error("Invalid expression");
     }
-    return AstNode_A2(node)->m_dataType;
+    node[aaResultType]  = AstNode_A2(node)[aaResultType];
+    node[aaSideEffects] = 
+      ValBool(AstNode_A1(node)[aaSideEffects]) ||
+      ValBool(AstNode_A2(node)[aaSideEffects]) ||
+      ValBool(AstNode_A3(node)[aaSideEffects]) ;
+    break;
 
-  case prefix_expression: 
+  case prefix_expression:
     switch(Ast_A1(node).GetInt())
     {
     case op_add:
     case op_sub:
-      return AstNode_A2(node)->m_dataType;
+      node[aaResultType]  = AstNode_A2(node)[aaResultType];
+      node[aaSideEffects] = true;
+      break;
     case op_negate:
     case op_not:
-      return BooleanType::Instance();
+      node[aaResultType]  = BooleanType::Instance();
+      node[aaSideEffects] = false;
+      break;
     default:
       throw std::runtime_error("Invalid prefix operator");
     }
+    break;
 
   case postfix_expression: 
     switch(Ast_A1(node).GetInt())
     {
     case op_add:
     case op_sub:
-      return AstNode_A2(node)->m_dataType;
+      node[aaResultType] = AstNode_A2(node)[aaResultType];
+      node[aaSideEffects] = true;
+      break;
     default:
       throw std::runtime_error("Invalid postfix operator");
     }
+    break;
 
   case typeof_expression:
-    return ObjectType::Instance();
+    node[aaResultType]  = ObjectType::Instance();
+    node[aaSideEffects] = AstNode_A1(node)[aaSideEffects];
+    break;
 
   case member_expression:
-    return UnknownType::Instance();
+    node[aaResultType]  = UnknownType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
   case index_expression:
-    return UnknownType::Instance();
+    node[aaResultType]  = UnknownType::Instance();
+    node[aaSideEffects] = true; // The element may be created here
+    break;
 
   case function_call:
-    return UnknownType::Instance();
+    node[aaResultType]  = UnknownType::Instance();
+    node[aaSideEffects] = true; // Don't know for sure yet
+    break;
 
   case literal_value:
-    return node->m_a1.GetDataType();
+    node[aaResultType]  = Ast_A1(node).GetDataType();
+    node[aaSideEffects] = false;
+    break;
 
   case null_literal:
-    return NullType::Instance();
+    node[aaResultType]  = NullType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
   case shell_command:
-    return IntegerType::Instance();
+    node[aaResultType]  = IntegerType::Instance();
+    node[aaSideEffects] = true;
+    break;
 
   case unqualified_id:
-    return UnknownType::Instance();
+    node[aaResultType]  = UnknownType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
   case qualified_id_g:
-    return UnknownType::Instance();
+    node[aaResultType]  = UnknownType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
   case qualified_id_l:
-    return UnknownType::Instance();
+    node[aaResultType]  = UnknownType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
   case list_literal:
-    return ObjectType::Instance();
+    node[aaResultType]  = ObjectType::Instance();
+    node[aaSideEffects] = false; // Not always true: [0, 1, a++]
+    break;
 
   case list_content:
   case list_entry:
-    return UnknownType::Instance();
+    node[aaResultType]  = UnknownType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
   case map_literal:
-    return ObjectType::Instance();
+    node[aaResultType]  = ObjectType::Instance();
+    node[aaSideEffects] = false; // Same as for list_literal
+    break;
 
   case map_content:
   case map_entry:
-    return UnknownType::Instance();
+    node[aaResultType]  = UnknownType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
   case json_literal:
-    return ObjectType::Instance();
+    node[aaResultType]  = ObjectType::Instance();
+    node[aaSideEffects] = false; // Same as for list_literal
+    break;
 
   case json_content:
   case json_entry:
-    return UnknownType::Instance();
+    node[aaResultType]  = UnknownType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
   case function_declaration:
-    return FunctionType::Instance();
-
-  case native_declaration:
-    return NativeFunctionType::Instance();
+    node[aaResultType]  = FunctionType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
   /*
   case parameter: break;
@@ -357,10 +419,14 @@ CSParser::GetDataType(AstNode* node)
   */
 
   case new_expression:
-    return ObjectType::Instance();
+    node[aaResultType]  = ObjectType::Instance();
+    node[aaSideEffects] = true;
+    break;
 
   case this_expression:
-    return ObjectType::Instance();
+    node[aaResultType]  = ObjectType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
     /*
   case type_conversion: break;
@@ -374,7 +440,9 @@ CSParser::GetDataType(AstNode* node)
     */
 
   case closure_expression:
-    return FunctionType::Instance();
+    node[aaResultType]  = FunctionType::Instance();
+    node[aaSideEffects] = false;
+    break;
 
     /*
   case function_member_expression: break;

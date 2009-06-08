@@ -106,6 +106,11 @@ private:
   typedef std::map<AstTypes, int64> AutoIds;
 
   //
+  // Set attributes on node
+  //
+  void SetNodeAttributes(AstNode& node);
+
+  //
   // Determine node data type
   //
   DataType* GetDataType(AstNode* node);
@@ -131,7 +136,7 @@ inline AstNode*
 CSParser::AllocNode(AstTypes type)
 {
   AstNode* node = new AstNode(type);
-  node->m_dataType = GetDataType(node);
+  SetNodeAttributes(*node);
   return node;
 }
 
@@ -139,7 +144,7 @@ inline AstNode*
 CSParser::AllocNode(AstTypes type, Value const& a1)
 {
   AstNode* node = new AstNode(type, a1);
-  node->m_dataType = GetDataType(node);
+  SetNodeAttributes(*node);
   return node;
 }
 
@@ -147,7 +152,7 @@ inline AstNode*
 CSParser::AllocNode(AstTypes type, Value const& a1, Value const& a2)
 {
   AstNode* node = new AstNode(type, a1, a2);
-  node->m_dataType = GetDataType(node);
+  SetNodeAttributes(*node);
   return node;
 }
 
@@ -155,7 +160,7 @@ inline AstNode*
 CSParser::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3)
 {
   AstNode* node = new AstNode(type, a1, a2, a3);
-  node->m_dataType = GetDataType(node);
+  SetNodeAttributes(*node);
   return node;
 }
 
@@ -163,7 +168,7 @@ inline AstNode*
 CSParser::AllocNode(AstTypes type, Value const& a1, Value const& a2, Value const& a3, Value const& a4)
 {
   AstNode* node = new AstNode(type, a1, a2, a3, a4);
-  node->m_dataType = GetDataType(node);
+  SetNodeAttributes(*node);
   return node;
 }
 
