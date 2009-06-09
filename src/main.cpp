@@ -192,6 +192,14 @@ int cscript_main(int argc, Char** argv)
 }
 
 //
+// For keeping debug window open
+//
+#if defined(_MSC_VER) && defined(_DEBUG)
+#define _WIN32_WINNT 0x0400
+#include <windows.h>
+#endif
+
+//
 // CScript entry point. Exception handling root.
 //
 int main(int argc, Char** argv)
@@ -208,13 +216,20 @@ int main(int argc, Char** argv)
   catch(std::exception const& e)
   {
     std::cout << "\nException: " << e.what() << "\n";
-    std::cin.get();
   }
   catch(...)
   {
     std::cout << "\nUnexpected exception\n";
+  }
+
+  // Keep console running under MSC devenv
+#if defined(_MSC_VER) && defined(_DEBUG)
+  if(IsDebuggerPresent())
+  {
+    std::cout << "\n\nPress enter to quit";
     std::cin.get();
   }
+#endif
 
 	return result;
 }
