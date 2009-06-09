@@ -28,6 +28,35 @@ class LexStream
 {
 public:
 
+  struct Cursor
+  {
+    char const* m_ptr;
+    LexStream&  m_stream;
+    Cursor(char const* ptr, LexStream& stream) : 
+      m_ptr (ptr), m_stream (stream) {
+    }
+    char const* operator ++ () {
+      if(*++m_ptr == '\n') {
+        ++m_stream.m_line;
+        m_stream.m_char = 0;
+      }
+      else {
+        ++m_stream.m_char;
+      }
+      return m_ptr;
+    }
+    char operator * () {
+      return *m_ptr;
+    }
+    operator char const*& () {
+      return m_ptr;
+    }
+    char const* operator = (char const* ptr) {
+      m_ptr = ptr;
+      return *this;
+    }
+  };
+
   //
   // Construction from istream
   //
@@ -51,9 +80,11 @@ public:
   //
   // Pointers used by re2c
   //
-  char const* m_cursor;
+  Cursor      m_cursor;
   char const* m_marker;
   char const* m_bufend;
+  int         m_line;
+  int         m_char;
 
   //
   // Fill buffer and adjust pointers, called by re2c
