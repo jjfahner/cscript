@@ -21,13 +21,17 @@
 #include "lexstream.h"
 #include <istream>
 
+#pragma warning(disable:4355)
+
 LexStream::LexStream(std::istream& stream) :
-m_cursor (m_buffer),
+m_cursor (m_buffer, *this),
 m_bufend (m_buffer),
 m_marker (m_buffer),
 m_token  (m_buffer),
 m_lexeme (0),
-m_stream (stream)
+m_stream (stream),
+m_line   (1),
+m_char   (1)
 {
 }
 

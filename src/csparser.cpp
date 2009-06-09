@@ -121,13 +121,17 @@ CSParser::ParseXml()
 void 
 CSParser::OnParseFailure()
 {
-  throw std::runtime_error("CSParser: Parse error");
+  char buf[100];
+  sprintf(buf, "Parse error on line %d, char %d", m_stream->m_line, m_stream->m_char);
+  throw std::runtime_error(buf);
 }
 
 void 
 CSParser::OnSyntaxError()
 {
-  throw std::runtime_error("CSParser: Syntax error");
+  char buf[100];
+  sprintf(buf, "Parse error on line %d, char %d", m_stream->m_line, m_stream->m_char);
+  throw std::runtime_error(buf);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -279,11 +283,11 @@ CSParser::SetNodeAttributes(AstNode& node)
     break;
 
   case ternary_expression:
-    if(AstNode_A2(node)[aaResultType].GetObject() != 
-       AstNode_A3(node)[aaResultType].GetObject() )
-    {
-      throw std::runtime_error("Invalid expression");
-    }
+//     if(AstNode_A2(node)[aaResultType].GetObject() != 
+//        AstNode_A3(node)[aaResultType].GetObject() )
+//     {
+//       throw std::runtime_error("Invalid expression");
+//     }
     node[aaResultType]  = AstNode_A2(node)[aaResultType];
     node[aaSideEffects] = 
       ValBool(AstNode_A1(node)[aaSideEffects]) ||
