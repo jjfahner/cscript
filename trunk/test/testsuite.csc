@@ -59,7 +59,7 @@ function RunTests()
     else
     {
       var exe = CScript.IsDebugBuild ? "testd.exe" : "test.exe";
-      res = CScript.Exec "..\\bin\\{exe} \"{path}{file}\"");
+      res = CScript.Exec("..\\bin\\{exe} \"{path}{file}\"");
     }
   
     // Check result
@@ -105,7 +105,10 @@ Console.WriteLn("\nCollecting...");
 Console.WriteLn(CScript.Collect());
 
 // Wait for input
-Console.WriteLn("\nDone. Press any key to quit");
-Console.ReadChar();
+if(!CScript.IsDebugBuild)
+{
+  Console.WriteLn("\nDone. Press any key to quit");
+  Console.ReadChar();
+}
 
 // EOF
