@@ -31,7 +31,14 @@
 Value 
 CScriptMethods::Eval(StringCRef code, bool isFile)
 {
-  return CurEval.Eval(code, isFile);
+  try
+  {
+    return CurEval.Eval(code, isFile);
+  }
+  catch(std::runtime_error const& e)
+  {
+    throw CatchableException(e.what());
+  }
 }
 
 void 
