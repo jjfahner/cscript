@@ -249,6 +249,9 @@ Evaluator::ParseFile(String const& filename, bool executeImmediate)
   // Parse source code
   Object* root = parser.Parse(ls, false);
 
+  // Close the file
+  is.close();
+
   // Execute or return code tree
   if(executeImmediate)
   {
