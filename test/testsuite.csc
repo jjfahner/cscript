@@ -22,7 +22,7 @@
 // Execution parameters
 var path = "testcases/";
 var eval  = true;
-var print = false;
+var print = true;
 var count = print ? 1 : eval ? 10 : 100;
 
 // Test function
@@ -43,33 +43,38 @@ function RunTests()
     }
   
     // Execute the script
-    var res;
+    var res = 0;
+    var msg;
     if(eval)
     {
-      res = CScript.Eval("{path}{file}", true);
+      try
+      {
+        res = CScript.Eval("{path}{file}", true);
+      }
+      catch(e)
+      {
+        msg = "Exception: {e}";
+      }
     }
     else
     {
       var exe = CScript.IsDebugBuild ? "testd.exe" : "test.exe";
-      res = CScript.Exec("..\\bin\\{exe} \"{path}{file}\"");
+      res = CScript.Exec "..\\bin\\{exe} \"{path}{file}\"");
     }
   
     // Check result
-    if(res == 1)
-    {
-      if(print)
-      {
-        Console.WriteLn("Ok");
-      }
-    }
-    else
+    if(res != 1)
     {
       ++errors;
-      if(print)
-      {
-        Console.WriteLn("Failed");
-      }
     }
+
+    // Print result
+    if(print)
+    {
+      Console.WriteLn(res == 1 ? "Ok" : msg == null ? "Failed ({res})" : msg);
+    }
+    
+    // Next test case
     ++number;
   }
   
