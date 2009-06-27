@@ -217,10 +217,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\error.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\eval.cpp"
 				>
 			</File>
@@ -366,10 +362,6 @@
 			</File>
 			<File
 				RelativePath="..\..\include\enumerator.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\error.h"
 				>
 			</File>
 			<File
