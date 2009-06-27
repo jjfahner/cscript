@@ -22,21 +22,6 @@
 #define CSCRIPT_REPORT_H
 
 #include <cscript.h>
-#include <error.h>
-
-//
-// File position
-//
-struct FilePos
-{
-  String  m_file;
-  int32   m_line;
-};
-
-#define INTERNAL_ERROR(reporter, pos) \
-  { \
-    reporter.ReportError(E0001, &(pos), __FILE__, __LINE__); \
-  }
 
 class Reporter 
 {
@@ -53,14 +38,9 @@ public:
   void Reset();
 
   //
-  // Report an error
-  //
-  void ReportError(Notice const& notice, FilePos* pos, ...);
-
-  //
   // Report a warning
   //
-  void ReportWarning(FilePos& pos, String const& text);
+  void ReportWarning(String const& text);
 
   //
   // Retrieve error count
