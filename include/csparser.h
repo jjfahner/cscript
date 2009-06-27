@@ -29,6 +29,7 @@
 #include <map>
 
 enum AstTypes;
+struct Token;
 class LexStream;
 
 class CSParser
@@ -72,8 +73,7 @@ public:
   //
   // Errors raised by parser
   //
-  void OnParseFailure();
-  void OnSyntaxError();
+  void OnSyntaxError(Token const& token);
 
   //
   // Called by parser when entering/exiting lexical scopes

@@ -26,12 +26,14 @@
 #include "lexstream.h"
 #include "datatype.h"
 #include "timer.h"
+#include "tokens.h"
 
 #include "csparser.gen.h"
 #include "csparser.gen.c"
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -119,19 +121,17 @@ CSParser::ParseXml()
 //////////////////////////////////////////////////////////////////////////
 
 void 
-CSParser::OnParseFailure()
+CSParser::OnSyntaxError(Token const& token)
 {
-  char buf[100];
-  sprintf(buf, "Parse error on line %d, char %d", m_stream->m_line, m_stream->m_char);
-  throw std::runtime_error(buf);
-}
+  std::ostringstream str;
+  str << "Syntax error near '" 
+    << *token.m_text
+    << "' on line " 
+    << m_stream->m_line 
+    << ", char " 
+    << m_stream->m_char;
 
-void 
-CSParser::OnSyntaxError()
-{
-  char buf[100];
-  sprintf(buf, "Parse error on line %d, char %d", m_stream->m_line, m_stream->m_char);
-  throw std::runtime_error(buf);
+  throw std::runtime_error(str.str());
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -35,27 +35,12 @@
 #include "astnode.h"
 #include "list.h"
 
-#include <cassert>
-
 #pragma warning(disable:4065)
 
 inline AstNode* 
 AllocBinOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
 {
   return p->AllocNode(binary_expression, opcode, lhs, rhs);
-//   String opName;
-//   switch(opcode)
-//   {
-//   case op_add: opName = "Add"; break;
-//   case op_sub: opName = "Sub"; break;
-//   case op_mul: opName = "Mul"; break;
-//   case op_div: opName = "Div"; break;
-//   case op_mod: opName = "Mod"; break;
-//   default: return p->AllocNode(binary_expression, opcode, lhs, rhs);
-//   }
-//   Object* unq = p->AllocNode(unqualified_id, opName);
-//   Object* mem = p->AllocNode(member_expression, lhs, unq);
-//   return p->AllocNode(function_call, mem, rhs);
 }
 
 inline AstNode* 
@@ -79,12 +64,10 @@ AllocAssOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
 %default_type     { AstNode* }
 
 // Error handlers
-%parse_failure {
-  p->OnParseFailure();
-}
 %syntax_error {
-  p->OnSyntaxError();
+  p->OnSyntaxError(TOKEN);
 }
+// TODO add stack overflow
 
 // Precedence rules for binary operators
 %nonassoc EOF COMMENT MLCOMMENT SLCOMMENT NEWLINE WHITESPACE .
@@ -126,6 +109,7 @@ statement_sequence(R) ::= statement_sequence(A) statement(B) . {
 }
 
 // Statement
+statement    ::= ERROR . {}
 statement(R) ::= include_statement(A) .     { R = A; }
 statement(R) ::= expression_statement(A) .  { R = A; }
 statement(R) ::= declaration_statement(A) . { R = A; }

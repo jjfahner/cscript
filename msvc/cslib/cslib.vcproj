@@ -433,10 +433,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\tokens.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\value.h"
 				>
 			</File>
@@ -497,6 +493,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\lexstream.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\tokens.h"
 					>
 				</File>
 				<File
