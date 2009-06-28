@@ -56,7 +56,7 @@ LexStream::Flush()
   {
     if(m_lexeme)
     {
-      m_lexeme->append(m_token, m_cursor);
+      m_lexeme->append(m_token, (char const*)m_cursor);
     }
     m_token = m_cursor;
   }

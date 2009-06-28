@@ -26,6 +26,11 @@
 #include <scriptobj.h>
 #include <thread.h>
 
+#ifdef __GNUC__
+#define _popen popen
+#define _pclose pclose
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 
 Value 
@@ -154,5 +159,8 @@ CScriptMethods::Exec(StringCRef command)
 void 
 CScriptMethods::StartThread(ValueCRef code)
 {
+#ifdef _MSC_VER
   Thread::Eval(code);
+#endif
 }
+
