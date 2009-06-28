@@ -479,14 +479,6 @@ Evaluator::EvalStatement(Object* node)
     }
     break;
 
-  case or_statement:
-    EvalExpression(Ast_A1(node));
-    if(!ValBool(g_stack.Pop()))
-    {
-      EvalStatement(Ast_A2(node));
-    }
-    break;
-
   case statement_sequence:
     for(List::Iterator it = AstList_A1(node)->Begin(),
                        ie = AstList_A1(node)->End()
