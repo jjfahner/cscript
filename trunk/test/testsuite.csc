@@ -99,7 +99,7 @@ Console.WriteLn("Starting test suite...\n");
 // Determine number of runs
 count = 1;
 count *= 10 unless !eval;
-count *= 10 unless CScript.IsDebugBuild;
+count *= 5  unless CScript.IsDebugBuild;
 
 // Run test suite
 for(var i = 0; i < count; ++i)

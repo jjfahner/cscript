@@ -672,6 +672,32 @@ foreach_decl(R)      ::= VAR IDENTIFIER(A) . {
 if_statement(R) ::= IF LPAREN expression(A) RPAREN statement(B) . [LOWER_THAN_ELSE] { R = p->AllocNode(if_statement, A, B); } 
 if_statement(R) ::= IF LPAREN expression(A) RPAREN statement(B) ELSE statement(C) . { R = p->AllocNode(if_statement, A, B, C); }
 
+// if conditional
+if_statement(R) ::= statement_part(A) IF assignment_expression(B) eos . {
+  R = p->AllocNode(if_statement, B, A);
+}
+if_statement(R) ::= statement_part(A) IF conditional_expression(B) eos . {
+  R = p->AllocNode(if_statement, B, A);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// unless statement
+//
+
+// Main unless statement
+unless_statement(R) ::= UNLESS LPAREN expression(A) RPAREN statement(B) . {
+  R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, A), B); 
+}
+
+// unless conditional
+unless_statement(R) ::= statement_part(A) UNLESS assignment_expression(B) eos . { 
+  R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, B), A); 
+}
+unless_statement(R) ::= statement_part(A) UNLESS conditional_expression(B) eos . { 
+  R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, B), A); 
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // While statement
@@ -747,16 +773,4 @@ or_statement(R) ::= assignment_expression(A) OR statement_part(B) eos . {
 }
 or_statement(R) ::= conditional_expression(A) OR statement_part(B) eos . { 
   R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, A), B); 
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// unless statement
-//
-
-unless_statement(R) ::= statement_part(A) UNLESS assignment_expression(B) eos . { 
-  R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, B), A); 
-}
-unless_statement(R) ::= statement_part(A) UNLESS conditional_expression(B) eos . { 
-  R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, B), A); 
 }
