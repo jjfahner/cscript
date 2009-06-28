@@ -69,7 +69,11 @@ AllocAssOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
 }
 // TODO add stack overflow
 
-// Precedence rules for binary operators
+//////////////////////////////////////////////////////////////////////////
+//
+// Precedence rules
+//
+
 %nonassoc EOF COMMENT MLCOMMENT SLCOMMENT NEWLINE WHITESPACE .
 %right ASSIGN ASSADD ASSSUB ASSMUL ASSDIV ASSMOD .
 %nonassoc QUESTION .
@@ -85,16 +89,68 @@ AllocAssOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
 %left ADDOP SUBOP .
 %left MULOP DIVOP MODOP .
 
+//////////////////////////////////////////////////////////////////////////
+//
 // Start symbol
+//
+
 main ::= translation_unit .
 
-// End of statement
+//////////////////////////////////////////////////////////////////////////
+//
+// Translation unit
+//
+
+translation_unit ::= .
+translation_unit ::= statement_sequence(A) . { if(A) p->SetRoot(A); }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Statement terminator
+//
+
 eos ::= SEMICOLON .
 eos ::= EOF .
 
-// Translation unit
-translation_unit ::= .
-translation_unit ::= statement_sequence(A) . { if(A) p->SetRoot(A); }
+//////////////////////////////////////////////////////////////////////////
+//
+// Statement
+//
+
+// Error handler
+statement    ::= ERROR . {}
+
+// Empty statement
+statement(R) ::= eos . { R = p->AllocNode(empty_statement); }
+
+// Simple statements requiring a terminator
+statement(R) ::= break_statement(A) eos .       { R = A; }
+statement(R) ::= continue_statement(A) eos .    { R = A; }
+statement(R) ::= expression_statement(A) eos .  { R = A; }
+statement(R) ::= include_statement(A) eos .     { R = A; }
+statement(R) ::= return_statement(A) eos .      { R = A; }
+statement(R) ::= throw_statement(A) eos .       { R = A; }
+statement(R) ::= unset_statement(A) eos .       { R = A; }
+
+// Complex statements, self-terminated
+statement(R) ::= compound_statement(A) .     { R = A; }
+statement(R) ::= declaration_statement(A) .  { R = A; }
+statement(R) ::= extern_declaration(A) eos . { R = A; }
+statement(R) ::= for_statement(A) .          { R = A; }
+statement(R) ::= if_statement(A) .           { R = A; }
+statement(R) ::= while_statement(A) .        { R = A; }
+statement(R) ::= foreach_statement(A) .      { R = A; }
+statement(R) ::= switch_statement(A) .       { R = A; }
+statement(R) ::= try_statement(A) .          { R = A; }
+
+// TODO
+statement(R) ::= or_statement(A) .     { R = A; }
+statement(R) ::= unless_statement(A) . { R = A; }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Statement sequence
+//
 
 // Statement sequence
 statement_sequence(R) ::= statement(A) . { R = A; }
@@ -109,28 +165,15 @@ statement_sequence(R) ::= statement_sequence(A) statement(B) . {
   AstList_A1(R)->Append(B);
 }
 
-// Statement
-statement    ::= ERROR . {}
-statement(R) ::= include_statement(A) .     { R = A; }
-statement(R) ::= expression_statement(A) .  { R = A; }
-statement(R) ::= declaration_statement(A) . { R = A; }
-statement(R) ::= extern_declaration(A) .    { R = A; }
-statement(R) ::= for_statement(A) .         { R = A; }
-statement(R) ::= compound_statement(A) .    { R = A; }
-statement(R) ::= if_statement(A) .          { R = A; }
-statement(R) ::= while_statement(A) .       { R = A; }
-statement(R) ::= foreach_statement(A) .     { R = A; }
-statement(R) ::= return_statement(A) .      { R = A; }
-statement(R) ::= switch_statement(A) .      { R = A; }
-statement(R) ::= break_statement(A) .       { R = A; }
-statement(R) ::= continue_statement(A) .    { R = A; }
-statement(R) ::= try_statement(A) .         { R = A; }
-statement(R) ::= unset_statement(A) .       { R = A; }
-statement(R) ::= throw_statement(A) .       { R = A; }
-statement(R) ::= or_statement(A) .          { R = A; }
-statement(R) ::= eos .                      { 
-  R = p->AllocNode(empty_statement); 
-}
+//////////////////////////////////////////////////////////////////////////
+//
+// Statement parts
+//
+statement_part(R) ::= return_statement(A) .   { R = A; }
+statement_part(R) ::= throw_statement(A) .    { R = A; }
+statement_part(R) ::= unset_statement(A) .    { R = A; }
+statement_part(R) ::= break_statement(A) .    { R = A; }
+statement_part(R) ::= continue_statement(A) . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -138,10 +181,10 @@ statement(R) ::= eos .                      {
 //
 
 // Expression statement
-expression_statement(R) ::= function_call(A) eos .         { R = p->AllocNode(expression_statement, A); }
-expression_statement(R) ::= assignment_expression(A) eos . { R = p->AllocNode(expression_statement, A); }
-expression_statement(R) ::= prefix_expression_m(A) eos.    { R = p->AllocNode(expression_statement, A); }
-expression_statement(R) ::= postfix_expression_m(A) eos.   { R = p->AllocNode(expression_statement, A); }
+expression_statement(R) ::= function_call(A) .         { R = p->AllocNode(expression_statement, A); }
+expression_statement(R) ::= assignment_expression(A) . { R = p->AllocNode(expression_statement, A); }
+expression_statement(R) ::= prefix_expression_m(A) .   { R = p->AllocNode(expression_statement, A); }
+expression_statement(R) ::= postfix_expression_m(A) .  { R = p->AllocNode(expression_statement, A); }
 
 // Optional expression
 expression_opt(R) ::= .               { R = 0; }
@@ -170,10 +213,10 @@ conditional_expression(R) ::= binary_expression(A) . { R = A; }
 conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON expression(C) . { 
   R = p->AllocNode(ternary_expression, A, B, C); 
 }
-conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON throw_expression(C) . { 
+conditional_expression(R) ::= binary_expression(A) QUESTION expression(B) COLON throw_statement(C) . { 
   R = p->AllocNode(ternary_expression, A, B, C); 
 }
-conditional_expression(R) ::= binary_expression(A) QUESTION throw_expression(B) COLON expression(C) . { 
+conditional_expression(R) ::= binary_expression(A) QUESTION throw_statement(B) COLON expression(C) . { 
   R = p->AllocNode(ternary_expression, A, B, C); 
 }
 
@@ -386,7 +429,7 @@ cse ::= RBRACE . {
 // Include statement
 //
 
-include_statement(R) ::= INCLUDE expression(A) eos . { 
+include_statement(R) ::= INCLUDE expression(A) . { 
   R = p->AllocNode(include_statement, A); 
 }
 
@@ -395,10 +438,10 @@ include_statement(R) ::= INCLUDE expression(A) eos . {
 // Return statement
 //
 
-return_statement(R) ::= RETURN expression(A) eos . { 
+return_statement(R) ::= RETURN expression(A) . { 
   R = p->AllocNode(return_statement, A); 
 }
-return_statement(R) ::= RETURN eos . { 
+return_statement(R) ::= RETURN . { 
   R = p->AllocNode(return_statement);    
 }
 
@@ -407,8 +450,8 @@ return_statement(R) ::= RETURN eos . {
 // Break/continue
 //
 
-break_statement(R)    ::= BREAK eos .    { R = p->AllocNode(break_statement); }
-continue_statement(R) ::= CONTINUE eos . { R = p->AllocNode(continue_statement); }
+break_statement(R)    ::= BREAK .    { R = p->AllocNode(break_statement); }
+continue_statement(R) ::= CONTINUE . { R = p->AllocNode(continue_statement); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -452,7 +495,7 @@ declaration_sequence(R) ::= declaration_sequence(A) declaration_statement(B) . {
   R = p->AllocNode(declaration_sequence, A, B); 
 }
 
-unset_statement(R) ::= UNSET id_expression(A) eos . { 
+unset_statement(R) ::= UNSET id_expression(A) . { 
   R = p->AllocNode(unset_statement, A); 
   R->m_a2 = p->GetVar(A->m_a1); 
   // TODO remove name from scope again
@@ -596,7 +639,7 @@ for_statement(R) ::= FOR LPAREN for_init_statement(A) expression(B) eos expressi
 }
 
 // For init statement
-for_init_statement(R) ::= expression_statement(A) .     { R = A; }
+for_init_statement(R) ::= expression_statement(A) eos . { R = A; }
 for_init_statement(R) ::= variable_declaration(A) eos . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
@@ -688,16 +731,30 @@ finally_block(R) ::= FINALLY compound_statement(A) . {
   R = p->AllocNode(finally_block, A); 
 }
 
-throw_expression(R) ::= THROW expression(A) . { 
+throw_statement(R) ::= THROW expression(A) . { 
   R = p->AllocNode(throw_expression, A); 
 }
-
-throw_statement(R) ::= throw_expression(A) eos . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
 // or statement
 //
 
-or_statement(R) ::= assignment_expression(A)  OR statement(B) . { R = p->AllocNode(or_statement, A, B); }
-or_statement(R) ::= conditional_expression(A) OR statement(B) . { R = p->AllocNode(or_statement, A, B); }
+or_statement(R) ::= assignment_expression(A) OR statement_part(B) eos . { 
+  R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, A), B); 
+}
+or_statement(R) ::= conditional_expression(A) OR statement_part(B) eos . { 
+  R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, A), B); 
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// unless statement
+//
+
+unless_statement(R) ::= statement_part(A) UNLESS assignment_expression(B) eos . { 
+  R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, B), A); 
+}
+unless_statement(R) ::= statement_part(A) UNLESS conditional_expression(B) eos . { 
+  R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, B), A); 
+}
