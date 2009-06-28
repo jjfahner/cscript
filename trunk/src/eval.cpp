@@ -1592,11 +1592,13 @@ Evaluator::EvalThisExpression(Object* node)
   Scope* scope = m_scope;
   while(scope)
   {
-    Object* object = scope->GetObject();
-    if(dynamic_cast<Function*>(object) == 0)
+    if(Object* object = scope->GetObject())
     {
-      g_stack.Push(object);
-      return;
+      if(dynamic_cast<Function*>(object) == 0)
+      {
+        g_stack.Push(object);
+        return;
+      }
     }
     scope = scope->GetParent();
   }
