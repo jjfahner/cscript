@@ -65,6 +65,7 @@ CSLexer::ParseNextToken()
   "new"                     { return CS_NEW; }
   "null"                    { return CS_NULL; }
   "operator"                { return CS_OPERATOR; }
+  "or"                      { return CS_OR; }
   "return"                  { return CS_RETURN; }
   "string"                  { return CS_STRING; }
   "switch"                  { return CS_SWITCH; }

@@ -73,6 +73,7 @@ AllocAssOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
 %nonassoc EOF COMMENT MLCOMMENT SLCOMMENT NEWLINE WHITESPACE .
 %right ASSIGN ASSADD ASSSUB ASSMUL ASSDIV ASSMOD .
 %nonassoc QUESTION .
+%left OR .
 %left LOGOR .
 %left LOGAND .
 %left BITOR .
@@ -126,6 +127,7 @@ statement(R) ::= continue_statement(A) .    { R = A; }
 statement(R) ::= try_statement(A) .         { R = A; }
 statement(R) ::= unset_statement(A) .       { R = A; }
 statement(R) ::= throw_statement(A) .       { R = A; }
+statement(R) ::= or_statement(A) .          { R = A; }
 statement(R) ::= eos .                      { 
   R = p->AllocNode(empty_statement); 
 }
@@ -691,3 +693,11 @@ throw_expression(R) ::= THROW expression(A) . {
 }
 
 throw_statement(R) ::= throw_expression(A) eos . { R = A; }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// or statement
+//
+
+or_statement(R) ::= assignment_expression(A)  OR statement(B) . { R = p->AllocNode(or_statement, A, B); }
+or_statement(R) ::= conditional_expression(A) OR statement(B) . { R = p->AllocNode(or_statement, A, B); }
