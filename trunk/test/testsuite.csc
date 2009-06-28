@@ -22,8 +22,9 @@
 // Execution parameters
 var path = "testcases/";
 var eval  = true;
-var print = true;
-var count = print ? 1 : eval ? 10 : 100;
+var print = false;
+var count = 0;
+var total = 0;
 
 // Test function
 function RunTests()
@@ -80,9 +81,10 @@ function RunTests()
   
   // Store start time
   ticks = CScript.Ticks - ticks;
+  total += ticks;
   
   // Done
-  Console.WriteLn("\nTest suite complete");
+  Console.WriteLn("\nAll tests completed");
   Console.WriteLn("Total:  {number}");
   Console.WriteLn("Errors: {errors}");
   Console.WriteLn("Time:   {ticks} ms");
@@ -94,11 +96,20 @@ function RunTests()
 // Start
 Console.WriteLn("Starting test suite...\n");
 
+// Determine number of runs
+count = 1;
+count *= 10 unless !eval;
+count *= 10 unless CScript.IsDebugBuild;
+
 // Run test suite
 for(var i = 0; i < count; ++i)
 {
   RunTests();
 }
+
+// Done
+var avg = total / count;
+Console.WriteLn("\nAverage time: {avg} ms");
 
 // Run garbage collector
 Console.WriteLn("\nCollecting...");
