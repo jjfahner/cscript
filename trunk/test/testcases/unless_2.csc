@@ -1,2 +1,2 @@
-return 0 unless true;
+unless(true) return 0;
 return 1;
