@@ -81,13 +81,12 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-// TODO Implement GetType
+DataType* 
+ScriptObject::GetType()
+{
+  return ObjectType::Instance();
+}
 
-// ScriptObject::ScriptObject(DataType* dataType) :
-// Object (dataType)
-// {
-// }
-// 
 Enumerator* 
 ScriptObject::GetEnumerator()
 {
