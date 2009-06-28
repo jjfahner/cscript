@@ -114,7 +114,7 @@ public:
   //
   virtual Object* GetObject() const
   {
-    return m_parent;
+    return m_object;
   }
 
   //
