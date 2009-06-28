@@ -102,9 +102,11 @@ Path::GetFiles(StringCRef path)
 
 #ifdef WIN32
   
+  String spec = Combine(path, "*");
+
   _finddata_t wfd;
 
-  intptr_t hFind = _findfirst(path.c_str(), &wfd);
+  intptr_t hFind = _findfirst(spec.c_str(), &wfd);
   if(hFind == -1)
   {
     if(errno == ENOENT)
@@ -158,9 +160,11 @@ Path::GetDirectories(StringCRef path)
 
 #ifdef WIN32
 
+  String spec = Combine(path, "*");
+
   _finddata_t wfd;
 
-  intptr_t hFind = _findfirst(path.c_str(), &wfd);
+  intptr_t hFind = _findfirst(spec.c_str(), &wfd);
   if(hFind == -1)
   {
     if(errno == ENOENT)
