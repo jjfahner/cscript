@@ -35,8 +35,14 @@ function RunTests()
   // Enumerate all files in the test path
   var number = 0;
   var errors = 0;
-  for(var file in Path.GetFiles(path + "*.csc"))
+  for(var file in Path.GetFiles(path))
   {
+    // Check extension
+    if(file.Find(".csc", 0) == -1)
+    {
+      continue;
+    }
+
     // Build path
     if(print)
     {
