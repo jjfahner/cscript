@@ -22,7 +22,7 @@
 // Execution parameters
 var path = "testcases/";
 var eval  = true;
-var print = false;
+var print = true;
 var count = 0;
 var total = 0;
 
@@ -104,8 +104,8 @@ Console.WriteLn("Starting test suite...\n");
 
 // Determine number of runs
 count = 1;
-count *= 10 unless !eval;
-count *= 5  unless CScript.IsDebugBuild;
+count *= 10 unless print || !eval;
+count *= 5  unless print || CScript.IsDebugBuild;
 
 // Run test suite
 for(var i = 0; i < count; ++i)
