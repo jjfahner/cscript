@@ -29,6 +29,11 @@ class ScriptObject : public Object
 public:
 
   //
+  // Object type
+  //
+  virtual DataType* GetType();
+
+  //
   // Member count
   //
   virtual int64 Count();
@@ -84,7 +89,6 @@ protected:
   //
   // Object members
   //
-  DataType* m_dataType;
   MemberMap m_members;
 
 };
