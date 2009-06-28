@@ -169,11 +169,13 @@ statement_sequence(R) ::= statement_sequence(A) statement(B) . {
 //
 // Statement parts
 //
-statement_part(R) ::= return_statement(A) .   { R = A; }
-statement_part(R) ::= throw_statement(A) .    { R = A; }
-statement_part(R) ::= unset_statement(A) .    { R = A; }
-statement_part(R) ::= break_statement(A) .    { R = A; }
-statement_part(R) ::= continue_statement(A) . { R = A; }
+
+statement_part(R) ::= break_statement(A) .      { R = A; }
+statement_part(R) ::= continue_statement(A) .   { R = A; }
+statement_part(R) ::= expression_statement(A) . { R = A; }
+statement_part(R) ::= return_statement(A) .     { R = A; }
+statement_part(R) ::= throw_statement(A) .      { R = A; }
+statement_part(R) ::= unset_statement(A) .      { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
