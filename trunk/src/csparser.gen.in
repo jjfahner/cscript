@@ -35,6 +35,8 @@
 #include "astnode.h"
 #include "list.h"
 
+#include <cassert>
+
 #pragma warning(disable:4065)
 
 inline AstNode* 

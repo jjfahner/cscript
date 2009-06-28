@@ -31,6 +31,7 @@
 #include <errno.h>
 #elif defined(__GNUC__)
 #include <unistd.h>
+#include <dirent.h>
 #else
 #error Unknown compiler system
 #endif
@@ -97,6 +98,8 @@ Path::WorkingDirectory()
 Value 
 Path::GetFiles(StringCRef path)
 {
+  List* list = new List;
+
 #ifdef WIN32
   
   _finddata_t wfd;
@@ -111,7 +114,6 @@ Path::GetFiles(StringCRef path)
     throw CatchableException("Invalid path");
   }
 
-  List* list = new List;
   do
   {
     if(!(wfd.attrib & _A_SUBDIR))
@@ -122,16 +124,38 @@ Path::GetFiles(StringCRef path)
 
   _findclose(hFind);
 
-  return list;
-
 #else
-# error GetFiles not implemented on this platform
+
+  DIR *dp;
+  struct dirent *ep;     
+  
+  dp = opendir(path.c_str());
+
+  if (dp == 0)
+  {
+    throw CatchableException("Invalid path");
+  }
+  
+  while (ep = readdir(dp))
+  {
+    if(ep->d_type == DT_REG)
+    {
+      list->Append(ep->d_name);
+    }
+  }
+  
+  closedir(dp);
+
 #endif
+  
+  return list;
 }
 
 Value 
 Path::GetDirectories(StringCRef path)
 {
+  List* list = new List();
+
 #ifdef WIN32
 
   _finddata_t wfd;
@@ -146,7 +170,6 @@ Path::GetDirectories(StringCRef path)
     throw CatchableException("Invalid path");
   }
 
-  List* list = new List();
   do
   {
     if(wfd.attrib & _A_SUBDIR)
@@ -157,9 +180,30 @@ Path::GetDirectories(StringCRef path)
 
   _findclose(hFind);
 
-  return list;
-
 #else
-# error GetDirectories not implemented on this platform
+
+  DIR *dp;
+  struct dirent *ep;
+
+  dp = opendir(path.c_str());
+
+  if (dp == 0)
+  {
+    throw CatchableException("Invalid path");
+  }
+
+  while(ep = readdir(dp))
+  {
+    if(ep->d_type == DT_DIR)
+    {
+      list->Append(ep->d_name);
+    }
+  }
+
+  closedir(dp);
+
 #endif
+  
+  return list;
 }
+

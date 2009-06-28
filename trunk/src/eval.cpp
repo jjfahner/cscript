@@ -1281,7 +1281,7 @@ Evaluator::EvalJsonLiteral(Object* node)
       else
       {
         EvalExpression(Ast_A1(Ast_A1(child)));
-        key = g_stack.Pop();
+        key = (String const&)g_stack.Pop();
       }
 
 //       // Check for duplicate key in object, ignore prototype

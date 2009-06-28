@@ -60,7 +60,7 @@ private:
   //
   // Pointer to thread-local instances
   //
-  TLS_SLOT static Context* g_context;
+  static TLS_SLOT Context* g_context;
 
 };
 

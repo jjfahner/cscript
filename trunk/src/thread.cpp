@@ -20,12 +20,19 @@
 //////////////////////////////////////////////////////////////////////////
 #include <thread.h>
 #include <eval.h>
+
+#ifdef _MSC_VER
 #include <process.h>
+#endif
 
 /*static*/ void 
 Thread::Eval(Object* code)
 {
+#ifdef _MSC_VER
   _beginthread(&Thread::ThreadProc, 0, code);
+#else
+  throw std::runtime_error("Threading not supported on this platform");
+#endif
 }
 
 /*static*/ void

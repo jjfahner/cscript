@@ -76,7 +76,7 @@ typedef uint8_t           Byte;
 
 #define strcmp_nocase strcasecmp
 
-#define TLS_SLOT static __thread
+#define TLS_SLOT  __thread
 
 #else
 
