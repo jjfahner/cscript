@@ -30,41 +30,49 @@
 class GCString : public GCSimpleObject, public String
 {
 public:
+
+  //
+  // Perform garbage collection
+  //
+  static void Collect();
+
+  //
+  // Construct empty
+  //
+  static GCString* Create();
+
+  //
+  // Construct from char*
+  //
+  static GCString* Create(char const* str, size_t len = 0, bool pin = false);
+
+  //
+  // Construct from String&
+  //
+  static GCString* Create(String const& str, bool pin = false);
+
+  //
+  // Implementation
+  //
+private:
   
+  friend class StringTable;
+
   //
   // Empty string
   //
-  GCString() {}
-
-  //
-  // String from literal
-  //
-  GCString(char const* str) : String(str) 
-  {
-  }
-
-  //
-  // Construct from regular string
-  //
-  GCString(String const& str) : String(str) 
-  {
-  }
+  GCString();
 
   //
   // Construct from literal, pin in gc
   //
-  GCString(char const* str, bool);
-
-  //
-  // Construct from regular string, pin in gc
-  //
-  GCString(String const& str, bool);
+  GCString(char const* str, size_t len, bool pin);
 
 };
 
 //
 // Macro for easily declaring pinned static strings
 //
-#define GCSTR(name, value) static GCString const * name = new GCString(value, true)
+#define GCSTR(name, value) static GCString const * name = GCString::Create(value, 0, true)
 
 #endif // CSCRIPT_CSTRING_H

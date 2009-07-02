@@ -94,4 +94,9 @@ typedef char Char;
 //
 typedef std::string String;
 
+//
+// Hash type
+//
+typedef unsigned int HashType;
+
 #endif // #ifndef CSCRIPT_H

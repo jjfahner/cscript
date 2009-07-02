@@ -28,18 +28,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-GCString::GCString(char const* str, bool) : String(str) 
-{ 
-  GC::Pin(this); 
-}
-
-GCString::GCString(String const& str, bool) : String(str) 
-{
-  GC::Pin(this);  
-}
-
-//////////////////////////////////////////////////////////////////////////
-
 GCObject* 
 Value::GetGCObject() const
 {

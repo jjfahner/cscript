@@ -48,20 +48,20 @@ CSLexer::Lex(Token& token)
   if(m_string == 1 || m_string == 3)
   {
     token.m_type = CS_ADDOP;
-    token.m_text = new GCString("+");
+    token.m_text = GCString::Create("+");
     m_string = m_string == 1 ? 2 : 4;
     return true;
   }
   if(m_string == 4)
   {
     m_string = 0;
-    token.m_text = new GCString();
+    token.m_text = GCString::Create();
     return LexString(token);
   }
 
   // Prepare token
   token.m_type = 0;
-  token.m_text = new GCString();
+  token.m_text = GCString::Create();
 
   // Parse next token
   for(;;)
@@ -116,26 +116,6 @@ CSLexer::LexString(Token& token)
   token.m_type = CS_LIT_STRING;
   m_stream.Start();
 
-//   // Parse to end of string
-//   while(true)
-//   {
-//     while(m_stream.m_cursor < m_stream.m_bufend)
-//     {
-//       if(*m_stream.m_cursor == '"')
-//       {
-//         m_stream.Flush();
-//         ++m_stream.m_cursor;
-//         return true; // TODO escape characters
-//       }
-//       ++m_stream.m_cursor;
-//     }
-//     if(m_stream.FillBuffer() == 0)
-//     {
-//       throw std::runtime_error("Unterminated string constant");
-//     }
-//   }
-// 
-// 
   // Parse string, translating escapes in-place
   char const*& cur = m_stream.m_cursor;
   char const*& end = m_stream.m_bufend;
