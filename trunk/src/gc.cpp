@@ -23,6 +23,7 @@
 #include "timer.h"
 #include "value.h"
 #include "stack.h"
+#include "gcstring.h"
 
 //
 // TLS based instance
@@ -114,6 +115,9 @@ GC::Collect(Stack const& stack)
 {
   GCObjectVec grey, next;
   GCObjectVec::iterator it, ie;
+
+  // Collect strings
+  GCString::Collect();
 
   // Store reference to objects list
   GCObjectVec& g_objects = GetObjects();

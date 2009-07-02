@@ -22,7 +22,7 @@
 // Execution parameters
 var path = "testcases/";
 var eval  = true;
-var print = true;
+var print = false;
 var count = 0;
 var total = 0;
 

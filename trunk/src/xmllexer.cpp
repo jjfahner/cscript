@@ -61,7 +61,7 @@ XmlLexer::LexImpl(XmlToken& token)
 {
   // Create token string buffer
   token.m_type = 0;
-  token.m_text = new GCString();
+  token.m_text = GCString::Create();
   m_token = token.m_text;
 
   // End of input

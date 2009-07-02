@@ -86,13 +86,13 @@ public:
 
   Value(String const& val) :
   m_type    (tString),
-  m_string  (new GCString(val))
+    m_string  (GCString::Create(val))
   {
   }
 
   Value(char const* val) :
   m_type    (tString),
-  m_string  (new GCString(val))
+  m_string  (GCString::Create(val))
   {
   }
 

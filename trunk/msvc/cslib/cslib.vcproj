@@ -205,6 +205,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\ast.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\context.cpp"
 				>
 			</File>
@@ -226,6 +230,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\gc.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\gcstring.cpp"
 				>
 			</File>
 			<File
@@ -382,6 +390,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\gcstring.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\hash.h"
 				>
 			</File>
 			<File
@@ -614,10 +626,6 @@
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath="..\..\src\ast.cpp"
-			>
-		</File>
 		<File
 			RelativePath="..\..\TODO"
 			>
