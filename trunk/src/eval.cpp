@@ -1535,28 +1535,41 @@ void
 Evaluator::EvalNewExpression(Object* node)
 {
   // Find object
-  Value const& rval = m_scope->Get(Ast_A1(node).GetString());
-  if(rval.Type() != Value::tObject)
+  Value rval;
+  if(m_scope->TryGet(Ast_A1(node), rval))
   {
-    throw ScriptException(node, "Cannot instantiate a non-object variable");
+    if(rval.Type() != Value::tObject)
+    {
+      throw ScriptException(node, "Cannot instantiate a non-object variable");
+    }
+
+    // Construct an instance from the source object
+    Object* inst = new ScriptObject();
+    g_stack.Push(inst);
+    
+    // Assign prototype object
+    inst->Set("prototype", rval.GetObject());
+
+    // Prepare arguments
+    // TODO evaluate constructor arguments
+    Arguments args;
+    args.SetNode(node);
+    args.SetObject(inst);
+
+    // Execute constructor
+    Value result;
+    inst->TryEval("constructor", args, result);
   }
+  else
+  {
+    rval = NativeCreate(Ast_A1(node));
+    if(rval.Empty())
+    {
+      throw ScriptException(node, "Unknown class");
+    }
 
-  // Construct an instance from the source object
-  Object* inst = new ScriptObject();
-  g_stack.Push(inst);
-  
-  // Assign prototype object
-  inst->Set("prototype", rval.GetObject());
-
-  // Prepare arguments
-  // TODO evaluate constructor arguments
-  Arguments args;
-  args.SetNode(node);
-  args.SetObject(inst);
-
-  // Execute constructor
-  Value result;
-  inst->TryEval("constructor", args, result);
+    g_stack.Push(rval);
+  }
 }
 
 void

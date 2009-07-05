@@ -31,7 +31,7 @@ File::Open(StringCRef s_name, StringCRef s_mode, bool b_binary, bool b_atend, bo
   size_t o_mode = 0;
 
   // Direction
-  if(s_mode == "r")  o_mode = std::ios::in;
+  if(s_mode == "r")       o_mode = std::ios::in;
   else if(s_mode == "w")  o_mode = std::ios::out;
   else if(s_mode == "rw") o_mode = std::ios::in|std::ios::out;
 
@@ -58,12 +58,41 @@ File::Close()
   {
     m_stream.close();
   }
+  m_stream.clear();
+}
+
+bool 
+File::Eof()
+{
+  return m_stream.eof();
 }
 
 Value 
 File::Read()
 {
   return Value();
+}
+
+Value 
+File::ReadLn()
+{
+  char buf[4098];
+  
+  // Read line
+  m_stream.getline(buf, 4096);
+
+  // Test stream
+  if(m_stream.bad())
+  {
+    return Value();
+  }
+  
+  // Null-terminate buffer
+  size_t len = m_stream.gcount();
+  buf[len] = 0;
+
+  // Return string
+  return GCString::Create(buf, len);
 }
 
 void
@@ -102,11 +131,3 @@ File::Write(StringCRef data, int64 length)
     throw CatchableException("Failed to write to file");
   }
 }
-
-//////////////////////////////////////////////////////////////////////////
-
-// TODO
-// NATIVE_CALL("CreateFile()")
-// {
-//   return new File();
-// };

@@ -58,6 +58,8 @@ public:
   //
   // Constructors
   //
+  AstNode() :
+    m_type (invalid) {}
   AstNode(AstTypes type) : 
     m_type (type) {}
   AstNode(AstTypes type, Value const& a1) : 

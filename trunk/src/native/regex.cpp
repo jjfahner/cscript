@@ -97,7 +97,7 @@ bool
 Regex::IsMatch(StringCRef input)
 {
   MatchResults* results = (MatchResults*) Match(input);
-  return !results->m_complete.GetString().empty();
+  return !results->m_complete.Empty();
 }
 
 Object*

@@ -54,6 +54,15 @@ struct NativeCall
   Value       m_var;
 };
 
+//
+// Constructor
+//
+struct NativeConstructor
+{
+  char const* m_name;
+  Value (*m_fun)();
+};
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Resolver implementation
@@ -142,6 +151,22 @@ NativeCallTryEval(NativeCall* pTable,
     ++pTable;
   }
   return false;
+}
+
+Value NativeCreate(Value const& className)
+{
+  extern NativeConstructor cscript_native_constructors[];
+  
+  NativeConstructor* p = cscript_native_constructors;
+  while(p->m_name)
+  {
+    if(p->m_name == className.GetString())
+    {
+      return p->m_fun();
+    }
+  }
+
+  return Value();
 }
 
 //////////////////////////////////////////////////////////////////////////
