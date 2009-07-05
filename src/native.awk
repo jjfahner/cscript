@@ -13,15 +13,32 @@ BEGIN {
 # Match class declarations
 #
 
-$0 ~ /^class [a-zA-Z0-9_]+$/ || 
-$0 ~ /^class [a-zA-Z0-9_]+ +:/ {
+$0 ~ /class [a-zA-Z0-9_]+$/ || 
+$0 ~ /class [a-zA-Z0-9_]+ +:/ {
 
   # Flush function table
   GenerateTable();
   
+  # Check for constructable
+  namePos = 2;
+  if($1 == "__native_construct")
+  {
+    namePos = 3;  
+  }
+
   # Store next classname
-  className = $2;
+  className = $namePos;
   classIds[className] = 0;
+  
+  # Store constructable
+  if(namePos == 3)
+  {
+    genConstructables = 1;
+    constructable[className] = 1;
+  }
+  
+  # Store class in array
+  classes[length(classes) + 1] = className;
 }
 
 ##########################################################################
@@ -37,7 +54,14 @@ function GenerateTable()
     printf("%s", classStubs);
     printf("  { stEmpty, 0, 0, 0, 0 }\n");
     printf("};\n\n");
+    
+    if(constructable[className] == 1)
+    {
+      printf("static Value cscript_native_constructor_%s()\n{\n  return new %s();\n}\n", \
+        className, className, className);  
+    }
   }
+  
   classStubs = "";
 }
 
@@ -279,7 +303,21 @@ END {
 
   # Flush last table
   GenerateTable();
-
+  
+  # Generate constructor table
+  if(genConstructables == 1)
+  {
+    printf("NativeConstructor cscript_native_constructors[] = {\n");
+    for(className in constructable)
+    {
+      if(constructable[className] == 0) {
+        continue;
+      }
+      printf("  { \"%s\", cscript_native_constructor_%s },\n", className, className);
+    }
+    printf("  { 0, 0 }\n};\n\n");  
+  }
+  
   # Output end of file 
   printf("// EOF\n\n");
 }

@@ -30,6 +30,7 @@
 #define __native_method
 #define __native_roprop
 #define __native_rwprop
+#define __native_construct
 
 //
 // Forward declare some required types
@@ -45,6 +46,11 @@ typedef Value const&        ValueCRef;
 typedef String const&       StringCRef;
 typedef Arguments const&    ArgsCRef;
 typedef Evaluator&          EvalRef;
+
+//
+// Create instance of native class
+//
+Value NativeCreate(Value const& className);
 
 //
 // Forward declare generic native call handlers

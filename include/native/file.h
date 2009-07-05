@@ -26,7 +26,7 @@
 
 #include <fstream>
 
-class File : public Object
+__native_construct class File : public Object
 {
 public:
 
@@ -43,9 +43,19 @@ public:
   __native_method void Close();
 
   //
+  // At end of line
+  //
+  __native_roprop bool Eof();
+
+  //
   // Read string
   //
   __native_method Value Read();
+
+  //
+  // Read line
+  //
+  __native_method Value ReadLn();
 
   //
   // Write string
