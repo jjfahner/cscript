@@ -224,8 +224,12 @@ conditional_expression(R) ::= binary_expression(A) QUESTION throw_statement(B) C
   R = p->AllocNode(ternary_expression, A, B, C); 
 }
 
+// Binary expression -> prefix_expression
+// Note: by telling the lexer that we've just seen a binop, we can differentiate
+// between the start of eg. a regular expression or xml expression and a binary operator.
+binary_expression(R) ::= prefix_expression(A) . { R = A; p->GetLexer()->AfterBinop(); }
+
 // Binary expressions
-binary_expression(R) ::= prefix_expression(A) . { R = A; }
 binary_expression(R) ::= binary_expression(A) LOGOR   binary_expression(B). { R = p->AllocNode(logical_or_expression,   A, B); }
 binary_expression(R) ::= binary_expression(A) LOGAND  binary_expression(B). { R = p->AllocNode(logical_and_expression,  A, B); }
 binary_expression(R) ::= binary_expression(A) BITOR   binary_expression(B). { R = AllocBinOp(p, op_bitor,   A, B); }
@@ -301,6 +305,7 @@ literal(R) ::= FALSE .            { R = p->AllocNode(literal_value, Value(false)
 literal(R) ::= NULL .             { R = p->AllocNode(null_literal); }
 literal(R) ::= list_literal(A) .  { R = A; }
 literal(R) ::= map_literal (A) .  { R = A; }
+literal(R) ::= regex_literal(A) . { R = A; }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -776,3 +781,39 @@ or_statement(R) ::= assignment_expression(A) OR statement_part(B) eos . {
 or_statement(R) ::= conditional_expression(A) OR statement_part(B) eos . { 
   R = p->AllocNode(if_statement, p->AllocNode(prefix_expression, op_not, A), B); 
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Regular expression
+//
+
+regex_literal(R) ::= DIVOP regex_expression DIVOP(A) . { R = p->AllocNode(regex_literal, String(A).c_str()); }
+
+regex_expression ::= regex_particle .
+regex_expression ::= regex_expression regex_particle .
+regex_expression ::= regex_expression OR regex_particle .
+
+regex_particle ::= regex_atom .
+regex_particle ::= regex_atom regex_quantifier .
+
+regex_atom ::= REGEX_ANY .
+regex_atom ::= REGEX_CHAR .
+regex_atom ::= LPAREN regex_expression RPAREN .
+regex_atom ::= regex_character_range .
+
+regex_character_range ::= LBRACKET              regex_range RBRACKET .
+regex_character_range ::= LBRACKET RANGE_INVERT regex_range RBRACKET .
+
+regex_range_atom ::= REGEX_CHAR .
+regex_range_atom ::= REGEX_CHAR SUBOP REGEX_CHAR .
+
+regex_range ::= regex_range_atom .
+regex_range ::= regex_range regex_range_atom .
+
+regex_quantifier ::= REGEX_ZERO_OR_MORE .
+regex_quantifier ::= REGEX_ZERO_OR_ONE  .
+regex_quantifier ::= REGEX_ONE_OR_MORE  .
+regex_quantifier ::= LBRACE INT RBRACE .
+regex_quantifier ::= LBRACE INT COMMA RBRACE .
+regex_quantifier ::= LBRACE COMMA INT RBRACE .
+regex_quantifier ::= LBRACE INT COMMA INT RBRACE .

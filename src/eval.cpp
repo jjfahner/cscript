@@ -40,6 +40,7 @@
 #include <native/path.h>
 #include <native/console.h>
 #include <native/standard.h>
+#include <native/regex.h>
 
 #include <list>
 #include <iostream>
@@ -613,6 +614,10 @@ Evaluator::EvalExpression(Object* node)
 
   case null_literal:          
     g_stack.Push(Value());
+    break;
+
+  case regex_literal:
+    g_stack.Push(new Regex(Ast_A1(node).GetString().c_str()));
     break;
 
   case ternary_expression:
@@ -1583,7 +1588,7 @@ Evaluator::EvalMemberExpression(Object* node)
   Value rval;
   if(!object->TryGet(name, rval))
   {
-    throw ScriptException(node, "Object does not support this property");
+    throw ScriptException(node, "Object does not support a property '" + name + "'");
   }
 
   // Done

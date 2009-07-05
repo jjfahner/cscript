@@ -19,8 +19,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include <native/regex.h>
-#include <native/regex_i.h>
 #include <ctype.h>
+#include <eval.h>
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -93,8 +93,15 @@ Regex::Reset()
 // Pattern matching
 //
 
-Regex::MatchResults 
-Regex::Match(char const* start)
+bool 
+Regex::IsMatch(StringCRef input)
+{
+  MatchResults* results = (MatchResults*) Match(input);
+  return !results->m_complete.GetString().empty();
+}
+
+Object*
+Regex::Match(StringCRef input)
 {
   // Stack size limit
   static const size_t stackLimit = 10000;
@@ -107,7 +114,10 @@ Regex::Match(char const* start)
   char const* matchOff = 0;
 
   // Match results
-  MatchResults results;
+  MatchResults* results = new MatchResults();
+
+  // Get start pointer
+  char const* start = input.c_str();
 
   // Initialize the stack from the start state
   cur.push_back(StackFrame(m_start, start, start));
@@ -122,7 +132,7 @@ Regex::Match(char const* start)
     {
       // Alias some variables
       StackFrame& frame   = *it;
-      char const*     source  = frame.m_source;
+      char const* source  = frame.m_source;
       State       inState = frame.m_state;
 
       // Iterators to transitions for state
@@ -238,7 +248,7 @@ Regex::Match(char const* start)
           {
             matchOff = offset;
             matchPtr = ptr;
-            results.m_backrefs = frame.m_backrefs;
+            results->m_backrefs = frame.m_backrefs;
           }
           continue;
         }
@@ -276,8 +286,7 @@ Regex::Match(char const* start)
     // usually means exponential matching.
     if(next.size() > stackLimit)
     {
-      //std::cout << "Aborted: stack limit reached\n";
-      return MatchResults();
+      throw CatchableException("Regex match stack overflow");
     }
 
     // Swap stacks
@@ -288,8 +297,8 @@ Regex::Match(char const* start)
   // Copy complete match
   if(matchPtr)
   {
-    results.m_complete = matchOff;
-    results.m_complete = results.m_complete.substr(0, matchPtr - matchOff);
+    results->m_complete = matchOff;
+    results->m_complete = results->m_complete.GetString().substr(0, matchPtr - matchOff);
   }
 
   // Return results
@@ -381,17 +390,18 @@ Regex::MatchBackref(MatchTypes backref, StackFrame const& frame)
 //
 
 void
-Regex::Parse(char const* pattern)
+Regex::Parse(StringCRef pattern)
 {
   // Clear current state
   Reset();
 
   // Parse the expression
   State cin, con;
-  ParseExpression(pattern, cin, con);
+  char const* p = pattern.c_str();
+  ParseExpression(p, cin, con);
 
   // Check end of expression
-  if(*pattern)
+  if(*p)
   {
     throw std::runtime_error("Invalid pattern");
   }
@@ -936,35 +946,3 @@ Regex::MatchTypeString(MatchTypes type)
   default: return "Unknown match type";
   }
 }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Native call interface
-//
-#include <native.h>
-#include <value.h>
-#include <cscript.h>
-
-// TODO
-/*
-NATIVE_CALL("match(string pattern, string data, int offset = 0)")
-{
-  // Fetch string pointers
-  char const* pat = args[0].GetString().c_str();
-  char const* src = args[1].GetString().c_str();
-
-  // Retrieve offset
-  int length = (int)args[1].GetString().length();
-  int offset = (int) args[2].GetInt();
-  offset = std::min(offset, length);
-
-  // Compile pattern
-  Regex r(pat);
-
-  // Match source string
-  Regex::MatchResults mr = r.Match(src + offset);
-
-  // Return matched result
-  return Value(mr.m_complete);
-}
-*/

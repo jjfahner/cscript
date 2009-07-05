@@ -65,6 +65,7 @@ CSParser::Parse(LexStream& stream, bool debug)
 
   // Initialize lexer
   CSLexer lexer(stream);
+  m_lexer = &lexer;
 
   // Allocate parser
   CSParserImpl parser(this, "CScript Parser: ", debug);
