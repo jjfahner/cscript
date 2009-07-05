@@ -239,12 +239,8 @@ Regex::Match(StringCRef input)
         // Store match if leftmost and longer than previous match
         if(outState == m_final)
         {
-          if(matchOff == 0      || // No previous matches
-             offset < matchOff  || // Leftmost match wins
-             offset == matchOff && ptr > matchPtr)
-          {
-          }
-          if((matchOff == 0 || offset <= matchOff) && ptr >= matchPtr)
+          if((matchOff == 0 || offset <= matchOff) && 
+             (ptr - offset > matchPtr - matchOff))
           {
             matchOff = offset;
             matchPtr = ptr;
