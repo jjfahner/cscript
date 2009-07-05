@@ -40,6 +40,17 @@ public:
   //
   bool Lex(Token& token);
 
+  //
+  // Called after a binop is parsed
+  //
+  void AfterBinop();
+
+//   //
+//   // Start/end regex mode
+//   //
+//   void StartRegex();
+//   void EndRegex();
+
 private:
 
   //
@@ -52,12 +63,14 @@ private:
   //
   bool LexString(Token& token);
   bool LexComment(int type);
+  bool LexRegex(Token& token);
 
   //
   // MemberMap
   //
   LexStream&      m_stream;
   int             m_string;
+  int             m_regex;
 
 };
 

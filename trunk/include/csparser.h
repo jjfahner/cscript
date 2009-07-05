@@ -31,6 +31,7 @@
 enum AstTypes;
 struct Token;
 class LexStream;
+class CSLexer;
 
 class CSParser
 {
@@ -64,6 +65,11 @@ public:
   // Parse xml sub-expression
   //
   Object* ParseXml();
+
+  //
+  // Retrieve lexer
+  //
+  CSLexer* GetLexer();
 
   //
   // Retrieve the elapsed parse time
@@ -120,6 +126,7 @@ private:
   //
   Object*     m_root;
   LexStream*  m_stream;
+  CSLexer*    m_lexer;
   uint64      m_elapsed;
   LexScopes   m_scopes;
   AutoIds     m_autoIds;
@@ -131,6 +138,12 @@ private:
 //
 // Node allocation
 //
+
+inline CSLexer* 
+CSParser::GetLexer()
+{
+  return m_lexer;
+}
 
 inline AstNode* 
 CSParser::AllocNode(AstTypes type)

@@ -36,10 +36,16 @@
 
 CSLexer::CSLexer(LexStream& stream) :
 m_stream  (stream),
-m_string  (0)
+m_string  (0),
+m_regex   (0)
 {
 }
 
+void
+CSLexer::AfterBinop()
+{
+  --m_regex;
+}
 
 bool
 CSLexer::Lex(Token& token)
@@ -58,6 +64,13 @@ CSLexer::Lex(Token& token)
     token.m_text = GCString::Create();
     return LexString(token);
   }
+
+  // Regex char
+  if(m_regex > 0 && LexRegex(token))
+  {
+    return true;
+  }
+  m_regex = 0;
 
   // Prepare token
   token.m_type = 0;
@@ -88,6 +101,7 @@ CSLexer::Lex(Token& token)
     case CS_LIT_STRING: return LexString(token);
     case CS_SLCOMMENT:  LexComment(CS_SLCOMMENT); continue;
     case CS_MLCOMMENT:  LexComment(CS_MLCOMMENT); continue;
+    case CS_DIVOP:      ++m_regex;
     default:            m_stream.Flush(); break;
     }
  
@@ -205,4 +219,46 @@ CSLexer::LexComment(int type)
       }
     }
   }
+}
+
+bool 
+CSLexer::LexRegex(Token& token)
+{
+  // Retrieve first character from stream
+  char ch = *m_stream.m_cursor++;
+
+  // Ref token members
+  int&    type =  token.m_type;
+  String& text = *token.m_text;
+
+  // Find character code
+  type = CS_REGEX_CHAR;
+  switch(ch)
+  {
+  case '/':  type = CS_DIVOP; m_regex = 0; break;
+  case '(':  type = CS_LPAREN; break;
+  case ')':  type = CS_RPAREN; break;
+  case '[':  type = CS_LBRACKET; ++m_regex; break;
+  case ']':  type = CS_RBRACKET; --m_regex; break;
+  case '{':  type = CS_LBRACE; break;
+  case '}':  type = CS_RBRACE; break;
+  case '.':  type = CS_REGEX_ANY; break;
+  case '*':  type = CS_REGEX_ZERO_OR_MORE; break;
+  case '?':  type = CS_REGEX_ZERO_OR_ONE; break;
+  case '+':  type = CS_REGEX_ONE_OR_MORE; break;
+  case '-':  if(m_regex == 2) { type = CS_SUBOP; break; }
+  case '\\': ch = *m_stream.m_cursor++; break;
+  }
+
+  // Complete token
+  
+  if(m_regex == 0)
+  {
+    text = text.substr(1, text.length() - 1);
+  }
+  else
+  {
+    text += ch;
+  }
+  return true;
 }
