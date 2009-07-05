@@ -135,6 +135,13 @@ Regex::Match(StringCRef input)
       char const* source  = frame.m_source;
       State       inState = frame.m_state;
 
+      // Skip frame if its offset is higher
+      // than a currently found match
+      if(matchOff && frame.m_offset > matchOff)
+      {
+        continue;
+      }
+
       // Iterators to transitions for state
       TransitionList::iterator ti, te;
       ti = m_transVec[inState]->begin();
