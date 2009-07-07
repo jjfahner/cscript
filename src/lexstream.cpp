@@ -33,6 +33,8 @@ m_stream (stream),
 m_line   (1),
 m_char   (1)
 {
+  // Initialize buffer - valgrind says we should :)
+  memset(m_buffer, 0, bufsize);
 }
 
 bool 
