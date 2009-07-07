@@ -97,7 +97,7 @@ public:
     }
   }
 
-  void Collect()
+  void Collect(bool full)
   {
     Table table;
 
@@ -105,14 +105,14 @@ public:
     for(Iter it = m_table.begin(), ie = m_table.end(); it != ie; ++it)
     {
       // Check use count
-      if(it->second.first < 2)
+      if(full || it->second.first < 2)
       {
-        // Zero or one references, forget
+        // Unpin and forget the string
         GC::Unpin(it->second.second);
       }
       else
       {
-        // More than one reference, keep
+        // Keep the string in the table
         table.insert(*it);
       }
     }
@@ -145,9 +145,9 @@ static StringTable g_table;
 //////////////////////////////////////////////////////////////////////////
 
 /*static*/ void 
-GCString::Collect()
+GCString::Collect(bool full)
 {
-  g_table.Collect();
+  g_table.Collect(full);
 }
 
 /*static*/ GCString* 

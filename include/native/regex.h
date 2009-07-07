@@ -48,7 +48,7 @@ public:
   //
   // Flush the cache
   //
-  static void Collect();
+  static void Collect(bool full = false);
 
   //
   // Create or retrieve regular expression

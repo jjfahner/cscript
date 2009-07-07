@@ -121,13 +121,59 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
+/*static*/ size_t Evaluator::g_instanceCount = 0;
+
+
+//////////////////////////////////////////////////////////////////////////
+
 Evaluator::Evaluator() :
 m_scope   (0),
 m_allocs  (0),
 m_debugParser(0)
 {
+  // Count instance
+  ++g_instanceCount;
+
   // Initialize the evaluator
   Reset();
+}
+
+Evaluator::~Evaluator()
+{
+  // Do full collection of strings
+  // and regular expressions
+  if(--g_instanceCount == 0)
+  {
+    // Collect strings
+    GCString::Collect(true);
+
+    // Collect regular expressions
+    RegexImpl::Collect(true);
+  }
+
+  // Collect garbage
+  Stack stack(1);
+  GC::Collect(stack);
+}
+
+GC::CollectInfo
+Evaluator::Collect()
+{
+  // Push root scope onto stack
+  StackFrame s(g_stack);
+  g_stack.Push(m_scope ? m_scope : m_global);
+
+  // Clear scope cache
+  m_scopeCache.clear();
+
+  // Collect strings
+  GCString::Collect();
+
+  // Collect regular expressions
+  RegexImpl::Collect();
+
+  // Collect invalid objects
+  return GC::Collect(g_stack);
 }
 
 void 
@@ -146,18 +192,7 @@ Evaluator::Reset()
   Collect();
 }
 
-inline bool 
-open_file(String const& path, std::ifstream& file)
-{
-  // Reset error flags
-  file.clear();
-
-  // Open the file
-  file.open(path.c_str());
-  
-  // Check whether open succeeded
-  return file.is_open();
-}
+//////////////////////////////////////////////////////////////////////////
 
 inline Scope* 
 Evaluator::NewScope(Scope* parent, Object* object)
@@ -186,6 +221,21 @@ Evaluator::NewScope(Scope* parent, Object* object)
   
   // Done
   return scope;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+inline bool 
+open_file(String const& path, std::ifstream& file)
+{
+  // Reset error flags
+  file.clear();
+
+  // Open the file
+  file.open(path.c_str());
+
+  // Check whether open succeeded
+  return file.is_open();
 }
 
 bool 
@@ -293,27 +343,10 @@ Evaluator::ParseText(String const& text, bool executeImmediate)
 void 
 Evaluator::ReportError(String text, Object* source)
 {
-//   if(source && source->ContainsKey(10))
-//   {
-//     std::cout << source->GetRValue(10).GetString() << "("
-//               << source->GetRValue(11).GetInt()    << ") : ";
-//   }
   std::cout << text << "\n";
 }
 
-GC::CollectInfo
-Evaluator::Collect()
-{
-  // Push root scope onto stack
-  StackFrame s(g_stack);
-  g_stack.Push(m_scope ? m_scope : m_global);
-
-  // Clear scope cache
-  m_scopeCache.clear();
-
-  // Collect invalid objects
-  return GC::Collect(g_stack);
-}
+//////////////////////////////////////////////////////////////////////////
 
 Value 
 Evaluator::Eval(String text, bool isFileName)

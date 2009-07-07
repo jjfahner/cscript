@@ -56,6 +56,11 @@ public:
   Evaluator();
 
   //
+  // Destruction
+  //
+  ~Evaluator();
+
+  //
   // Evaluation of string/file
   //
   Value Eval(String code, bool isFileName = false);
@@ -228,6 +233,11 @@ private:
   bool            m_debugParser;
   StringVec       m_fileNames;
   ScopeCache      m_scopeCache;
+
+  //
+  // Keep track of instances
+  //
+  static size_t g_instanceCount;
 
 };
 

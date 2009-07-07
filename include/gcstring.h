@@ -34,7 +34,7 @@ public:
   //
   // Perform garbage collection
   //
-  static void Collect();
+  static void Collect(bool full = false);
 
   //
   // Construct empty
