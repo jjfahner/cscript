@@ -246,6 +246,8 @@ CSLexer::LexRegex(Token& token)
   case '*':  type = CS_REGEX_ZERO_OR_MORE; break;
   case '?':  type = CS_REGEX_ZERO_OR_ONE; break;
   case '+':  type = CS_REGEX_ONE_OR_MORE; break;
+  case '^':  type = CS_REGEX_ANCHOR_LEFT; break;
+  case '$':  type = CS_REGEX_ANCHOR_RIGHT; break;
   case '-':  if(m_regex == 2) { type = CS_SUBOP; break; }
   }
 

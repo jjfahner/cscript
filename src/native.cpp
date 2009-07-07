@@ -164,6 +164,7 @@ Value NativeCreate(Value const& className)
     {
       return p->m_fun();
     }
+    ++p;
   }
 
   return Value();

@@ -28,7 +28,7 @@
 
 #include <vector>
 
-class List : public Object
+__native_construct class List : public Object
 {
 public:
 

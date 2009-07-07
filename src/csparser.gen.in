@@ -787,7 +787,15 @@ or_statement(R) ::= conditional_expression(A) OR statement_part(B) eos . {
 // Regular expression
 //
 
-regex_literal(R) ::= DIVOP regex_expression DIVOP(A) . { R = p->AllocNode(regex_literal, String(A).c_str()); }
+regex_literal(R) ::= DIVOP opt_anchor_left regex_expression opt_anchor_right DIVOP(A) . { 
+  R = p->AllocNode(regex_literal, String(A).c_str()); 
+}
+
+opt_anchor_left ::= .
+opt_anchor_left ::= REGEX_ANCHOR_LEFT .
+
+opt_anchor_right ::= .
+opt_anchor_right ::= REGEX_ANCHOR_RIGHT .
 
 regex_expression ::= regex_particle .
 regex_expression ::= regex_expression regex_particle .

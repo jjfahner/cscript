@@ -617,7 +617,7 @@ Evaluator::EvalExpression(Object* node)
     break;
 
   case regex_literal:
-    g_stack.Push(new Regex(Ast_A1(node).GetString().c_str()));
+    g_stack.Push(new Regex(Ast_A1(node)));
     break;
 
   case ternary_expression:

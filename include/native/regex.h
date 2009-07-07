@@ -31,6 +31,7 @@
 #include <string>
 
 class List;
+class RegexImpl;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -43,27 +44,16 @@ class List;
 // any relevant intrinsic limit on the complexity of the expression.
 //
 
-class Regex : public Object
+__native_construct class Regex : public Object
 {
 public:
 
   DEF_NATIVE_CALLS(Regex, Object);
 
   //
-  // Public types
-  //
-  typedef std::string         String;
-  typedef std::vector<String> StringVec;
-
-  //
   // Construction
   //
-  Regex(char const* pattern = 0);
-
-  //
-  // Destruction
-  //
-  virtual ~Regex();
+  Regex(StringCRef pattern = "");
 
   //
   // Reset state
@@ -84,6 +74,62 @@ public:
   // Parse an expression
   //
   __native_method void Parse(StringCRef pattern);
+
+private:
+
+  //
+  // Members
+  //
+  RegexImpl* m_impl;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class RegexImpl
+{
+public:
+
+  //
+  // Public types
+  //
+  typedef std::string         String;
+  typedef std::vector<String> StringVec;
+
+  //
+  // Create or retrieve
+  //
+  static RegexImpl* FromPattern(StringCRef pattern);
+
+  //
+  // Construction
+  //
+  RegexImpl(StringCRef pattern);
+
+  //
+  // Destruction
+  //
+  virtual ~RegexImpl();
+
+  //
+  // Reset state
+  //
+  void Reset();
+
+  //
+  // Is input a valid match for pattern
+  //
+  bool IsMatch(StringCRef input);
+
+  //
+  // Match a string
+  //
+  ObjectPtr Match(StringCRef input);
+
+  //
+  // Parse an expression
+  //
+  void Parse(StringCRef pattern);
 
   //
   // Informational
@@ -252,7 +298,7 @@ public:
 
   DEF_NATIVE_CALLS(MatchResults, Object);
 
-  typedef Regex::StringVec StringVec;
+  typedef RegexImpl::StringVec StringVec;
 
   MatchResults() :
   m_matches (0)
@@ -281,14 +327,14 @@ public:
 };
 
 inline size_t 
-Regex::GetTransitionCount() const
+RegexImpl::GetTransitionCount() const
 {
   return m_transVec.size();
 }
 
 inline
-Regex::TransitionList&
-Regex::GetTransListAt(size_t pos)
+RegexImpl::TransitionList&
+RegexImpl::GetTransListAt(size_t pos)
 {
   if(m_transVec.size() <= pos)
   {

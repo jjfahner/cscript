@@ -48,26 +48,86 @@ inline bool isblank(int c)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Regex implementation
+// Regex wrapper
 //
 
-Regex::Regex(char const* pattern) :
-m_seq   (0),
-m_start (0)
+Regex::Regex(StringCRef pattern) :
+m_impl (0)
 {
-  if(pattern)
+  if(!pattern.empty())
   {
     Parse(pattern);
   }
 }
 
-Regex::~Regex()
+void 
+Regex::Reset()
+{
+  m_impl = 0;
+}
+
+bool 
+Regex::IsMatch(StringCRef input)
+{
+  if(m_impl == 0)
+  {
+    throw CatchableException("Empty regular expression object");
+  }
+  return m_impl->IsMatch(input);
+}
+
+ObjectPtr 
+Regex::Match(StringCRef input)
+{
+  if(m_impl == 0)
+  {
+    throw CatchableException("Empty regular expression object");
+  }
+  return m_impl->Match(input);
+}
+
+void 
+Regex::Parse(StringCRef pattern)
+{
+  m_impl = RegexImpl::FromPattern(pattern);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// RegexImpl implementation
+//
+
+typedef std::map<String, RegexImpl*> RegexImplMap;
+static RegexImplMap g_regexImplMap;
+
+/*static*/ RegexImpl* 
+RegexImpl::FromPattern(StringCRef pattern)
+{
+  RegexImpl*& impl = g_regexImplMap[pattern];
+  if(impl == 0)
+  {
+    impl = new RegexImpl(pattern);
+  }
+  return impl;
+}
+
+RegexImpl::RegexImpl(StringCRef pattern) :
+m_seq   (0),
+m_start (0)
+{
+  if(!pattern.empty())
+  {
+    Parse(pattern);
+  }
+}
+
+RegexImpl::~RegexImpl()
 {
   Reset();
 }
 
 void 
-Regex::Reset()
+RegexImpl::Reset()
 {
   m_seq   = 0;
   m_start = 0;
@@ -94,14 +154,14 @@ Regex::Reset()
 //
 
 bool 
-Regex::IsMatch(StringCRef input)
+RegexImpl::IsMatch(StringCRef input)
 {
   MatchResults* results = (MatchResults*) Match(input);
   return !results->m_complete.Empty();
 }
 
 Object*
-Regex::Match(StringCRef input)
+RegexImpl::Match(StringCRef input)
 {
   // Stack size limit
   static const size_t stackLimit = 10000;
@@ -289,7 +349,7 @@ Regex::Match(StringCRef input)
     // usually means exponential matching.
     if(next.size() > stackLimit)
     {
-      throw CatchableException("Regex match stack overflow");
+      throw CatchableException("RegexImpl match stack overflow");
     }
 
     // Swap stacks
@@ -309,7 +369,7 @@ Regex::Match(StringCRef input)
 }
 
 bool 
-Regex::MatchRange(CharRange const& range, char wch)
+RegexImpl::MatchRange(CharRange const& range, char wch)
 {
   CharRange::PairList::const_iterator it, ie;
   it = range.m_pairs.begin();
@@ -347,7 +407,7 @@ Regex::MatchRange(CharRange const& range, char wch)
 }
 
 bool 
-Regex::MatchCharClass(MatchTypes type, char wch)
+RegexImpl::MatchCharClass(MatchTypes type, char wch)
 {
   switch(type)
   {
@@ -367,7 +427,7 @@ Regex::MatchCharClass(MatchTypes type, char wch)
 }
 
 char const* 
-Regex::MatchBackref(MatchTypes backref, StackFrame const& frame)
+RegexImpl::MatchBackref(MatchTypes backref, StackFrame const& frame)
 {
   // Backref index
   size_t index = backref - mtRef1;
@@ -393,7 +453,7 @@ Regex::MatchBackref(MatchTypes backref, StackFrame const& frame)
 //
 
 void
-Regex::Parse(StringCRef pattern)
+RegexImpl::Parse(StringCRef pattern)
 {
   // Clear current state
   Reset();
@@ -421,7 +481,7 @@ Regex::Parse(StringCRef pattern)
 }
 
 void 
-Regex::ParseExpression(char const*& pattern, State& is, State& os)
+RegexImpl::ParseExpression(char const*& pattern, State& is, State& os)
 {
   // Parse a branch
   ParseBranch(pattern, is, os);
@@ -450,7 +510,7 @@ Regex::ParseExpression(char const*& pattern, State& is, State& os)
 }
 
 void 
-Regex::ParseBranch(char const*& pattern, State& is, State& os)
+RegexImpl::ParseBranch(char const*& pattern, State& is, State& os)
 {
   // Reset result states
   is = 0;
@@ -487,7 +547,7 @@ Regex::ParseBranch(char const*& pattern, State& is, State& os)
 }
 
 void 
-Regex::ParsePiece(char const*& pattern, State& is, State& os)
+RegexImpl::ParsePiece(char const*& pattern, State& is, State& os)
 {
   // Store starting point
   char const* pattern_start = pattern;
@@ -577,7 +637,7 @@ Regex::ParsePiece(char const*& pattern, State& is, State& os)
 }
 
 void 
-Regex::ParseAtom(char const*& pattern, State& is, State& os)
+RegexImpl::ParseAtom(char const*& pattern, State& is, State& os)
 {
   switch(*pattern)
   {
@@ -643,12 +703,12 @@ Regex::ParseAtom(char const*& pattern, State& is, State& os)
 
 
 void 
-Regex::ParseNested(char const*& pattern, State& is, State& os)
+RegexImpl::ParseNested(char const*& pattern, State& is, State& os)
 {
   // Sanity check
   if(*pattern++ != '(')
   {
-    throw std::logic_error("Missing '(' in Regex::ParseNested()");
+    throw std::logic_error("Missing '(' in RegexImpl::ParseNested()");
   }
 
   // Check for ignored backref
@@ -689,12 +749,12 @@ Regex::ParseNested(char const*& pattern, State& is, State& os)
 }
 
 void 
-Regex::ParseRange(char const*& pattern, State& is, State& os)
+RegexImpl::ParseRange(char const*& pattern, State& is, State& os)
 {
   // Sanity check
   if(*pattern++ != '[')
   {
-    throw std::logic_error("Missing '[' in Regex::ParseRange()");
+    throw std::logic_error("Missing '[' in RegexImpl::ParseRange()");
   }
 
   // Create range
@@ -815,7 +875,7 @@ ParseNumber(char const*& pattern, size_t defval = 0)
 }
 
 void 
-Regex::ParseQuantifier(char const*& pattern, size_t& min, size_t& max)
+RegexImpl::ParseQuantifier(char const*& pattern, size_t& min, size_t& max)
 {
   // Initialize quantifier
   min = 1;
@@ -852,13 +912,13 @@ Regex::ParseQuantifier(char const*& pattern, size_t& min, size_t& max)
 }
 
 void
-Regex::AddTransition(State inState, State outState, MatchTypes type)
+RegexImpl::AddTransition(State inState, State outState, MatchTypes type)
 {
   GetTransListAt(inState).push_back(Transition(outState, type));
 }
 
 void 
-Regex::AddCharTransition(State& inState, State& outState, char over)
+RegexImpl::AddCharTransition(State& inState, State& outState, char over)
 {
   inState  = ++m_seq;
   outState = ++m_seq;
@@ -866,7 +926,7 @@ Regex::AddCharTransition(State& inState, State& outState, char over)
 }
 
 void 
-Regex::AddTypeTransition(State& inState, State& outState, MatchTypes type)
+RegexImpl::AddTypeTransition(State& inState, State& outState, MatchTypes type)
 {
   inState  = ++m_seq;
   outState = ++m_seq;
@@ -880,8 +940,8 @@ Regex::AddTypeTransition(State& inState, State& outState, MatchTypes type)
 // TODO: This should be optimized
 //
 
-/*static*/ Regex::MatchTypes 
-Regex::ParseCharClass(char const* charClass)
+/*static*/ RegexImpl::MatchTypes 
+RegexImpl::ParseCharClass(char const* charClass)
 {
   static std::string s_upper ("upper");
   static std::string s_lower ("lower");
@@ -912,7 +972,7 @@ Regex::ParseCharClass(char const* charClass)
 }
 
 /*static*/ char const*
-Regex::MatchTypeString(MatchTypes type)
+RegexImpl::MatchTypeString(MatchTypes type)
 {
   switch(type)
   {

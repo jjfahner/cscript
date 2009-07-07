@@ -1,25 +1,27 @@
-Console.WriteLn("'", /foo.bar/.Match("blafoo@barbla").Text, "'");
-
-var match = /(.@)*|(.\d)*/.Match("a1@2@3%4@5@6@7@");
-Console.WriteLn("'", match.Text, "'");
-for(var m in match.Matches)
-{
-  Console.WriteLn("'", m, "'");
-}
-
+// Open input file
 var f = new File();
-f.Open("testsuite.csc", "r", false, false, false);
+f.Open("../src/csparser.gen.in", "r", false, false, false);
 
+// Read file contents
 while(true)
 {
+  // Read next line
   var line = f.ReadLn();
-  if(f.Eof)
-  {
+  if(f.Eof) {
     break;
   }
   
-  if(/if/.IsMatch(line))
-  {
-    Console.WriteLn(line);
+  // Match definition lines
+  if(!/::=/.IsMatch(line)) {
+    continue;
   }
+
+  /^(\s+|[a-zA-Z0-9_]+)*/.Match(line);
+
+  // Split into tokens
+//   var match = /^(\s+|::=|\(|\)|\.|\w+)*/.Match(line);
+//   for(var m in match.Matches) {
+//     Console.Write(m + " ");
+//   }
+//   Console.WriteLn("");
 }
