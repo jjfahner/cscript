@@ -101,7 +101,7 @@ typedef std::map<String, RegexImpl*> RegexImplMap;
 static RegexImplMap g_regexImplMap;
 
 /*static*/ void 
-RegexImpl::Collect()
+RegexImpl::Collect(bool /*full*/)
 {
   RegexImplMap::iterator it, ie;
   it = g_regexImplMap.begin();

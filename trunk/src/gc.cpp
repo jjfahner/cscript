@@ -117,14 +117,6 @@ GC::Collect(Stack const& stack)
   GCObjectVec grey, next;
   GCObjectVec::iterator it, ie;
 
-  // Collect strings
-  GCString::Collect();
-
-  // Collect regular expressions
-  // TODO this looks like a hook
-  // is in order :)
-  RegexImpl::Collect();
-
   // Store reference to objects list
   GCObjectVec& g_objects = GetObjects();
 
