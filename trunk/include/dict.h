@@ -28,7 +28,7 @@
 #include <iterator>
 #include <map>
 
-class Dictionary : public Object
+__native_construct class Dictionary : public Object
 {
 public:
 
