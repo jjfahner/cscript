@@ -70,9 +70,4 @@ private:
 
 };
 
-//
-// Macro for easily declaring pinned static strings
-//
-#define GCSTR(name, value) static GCString const * name = GCString::Create(value, 0, true)
-
 #endif // CSCRIPT_CSTRING_H

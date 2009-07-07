@@ -30,19 +30,6 @@
 #include "xmlparser.gen.h"
 #include "xmlparser.gen.c"
 
-GCSTR(str_xmlElement,               "#element");
-GCSTR(str_xmlAttribute,             "#attribute");
-GCSTR(str_xmlText,                  "#text");
-GCSTR(str_xmlCDATASection,          "#cdata-section");
-GCSTR(str_xmlEntityReference,       "#entity-reference");
-GCSTR(str_xmlEntity,                "#entity");
-GCSTR(str_xmlProcessingInstruction, "#processing-instruction");
-GCSTR(str_xmlComment,               "#comment");
-GCSTR(str_xmlDocument,              "#document");
-GCSTR(str_xmlDocumentType,          "#document-type");
-GCSTR(str_xmlDocumentFragment,      "#document-fragment");
-GCSTR(str_xmlNotation,              "#notation");
-
 //////////////////////////////////////////////////////////////////////////
 
 enum XmlNodeTypes
@@ -62,23 +49,23 @@ enum XmlNodeTypes
   xmlNotation = 12
 };
 
-static const GCString*
+static const Value
 XmlNodeName(XmlParser::XmlNodeTypes nodeType)
 {
   switch(nodeType)
   {
-  case xmlElement:                return str_xmlElement;
-  case xmlAttribute:              return str_xmlAttribute;
-  case xmlText:                   return str_xmlText;
-  case xmlCDATASection:           return str_xmlCDATASection;
-  case xmlEntityReference:        return str_xmlEntityReference;
-  case xmlEntity:                 return str_xmlEntity;
-  case xmlProcessingInstruction:  return str_xmlProcessingInstruction;
-  case xmlComment:                return str_xmlComment;
-  case xmlDocument:               return str_xmlDocument;
-  case xmlDocumentType:           return str_xmlDocumentType;
-  case xmlDocumentFragment:       return str_xmlDocumentFragment;
-  case xmlNotation:               return str_xmlNotation;
+  case xmlElement:                return "#element";
+  case xmlAttribute:              return "#attribute";
+  case xmlText:                   return "#text";
+  case xmlCDATASection:           return "#cdata-section";
+  case xmlEntityReference:        return "#entity-reference";
+  case xmlEntity:                 return "#entity";
+  case xmlProcessingInstruction:  return "#processing-instruction";
+  case xmlComment:                return "#comment";
+  case xmlDocument:               return "#document";
+  case xmlDocumentType:           return "#document-type";
+  case xmlDocumentFragment:       return "#document-fragment";
+  case xmlNotation:               return "#notation";
   default:                        throw std::runtime_error("Invalid XML node type");
   }
 }
