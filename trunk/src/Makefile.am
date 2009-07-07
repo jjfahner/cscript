@@ -15,6 +15,7 @@ libcs_a_SOURCES = args.cpp \
 		  datatype.cpp \
 		  eval.cpp \
 		  gc.cpp \
+		  gcstring.cpp \
 		  function.cpp \
 		  lexstream.cpp \
 		  list.cpp \
@@ -49,6 +50,5 @@ xmllexer.gen.c: xmllexer.gen.in xmlparser.gen.c
 	${RE2CDIR}/re2c -iswb --no-generation-date -o ${srcdir}/xmllexer.gen.c ${srcdir}/xmllexer.gen.in
 
 native.gen.cpp: native.awk
-	cd ${srcdir} && awk -f native.awk ../include/*.h        >  native.gen.cpp
-	cd ${srcdir} && awk -f native.awk ../include/native/*.h >> native.gen.cpp
+	cd ${srcdir} && awk -f native.awk ../include/*.h ../include/native/*.h >  native.gen.cpp
 
