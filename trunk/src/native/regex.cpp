@@ -100,6 +100,19 @@ Regex::Parse(StringCRef pattern)
 typedef std::map<String, RegexImpl*> RegexImplMap;
 static RegexImplMap g_regexImplMap;
 
+/*static*/ void 
+RegexImpl::Collect()
+{
+  RegexImplMap::iterator it, ie;
+  it = g_regexImplMap.begin();
+  ie = g_regexImplMap.end();
+  for(; it != ie; ++it)
+  {
+    GC::Unpin(it->second);
+  }
+  g_regexImplMap.clear();
+}
+
 /*static*/ RegexImpl* 
 RegexImpl::FromPattern(StringCRef pattern)
 {
@@ -115,6 +128,7 @@ RegexImpl::RegexImpl(StringCRef pattern) :
 m_seq   (0),
 m_start (0)
 {
+  GC::Pin(this);
   if(!pattern.empty())
   {
     Parse(pattern);

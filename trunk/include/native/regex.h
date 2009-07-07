@@ -34,59 +34,8 @@ class List;
 class RegexImpl;
 
 //////////////////////////////////////////////////////////////////////////
-//
-// Class Regex implements a hybrid NFA/DFA regular expression evaluator.
-// The regular expression is converted to an NFA, which is then evaluated
-// through an algorithm similar to the NFA -> DFA reduction algorithm.
-// This approach avoids backtracking without the complexity of DFA subset
-// construction. State for matching is kept strictly on the heap
-// (no recursion is required at all), which means that there is hardly 
-// any relevant intrinsic limit on the complexity of the expression.
-//
 
-__native_construct class Regex : public Object
-{
-public:
-
-  DEF_NATIVE_CALLS(Regex, Object);
-
-  //
-  // Construction
-  //
-  Regex(StringCRef pattern = "");
-
-  //
-  // Reset state
-  //
-  __native_method void Reset();
-
-  //
-  // Is input a valid match for pattern
-  //
-  __native_method bool IsMatch(StringCRef input);
-
-  //
-  // Match a string
-  //
-  __native_method ObjectPtr Match(StringCRef input);
-
-  //
-  // Parse an expression
-  //
-  __native_method void Parse(StringCRef pattern);
-
-private:
-
-  //
-  // Members
-  //
-  RegexImpl* m_impl;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
-class RegexImpl
+class RegexImpl : public GCSimpleObject
 {
 public:
 
@@ -97,7 +46,12 @@ public:
   typedef std::vector<String> StringVec;
 
   //
-  // Create or retrieve
+  // Flush the cache
+  //
+  static void Collect();
+
+  //
+  // Create or retrieve regular expression
   //
   static RegexImpl* FromPattern(StringCRef pattern);
 
@@ -348,5 +302,64 @@ RegexImpl::GetTransListAt(size_t pos)
   }
   return *list;
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Class Regex implements a hybrid NFA/DFA regular expression evaluator.
+// The regular expression is converted to an NFA, which is then evaluated
+// through an algorithm similar to the NFA -> DFA reduction algorithm.
+// This approach avoids backtracking without the complexity of DFA subset
+// construction. State for matching is kept strictly on the heap
+// (no recursion is required at all), which means that there is hardly 
+// any relevant intrinsic limit on the complexity of the expression.
+//
+
+__native_construct class Regex : public Object
+{
+public:
+
+  DEF_NATIVE_CALLS(Regex, Object);
+
+  //
+  // Construction
+  //
+  Regex(StringCRef pattern = "");
+
+  //
+  // Reset state
+  //
+  __native_method void Reset();
+
+  //
+  // Is input a valid match for pattern
+  //
+  __native_method bool IsMatch(StringCRef input);
+
+  //
+  // Match a string
+  //
+  __native_method ObjectPtr Match(StringCRef input);
+
+  //
+  // Parse an expression
+  //
+  __native_method void Parse(StringCRef pattern);
+
+private:
+
+  //
+  // Mark members
+  //
+  virtual void MarkObjects(GCObjectVec& grey)
+  {
+    GC::Mark(grey, m_impl);
+  }
+
+  //
+  // Members
+  //
+  RegexImpl* m_impl;
+
+};
 
 #endif // #ifndef REGEX_H
