@@ -76,7 +76,7 @@ public:
 inline void 
 GC::Mark(GCObjectVec& vec, GCObject* obj)
 {
-  if(obj->m_collect)
+  if(obj && obj->m_collect)
   {
     vec.push_back(obj);
   }

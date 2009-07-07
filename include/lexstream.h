@@ -78,6 +78,11 @@ public:
   void Flush();
 
   //
+  // Fill buffer and adjust pointers, called by re2c
+  //
+  int FillBuffer(int minSize = 0);
+
+  //
   // Pointers used by re2c
   //
   Cursor      m_cursor;
@@ -85,11 +90,6 @@ public:
   char const* m_bufend;
   int         m_line;
   int         m_char;
-
-  //
-  // Fill buffer and adjust pointers, called by re2c
-  //
-  int FillBuffer(int minSize = 0);
 
 private:
 
@@ -121,4 +121,3 @@ private:
 };
 
 #endif
-

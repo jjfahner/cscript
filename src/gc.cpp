@@ -24,6 +24,7 @@
 #include "value.h"
 #include "stack.h"
 #include "gcstring.h"
+#include "native/regex.h"
 
 //
 // TLS based instance
@@ -118,6 +119,11 @@ GC::Collect(Stack const& stack)
 
   // Collect strings
   GCString::Collect();
+
+  // Collect regular expressions
+  // TODO this looks like a hook
+  // is in order :)
+  RegexImpl::Collect();
 
   // Store reference to objects list
   GCObjectVec& g_objects = GetObjects();
