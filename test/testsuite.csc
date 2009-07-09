@@ -38,7 +38,7 @@ function RunTests()
   for(var file in Path.GetFiles(path))
   {
     // Check extension
-    if(!/\.csc$/.IsMatch(file))
+    if(file.Find(".csc", 0) == -1)
     {
       continue;
     }

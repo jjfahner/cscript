@@ -39,6 +39,11 @@ struct Token
   {
     return *m_text;
   }
+
+  operator char () const
+  {
+    return m_text->at(0);
+  }
 };
 
 #endif // #ifndef CSCRIPT_TOKENS_H

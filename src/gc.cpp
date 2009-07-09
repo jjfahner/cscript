@@ -24,7 +24,6 @@
 #include "value.h"
 #include "stack.h"
 #include "gcstring.h"
-#include "native/regex.h"
 
 //
 // TLS based instance
