@@ -1,0 +1,119 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
+
+//
+// Lemon language definition for cscript regular expressions
+//
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Include section
+//
+%include {
+
+#include <cassert>
+
+// switch statement contains 'default' but no 'case' labels
+#pragma warning(disable:4065)
+
+}
+//
+// End inclusion block
+//
+//////////////////////////////////////////////////////////////////////////
+
+// Generated function names
+%name             ReParse
+
+// Token prefix
+%token_prefix     RE_
+
+// Token type
+%token_type       { char }
+
+// Argument to reduces
+%extra_argument   { RegexCompiler* p }
+
+// Default result type
+%default_type     { Pair }
+
+// Error handlers
+%syntax_error {
+  p->OnSyntaxError(TOKEN);
+}
+
+// Starting point of parser
+main ::= expression(A) . { p->Finalize(A); }
+
+// Regular expression with optional anchors
+expression(R) ::= alternation(A) . { R = A; }
+
+// Alternation
+alternation(R) ::= sequence(A) . { R = A; }
+alternation(R) ::= alternation(A) ALTERNATE sequence(B) . { p->AddAlternation(A, B, R); }
+
+// Sequence
+sequence(R) ::= particle(A) . { R = A; }
+sequence(R) ::= sequence(A) particle(B) . { p->AddSequence(A, B, R); }
+
+// Particles are optionally quantified atoms. Anchors are implicitly 
+// quantified atoms, so they're stuck in with the particles to disallow 
+// quantifiers on them.
+particle(R) ::= ANCHOR_L . { p->AddLeftAnchor(R); }
+particle(R) ::= ANCHOR_R . { p->AddRightAnchor(R); }
+particle(R) ::= atom(A) .  { R = A; }
+
+// Quantified atoms
+particle(R) ::= atom(A) ZERO_OR_ONE   . { p->AddZeroOrOne(A, R);  }
+particle(R) ::= atom(A) ZERO_OR_MORE  . { p->AddZeroOrMore(A, R); }
+particle(R) ::= atom(A) ONE_OR_MORE   . { p->AddOneOrMore(A, R);  }
+particle(R) ::= atom(A) quantifier(B) . { p->Quantify(A, B, R);   }
+
+// Single-character atoms
+atom(R) ::= ANY .       { p->AddAnyChar(R); }
+atom(R) ::= CHAR(A) .   { p->AddChar(A, R); }
+atom(R) ::= DASH .      { p->AddChar('-', R); }
+
+// Complex atoms
+atom(R) ::= range(A) . { R = A; }
+atom(R) ::= LPAREN expression(A) RPAREN . { R = A; }
+
+// Character range with optional inversion
+range(R) ::= LBRACKET          range_sequence(A) RBRACKET . { R = A; }
+range(R) ::= LBRACKET ANCHOR_L range_sequence(A) RBRACKET . { R, A; /*R = A; A->Invert(true);*/ }
+
+// Range contents
+range_sequence(R) ::= range_atom(A) . { R, A; /*R = new Regex::Ast::Range(); R->Append(A);*/ }
+range_sequence(R) ::= range_sequence(A) range_atom(B) . { R, A; /*R = A; R->Append(B);*/ }
+
+// Range atoms
+range_atom(R) ::= CHAR(A) .              { R.m_min = A; R.m_max = A; }
+range_atom(R) ::= CHAR(A) DASH CHAR(B) . { R.m_min = A; R.m_max = B; }
+
+// Free quantifiers
+quantifier(R) ::= LBRACE int(L) RBRACE .              { R, L; }
+quantifier(R) ::= LBRACE int(L) COMMA RBRACE .        { R, L; }
+quantifier(R) ::= LBRACE int(L) COMMA int(H) RBRACE . { R, L, H; }
+quantifier(R) ::= LBRACE COMMA int(H) RBRACE .        { R, H; }
+
+// Integer, used in free quantifiers
+int(R) ::= INT(A) . { R, A; }
+int(R) ::= int(A) INT(B) . { R, A, B; }
