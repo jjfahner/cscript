@@ -27,6 +27,116 @@
 
 //////////////////////////////////////////////////////////////////////////
 
+RegexCompiler::RegexCompiler() :
+m_stateSeq(0),
+m_start   (0),
+m_final   (0)
+{
+}
+
+inline State 
+RegexCompiler::AddState()
+{
+  State state = m_stateSeq++;
+  if(m_table.size() <= state)
+  {
+    m_table.resize(m_table.size() + 10);
+  }
+  return state;
+}
+
+inline void
+RegexCompiler::AddAlternation(Pair const& lhs, Pair const& rhs, Pair& result)
+{
+  result.m_min = AddState();
+  result.m_max = AddState();
+  AddTransition(result.m_min, lhs.m_min);
+  AddTransition(result.m_min, rhs.m_min);
+  AddTransition(lhs.m_max, result.m_max);
+  AddTransition(rhs.m_max, result.m_max);
+}
+
+inline void
+RegexCompiler::AddSequence(Pair const& lhs, Pair const& rhs, Pair& result)
+{
+  result.m_min = lhs.m_min;
+  result.m_max = rhs.m_max;
+  AddTransition(lhs.m_max, rhs.m_min);
+}
+
+inline void
+RegexCompiler::AddLeftAnchor(Pair& result)
+{
+  result.m_min = AddState();
+  result.m_max = AddState();
+  AddTransition(result.m_min, result.m_max, ttAnchorL);
+}
+
+inline void
+RegexCompiler::AddRightAnchor(Pair& result)
+{
+  result.m_min = AddState();
+  result.m_max = AddState();
+  AddTransition(result.m_min, result.m_max, ttAnchorR);
+}
+
+inline void
+RegexCompiler::AddAnyChar(Pair& result)
+{
+  result.m_min = AddState();
+  result.m_max = AddState();
+  AddTransition(result.m_min, result.m_max, ttAny);
+}
+
+inline void
+RegexCompiler::AddChar(char ch, Pair& result)
+{
+  result.m_min = AddState();
+  result.m_max = AddState();
+  AddTransition(result.m_min, result.m_max, ttChar, ch);
+}
+
+inline void 
+RegexCompiler::AddZeroOrOne(Pair const& e, Pair& r)
+{
+  r.m_min = e.m_min;
+  r.m_max = e.m_max;
+  AddTransition(e.m_min, e.m_max);
+}
+
+inline void 
+RegexCompiler::AddZeroOrMore(Pair const& e, Pair& r)
+{
+  r.m_min = e.m_min;
+  r.m_max = AddState();
+  AddTransition(e.m_min, r.m_max);
+  AddTransition(e.m_max, r.m_max);
+  AddTransition(e.m_max, e.m_min);
+}
+
+inline void 
+RegexCompiler::AddOneOrMore(Pair const& e, Pair& r)
+{
+  r.m_min = e.m_min;
+  r.m_max = e.m_max;
+  AddTransition(e.m_max, e.m_min);
+}
+
+inline void
+RegexCompiler::Quantify(Pair const& e, Pair const& q, Pair& r)
+{
+  throw std::runtime_error("Free quantifiers not implemented");
+}
+
+inline void
+RegexCompiler::Finalize(Pair const& result)
+{
+  m_start = result.m_min;
+  m_final = result.m_max;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 #include "parser.gen.c"
 #include "parser.gen.h"
 
@@ -43,15 +153,6 @@ typedef LemonParser<
   ReParseTraceDummy,
   #endif
   ReParse> ReParserImpl;
-
-//////////////////////////////////////////////////////////////////////////
-
-RegexCompiler::RegexCompiler() :
-m_stateSeq(0),
-m_start   (0),
-m_final   (0)
-{
-}
 
 /*static*/ void 
 RegexCompiler::Compile(LexStream& stream)
@@ -114,107 +215,6 @@ RegexCompiler::Compile(LexStream& stream)
 void
 RegexCompiler::OnSyntaxError(char ch)
 {
-}
-
-State 
-RegexCompiler::AddState()
-{
-  State state = m_stateSeq++;
-  if(m_table.size() <= state)
-  {
-    m_table.resize(m_table.size() + 10);
-  }
-  return state;
-}
-
-void
-RegexCompiler::AddAlternation(Pair const& lhs, Pair const& rhs, Pair& result)
-{
-  result.m_min = AddState();
-  result.m_max = AddState();
-  AddTransition(result.m_min, lhs.m_min);
-  AddTransition(result.m_min, rhs.m_min);
-  AddTransition(lhs.m_max, result.m_max);
-  AddTransition(rhs.m_max, result.m_max);
-}
-
-void
-RegexCompiler::AddSequence(Pair const& lhs, Pair const& rhs, Pair& result)
-{
-  result.m_min = lhs.m_min;
-  result.m_max = rhs.m_max;
-  AddTransition(lhs.m_max, rhs.m_min);
-}
-
-void
-RegexCompiler::AddLeftAnchor(Pair& result)
-{
-  result.m_min = AddState();
-  result.m_max = AddState();
-  AddTransition(result.m_min, result.m_max, ttAnchorL);
-}
-
-void
-RegexCompiler::AddRightAnchor(Pair& result)
-{
-  result.m_min = AddState();
-  result.m_max = AddState();
-  AddTransition(result.m_min, result.m_max, ttAnchorR);
-}
-
-void
-RegexCompiler::AddAnyChar(Pair& result)
-{
-  result.m_min = AddState();
-  result.m_max = AddState();
-  AddTransition(result.m_min, result.m_max, ttAny);
-}
-
-void
-RegexCompiler::AddChar(char ch, Pair& result)
-{
-  result.m_min = AddState();
-  result.m_max = AddState();
-  AddTransition(result.m_min, result.m_max, ttChar, ch);
-}
-
-void 
-RegexCompiler::AddZeroOrOne(Pair const& e, Pair& r)
-{
-  r.m_min = e.m_min;
-  r.m_max = e.m_max;
-  AddTransition(e.m_min, e.m_max);
-}
-
-void 
-RegexCompiler::AddZeroOrMore(Pair const& e, Pair& r)
-{
-  r.m_min = e.m_min;
-  r.m_max = AddState();
-  AddTransition(e.m_min, r.m_max);
-  AddTransition(e.m_max, r.m_max);
-  AddTransition(e.m_max, e.m_min);
-}
-
-void 
-RegexCompiler::AddOneOrMore(Pair const& e, Pair& r)
-{
-  r.m_min = e.m_min;
-  r.m_max = e.m_max;
-  AddTransition(e.m_max, e.m_min);
-}
-
-void
-RegexCompiler::Quantify(Pair const& e, Pair const& q, Pair& r)
-{
-  throw std::runtime_error("Free quantifiers not implemented");
-}
-
-void
-RegexCompiler::Finalize(Pair const& result)
-{
-  m_start = result.m_min;
-  m_final = result.m_max;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -401,6 +401,22 @@ RegexCompiler::Finalize(Pair const& result)
 // 
 // //////////////////////////////////////////////////////////////////////////
 // 
+// struct Frame
+// {
+//   void Set(State state = 0, char const* start = 0, char const* ptr = 0, Frame* next = 0)
+//   {
+//     m_state = state;
+//     m_start = start;
+//     m_ptr   = ptr;
+//     m_next  = next;
+//   }
+// 
+//   State       m_state;
+//   char const* m_start;
+//   char const* m_ptr;
+//   Frame*      m_next;
+// 
+// };
 // void 
 // Regex::Match(CompileContext const& ctx, char const* text)
 // {

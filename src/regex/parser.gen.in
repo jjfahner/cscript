@@ -89,8 +89,10 @@ particle(R) ::= atom(A) quantifier(B) . { p->Quantify(A, B, R);   }
 
 // Single-character atoms
 atom(R) ::= ANY .       { p->AddAnyChar(R); }
+atom(R) ::= DASH(A) .   { p->AddChar(A, R); }
+atom(R) ::= COMMA(A) .  { p->AddChar(A, R); }
 atom(R) ::= CHAR(A) .   { p->AddChar(A, R); }
-atom(R) ::= DASH .      { p->AddChar('-', R); }
+atom(R) ::= INT(A) .    { p->AddChar(A, R); }
 
 // Complex atoms
 atom(R) ::= range(A) . { R = A; }
