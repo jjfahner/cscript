@@ -1,0 +1,1 @@
+return 0rMCMLXXXIV == 1984;

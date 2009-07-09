@@ -1,0 +1,53 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
+
+int 
+XmlLexer::ParseNextToken()
+{
+  /*!re2c
+  
+  re2c:define:YYCTYPE   = "char";
+  re2c:define:YYCURSOR  = m_stream.m_cursor;
+  re2c:define:YYMARKER  = m_stream.m_marker;
+  re2c:define:YYLIMIT   = m_stream.m_bufend;
+  re2c:define:YYFILL    = m_stream.FillBuffer;
+  re2c:yyfill:enable    = 1;
+  re2c:yyfill:parameter = 1;
+  re2c:yych:conversion  = 1;
+  re2c:indent:top       = 1;
+  
+  [ \t\r\n]+                  { return XML_WS;      }
+  ["]                         { return XML_STRING;  }
+  [']                         { return XML_STRING;  }
+    
+  [A-Z_a-z][A-Z_a-z-.0-9]*    { return XML_NAME;    }
+  
+  "<?xml"                     { return XML_DECL;    }
+  "<?"                        { return XML_PRO_I;   }
+  "?>"                        { return XML_PRO_E;   }
+  "/>"                        { return XML_SL_GT;   }
+  "</"                        { return XML_LT_SL;   }
+  "<"                         { return XML_LT;      }
+  ">"                         { return XML_GT;      }
+  "="                         { return XML_EQ;      }
+  
+  */
+}
