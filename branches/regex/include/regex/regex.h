@@ -26,6 +26,7 @@
 
 class RegexData;
 class LexStream;
+class MatchResult;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -61,6 +62,17 @@ public:
 
 private:
 
+  struct ImplResult
+  {
+    bool m_success;
+    MatchResult* m_result;
+  };
+
+  //
+  // Match implementation
+  //
+  ImplResult MatchImpl(StringCRef text, bool createMatchResult);
+
   //
   // Object marking
   //
@@ -82,24 +94,30 @@ public:
   DEF_NATIVE_CALLS(MatchResult, Object);
 
   //
-  // Construction
-  //
-  MatchResult(StringCRef match) :
-  m_match (match)
-  {
-  }
-
-  //
   // Full text
   //
   __native_roprop StringCRef Text()
   {
-    return m_match;
+    return m_text;
+  }
+
+  //
+  // Start of match
+  //
+  __native_roprop int64 Offset()
+  {
+    return m_offset;
   }
   
 private:
 
-  String m_match;
+  friend class Regex;
+
+  //
+  // Members
+  //
+  String m_text;
+  int64 m_offset;
 
 };
 

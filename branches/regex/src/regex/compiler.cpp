@@ -109,6 +109,14 @@ RegexCompiler::AddChar(char ch, Pair& result)
   AddTransition(result.m_min, result.m_max, ttChar, ch);
 }
 
+void 
+RegexCompiler::AddCharClass(char ch, Pair& result)
+{
+  result.m_min = AddState();
+  result.m_max = AddState();
+  AddTransition(result.m_min, result.m_max, (TransitionTypes)ch);
+}
+
 inline void 
 RegexCompiler::ZeroOrOne(Pair const& e, Pair& r)
 {
@@ -146,6 +154,7 @@ RegexCompiler::Finalize(Pair const& result)
 {
   m_rd->m_start = result.m_min;
   m_rd->m_final = result.m_max;
+  AddTransition(m_rd->m_start, m_rd->m_start, ttOffset);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -215,6 +224,26 @@ RegexCompiler::Compile(LexStream& stream)
     case '7': type = RE_INT; break;
     case '8': type = RE_INT; break;
     case '9': type = RE_INT; break;
+    case '\\':
+      c = *stream.m_cursor++;
+      type = RE_CLASS;
+      switch(c)
+      {
+      case 'a': c = ccAlnum;  break;
+      case 'c': c = ccAlpha;  break;
+      case 'b': c = ccBlank;  break;
+      case 'n': c = ccCntrl;  break;
+      case 'd': c = ccDigit;  break;
+      case 'g': c = ccGraph;  break;
+      case 'l': c = ccLower;  break;
+      case 'p': c = ccPrint;  break;
+      case 't': c = ccPunct;  break;
+      case 's': c = ccSpace;  break;
+      case 'u': c = ccUpper;  break;
+      case 'x': c = ccXdigit; break;
+      default: type = RE_CHAR; break;
+      }
+      break;
     }
 
     // Push to parser
