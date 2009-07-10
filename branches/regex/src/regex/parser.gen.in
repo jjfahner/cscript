@@ -67,21 +67,32 @@ main ::= expression(A) . { p->Finalize(A); }
 expression(R) ::= alternation(A) . { R = A; }
 
 // Alternation
-alternation(R) ::= sequence(A) . { R = A; }
-alternation(R) ::= alternation(A) ALTERNATE sequence(B) . { p->AddAlternation(A, B, R); }
+alternation(R) ::= branch(A) . { R = A; }
+alternation(R) ::= alternation(A) ALTERNATE branch(B) . { p->AddAlternation(A, B, R); }
+
+// Branch
+branch(R) ::= sequence(A) . { R = A; }
+branch(R) ::= anchor_l(A) . { R = A; }
+branch(R) ::= anchor_r(A) . { R = A; }
+branch(R) ::= anchor_l(A) anchor_r(B) . { p->AddSequence(A, B, R); }
+branch(R) ::= anchor_l(A) sequence(B) . { p->AddSequence(A, B, R); }
+branch(R) ::= sequence(A) anchor_r(B) . { p->AddSequence(A, B, R); }
+branch(R) ::= anchor_l(A) sequence(B) anchor_r(C) . {
+  Pair R1; 
+  p->AddSequence(A, B, R1);
+  p->AddSequence(R1, C, R); 
+}
+
+// Anchors
+anchor_l(R) ::= ANCHOR_L . { p->AddLeftAnchor(R); }
+anchor_r(R) ::= ANCHOR_R . { p->AddRightAnchor(R); }
 
 // Sequence
 sequence(R) ::= particle(A) . { R = A; }
 sequence(R) ::= sequence(A) particle(B) . { p->AddSequence(A, B, R); }
 
-// Particles are optionally quantified atoms. Anchors are implicitly 
-// quantified atoms, so they're stuck in with the particles to disallow 
-// quantifiers on them.
-particle(R) ::= ANCHOR_L . { p->AddLeftAnchor(R); }
-particle(R) ::= ANCHOR_R . { p->AddRightAnchor(R); }
+// Atoms
 particle(R) ::= atom(A) .  { R = A; }
-
-// Quantified atoms
 particle(R) ::= atom(A) ZERO_OR_ONE   . { p->ZeroOrOne(A, R);   }
 particle(R) ::= atom(A) ZERO_OR_MORE  . { p->ZeroOrMore(A, R);  }
 particle(R) ::= atom(A) ONE_OR_MORE   . { p->OneOrMore(A, R);   }
