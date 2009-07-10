@@ -127,9 +127,9 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
     for(Frame* f = cur; f; )
     {
       // Enumerate transitions with this in state
-      SizeVec const& tv = m_rd->m_table[f->m_state];
-      for(size_t i = 0; i < tv.size(); ++i)
-      {
+      Transition* tr = m_rd->m_table[f->m_state];
+      for(; tr; tr = tr->m_next)
+      { 
         // Setup some pointers
         char const* o = f->m_start;
         char const* s = f->m_ptr;
@@ -137,8 +137,7 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
         char const* n = s + 1;
 
         // Try transition
-        Transition const& tr = m_rd->m_transitions[tv[i]];
-        switch(tr.m_type)
+        switch(tr->m_type)
         {
         case ttEmpty:   p = s; break;
         case ttNext:    p = s + 1; break;
@@ -146,9 +145,9 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
         case ttAnchorL: p = s == text ? s : 0; break;
         case ttAnchorR: p = *s ? 0 : s; break;
         case ttAny:     p = *s ? n : 0; break;
-        case ttChar:    p = *s == tr.m_min ? n : 0; break;
-        case ttRange:   p = *s >= tr.m_min && *s <= tr.m_max ? n : 0; break;
-        case ttNRange:  p = *s >= tr.m_min && *s <= tr.m_max ? 0 : s; break;
+        case ttChar:    p = *s == tr->m_min ? n : 0; break;
+        case ttRange:   p = *s >= tr->m_min && *s <= tr->m_max ? n : 0; break;
+        case ttNRange:  p = *s >= tr->m_min && *s <= tr->m_max ? 0 : s; break;
         case ccAlnum:   p = isalnum(*s) ? n : 0;  break;
         case ccAlpha:   p = isalpha(*s) ? n : 0;  break;
         case ccBlank:   p = isblank(*s) ? n : 0;  break;
@@ -168,7 +167,7 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
         if(p)
         {
           // Final state
-          if(tr.m_out == m_rd->m_final)
+          if(tr->m_out == m_rd->m_final)
           {
             // Calculate current and existing match lengths
             size_t extLen = matchPtr - matchStart;
@@ -203,7 +202,7 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
             }
 
             // Initialize and link into list
-            n->Set(tr.m_out, o, p, next);
+            n->Set(tr->m_out, o, p, next);
             next = n;
             
             // Check for limit

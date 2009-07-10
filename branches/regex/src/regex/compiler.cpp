@@ -54,8 +54,12 @@ RegexCompiler::AddState()
 inline void 
 RegexCompiler::AddTransition(State in, State out, TransitionTypes type, char min, char max)
 {
-  m_rd->m_transitions.push_back(Transition(out, type, min, max));
-  m_rd->m_table[in].push_back(m_rd->m_transitions.size() - 1);
+  // Find last transition for state
+  Transition** t = &m_rd->m_table[in];
+  for(; *t; t = &((*t)->m_next));
+
+  // Store new transition
+  *t = new Transition(out, type, min, max);
 }
 
 inline void
