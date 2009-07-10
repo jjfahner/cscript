@@ -104,6 +104,7 @@ atom(R) ::= DASH(A) .   { p->AddChar(A, R); }
 atom(R) ::= COMMA(A) .  { p->AddChar(A, R); }
 atom(R) ::= CHAR(A) .   { p->AddChar(A, R); }
 atom(R) ::= INT(A) .    { p->AddChar(A, R); }
+atom(R) ::= CLASS(A) .  { p->AddCharClass(A, R); }
 
 // Complex atoms
 atom(R) ::= range(A) . { R = A; }

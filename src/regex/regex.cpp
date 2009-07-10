@@ -65,6 +65,16 @@ Regex::Compile(StringCRef pattern)
   //m_rd = RegexCompiler::Compile(pattern);
 }
 
+ObjectPtr
+Regex::Match(StringCRef text)
+{
+  if(m_rd == 0)
+  {
+    throw CatchableException("Invalid Regex object");
+  }
+  return MatchImpl(text, true).m_result;
+}
+
 bool 
 Regex::IsMatch(StringCRef text)
 {
@@ -72,17 +82,19 @@ Regex::IsMatch(StringCRef text)
   {
     throw CatchableException("Invalid Regex object");
   }
-  //return m_rd->IsMatch(text);
-  return 0;
+  return MatchImpl(text, false).m_success;
 }
 
-ObjectPtr
-Regex::Match(StringCRef input)
+Regex::ImplResult 
+Regex::MatchImpl(StringCRef input, bool createMatchResult)
 {
   // Create initial frame
   Frame* cur = new Frame;
   char const* text = input.c_str();
   cur->Set(m_rd->m_start, text, text);
+
+  bool optLeftmost = false;
+  bool optShortest = false;
 
   // Free frames
   Frame* freelist = 0;
@@ -111,8 +123,10 @@ Regex::Match(StringCRef input)
       SizeVec const& tv = m_rd->m_table[f->m_state];
       for(size_t i = 0; i < tv.size(); ++i)
       {
+        char const* o = f->m_start;
         char const* s = f->m_ptr;
         char const* p = 0;
+        char const* n = s + 1;
 
         // Try transion
         Transition const& tr = m_rd->m_transitions[tv[i]];
@@ -124,7 +138,9 @@ Regex::Match(StringCRef input)
         case ttNext:
           p = s + 1;
           break;
-        case ttStartPos:
+        case ttOffset:
+          ++o;
+          if(*o) p = o;
           break;
         case ttAnchorL:
           p = s == text ? s : 0;
@@ -133,16 +149,55 @@ Regex::Match(StringCRef input)
           p = *s ? 0 : s;
           break;
         case ttAny:
-          p = *s ? s + 1 : 0;
+          p = *s ? n : 0;
           break;
         case ttChar:
-          p = *s == tr.m_min ? s + 1 : 0;
+          p = *s == tr.m_min ? n : 0;
           break;
         case ttRange:
-          p = *s >= tr.m_min && *s <= tr.m_max ? s + 1 : 0;
+          p = *s >= tr.m_min && 
+              *s <= tr.m_max ? n : 0;
           break;
         case ttNRange:
-          p = *s >= tr.m_min && *s <= tr.m_max ? 0 : s;
+          p = *s >= tr.m_min && 
+              *s <= tr.m_max ? 0 : s;
+          break;
+        case ccAlnum:
+          p = isalnum(*s) ? n : 0;
+          break;
+        case ccAlpha:
+          p = isalpha(*s) ? n : 0;
+          break;
+        case ccBlank:
+          // TODO
+          p = *s == ' ' ? n : 0; 
+          break;
+        case ccCntrl:
+          p = iscntrl(*s) ? n : 0;
+          break;
+        case ccDigit:
+          p = isdigit(*s) ? n : 0;
+          break;
+        case ccGraph:
+          p = isgraph(*s) ? n : 0;
+          break;
+        case ccLower:
+          p = islower(*s) ? n : 0;
+          break;
+        case ccPrint:
+          p = isprint(*s) ? n : 0;
+          break;
+        case ccPunct:
+          p = ispunct(*s) ? n : 0;
+          break;
+        case ccSpace:
+          p = isspace(*s) ? n : 0;
+          break;
+        case ccUpper:
+          p = isupper(*s) ? n : 0;
+          break;
+        case ccXdigit:
+          p = isxdigit(*s) ? n : 0;
           break;
         }
 
@@ -152,9 +207,19 @@ Regex::Match(StringCRef input)
           // Final state
           if(tr.m_out == m_rd->m_final)
           {
-            bool leftmost = f->m_start <= matchStart;
-            bool notshort = matchPtr == 0 || p - f->m_start >= matchPtr - matchStart;
-            if(leftmost && notshort)
+            // Calculate current and existing match lengths
+            size_t extLen = matchPtr - matchStart;
+            size_t curLen = p - f->m_start;
+
+            // Determine whether to accept this match
+            bool acceptMatch = 
+              matchPtr == 0 ? true :
+              optShortest && curLen < extLen ? true :
+             !optShortest && curLen > extLen ? true :
+              optLeftmost && f->m_start < matchStart ? true :
+              false;
+
+            if(acceptMatch)
             {
               matchStart = f->m_start;
               matchPtr   = p;
@@ -175,7 +240,7 @@ Regex::Match(StringCRef input)
             }
 
             // Initialize and link into list
-            n->Set(tr.m_out, f->m_start, p, next);
+            n->Set(tr.m_out, o, p, next);
             next = n;
             
             // Check for limit
@@ -211,12 +276,19 @@ Regex::Match(StringCRef input)
     delete t;
   }
 
-  // Check match
-  if(matchPtr == 0)
-  {
-    return 0;
-  }
+  // Create result
+  ImplResult result;
+  result.m_success = matchPtr != 0;
+  result.m_result  = 0;
 
   // Create match result
-  return new MatchResult(String(matchStart, matchPtr));
+  if(createMatchResult && result.m_success)
+  {
+    result.m_result = new MatchResult;
+    result.m_result->m_text = String(matchStart, matchPtr);
+    result.m_result->m_offset = matchStart - text;
+  }
+
+  // Done
+  return result;
 }

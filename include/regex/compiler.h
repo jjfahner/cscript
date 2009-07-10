@@ -33,13 +33,25 @@ enum TransitionTypes
 {
   ttEmpty,
   ttNext,
-  ttStartPos,
+  ttOffset,
   ttAnchorL,
   ttAnchorR,
   ttAny,
   ttChar,
   ttRange,
   ttNRange,
+  ccAlnum,
+  ccAlpha,
+  ccBlank,
+  ccCntrl,
+  ccDigit,
+  ccGraph,
+  ccLower,
+  ccPrint,
+  ccPunct,
+  ccSpace,
+  ccUpper,
+  ccXdigit
 };
 
 struct Pair
@@ -50,6 +62,7 @@ struct Pair
 
 typedef size_t State;
 
+//////////////////////////////////////////////////////////////////////////
 //
 // Transition to next state over match
 //
@@ -74,9 +87,11 @@ typedef std::vector<Transition> TransitionVec;
 typedef std::vector<size_t> SizeVec;
 typedef std::vector<SizeVec> TransitionTable;
 
+//////////////////////////////////////////////////////////////////////////
 //
-// Regular expression data
+// Compiled regular expression
 //
+
 class RegexData : public GCSimpleObject
 {
 public:
@@ -91,9 +106,11 @@ public:
 
 };
 
+//////////////////////////////////////////////////////////////////////////
 //
 // Regular expression compiler
 //
+
 class RegexCompiler
 {
 public:
@@ -147,6 +164,11 @@ public:
   // Add a char
   //
   void AddChar(char ch, Pair& result);
+
+  //
+  // Add a char class
+  //
+  void AddCharClass(char ch, Pair& result);
 
   //
   // Quantify zero or one (?)
