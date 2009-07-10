@@ -37,11 +37,17 @@ m_rd      (0)
 inline State 
 RegexCompiler::AddState()
 {
+  // Fetch next state
   State state = m_stateSeq++;
-  if(m_rd->m_table.size() <= state)
+
+  // Resize table
+  size_t size = m_rd->m_table.size();
+  if(size <= state)
   {
-    m_rd->m_table.resize(m_rd->m_table.size() + 10);
+    m_rd->m_table.resize(size + 10);
   }
+
+  // Done
   return state;
 }
 

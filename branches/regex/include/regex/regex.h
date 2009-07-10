@@ -73,4 +73,34 @@ private:
 
 };
 
+//////////////////////////////////////////////////////////////////////////
+
+class MatchResult : public Object
+{
+public:
+
+  DEF_NATIVE_CALLS(MatchResult, Object);
+
+  //
+  // Construction
+  //
+  MatchResult(StringCRef match) :
+  m_match (match)
+  {
+  }
+
+  //
+  // Full text
+  //
+  __native_roprop StringCRef Text()
+  {
+    return m_match;
+  }
+  
+private:
+
+  String m_match;
+
+};
+
 #endif // CSCRIPT_REGEX_H

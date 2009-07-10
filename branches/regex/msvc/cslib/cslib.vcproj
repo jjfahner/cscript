@@ -344,7 +344,7 @@
 						<Tool
 							Name="VCCustomBuildTool"
 							CommandLine="..\..\tools\win32\lemon.exe ..\..\src\regex\parser.gen.in&#x0D;&#x0A;"
-							Outputs="..\..\regex\parser.gen.c"
+							Outputs="..\..\src\regex\parser.gen.c"
 						/>
 					</FileConfiguration>
 				</File>
