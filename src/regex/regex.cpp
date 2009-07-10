@@ -197,7 +197,7 @@ Regex::Match(StringCRef input)
     }
 
     // Print size
-    std::cout << "Iteration " << ++iterations << " created " << next_size << " frames\n";
+    // std::cout << "Iteration " << ++iterations << " created " << next_size << " frames\n";
 
     // Next iteration
     cur = next;
@@ -214,14 +214,9 @@ Regex::Match(StringCRef input)
   // Check match
   if(matchPtr == 0)
   {
-    std::cout << "\nFailed to match input string\n";
-  }
-  else
-  {
-    String result(matchStart, matchPtr);
-    std::cout << "\nMatched " << result << "\n";
+    return 0;
   }
 
-  return 0;
+  // Create match result
+  return new MatchResult(String(matchStart, matchPtr));
 }
-

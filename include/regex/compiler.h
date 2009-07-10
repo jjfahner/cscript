@@ -180,6 +180,11 @@ public:
 
 private:
 
+  //
+  // Push a character to the parser
+  //
+  void PushChar(char ch);
+
   // State sequence number
   size_t m_stateSeq;
 
