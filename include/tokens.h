@@ -34,6 +34,7 @@ struct Token
 {
   int       m_type;
   GCString* m_text;
+  Object*   m_regex;
 
   operator String const& () const
   {

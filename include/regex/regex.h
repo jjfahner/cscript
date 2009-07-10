@@ -24,8 +24,8 @@
 #include <cscript.h>
 #include <native.h>
 
-class RegexImpl;
-class RegexMatch;
+class RegexData;
+class LexStream;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -37,10 +37,12 @@ __native_construct class Regex : public Object
 {
 public:
 
+  DEF_NATIVE_CALLS(Regex, Object);
+
   //
   // Construction
   //
-  Regex();
+  Regex(RegexData* rd = 0);
 
   //
   // Compile a regular expression
@@ -67,33 +69,7 @@ private:
   //
   // Members
   //
-  RegexImpl* m_impl;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-//
-// RegexImpl implements the regular expression matching logic.
-//
-
-class RegexImpl : public Object
-{
-public:
-
-  //
-  // Compile a pattern from source
-  //
-  static RegexImpl* Compile(String const& pattern);
-
-  //
-  // Match a string
-  //
-  ObjectPtr Match(StringCRef text);
-
-  //
-  // Simple match
-  //
-  bool IsMatch(StringCRef text);
+  RegexData* m_rd;
 
 };
 

@@ -75,6 +75,23 @@ typedef std::vector<size_t> SizeVec;
 typedef std::vector<SizeVec> TransitionTable;
 
 //
+// Regular expression data
+//
+class RegexData : public GCSimpleObject
+{
+public:
+
+  // Start and final state
+  State m_start;
+  State m_final;
+
+  // Transitions
+  TransitionVec m_transitions;
+  TransitionTable m_table;
+
+};
+
+//
 // Regular expression compiler
 //
 class RegexCompiler
@@ -84,7 +101,7 @@ public:
   //
   // Compile a regular expression
   //
-  static void Compile(LexStream& stream);
+  static RegexData* Compile(LexStream& stream);
 
   //
   // Construction
@@ -97,9 +114,9 @@ public:
   State AddState();
 
   //
-  // Called when there is a syntax error
+  // Add an empty transition
   //
-  void OnSyntaxError(char ch);
+  void AddTransition(State in, State out, TransitionTypes type = ttEmpty, char min = 0, char max = 0);
 
   //
   // Add an alternation between lhs and rhs
@@ -134,17 +151,17 @@ public:
   //
   // Quantify zero or one (?)
   //
-  void AddZeroOrOne(Pair const& expression, Pair& result);
+  void ZeroOrOne(Pair const& expression, Pair& result);
 
   //
   // Quantify zero or more (*)
   //
-  void AddZeroOrMore(Pair const& expression, Pair& result);
+  void ZeroOrMore(Pair const& expression, Pair& result);
 
   //
   // Quantify one or more (+)
   //
-  void AddOneOrMore(Pair const& expression, Pair& result);
+  void OneOrMore(Pair const& expression, Pair& result);
 
   //
   // Quantify an expression
@@ -157,27 +174,20 @@ public:
   void Finalize(Pair const& result);
 
   //
-  // Add an empty transition
+  // Called when there is a syntax error
   //
-  void AddTransition(State in, State out, TransitionTypes type = ttEmpty, char min = 0, char max = 0)
-  {
-    m_transitions.push_back(Transition(out, type, min, max));
-    m_table[in].push_back(m_transitions.size() - 1);
-  }
+  void OnSyntaxError(char ch);
 
-  //private:
-
-  // Transitions
-  TransitionVec m_transitions;
-  TransitionTable m_table;
+private:
 
   // State sequence number
   size_t m_stateSeq;
 
-  // Start and final state
-  State m_start;
-  State m_final;
+  // Current regex
+  RegexData* m_rd;
 
 };
 
 #endif // CSCRIPT_REGEX_COMPILER_H
+
+
