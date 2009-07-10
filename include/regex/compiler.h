@@ -66,26 +66,27 @@ typedef size_t State;
 //
 // Transition to next state over match
 //
+
 struct Transition
 {
   Transition(State out, TransitionTypes type, char min = 0, char max = 0) :
     m_type  (type), 
     m_out   (out),
     m_min   (min),
-    m_max   (max)
+    m_max   (max),
+    m_next  (0)
   {
   }
 
   TransitionTypes m_type;
-  State m_out;
-  char  m_min;
-  char  m_max;
+  State       m_out;
+  char        m_min;
+  char        m_max;
+  Transition* m_next;
 };
 
-// Transition types
-typedef std::vector<Transition> TransitionVec;
-typedef std::vector<size_t> SizeVec;
-typedef std::vector<SizeVec> TransitionTable;
+// Transition vector
+typedef std::vector<Transition*> Transitions;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -100,9 +101,8 @@ public:
   State m_start;
   State m_final;
 
-  // Transitions
-  TransitionVec m_transitions;
-  TransitionTable m_table;
+  // Transitions table
+  Transitions m_table;
 
 };
 
