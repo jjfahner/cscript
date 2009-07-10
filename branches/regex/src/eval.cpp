@@ -40,7 +40,6 @@
 #include <native/path.h>
 #include <native/console.h>
 #include <native/standard.h>
-#include <regex/compiler.h>
 
 #include <list>
 #include <iostream>
@@ -650,9 +649,7 @@ Evaluator::EvalExpression(Object* node)
     break;
 
   case regex_literal:
-    g_stack.Push(Value());
-    //throw std::runtime_error("Regular expressions are currently out of order");
-    //g_stack.Push(new Regex(Ast_A1(node)));
+    g_stack.Push(Ast_A1(node));
     break;
 
   case ternary_expression:

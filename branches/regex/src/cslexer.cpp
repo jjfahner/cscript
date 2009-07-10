@@ -23,6 +23,7 @@
 #include "tokens.h"
 #include "lexstream.h"
 #include "eval.h"
+#include "regex/regex.h"
 #include "regex/compiler.h"
 
 #include "csparser.gen.h"
@@ -225,42 +226,16 @@ CSLexer::LexComment(int type)
 bool 
 CSLexer::LexRegex(Token& token)
 {
-  RegexCompiler::Compile(m_stream);
-  token.m_type = CS_REGEX_LITERAL;
-  m_regex = false;
-  return true;
+  // Compile pattern from source file
+  RegexData* rd = RegexCompiler::Compile(m_stream);
 
-//   // Retrieve first character from stream
-//   char ch = *m_stream.m_cursor++;
-// 
-//   // Init type
-//   int& type = token.m_type;
-//   type = CS_REGEX_CHAR;
-// 
-//   // Find character code
-//   switch(ch)
-//   {
-//   case '/':  type = CS_DIVOP; m_regex = 0; break;
-//   case '(':  type = CS_LPAREN; break;
-//   case ')':  type = CS_RPAREN; break;
-//   case '[':  type = CS_LBRACKET; ++m_regex; break;
-//   case ']':  type = CS_RBRACKET; --m_regex; break;
-//   case '{':  type = CS_LBRACE; break;
-//   case '}':  type = CS_RBRACE; break;
-//   case '.':  type = CS_REGEX_ANY; break;
-//   case '*':  type = CS_REGEX_ZERO_OR_MORE; break;
-//   case '?':  type = CS_REGEX_ZERO_OR_ONE; break;
-//   case '+':  type = CS_REGEX_ONE_OR_MORE; break;
-//   case '^':  type = CS_REGEX_ANCHOR_L; break;
-//   case '$':  type = CS_REGEX_ANCHOR_R; break;
-//   case '|':  type = CS_REGEX_ALTERNATE; break;
-//   case ',':  type = CS_COMMA; break;
-//   case '-':  if(m_regex == 2) { type = CS_SUBOP; break; }
-//   }
-// 
-//   // Set token  
-//   token.m_text = GCString::Create(&ch, 1);
-// 
-//   // Done
-//   return true;
+  // Initialize token
+  token.m_type = CS_REGEX_LITERAL;
+  token.m_regex = new Regex(rd);
+
+  // Forget mode
+  m_regex = false;
+
+  // Succeeded
+  return true;
 }
