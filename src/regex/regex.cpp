@@ -85,6 +85,13 @@ Regex::IsMatch(StringCRef text)
   return MatchImpl(text, false).m_success;
 }
 
+//////////////////////////////////////////////////////////////////////////
+
+inline bool isblank(int ch)
+{
+  return ch == ' ';
+}
+
 Regex::ImplResult 
 Regex::MatchImpl(StringCRef input, bool createMatchResult)
 {
@@ -123,82 +130,38 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
       SizeVec const& tv = m_rd->m_table[f->m_state];
       for(size_t i = 0; i < tv.size(); ++i)
       {
+        // Setup some pointers
         char const* o = f->m_start;
         char const* s = f->m_ptr;
         char const* p = 0;
         char const* n = s + 1;
 
-        // Try transion
+        // Try transition
         Transition const& tr = m_rd->m_transitions[tv[i]];
         switch(tr.m_type)
         {
-        case ttEmpty:
-          p = s;
-          break;
-        case ttNext:
-          p = s + 1;
-          break;
-        case ttOffset:
-          ++o;
-          if(*o) p = o;
-          break;
-        case ttAnchorL:
-          p = s == text ? s : 0;
-          break;
-        case ttAnchorR:
-          p = *s ? 0 : s;
-          break;
-        case ttAny:
-          p = *s ? n : 0;
-          break;
-        case ttChar:
-          p = *s == tr.m_min ? n : 0;
-          break;
-        case ttRange:
-          p = *s >= tr.m_min && 
-              *s <= tr.m_max ? n : 0;
-          break;
-        case ttNRange:
-          p = *s >= tr.m_min && 
-              *s <= tr.m_max ? 0 : s;
-          break;
-        case ccAlnum:
-          p = isalnum(*s) ? n : 0;
-          break;
-        case ccAlpha:
-          p = isalpha(*s) ? n : 0;
-          break;
-        case ccBlank:
-          // TODO
-          p = *s == ' ' ? n : 0; 
-          break;
-        case ccCntrl:
-          p = iscntrl(*s) ? n : 0;
-          break;
-        case ccDigit:
-          p = isdigit(*s) ? n : 0;
-          break;
-        case ccGraph:
-          p = isgraph(*s) ? n : 0;
-          break;
-        case ccLower:
-          p = islower(*s) ? n : 0;
-          break;
-        case ccPrint:
-          p = isprint(*s) ? n : 0;
-          break;
-        case ccPunct:
-          p = ispunct(*s) ? n : 0;
-          break;
-        case ccSpace:
-          p = isspace(*s) ? n : 0;
-          break;
-        case ccUpper:
-          p = isupper(*s) ? n : 0;
-          break;
-        case ccXdigit:
-          p = isxdigit(*s) ? n : 0;
-          break;
+        case ttEmpty:   p = s; break;
+        case ttNext:    p = s + 1; break;
+        case ttOffset:  ++o; if(*o) p = o; break;
+        case ttAnchorL: p = s == text ? s : 0; break;
+        case ttAnchorR: p = *s ? 0 : s; break;
+        case ttAny:     p = *s ? n : 0; break;
+        case ttChar:    p = *s == tr.m_min ? n : 0; break;
+        case ttRange:   p = *s >= tr.m_min && *s <= tr.m_max ? n : 0; break;
+        case ttNRange:  p = *s >= tr.m_min && *s <= tr.m_max ? 0 : s; break;
+        case ccAlnum:   p = isalnum(*s) ? n : 0;  break;
+        case ccAlpha:   p = isalpha(*s) ? n : 0;  break;
+        case ccBlank:   p = isblank(*s) ? n : 0;  break;
+        case ccCntrl:   p = iscntrl(*s) ? n : 0;  break;
+        case ccDigit:   p = isdigit(*s) ? n : 0;  break;
+        case ccGraph:   p = isgraph(*s) ? n : 0;  break;
+        case ccLower:   p = islower(*s) ? n : 0;  break;
+        case ccPrint:   p = isprint(*s) ? n : 0;  break;
+        case ccPunct:   p = ispunct(*s) ? n : 0;  break;
+        case ccSpace:   p = isspace(*s) ? n : 0;  break;
+        case ccUpper:   p = isupper(*s) ? n : 0;  break;
+        case ccXdigit:  p = isxdigit(*s) ? n : 0; break;
+        default:        throw std::runtime_error("Invalid transition type");
         }
 
         // Create new frame for match
