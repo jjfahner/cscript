@@ -171,6 +171,11 @@ public:
   void AddCharClass(char ch, Pair& result);
 
   //
+  // Add a range
+  //
+  void AddRange(char min, char max, Pair& result);
+
+  //
   // Quantify zero or one (?)
   //
   void ZeroOrOne(Pair const& expression, bool greedy, Pair& result);

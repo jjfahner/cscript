@@ -118,12 +118,17 @@ range(R) ::= LBRACKET          range_sequence(A) RBRACKET . { R = A; }
 range(R) ::= LBRACKET ANCHOR_L range_sequence(A) RBRACKET . { R, A; /*R = A; A->Invert(true);*/ }
 
 // Range contents
-range_sequence(R) ::= range_atom(A) . { R, A; /*R = new Regex::Ast::Range(); R->Append(A);*/ }
-range_sequence(R) ::= range_sequence(A) range_atom(B) . { R, A; /*R = A; R->Append(B);*/ }
+range_sequence(R) ::= range_atom(A) . { R = A; }
+range_sequence(R) ::= range_sequence(A) range_atom(B) . { p->AddAlternation(A, B, R); }
+
+// Range characters
+%type range_char { char }
+range_char(R) ::= CHAR(A) . { R = A; }
+range_char(R) ::= INT(A) .  { R = A; }
 
 // Range atoms
-range_atom(R) ::= CHAR(A) .              { R.m_min = A; R.m_max = A; }
-range_atom(R) ::= CHAR(A) DASH CHAR(B) . { R.m_min = A; R.m_max = B; }
+range_atom(R) ::= range_char(A) . { p->AddChar(A, R); }
+range_atom(R) ::= range_char(A) DASH range_char(B) . { p->AddRange(A, B, R); }
 
 // Free quantifiers
 quantifier(R) ::= LBRACE int(L) RBRACE .              { R, L; }

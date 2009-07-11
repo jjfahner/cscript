@@ -163,56 +163,69 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
   // Setup pointer to string
   char const* text = input.c_str();
 
+  // Current stack entry
+  BTInfo* pbt = 0;
+
   // Create inital stack frame
-  BTInfo* pbt = new BTInfo(
+  size_t stacksize = 1;
+  pbt = new BTInfo(
     m_rd->m_start, 
     m_rd->m_table[m_rd->m_start], 
     input.c_str(), 
     input.c_str(), 
     0);
 
-  // Size of backtracking stack
-  size_t stacksize = 1;
-
   // Main match loop
   while(pbt)
   {
-    // Setup some pointers
-    char const* o = pbt->m_start;
-    char const* s = pbt->m_cur;
-    char const* p = 0;
-    char const* n = s + 1;
+    // Current and next position
+    char const*& p = pbt->m_cur;
+    char const*  n = p + 1;
 
     // Match transition
     Transition* tr = pbt->m_trans;
     switch(tr->m_type)
     {
-    case ttEmpty:   p = s; break;
-    case ttNext:    p = s + 1; break;
-    case ttOffset:  ++o; if(*o) p = o; break;
-    case ttAnchorL: p = s == text ? s : 0; break;
-    case ttAnchorR: p = *s ? 0 : s; break;
-    case ttAny:     p = *s ? n : 0; break;
-    case ttChar:    p = *s == tr->m_min ? n : 0; break;
-    case ttRange:   p = *s >= tr->m_min && *s <= tr->m_max ? n : 0; break;
-    case ttNRange:  p = *s >= tr->m_min && *s <= tr->m_max ? 0 : s; break;
-    case ccAlnum:   p = isalnum(*s) ? n : 0;  break;
-    case ccAlpha:   p = isalpha(*s) ? n : 0;  break;
-    case ccBlank:   p = isblank(*s) ? n : 0;  break;
-    case ccCntrl:   p = iscntrl(*s) ? n : 0;  break;
-    case ccDigit:   p = isdigit(*s) ? n : 0;  break;
-    case ccGraph:   p = isgraph(*s) ? n : 0;  break;
-    case ccLower:   p = islower(*s) ? n : 0;  break;
-    case ccPrint:   p = isprint(*s) ? n : 0;  break;
-    case ccPunct:   p = ispunct(*s) ? n : 0;  break;
-    case ccSpace:   p = isspace(*s) ? n : 0;  break;
-    case ccUpper:   p = isupper(*s) ? n : 0;  break;
-    case ccXdigit:  p = isxdigit(*s) ? n : 0; break;
+    case ttEmpty:   break;
+    case ttNext:    p = n; break;
+    case ttOffset:  p = ++pbt->m_start; p = *p ? p : 0; break;
+    case ttAnchorL: p = p == text ? p : 0; break;
+    case ttAnchorR: p = *p ? 0 : p; break;
+    case ttAny:     p = *p ? n : 0; break;
+    case ttChar:    p = *p == tr->m_min ? n : 0; break;
+    case ttRange:   p = *p >= tr->m_min && *p <= tr->m_max ? n : 0; break;
+    case ttNRange:  p = *p >= tr->m_min && *p <= tr->m_max ? 0 : p; break;
+    case ccAlnum:   p = isalnum(*p)  ? n : 0; break;
+    case ccAlpha:   p = isalpha(*p)  ? n : 0; break;
+    case ccBlank:   p = isblank(*p)  ? n : 0; break;
+    case ccCntrl:   p = iscntrl(*p)  ? n : 0; break;
+    case ccDigit:   p = isdigit(*p)  ? n : 0; break;
+    case ccGraph:   p = isgraph(*p)  ? n : 0; break;
+    case ccLower:   p = islower(*p)  ? n : 0; break;
+    case ccPrint:   p = isprint(*p)  ? n : 0; break;
+    case ccPunct:   p = ispunct(*p)  ? n : 0; break;
+    case ccSpace:   p = isspace(*p)  ? n : 0; break;
+    case ccUpper:   p = isupper(*p)  ? n : 0; break;
+    case ccXdigit:  p = isxdigit(*p) ? n : 0; break;
     default:        throw std::runtime_error("Invalid transition type");
     }
 
+    // Final state reached
+    if(tr->m_out == m_rd->m_final)
+    {
+      // Ignore empty match
+      if(pbt->m_cur > pbt->m_start)
+      {
+        // Match succeeded
+        break;
+      }
+
+      // Match failed; backtrack
+      pbt->m_cur = 0;
+    }
+
     // Determine next step
-    if(p == 0)
+    if(pbt->m_cur == 0)
     {
       // Delete frame and backtrack
       --stacksize;
@@ -222,15 +235,6 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
 
       // Next iteration
       continue;
-    }
-
-    // Update pointer
-    pbt->m_cur = p;
-
-    // On final state, stop
-    if(tr->m_out == m_rd->m_final)
-    {
-      break;
     }
 
     // Record backtrack for next transition
@@ -247,7 +251,6 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
     }
 
     // Advance to next state
-    pbt->m_start = o;
     pbt->m_state = tr->m_out;
     pbt->m_trans = m_rd->m_table[pbt->m_state];
   }
@@ -258,11 +261,12 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
   result.m_result  = 0;
 
   // Create match result
-  if(createMatchResult && result.m_success)
+  if(createMatchResult)
   {
     result.m_result = new MatchResult;
-    result.m_result->m_text = String(pbt->m_start, pbt->m_cur);
-    result.m_result->m_offset = pbt->m_start - text;
+    result.m_result->m_success = pbt != 0;
+    result.m_result->m_text = pbt ? String(pbt->m_start, pbt->m_cur) : "";
+    result.m_result->m_offset = pbt ? pbt->m_start - text : 0;
   }
   
   // Delete stack frames
