@@ -60,19 +60,23 @@ RegexCompiler::AddTransition(State in, State out, TransitionTypes type, char min
   // Take pointer to first entry
   Transition** p = &m_rd->m_table[in];
 
-  // Find last entry for append
+  // Handle append/prepend
   if(append)
   {
+    // Find last entry for append
     for(; append && *p; p = &((*p)->m_next));
   }
   else
   {
+    // Append first transition
     t->m_next = *p;
   }
 
   // Store transition
   *p = t;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 inline void
 RegexCompiler::AddAlternation(Pair const& lhs, Pair const& rhs, Pair& r)
@@ -125,13 +129,25 @@ RegexCompiler::AddChar(char ch, Pair& r)
   AddTransition(r.m_min, r.m_max, ttChar, ch);
 }
 
-void 
+inline void 
 RegexCompiler::AddCharClass(char ch, Pair& r)
 {
   r.m_min = AddState();
   r.m_max = AddState();
   AddTransition(r.m_min, r.m_max, (TransitionTypes)ch);
 }
+
+inline void 
+RegexCompiler::AddRange(char min, char max, Pair& r)
+{
+  r.m_min = AddState();
+  r.m_max = AddState();
+  AddTransition(r.m_min, r.m_max, ttRange, 
+                min <= max ? min : max, 
+                min <= max ? max : min);
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 inline void 
 RegexCompiler::ZeroOrOne(Pair const& e, bool greedy, Pair& r)
@@ -169,7 +185,7 @@ RegexCompiler::Quantify(Pair const& e, Pair const& q, bool greedy, Pair& r)
 inline void
 RegexCompiler::Finalize(Pair const& r)
 {
-  // Create start state
+  // Set start and final state
   m_rd->m_start = 0;
   m_rd->m_final = r.m_max;
 

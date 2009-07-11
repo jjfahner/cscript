@@ -1,23 +1,18 @@
-// var re = /(.@)+|(.\d)+/;
-// var mr = re.Match("a1@2@3%4@5@6@7@");
-
-// var re = /(ab|.)*/;
-// var mr = re.Match("ababc");
-
-// var re = /(x+x+)+y/;
-// var mr = re.Match("xxxxxxxxxy");
-
-var re = /<a>.*?<\/a>/;
-var mr = re.Match("<a>blabla</a>blabla</a>");
-
-//Console.WriteLn(re.TableToString());
-
-if(mr == null)
+function TestRE(re, st)
 {
-  Console.WriteLn("Failed to match input");
+  var mr = re.Match(st);
+  if(mr.Success)
+  {
+    Console.WriteLn("Matched '", mr.Text, "' in '", st, "'");
+  }
+  else
+  {
+    Console.WriteLn("Failed to match in '", st, "'");
+  }
 }
-else
-{
-  // "a1@2@3%4@5@6@7@"
-  Console.WriteLn("Matched '", mr.Text, "'");
-}
+
+TestRE(/(.@)+|(.\d)+/, "a1@2@3%4@5@6@7@");
+TestRE(/(ab|.)*/, "ababc");
+TestRE(/(x+x+)+y/, "xxxxxxxxxy");
+TestRE(/<a>.*?<\/a>/, "<a>blabla</a>blabla</a>");
+TestRE(/[a-zA-Z0-9_]*/, "%abcAb0_1%");

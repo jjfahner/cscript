@@ -99,6 +99,14 @@ public:
   DEF_NATIVE_CALLS(MatchResult, Object);
 
   //
+  // Match result
+  //
+  __native_roprop bool Success()
+  {
+    return m_success;
+  }
+
+  //
   // Full text
   //
   __native_roprop StringCRef Text()
@@ -121,6 +129,7 @@ private:
   //
   // Members
   //
+  bool m_success;
   String m_text;
   int64 m_offset;
 
