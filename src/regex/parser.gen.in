@@ -92,11 +92,14 @@ sequence(R) ::= particle(A) . { R = A; }
 sequence(R) ::= sequence(A) particle(B) . { p->AddSequence(A, B, R); }
 
 // Atoms
-particle(R) ::= atom(A) .  { R = A; }
-particle(R) ::= atom(A) ZERO_OR_ONE   . { p->ZeroOrOne(A, R);   }
-particle(R) ::= atom(A) ZERO_OR_MORE  . { p->ZeroOrMore(A, R);  }
-particle(R) ::= atom(A) ONE_OR_MORE   . { p->OneOrMore(A, R);   }
-particle(R) ::= atom(A) quantifier(B) . { p->Quantify(A, B, R); }
+particle(R) ::= atom(A) . { R = A; }
+particle(R) ::= atom(A) QUESTION .          { p->ZeroOrOne(A, true, R);   }
+particle(R) ::= atom(A) QUESTION QUESTION . { p->ZeroOrOne(A, false, R);  }
+particle(R) ::= atom(A) STAR .              { p->ZeroOrMore(A, true, R);  }
+particle(R) ::= atom(A) STAR QUESTION.      { p->ZeroOrMore(A, false, R); }
+particle(R) ::= atom(A) PLUS .              { p->OneOrMore(A, true, R);   }
+particle(R) ::= atom(A) PLUS QUESTION.      { p->OneOrMore(A, false, R);  }
+particle(R) ::= atom(A) quantifier(B) .     { p->Quantify(A, B, true, R); }
 
 // Single-character atoms
 atom(R) ::= ANY .       { p->AddAnyChar(R); }

@@ -23,7 +23,7 @@
 #include "gc.h"
 #include "exceptions.h"
 
-#include <iostream>
+#include <sstream>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -85,170 +85,192 @@ Regex::IsMatch(StringCRef text)
   return MatchImpl(text, false).m_success;
 }
 
+String
+Regex::TableToString()
+{
+  std::ostringstream r;
+
+  r << "Start: " << m_rd->m_start << "\nFinal: " << m_rd->m_final << "\n\n";
+  for(size_t state = 0; state <= m_rd->m_final; ++state)
+  {
+    r << "State " << state << ":\n";
+    for(Transition* t = m_rd->m_table[state]; t; t = t->m_next)
+    {
+      r << "  ";
+      switch(t->m_type)
+      {
+      case ttEmpty:   r << "Empty"; break;
+      case ttNext:    r << "Next"; break;
+      case ttOffset:  r << "Offset"; break;
+      case ttAnchorL: r << "AnchorL"; break;
+      case ttAnchorR: r << "AnchorR"; break;
+      case ttAny:     r << "Any"; break;
+      case ttChar:    r << "Char '" << t->m_min << "'"; break;
+      case ttRange:   r << "Range '" << t->m_min << "', '" << t->m_max << "'"; break;
+      case ttNRange:  r << "NRange '" << t->m_min << "', '" << t->m_max << "'"; break;
+      case ccAlnum:   r << "Alnum"; break;
+      case ccAlpha:   r << "Alpha"; break;
+      case ccBlank:   r << "Blank"; break;
+      case ccCntrl:   r << "Cntrl"; break;
+      case ccDigit:   r << "Digit"; break;
+      case ccGraph:   r << "Graph"; break;
+      case ccLower:   r << "Lower"; break;
+      case ccPrint:   r << "Print"; break;
+      case ccPunct:   r << "Punct"; break;
+      case ccSpace:   r << "Space"; break;
+      case ccUpper:   r << "Upper"; break;
+      case ccXdigit:  r << "XDigit"; break;
+      }
+      r << " -> " << t->m_out << "\n";
+    }
+  }
+
+  return r.str();
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 inline bool isblank(int ch)
 {
-  return ch == ' ';
+  return ch == ' ' || ch == '\t';
 }
+
+struct BTInfo
+{
+  BTInfo(State state, 
+         Transition* trans, 
+         char const* start, 
+         char const* cur, 
+         BTInfo* prev)
+  {
+    m_state = state;
+    m_trans = trans;
+    m_start = start;
+    m_cur   = cur;
+    m_prev  = prev;
+  }
+
+  State       m_state;
+  Transition* m_trans;
+  char const* m_start;
+  char const* m_cur;
+  BTInfo*     m_prev;
+};
 
 Regex::ImplResult 
 Regex::MatchImpl(StringCRef input, bool createMatchResult)
 {
-  // Create initial frame
-  Frame* cur = new Frame;
+  // Setup pointer to string
   char const* text = input.c_str();
-  cur->Set(m_rd->m_start, text, text);
 
-  bool optLeftmost = false;
-  bool optShortest = false;
+  // Create inital stack frame
+  BTInfo* pbt = new BTInfo(
+    m_rd->m_start, 
+    m_rd->m_table[m_rd->m_start], 
+    input.c_str(), 
+    input.c_str(), 
+    0);
 
-  // Free frames
-  Frame* freelist = 0;
-
-  // Temp pointer
-  Frame* t;
-
-  // Current match
-  char const* matchStart = (char const*) -1;
-  char const* matchPtr   = 0;
+  // Size of backtracking stack
+  size_t stacksize = 1;
 
   // Main match loop
-  size_t iterations = 0;
-  while(cur)
+  while(pbt)
   {
-    // Next frame list
-    Frame* next = 0;
+    // Setup some pointers
+    char const* o = pbt->m_start;
+    char const* s = pbt->m_cur;
+    char const* p = 0;
+    char const* n = s + 1;
 
-    // Size of next frame list
-    size_t next_size = 0;
-
-    // Enumerate frames
-    for(Frame* f = cur; f; )
+    // Match transition
+    Transition* tr = pbt->m_trans;
+    switch(tr->m_type)
     {
-      // Enumerate transitions with this in state
-      Transition* tr = m_rd->m_table[f->m_state];
-      for(; tr; tr = tr->m_next)
-      { 
-        // Setup some pointers
-        char const* o = f->m_start;
-        char const* s = f->m_ptr;
-        char const* p = 0;
-        char const* n = s + 1;
-
-        // Try transition
-        switch(tr->m_type)
-        {
-        case ttEmpty:   p = s; break;
-        case ttNext:    p = s + 1; break;
-        case ttOffset:  ++o; if(*o) p = o; break;
-        case ttAnchorL: p = s == text ? s : 0; break;
-        case ttAnchorR: p = *s ? 0 : s; break;
-        case ttAny:     p = *s ? n : 0; break;
-        case ttChar:    p = *s == tr->m_min ? n : 0; break;
-        case ttRange:   p = *s >= tr->m_min && *s <= tr->m_max ? n : 0; break;
-        case ttNRange:  p = *s >= tr->m_min && *s <= tr->m_max ? 0 : s; break;
-        case ccAlnum:   p = isalnum(*s) ? n : 0;  break;
-        case ccAlpha:   p = isalpha(*s) ? n : 0;  break;
-        case ccBlank:   p = isblank(*s) ? n : 0;  break;
-        case ccCntrl:   p = iscntrl(*s) ? n : 0;  break;
-        case ccDigit:   p = isdigit(*s) ? n : 0;  break;
-        case ccGraph:   p = isgraph(*s) ? n : 0;  break;
-        case ccLower:   p = islower(*s) ? n : 0;  break;
-        case ccPrint:   p = isprint(*s) ? n : 0;  break;
-        case ccPunct:   p = ispunct(*s) ? n : 0;  break;
-        case ccSpace:   p = isspace(*s) ? n : 0;  break;
-        case ccUpper:   p = isupper(*s) ? n : 0;  break;
-        case ccXdigit:  p = isxdigit(*s) ? n : 0; break;
-        default:        throw std::runtime_error("Invalid transition type");
-        }
-
-        // Create new frame for match
-        if(p)
-        {
-          // Final state
-          if(tr->m_out == m_rd->m_final)
-          {
-            // Calculate current and existing match lengths
-            size_t extLen = matchPtr - matchStart;
-            size_t curLen = p - f->m_start;
-
-            // Determine whether to accept this match
-            bool acceptMatch = 
-              matchPtr == 0 ? true :
-              optShortest && curLen < extLen ? true :
-             !optShortest && curLen > extLen ? true :
-              optLeftmost && f->m_start < matchStart ? true :
-              false;
-
-            if(acceptMatch)
-            {
-              matchStart = f->m_start;
-              matchPtr   = p;
-            }
-          }
-          else
-          {
-            // Create or retrieve a frame
-            Frame* n;
-            if(freelist)
-            {
-              n = freelist;
-              freelist = n->m_next;
-            }
-            else
-            {
-              n = new Frame;
-            }
-
-            // Initialize and link into list
-            n->Set(tr->m_out, o, p, next);
-            next = n;
-            
-            // Check for limit
-            if(++next_size > 10000)
-            {
-              throw std::runtime_error("Regular expression stack overflow");
-            }
-          }
-        }
-      }
-
-      // Point to next frame
-      t = f;
-      f = f->m_next;
-      
-      // Add old frame to the free list
-      t->m_next = freelist;
-      freelist = t;
+    case ttEmpty:   p = s; break;
+    case ttNext:    p = s + 1; break;
+    case ttOffset:  ++o; if(*o) p = o; break;
+    case ttAnchorL: p = s == text ? s : 0; break;
+    case ttAnchorR: p = *s ? 0 : s; break;
+    case ttAny:     p = *s ? n : 0; break;
+    case ttChar:    p = *s == tr->m_min ? n : 0; break;
+    case ttRange:   p = *s >= tr->m_min && *s <= tr->m_max ? n : 0; break;
+    case ttNRange:  p = *s >= tr->m_min && *s <= tr->m_max ? 0 : s; break;
+    case ccAlnum:   p = isalnum(*s) ? n : 0;  break;
+    case ccAlpha:   p = isalpha(*s) ? n : 0;  break;
+    case ccBlank:   p = isblank(*s) ? n : 0;  break;
+    case ccCntrl:   p = iscntrl(*s) ? n : 0;  break;
+    case ccDigit:   p = isdigit(*s) ? n : 0;  break;
+    case ccGraph:   p = isgraph(*s) ? n : 0;  break;
+    case ccLower:   p = islower(*s) ? n : 0;  break;
+    case ccPrint:   p = isprint(*s) ? n : 0;  break;
+    case ccPunct:   p = ispunct(*s) ? n : 0;  break;
+    case ccSpace:   p = isspace(*s) ? n : 0;  break;
+    case ccUpper:   p = isupper(*s) ? n : 0;  break;
+    case ccXdigit:  p = isxdigit(*s) ? n : 0; break;
+    default:        throw std::runtime_error("Invalid transition type");
     }
 
-    // Print size
-    // std::cout << "Iteration " << ++iterations << " created " << next_size << " frames\n";
+    // Determine next step
+    if(p == 0)
+    {
+      // Delete frame and backtrack
+      --stacksize;
+      BTInfo* t = pbt;
+      pbt = pbt->m_prev;
+      delete t;
 
-    // Next iteration
-    cur = next;
-  }
+      // Next iteration
+      continue;
+    }
 
-  // Delete freelist
-  while(freelist)
-  {
-    t = freelist;
-    freelist = t->m_next;
-    delete t;
+    // Update pointer
+    pbt->m_cur = p;
+
+    // On final state, stop
+    if(tr->m_out == m_rd->m_final)
+    {
+      break;
+    }
+
+    // Record backtrack for next transition
+    if(tr->m_next)
+    {
+      ++stacksize;
+      BTInfo* nbt = new BTInfo(
+        pbt->m_state,
+        pbt->m_trans->m_next,
+        pbt->m_start,
+        pbt->m_cur,
+        pbt->m_prev);
+      pbt->m_prev = nbt;
+    }
+
+    // Advance to next state
+    pbt->m_start = o;
+    pbt->m_state = tr->m_out;
+    pbt->m_trans = m_rd->m_table[pbt->m_state];
   }
 
   // Create result
   ImplResult result;
-  result.m_success = matchPtr != 0;
+  result.m_success = pbt != 0;
   result.m_result  = 0;
 
   // Create match result
   if(createMatchResult && result.m_success)
   {
     result.m_result = new MatchResult;
-    result.m_result->m_text = String(matchStart, matchPtr);
-    result.m_result->m_offset = matchStart - text;
+    result.m_result->m_text = String(pbt->m_start, pbt->m_cur);
+    result.m_result->m_offset = pbt->m_start - text;
+  }
+  
+  // Delete stack frames
+  while(pbt)
+  {
+    BTInfo* p = pbt->m_prev;
+    delete pbt;
+    pbt = p;
   }
 
   // Done

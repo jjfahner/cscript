@@ -131,9 +131,9 @@ public:
   State AddState();
 
   //
-  // Add an empty transition
+  // Add transition
   //
-  void AddTransition(State in, State out, TransitionTypes type = ttEmpty, char min = 0, char max = 0);
+  void AddTransition(State in, State out, TransitionTypes type = ttEmpty, char min = 0, char max = 0, bool append = true);
 
   //
   // Add an alternation between lhs and rhs
@@ -173,22 +173,22 @@ public:
   //
   // Quantify zero or one (?)
   //
-  void ZeroOrOne(Pair const& expression, Pair& result);
+  void ZeroOrOne(Pair const& expression, bool greedy, Pair& result);
 
   //
   // Quantify zero or more (*)
   //
-  void ZeroOrMore(Pair const& expression, Pair& result);
+  void ZeroOrMore(Pair const& expression, bool greedy, Pair& result);
 
   //
   // Quantify one or more (+)
   //
-  void OneOrMore(Pair const& expression, Pair& result);
+  void OneOrMore(Pair const& expression, bool greedy, Pair& result);
 
   //
   // Quantify an expression
   //
-  void Quantify(Pair const& expression, Pair const& quantifier, Pair& result);
+  void Quantify(Pair const& expression, Pair const& quantifier, bool greedy, Pair& result);
 
   //
   // Finalize the expression
