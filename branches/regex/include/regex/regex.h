@@ -60,6 +60,11 @@ public:
   //
   __native_method bool IsMatch(StringCRef text);
 
+  //
+  // Write table
+  //
+  __native_method String TableToString();
+
 private:
 
   struct ImplResult

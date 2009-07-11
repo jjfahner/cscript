@@ -26,6 +26,8 @@ var print = false;
 var count = 0;
 var total = 0;
 
+var re = /.csc$/;
+
 // Test function
 function RunTests()
 {
@@ -38,10 +40,14 @@ function RunTests()
   for(var file in Path.GetFiles(path))
   {
     // Check extension
-    if(file.Find(".csc", 0) == -1)
+    if(!re.IsMatch(file))
     {
       continue;
     }
+//     if(file.Find(".csc", 0) == -1)
+//     {
+//       continue;
+//     }
 
     // Build path
     if(print)
