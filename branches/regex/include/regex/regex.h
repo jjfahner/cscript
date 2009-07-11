@@ -23,6 +23,7 @@
 
 #include <cscript.h>
 #include <native.h>
+#include <list.h>
 
 class RegexData;
 class LexStream;
@@ -130,9 +131,29 @@ public:
   {
     return m_offset;
   }
+
+  //
+  // List of captures
+  //
+  __native_roprop ObjectPtr Captures()
+  {
+    return m_captures;
+  }
   
 private:
 
+  //
+  // Garbage collection
+  //
+  virtual void MarkObjects(GCObjectVec& grey)
+  {
+    Object::MarkObjects(grey);
+    GC::Mark(grey, m_captures);
+  }
+
+  //
+  // Class is initialized by regex matcher
+  //
   friend class Regex;
 
   //
@@ -141,6 +162,7 @@ private:
   bool m_success;
   String m_text;
   int64 m_offset;
+  List* m_captures;
 
 };
 
