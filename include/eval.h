@@ -26,6 +26,7 @@
 #include <value.h>
 #include <context.h>
 #include <gc.h>
+#include <exceptions.h>
 
 #include <vector>
 #include <iosfwd>
@@ -246,17 +247,6 @@ private:
 // Control flow exceptions
 //
 
-//
-// Base class for all script exceptions
-//
-struct ScriptException : public std::runtime_error
-{
-  Object* m_node;
-  ScriptException(Object* node, char const* message = "") : std::runtime_error(message), m_node (node) {}
-  ScriptException(Object* node, String const& message) : std::runtime_error(message.c_str()), m_node (node) {}
-  ~ScriptException() throw () {}
-};
-
 struct BreakException : public ScriptException
 {
   BreakException(Object* node) : ScriptException (node) {}
@@ -280,22 +270,6 @@ struct ReturnException : public ScriptException
   ReturnException(Object* node) : ScriptException (node) {}
   ReturnException(Object* node, Value value) : ScriptException (node), m_value (value) {}
   ~ReturnException() throw() {}
-};
-
-struct CatchableException : public ScriptException
-{
-  Value m_value;
-  CatchableException(Value value) : ScriptException(0), m_value (value) {}
-  CatchableException(Object* node) : ScriptException (node) {}
-  CatchableException(Object* node, Value value) : ScriptException (node), m_value (value) {}
-  ~CatchableException() throw() {}
-};
-
-struct UserException : public CatchableException
-{
-  UserException(Object* node) : CatchableException (node) {}
-  UserException(Object* node, Value value) : CatchableException (node, value) {}
-  ~UserException() throw() {}
 };
 
 #endif // CSCRIPT_EVAL_H

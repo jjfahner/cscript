@@ -34,10 +34,16 @@ struct Token
 {
   int       m_type;
   GCString* m_text;
+  Object*   m_regex;
 
   operator String const& () const
   {
     return *m_text;
+  }
+
+  operator char () const
+  {
+    return m_text->at(0);
   }
 };
 

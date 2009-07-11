@@ -40,7 +40,6 @@
 #include <native/path.h>
 #include <native/console.h>
 #include <native/standard.h>
-#include <native/regex.h>
 
 #include <list>
 #include <iostream>
@@ -148,7 +147,7 @@ Evaluator::~Evaluator()
     GCString::Collect(true);
 
     // Collect regular expressions
-    RegexImpl::Collect(true);
+    //RegexImpl::Collect(true);
   }
 
   // Collect garbage
@@ -170,7 +169,7 @@ Evaluator::Collect()
   GCString::Collect();
 
   // Collect regular expressions
-  RegexImpl::Collect();
+  //RegexImpl::Collect();
 
   // Collect invalid objects
   return GC::Collect(g_stack);
@@ -650,7 +649,7 @@ Evaluator::EvalExpression(Object* node)
     break;
 
   case regex_literal:
-    g_stack.Push(new Regex(Ast_A1(node)));
+    g_stack.Push(Ast_A1(node));
     break;
 
   case ternary_expression:
