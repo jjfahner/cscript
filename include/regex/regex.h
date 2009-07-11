@@ -99,6 +99,15 @@ public:
   DEF_NATIVE_CALLS(MatchResult, Object);
 
   //
+  // Construction
+  //
+  MatchResult() :
+  m_success (false),
+  m_offset  (0)
+  {
+  }
+
+  //
   // Match result
   //
   __native_roprop bool Success()
