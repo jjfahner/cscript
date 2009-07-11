@@ -1,4 +1,4 @@
-SUBDIRS = native
+SUBDIRS = native regex
 
 AM_CPPFLAGS = -I. -I$(top_srcdir)/include -Iinclude -I$(top_srcdir)/src
 
@@ -34,7 +34,7 @@ libcs_a_LIBADD = native/libcsnative.a
 
 bin_PROGRAMS = cscript
 cscript_SOURCES = cmdargs.cpp main.cpp
-cscript_LDADD = libcs.a native/libcsnative.a
+cscript_LDADD = libcs.a native/*.o regex/*.o
 
 LEMDIR = ${srcdir}/../tools/posix
 csparser.gen.c: csparser.gen.in
@@ -50,5 +50,8 @@ xmllexer.gen.c: xmllexer.gen.in xmlparser.gen.c
 	${RE2CDIR}/re2c -iswb --no-generation-date -o ${srcdir}/xmllexer.gen.c ${srcdir}/xmllexer.gen.in
 
 native.gen.cpp: native.awk
-	cd ${srcdir} && awk -f native.awk ../include/*.h ../include/native/*.h >  native.gen.cpp
+	cd ${srcdir} && awk -f native.awk \
+	                       ../include/*.h \
+			       ../include/native/*.h \
+			       ../include/regex/*.h > native.gen.cpp
 
