@@ -39,6 +39,16 @@ Regex::MarkObjects(GCObjectVec& grey)
   GC::Mark(grey, m_rd);
 }
 
+StringCRef 
+Regex::Pattern()
+{
+  if(m_rd == 0)
+  {
+    throw CatchableException("Invalid Regex object");
+  }
+  return m_rd->m_pattern;
+}
+
 void 
 Regex::Compile(StringCRef pattern)
 {

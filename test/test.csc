@@ -1,10 +1,9 @@
 function TestRE(re, st, ex)
 {
-  //Console.WriteLn(re.TableToString());
   var mr = re.Match(st);
   if(mr.Success)
   {
-    Console.WriteLn("Matched '", mr.Text, "' in '", st, "'");
+    Console.WriteLn("Matched '", mr.Text, "' in '", st, "' using pattern '", re.Pattern, "'");
     for(var c in mr.Captures) 
     {
       Console.WriteLn("  Capture: ", c);
