@@ -24,6 +24,7 @@
 #include "exceptions.h"
 
 #include <sstream>
+#include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -213,7 +214,7 @@ class ReStack
 {
 public:
 
-  ReStack() : m_last (0)
+  ReStack() : m_last (0), m_size (0), m_max (0)
   {
   }
 
@@ -222,15 +223,27 @@ public:
     if(m_last) m_last->Delete();
   }
 
+  size_t Size()
+  {
+    return m_size;
+  }
+
+  size_t Max()
+  {
+    return m_max;
+  }
+
   ReFrame* Push(State state, Transition* trans, 
            char const* start, char const* cur)
   {
+    m_max = ++m_size > m_max ? m_size : m_max;    
     return m_last = new ReFrame(state, 
            trans, start, cur, m_last);
   }
 
   ReFrame* Pop()
   {
+    --m_size;
     ReFrame* pbt = m_last;
     m_last = pbt ? pbt->m_prev : 0;
     return pbt;
@@ -239,6 +252,8 @@ public:
 private:
 
   ReFrame* m_last;
+  size_t m_size;
+  size_t m_max;
 
 };
 
@@ -394,6 +409,8 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
   {
     delete pbt;
   }
+
+  std::cout << "Max stack depth: " << stack.Max() << "\n";
   
   // Done
   return result;
