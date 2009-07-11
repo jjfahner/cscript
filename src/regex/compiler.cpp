@@ -61,7 +61,14 @@ RegexCompiler::AddTransition(State in, State out, TransitionTypes type, char min
   Transition** p = &m_rd->m_table[in];
 
   // Find last entry for append
-  for(; append && *p; p = &((*p)->m_next));
+  if(append)
+  {
+    for(; append && *p; p = &((*p)->m_next));
+  }
+  else
+  {
+    t->m_next = *p;
+  }
 
   // Store transition
   *p = t;
@@ -140,8 +147,8 @@ RegexCompiler::ZeroOrMore(Pair const& e, bool greedy, Pair& r)
   r.m_min = e.m_min;
   r.m_max = AddState();
   AddTransition(e.m_min, r.m_max, ttEmpty, 0, 0, greedy);
-  AddTransition(e.m_max, e.m_min);
-  AddTransition(e.m_max, r.m_max);
+  AddTransition(e.m_max, greedy ? e.m_min : r.m_max);
+  AddTransition(e.m_max, greedy ? r.m_max : e.m_min);
 }
 
 inline void 

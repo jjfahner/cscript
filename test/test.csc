@@ -7,7 +7,10 @@
 // var re = /(x+x+)+y/;
 // var mr = re.Match("xxxxxxxxxy");
 
-Console.WriteLn(re.TableToString());
+var re = /<a>.*?<\/a>/;
+var mr = re.Match("<a>blabla</a>blabla</a>");
+
+//Console.WriteLn(re.TableToString());
 
 if(mr == null)
 {
