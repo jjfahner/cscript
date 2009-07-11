@@ -259,7 +259,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating native stubs..."
-						CommandLine="cd ..\..\src&#x0D;&#x0A;..\tools\win32\awk.exe -f native.awk ../include/*.h ../include/native/*.h &gt; native.gen.cpp&#x0D;&#x0A;"
+						CommandLine="cd ..\..\src&#x0D;&#x0A;..\tools\win32\awk.exe -f native.awk ../include/*.h ../include/native/*.h ../include/regex/*.h &gt; native.gen.cpp&#x0D;&#x0A;"
 						Outputs="..\..\src\native.gen.cpp"
 					/>
 				</FileConfiguration>
