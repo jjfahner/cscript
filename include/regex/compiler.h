@@ -36,6 +36,8 @@ enum TransitionTypes
   ttOffset,
   ttAnchorL,
   ttAnchorR,
+  ttCaptureL,
+  ttCaptureR,
   ttAny,
   ttChar,
   ttRange,
@@ -174,6 +176,11 @@ public:
   // Add a range
   //
   void AddRange(char min, char max, Pair& result);
+
+  //
+  // Add a back reference
+  //
+  void AddCapture(bool start, Pair& result);
 
   //
   // Quantify zero or one (?)

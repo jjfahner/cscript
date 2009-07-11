@@ -111,7 +111,15 @@ atom(R) ::= CLASS(A) .  { p->AddCharClass(A, R); }
 
 // Complex atoms
 atom(R) ::= range(A) . { R = A; }
-atom(R) ::= LPAREN expression(A) RPAREN . { R = A; }
+atom(R) ::= lparen(A) expression(B) rparen(C) . { 
+  Pair R1;
+  p->AddSequence(A, B, R1);
+  p->AddSequence(R1, C, R);
+}
+
+// Nesting
+lparen(R) ::= LPAREN . { p->AddCapture(true,  R); }
+rparen(R) ::= RPAREN . { p->AddCapture(false, R); }
 
 // Character range with optional inversion
 range(R) ::= LBRACKET          range_sequence(A) RBRACKET . { R = A; }

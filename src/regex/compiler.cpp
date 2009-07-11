@@ -147,6 +147,14 @@ RegexCompiler::AddRange(char min, char max, Pair& r)
                 min <= max ? max : min);
 }
 
+void 
+RegexCompiler::AddCapture(bool start, Pair& r)
+{
+  r.m_min = AddState();
+  r.m_max = AddState();
+  AddTransition(r.m_min, r.m_max, start ? ttCaptureL : ttCaptureR);
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 inline void 
@@ -225,6 +233,16 @@ RegexCompiler::Compile(LexStream& stream)
   // Push characters
   for(;;)
   {
+    // Make sure the buffer's ok
+    if(stream.m_cursor == stream.m_bufend)
+    {
+      if(!stream.FillBuffer(1))
+      {
+        throw std::runtime_error(
+          "Unexpected end of file in regular expression");
+      }
+    }
+
     // Read next character
     char c = *stream.m_cursor++;
     if(c == 0 || c == '/')
