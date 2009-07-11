@@ -121,9 +121,14 @@ class RegexCompiler
 public:
 
   //
-  // Compile a regular expression
+  // Compile a regular expression from stream
   //
   static RegexData* Compile(LexStream& stream);
+
+  //
+  // Compile a regular expression from string
+  //
+  static RegexData* Compile(String const& string);
 
   //
   // Construction

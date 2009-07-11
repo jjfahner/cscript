@@ -52,8 +52,7 @@ Regex::Pattern()
 void 
 Regex::Compile(StringCRef pattern)
 {
-  // TODO
-  //m_rd = RegexCompiler::Compile(pattern);
+  m_rd = RegexCompiler::Compile(pattern);
 }
 
 ObjectPtr

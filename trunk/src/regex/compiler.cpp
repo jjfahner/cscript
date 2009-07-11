@@ -22,7 +22,7 @@
 #include "lexstream.h"
 #include "lemon.h"
 
-#include <iostream>
+#include <sstream>
 #include <list>
 
 //////////////////////////////////////////////////////////////////////////
@@ -204,6 +204,21 @@ RegexCompiler::Finalize(Pair const& r)
 
 //////////////////////////////////////////////////////////////////////////
 
+/*static*/ RegexData* 
+RegexCompiler::Compile(String const& string)
+{
+  // Construct string stream
+  std::istringstream istream(string + "//");
+
+  // Construct lex stream
+  LexStream stream(istream);
+
+  // Compile from stream
+  return Compile(stream);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 #include "parser.gen.c"
 #include "parser.gen.h"
 
@@ -234,13 +249,9 @@ RegexCompiler::Compile(LexStream& stream)
   for(;;)
   {
     // Make sure the buffer's ok
-    if(stream.m_cursor == stream.m_bufend)
+    if(stream.m_cursor == stream.m_bufend && stream.FillBuffer(2) < 2)
     {
-      if(!stream.FillBuffer(1))
-      {
-        throw std::runtime_error(
-          "Unexpected end of file in regular expression");
-      }
+      throw std::runtime_error("Unexpected end of file in regular expression");
     }
 
     // Read next character
