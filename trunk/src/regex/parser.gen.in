@@ -1,0 +1,149 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
+
+//
+// Lemon language definition for cscript regular expressions
+//
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Include section
+//
+%include {
+
+#include <cassert>
+
+// switch statement contains 'default' but no 'case' labels
+#pragma warning(disable:4065)
+
+}
+//
+// End inclusion block
+//
+//////////////////////////////////////////////////////////////////////////
+
+// Generated function names
+%name             ReParse
+
+// Token prefix
+%token_prefix     RE_
+
+// Token type
+%token_type       { char }
+
+// Argument to reduces
+%extra_argument   { RegexCompiler* p }
+
+// Default result type
+%default_type     { Pair }
+
+// Error handlers
+%syntax_error {
+  p->OnSyntaxError(TOKEN);
+}
+
+// Starting point of parser
+main ::= expression(A) . { p->Finalize(A); }
+
+// Regular expression with optional anchors
+expression(R) ::= alternation(A) . { R = A; }
+
+// Alternation
+alternation(R) ::= branch(A) . { R = A; }
+alternation(R) ::= alternation(A) ALTERNATE branch(B) . { p->AddAlternation(A, B, R); }
+
+// Branch
+branch(R) ::= sequence(A) . { R = A; }
+branch(R) ::= anchor_l(A) . { R = A; }
+branch(R) ::= anchor_r(A) . { R = A; }
+branch(R) ::= anchor_l(A) anchor_r(B) . { p->AddSequence(A, B, R); }
+branch(R) ::= anchor_l(A) sequence(B) . { p->AddSequence(A, B, R); }
+branch(R) ::= sequence(A) anchor_r(B) . { p->AddSequence(A, B, R); }
+branch(R) ::= anchor_l(A) sequence(B) anchor_r(C) . {
+  Pair R1; 
+  p->AddSequence(A, B, R1);
+  p->AddSequence(R1, C, R); 
+}
+
+// Anchors
+anchor_l(R) ::= ANCHOR_L . { p->AddLeftAnchor(R); }
+anchor_r(R) ::= ANCHOR_R . { p->AddRightAnchor(R); }
+
+// Sequence
+sequence(R) ::= particle(A) . { R = A; }
+sequence(R) ::= sequence(A) particle(B) . { p->AddSequence(A, B, R); }
+
+// Atoms
+particle(R) ::= atom(A) . { R = A; }
+particle(R) ::= atom(A) QUESTION .          { p->ZeroOrOne(A, true, R);   }
+particle(R) ::= atom(A) QUESTION QUESTION . { p->ZeroOrOne(A, false, R);  }
+particle(R) ::= atom(A) STAR .              { p->ZeroOrMore(A, true, R);  }
+particle(R) ::= atom(A) STAR QUESTION.      { p->ZeroOrMore(A, false, R); }
+particle(R) ::= atom(A) PLUS .              { p->OneOrMore(A, true, R);   }
+particle(R) ::= atom(A) PLUS QUESTION.      { p->OneOrMore(A, false, R);  }
+particle(R) ::= atom(A) quantifier(B) .     { p->Quantify(A, B, true, R); }
+
+// Single-character atoms
+atom(R) ::= ANY .       { p->AddAnyChar(R); }
+atom(R) ::= DASH(A) .   { p->AddChar(A, R); }
+atom(R) ::= COMMA(A) .  { p->AddChar(A, R); }
+atom(R) ::= CHAR(A) .   { p->AddChar(A, R); }
+atom(R) ::= INT(A) .    { p->AddChar(A, R); }
+atom(R) ::= CLASS(A) .  { p->AddCharClass(A, R); }
+
+// Complex atoms
+atom(R) ::= range(A) . { R = A; }
+atom(R) ::= lparen(A) expression(B) rparen(C) . { 
+  Pair R1;
+  p->AddSequence(A, B, R1);
+  p->AddSequence(R1, C, R);
+}
+
+// Nesting
+lparen(R) ::= LPAREN . { p->AddCapture(true,  R); }
+rparen(R) ::= RPAREN . { p->AddCapture(false, R); }
+
+// Character range with optional inversion
+range(R) ::= LBRACKET          range_sequence(A) RBRACKET . { R = A; }
+range(R) ::= LBRACKET ANCHOR_L range_sequence(A) RBRACKET . { R, A; /*R = A; A->Invert(true);*/ }
+
+// Range contents
+range_sequence(R) ::= range_atom(A) . { R = A; }
+range_sequence(R) ::= range_sequence(A) range_atom(B) . { p->AddAlternation(A, B, R); }
+
+// Range characters
+%type range_char { char }
+range_char(R) ::= CHAR(A) . { R = A; }
+range_char(R) ::= INT(A) .  { R = A; }
+
+// Range atoms
+range_atom(R) ::= range_char(A) . { p->AddChar(A, R); }
+range_atom(R) ::= range_char(A) DASH range_char(B) . { p->AddRange(A, B, R); }
+
+// Free quantifiers
+quantifier(R) ::= LBRACE int(L) RBRACE .              { R, L; }
+quantifier(R) ::= LBRACE int(L) COMMA RBRACE .        { R, L; }
+quantifier(R) ::= LBRACE int(L) COMMA int(H) RBRACE . { R, L, H; }
+quantifier(R) ::= LBRACE COMMA int(H) RBRACE .        { R, H; }
+
+// Integer, used in free quantifiers
+int(R) ::= INT(A) . { R, A; }
+int(R) ::= int(A) INT(B) . { R, A, B; }

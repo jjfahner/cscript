@@ -249,7 +249,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating native stubs..."
-						CommandLine="cd ..\..\src&#x0D;&#x0A;..\tools\win32\awk.exe -f native.awk ../include/*.h ../include/native/*.h &gt; native.gen.cpp&#x0D;&#x0A;&#x0D;&#x0A;"
+						CommandLine="cd ..\..\src&#x0D;&#x0A;..\tools\win32\awk.exe -f native.awk ../include/*.h ../include/native/*.h ../include/regex/*.h &gt; native.gen.cpp&#x0D;&#x0A;&#x0D;&#x0A;"
 						Outputs="..\..\src\native.gen.cpp"
 					/>
 				</FileConfiguration>
@@ -259,7 +259,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating native stubs..."
-						CommandLine="cd ..\..\src&#x0D;&#x0A;..\tools\win32\awk.exe -f native.awk ../include/*.h ../include/native/*.h &gt; native.gen.cpp"
+						CommandLine="cd ..\..\src&#x0D;&#x0A;..\tools\win32\awk.exe -f native.awk ../include/*.h ../include/native/*.h &gt; native.gen.cpp&#x0D;&#x0A;"
 						Outputs="..\..\src\native.gen.cpp"
 					/>
 				</FileConfiguration>
@@ -316,10 +316,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\native\regex.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\src\native\socket.cpp"
 					>
 				</File>
@@ -329,6 +325,42 @@
 				</File>
 				<File
 					RelativePath="..\..\src\native\xml.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="regex"
+				>
+				<File
+					RelativePath="..\..\src\regex\compiler.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\regex\parser.gen.in"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Generating regex parser..."
+							CommandLine="..\..\tools\win32\lemon.exe ..\..\src\regex\parser.gen.in&#x0D;&#x0A;"
+							Outputs="..\..\src\regex\parser.gen.c"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Generating regex parser..."
+							CommandLine="..\..\tools\win32\lemon.exe ..\..\src\regex\parser.gen.in"
+							Outputs="..\..\src\regex\parser.gen.c"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\regex\regex.cpp"
 					>
 				</File>
 			</Filter>
@@ -374,6 +406,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\eval.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\exceptions.h"
 				>
 			</File>
 			<File
@@ -460,10 +496,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\include\native\regex.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\include\native\socket.h"
 					>
 				</File>
@@ -473,6 +505,18 @@
 				</File>
 				<File
 					RelativePath="..\..\include\native\xml.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="regex"
+				>
+				<File
+					RelativePath="..\..\include\regex\compiler.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\regex\regex.h"
 					>
 				</File>
 			</Filter>
@@ -558,7 +602,7 @@
 						<Tool
 							Name="VCCustomBuildTool"
 							Description="Generating cscript parser..."
-							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe csparser.gen.in &amp;&amp; move csparser.gen.h ..\include&#x0D;&#x0A;"
+							CommandLine="..\..\tools\win32\lemon.exe ..\..\src\csparser.gen.in &amp;&amp; move ..\..\src\csparser.gen.h ..\..\include&#x0D;&#x0A;"
 							Outputs="..\..\src\csparser.gen.c;..\..\include\csparser.gen.h"
 						/>
 					</FileConfiguration>
