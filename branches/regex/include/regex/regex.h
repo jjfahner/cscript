@@ -47,6 +47,11 @@ public:
   Regex(RegexData* rd = 0);
 
   //
+  // Retrieve the pattern
+  //
+  __native_roprop StringCRef Pattern();
+
+  //
   // Compile a regular expression
   //
   __native_method void Compile(StringCRef pattern);

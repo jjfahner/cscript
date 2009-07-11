@@ -99,6 +99,9 @@ class RegexData : public GCSimpleObject
 {
 public:
 
+  // Pattern string
+  String m_pattern;
+
   // Start and final state
   State m_start;
   State m_final;

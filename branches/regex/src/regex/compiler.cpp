@@ -249,6 +249,9 @@ RegexCompiler::Compile(LexStream& stream)
     {
       break;
     }
+
+    // Append to pattern
+    instance.m_rd->m_pattern += c;
     
     // Select token type
     int type = RE_CHAR;
@@ -281,6 +284,7 @@ RegexCompiler::Compile(LexStream& stream)
     case '9': type = RE_INT; break;
     case '\\':
       c = *stream.m_cursor++;
+      instance.m_rd->m_pattern += c;
       type = RE_CLASS;
       switch(c)
       {
