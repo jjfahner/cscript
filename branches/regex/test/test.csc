@@ -1,5 +1,6 @@
-function TestRE(re, st)
+function TestRE(re, st, ex)
 {
+//  Console.WriteLn(re.TableToString());
   var mr = re.Match(st);
   if(mr.Success)
   {
@@ -16,3 +17,4 @@ TestRE(/(ab|.)*/, "ababc");
 TestRE(/(x+x+)+y/, "xxxxxxxxxy");
 TestRE(/<a>.*?<\/a>/, "<a>blabla</a>blabla</a>");
 TestRE(/[a-zA-Z0-9_]*/, "%abcAb0_1%");
+TestRE(/(.@)+|(.\d)+/, "a1@2@3%4@5@6@7@", "a1@2@3%4@5@6@7");

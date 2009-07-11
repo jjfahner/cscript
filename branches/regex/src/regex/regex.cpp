@@ -27,25 +27,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-struct Frame
-{
-  void Set(State state = 0, char const* start = 0, char const* ptr = 0, Frame* next = 0)
-  {
-    m_state = state;
-    m_start = start;
-    m_ptr   = ptr;
-    m_next  = next;
-  }
-
-  State       m_state;
-  char const* m_start;
-  char const* m_ptr;
-  Frame*      m_next;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
 Regex::Regex(RegexData* rd) :
 m_rd (rd)
 {
@@ -135,13 +116,13 @@ inline bool isblank(int ch)
   return ch == ' ' || ch == '\t';
 }
 
-struct BTInfo
+struct ReFrame
 {
-  BTInfo(State state, 
+  ReFrame(State state, 
          Transition* trans, 
          char const* start, 
-         char const* cur, 
-         BTInfo* prev)
+         char const* cur,
+         ReFrame* prev = 0)
   {
     m_state = state;
     m_trans = trans;
@@ -154,8 +135,50 @@ struct BTInfo
   Transition* m_trans;
   char const* m_start;
   char const* m_cur;
-  BTInfo*     m_prev;
+  ReFrame*    m_prev;
 };
+
+class ReStack
+{
+public:
+
+  ReStack() : m_last (0)
+  {
+  }
+
+  ~ReStack()
+  {
+    while(ReFrame* pbt = m_last)
+    {
+      m_last = pbt->m_prev;
+      delete pbt;
+    }
+  }
+
+  ReFrame* Push(
+    State state, 
+    Transition* trans, 
+    char const* start, 
+    char const* cur)
+  {
+    return m_last = new ReFrame(
+      state, trans, start, cur, m_last);    
+  }
+
+  ReFrame* Pop()
+  {
+    ReFrame* pbt = m_last;
+    m_last = pbt ? pbt->m_prev : 0;
+    return pbt;
+  }
+
+private:
+
+  ReFrame* m_last;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
 
 Regex::ImplResult 
 Regex::MatchImpl(StringCRef input, bool createMatchResult)
@@ -163,17 +186,15 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
   // Setup pointer to string
   char const* text = input.c_str();
 
-  // Current stack entry
-  BTInfo* pbt = 0;
+  // Backtracking stack
+  ReStack stack;
 
-  // Create inital stack frame
-  size_t stacksize = 1;
-  pbt = new BTInfo(
+  // Create initial stack frame
+  ReFrame* pbt = new ReFrame(
     m_rd->m_start, 
     m_rd->m_table[m_rd->m_start], 
     input.c_str(), 
-    input.c_str(), 
-    0);
+    input.c_str());
 
   // Main match loop
   while(pbt)
@@ -211,48 +232,37 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
     }
 
     // Final state reached
-    if(tr->m_out == m_rd->m_final)
+    if(pbt->m_cur && tr->m_out == m_rd->m_final)
     {
-      // Ignore empty match
       if(pbt->m_cur > pbt->m_start)
       {
-        // Match succeeded
         break;
       }
-
-      // Match failed; backtrack
       pbt->m_cur = 0;
     }
 
-    // Determine next step
+    // Test match
     if(pbt->m_cur == 0)
     {
-      // Delete frame and backtrack
-      --stacksize;
-      BTInfo* t = pbt;
-      pbt = pbt->m_prev;
-      delete t;
+      // Failed; delete this frame
+      delete pbt;
 
-      // Next iteration
-      continue;
+      // Backtrack to previous frame
+      pbt = stack.Pop();
     }
-
-    // Record backtrack for next transition
-    if(tr->m_next)
+    else
     {
-      ++stacksize;
-      BTInfo* nbt = new BTInfo(
-        pbt->m_state,
-        pbt->m_trans->m_next,
-        pbt->m_start,
-        pbt->m_cur,
-        pbt->m_prev);
-      pbt->m_prev = nbt;
-    }
+      // Record backtrack for next transition
+      if(tr->m_next)
+      {
+        stack.Push(pbt->m_state, pbt->m_trans->m_next, 
+                            pbt->m_start, pbt->m_cur);
+      }
 
-    // Advance to next state
-    pbt->m_state = tr->m_out;
-    pbt->m_trans = m_rd->m_table[pbt->m_state];
+      // Advance to next state
+      pbt->m_state = tr->m_out;
+      pbt->m_trans = m_rd->m_table[pbt->m_state];
+    }
   }
 
   // Create result
@@ -264,19 +274,20 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
   if(createMatchResult)
   {
     result.m_result = new MatchResult;
-    result.m_result->m_success = pbt != 0;
-    result.m_result->m_text = pbt ? String(pbt->m_start, pbt->m_cur) : "";
-    result.m_result->m_offset = pbt ? pbt->m_start - text : 0;
-  }
-  
-  // Delete stack frames
-  while(pbt)
-  {
-    BTInfo* p = pbt->m_prev;
-    delete pbt;
-    pbt = p;
+    if(pbt)
+    {
+      result.m_result->m_success = true;
+      result.m_result->m_text = String(pbt->m_start, pbt->m_cur);
+      result.m_result->m_offset = pbt->m_start - text;
+    }
   }
 
+  // Delete current frame
+  if(pbt)
+  {
+    delete pbt;
+  }
+  
   // Done
   return result;
 }
