@@ -106,8 +106,10 @@ atom(R) ::= ANY .       { p->AddAnyChar(R); }
 atom(R) ::= DASH(A) .   { p->AddChar(A, R); }
 atom(R) ::= COMMA(A) .  { p->AddChar(A, R); }
 atom(R) ::= CHAR(A) .   { p->AddChar(A, R); }
+atom(R) ::= letter(A) . { p->AddChar(A, R); }
 atom(R) ::= INT(A) .    { p->AddChar(A, R); }
-atom(R) ::= CLASS(A) .  { p->AddCharClass(A, R); }
+atom(R) ::= COLON(A) .  { p->AddChar(A, R); }
+atom(R) ::= class(A) .  { R = A; }
 
 // Complex atoms
 atom(R) ::= range(A) . { R = A; }
@@ -131,8 +133,9 @@ range_sequence(R) ::= range_sequence(A) range_atom(B) . { p->AddAlternation(A, B
 
 // Range characters
 %type range_char { char }
-range_char(R) ::= CHAR(A) . { R = A; }
-range_char(R) ::= INT(A) .  { R = A; }
+range_char(R) ::= CHAR(A) .   { R = A; }
+range_char(R) ::= letter(A) . { R = A; }
+range_char(R) ::= INT(A) .    { R = A; }
 
 // Range atoms
 range_atom(R) ::= range_char(A) . { p->AddChar(A, R); }
@@ -147,3 +150,165 @@ quantifier(R) ::= LBRACE COMMA int(H) RBRACE .        { R, H; }
 // Integer, used in free quantifiers
 int(R) ::= INT(A) . { R, A; }
 int(R) ::= int(A) INT(B) . { R, A, B; }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Character classes
+//
+
+cc_alnum (R) ::= LBRACKET COLON lc_a lc_l lc_n lc_u lc_m COLON RBRACKET . { p->AddCharClass(ccAlnum, R); }
+cc_alpha (R) ::= LBRACKET COLON lc_a lc_l lc_p lc_h lc_a COLON RBRACKET . { p->AddCharClass(ccAlpha, R); }
+cc_blank (R) ::= LBRACKET COLON lc_b lc_l lc_a lc_n lc_k COLON RBRACKET . { p->AddCharClass(ccBlank, R); }
+cc_cntrl (R) ::= LBRACKET COLON lc_c lc_n lc_t lc_r lc_l COLON RBRACKET . { p->AddCharClass(ccCntrl, R); }
+cc_digit (R) ::= LBRACKET COLON lc_d lc_i lc_g lc_i lc_t COLON RBRACKET . { p->AddCharClass(ccDigit, R); }
+cc_graph (R) ::= LBRACKET COLON lc_g lc_r lc_a lc_p lc_h COLON RBRACKET . { p->AddCharClass(ccGraph, R); }
+cc_lower (R) ::= LBRACKET COLON lc_l lc_o lc_w lc_e lc_r COLON RBRACKET . { p->AddCharClass(ccLower, R); }
+cc_print (R) ::= LBRACKET COLON lc_p lc_r lc_i lc_n lc_t COLON RBRACKET . { p->AddCharClass(ccPrint, R); }
+cc_punct (R) ::= LBRACKET COLON lc_p lc_u lc_n lc_c lc_t COLON RBRACKET . { p->AddCharClass(ccPunct, R); }
+cc_space (R) ::= LBRACKET COLON lc_s lc_p lc_a lc_c lc_e COLON RBRACKET . { p->AddCharClass(ccSpace, R); }
+cc_upper (R) ::= LBRACKET COLON lc_u lc_p lc_p lc_e lc_r COLON RBRACKET . { p->AddCharClass(ccUpper, R); }
+cc_xdigit(R) ::= LBRACKET COLON lc_x lc_d lc_i lc_g lc_i lc_t COLON RBRACKET . { p->AddCharClass(ccXdigit, R); }
+
+class(R) ::= cc_alnum (A) . { R = A; }
+class(R) ::= cc_alpha (A) . { R = A; }
+class(R) ::= cc_blank (A) . { R = A; }
+class(R) ::= cc_cntrl (A) . { R = A; }
+class(R) ::= cc_digit (A) . { R = A; }
+class(R) ::= cc_graph (A) . { R = A; }
+class(R) ::= cc_lower (A) . { R = A; }
+class(R) ::= cc_print (A) . { R = A; }
+class(R) ::= cc_punct (A) . { R = A; }
+class(R) ::= cc_space (A) . { R = A; }
+class(R) ::= cc_upper (A) . { R = A; }
+class(R) ::= cc_xdigit(A) . { R = A; }
+class(R) ::= CLASS(A)     . { p->AddCharClass(A, R); }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// All letters
+//
+
+%type letter { char }
+letter(R) ::= lcase(A) . { R = A; }
+letter(R) ::= ucase(A) . { R = A; }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Lowercase letters
+//
+
+%type lc_a { char } lc_a(R) ::= LC_A(A) . { R = A; }
+%type lc_b { char } lc_b(R) ::= LC_B(A) . { R = A; }
+%type lc_c { char } lc_c(R) ::= LC_C(A) . { R = A; }
+%type lc_d { char } lc_d(R) ::= LC_D(A) . { R = A; }
+%type lc_e { char } lc_e(R) ::= LC_E(A) . { R = A; }
+%type lc_f { char } lc_f(R) ::= LC_F(A) . { R = A; }
+%type lc_g { char } lc_g(R) ::= LC_G(A) . { R = A; }
+%type lc_h { char } lc_h(R) ::= LC_H(A) . { R = A; }
+%type lc_i { char } lc_i(R) ::= LC_I(A) . { R = A; }
+%type lc_j { char } lc_j(R) ::= LC_J(A) . { R = A; }
+%type lc_k { char } lc_k(R) ::= LC_K(A) . { R = A; }
+%type lc_l { char } lc_l(R) ::= LC_L(A) . { R = A; }
+%type lc_m { char } lc_m(R) ::= LC_M(A) . { R = A; }
+%type lc_n { char } lc_n(R) ::= LC_N(A) . { R = A; }
+%type lc_o { char } lc_o(R) ::= LC_O(A) . { R = A; }
+%type lc_p { char } lc_p(R) ::= LC_P(A) . { R = A; }
+%type lc_q { char } lc_q(R) ::= LC_Q(A) . { R = A; }
+%type lc_r { char } lc_r(R) ::= LC_R(A) . { R = A; }
+%type lc_s { char } lc_s(R) ::= LC_S(A) . { R = A; }
+%type lc_t { char } lc_t(R) ::= LC_T(A) . { R = A; }
+%type lc_u { char } lc_u(R) ::= LC_U(A) . { R = A; }
+%type lc_v { char } lc_v(R) ::= LC_V(A) . { R = A; }
+%type lc_w { char } lc_w(R) ::= LC_W(A) . { R = A; }
+%type lc_x { char } lc_x(R) ::= LC_X(A) . { R = A; }
+%type lc_y { char } lc_y(R) ::= LC_Y(A) . { R = A; }
+%type lc_z { char } lc_z(R) ::= LC_Z(A) . { R = A; }
+
+%type lcase { char }
+lcase(R) ::= lc_a(A) . { R = A; }
+lcase(R) ::= lc_b(A) . { R = A; }
+lcase(R) ::= lc_c(A) . { R = A; }
+lcase(R) ::= lc_d(A) . { R = A; }
+lcase(R) ::= lc_e(A) . { R = A; }
+lcase(R) ::= lc_f(A) . { R = A; }
+lcase(R) ::= lc_g(A) . { R = A; }
+lcase(R) ::= lc_h(A) . { R = A; }
+lcase(R) ::= lc_i(A) . { R = A; }
+lcase(R) ::= lc_j(A) . { R = A; }
+lcase(R) ::= lc_k(A) . { R = A; }
+lcase(R) ::= lc_l(A) . { R = A; }
+lcase(R) ::= lc_m(A) . { R = A; }
+lcase(R) ::= lc_n(A) . { R = A; }
+lcase(R) ::= lc_o(A) . { R = A; }
+lcase(R) ::= lc_p(A) . { R = A; }
+lcase(R) ::= lc_q(A) . { R = A; }
+lcase(R) ::= lc_r(A) . { R = A; }
+lcase(R) ::= lc_s(A) . { R = A; }
+lcase(R) ::= lc_t(A) . { R = A; }
+lcase(R) ::= lc_u(A) . { R = A; }
+lcase(R) ::= lc_v(A) . { R = A; }
+lcase(R) ::= lc_w(A) . { R = A; }
+lcase(R) ::= lc_x(A) . { R = A; }
+lcase(R) ::= lc_y(A) . { R = A; }
+lcase(R) ::= lc_z(A) . { R = A; }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Uppercase letters
+//
+
+%type uc_a { char } uc_a(R) ::= UC_A(A) . { R = A; }
+%type uc_b { char } uc_b(R) ::= UC_B(A) . { R = A; }
+%type uc_c { char } uc_c(R) ::= UC_C(A) . { R = A; }
+%type uc_d { char } uc_d(R) ::= UC_D(A) . { R = A; }
+%type uc_e { char } uc_e(R) ::= UC_E(A) . { R = A; }
+%type uc_f { char } uc_f(R) ::= UC_F(A) . { R = A; }
+%type uc_g { char } uc_g(R) ::= UC_G(A) . { R = A; }
+%type uc_h { char } uc_h(R) ::= UC_H(A) . { R = A; }
+%type uc_i { char } uc_i(R) ::= UC_I(A) . { R = A; }
+%type uc_j { char } uc_j(R) ::= UC_J(A) . { R = A; }
+%type uc_k { char } uc_k(R) ::= UC_K(A) . { R = A; }
+%type uc_l { char } uc_l(R) ::= UC_L(A) . { R = A; }
+%type uc_m { char } uc_m(R) ::= UC_M(A) . { R = A; }
+%type uc_n { char } uc_n(R) ::= UC_N(A) . { R = A; }
+%type uc_o { char } uc_o(R) ::= UC_O(A) . { R = A; }
+%type uc_p { char } uc_p(R) ::= UC_P(A) . { R = A; }
+%type uc_q { char } uc_q(R) ::= UC_Q(A) . { R = A; }
+%type uc_r { char } uc_r(R) ::= UC_R(A) . { R = A; }
+%type uc_s { char } uc_s(R) ::= UC_S(A) . { R = A; }
+%type uc_t { char } uc_t(R) ::= UC_T(A) . { R = A; }
+%type uc_u { char } uc_u(R) ::= UC_U(A) . { R = A; }
+%type uc_v { char } uc_v(R) ::= UC_V(A) . { R = A; }
+%type uc_w { char } uc_w(R) ::= UC_W(A) . { R = A; }
+%type uc_x { char } uc_x(R) ::= UC_X(A) . { R = A; }
+%type uc_y { char } uc_y(R) ::= UC_Y(A) . { R = A; }
+%type uc_z { char } uc_z(R) ::= UC_Z(A) . { R = A; }
+
+%type ucase { char }
+ucase(R) ::= uc_a(A) . { R = A; }
+ucase(R) ::= uc_b(A) . { R = A; }
+ucase(R) ::= uc_c(A) . { R = A; }
+ucase(R) ::= uc_d(A) . { R = A; }
+ucase(R) ::= uc_e(A) . { R = A; }
+ucase(R) ::= uc_f(A) . { R = A; }
+ucase(R) ::= uc_g(A) . { R = A; }
+ucase(R) ::= uc_h(A) . { R = A; }
+ucase(R) ::= uc_i(A) . { R = A; }
+ucase(R) ::= uc_j(A) . { R = A; }
+ucase(R) ::= uc_k(A) . { R = A; }
+ucase(R) ::= uc_l(A) . { R = A; }
+ucase(R) ::= uc_m(A) . { R = A; }
+ucase(R) ::= uc_n(A) . { R = A; }
+ucase(R) ::= uc_o(A) . { R = A; }
+ucase(R) ::= uc_p(A) . { R = A; }
+ucase(R) ::= uc_q(A) . { R = A; }
+ucase(R) ::= uc_r(A) . { R = A; }
+ucase(R) ::= uc_s(A) . { R = A; }
+ucase(R) ::= uc_t(A) . { R = A; }
+ucase(R) ::= uc_u(A) . { R = A; }
+ucase(R) ::= uc_v(A) . { R = A; }
+ucase(R) ::= uc_w(A) . { R = A; }
+ucase(R) ::= uc_x(A) . { R = A; }
+ucase(R) ::= uc_y(A) . { R = A; }
+ucase(R) ::= uc_z(A) . { R = A; }
+

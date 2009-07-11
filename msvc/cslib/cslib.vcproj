@@ -173,6 +173,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\test\regex.csc"
+				>
+			</File>
+			<File
 				RelativePath="..\..\test\socket.csi"
 				>
 			</File>

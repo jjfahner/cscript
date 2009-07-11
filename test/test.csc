@@ -22,7 +22,4 @@ TestRE(/(x+x+)+y/, "xxxxxxxxxy");
 TestRE(/<a>(.*?)<\/a>/, "<a>blabla</a>blabla</a>");
 TestRE(/[a-zA-Z0-9_]*/, "%abcAb0_1%");
 TestRE(/(.@)+|(.\d)+/, "a1@2@3%4@5@6@7@", "a1@2@3%4@5@6@7");
-
-var re = new Regex;
-re.Compile("(.@)+|(.\d)+");
-Console.WriteLn(re.TableToString());
+TestRE(/[:digit:]+/, "abc123456789def");

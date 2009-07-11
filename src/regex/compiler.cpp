@@ -283,6 +283,8 @@ RegexCompiler::Compile(LexStream& stream)
     case '|': type = RE_ALTERNATE; break;
     case ',': type = RE_COMMA; break;
     case '-': type = RE_DASH; break;
+    case ':': type = RE_COLON; break;
+
     case '0': type = RE_INT; break;
     case '1': type = RE_INT; break;
     case '2': type = RE_INT; break;
@@ -293,6 +295,61 @@ RegexCompiler::Compile(LexStream& stream)
     case '7': type = RE_INT; break;
     case '8': type = RE_INT; break;
     case '9': type = RE_INT; break;
+
+    case 'a': type = RE_LC_A; break;
+    case 'b': type = RE_LC_B; break;
+    case 'c': type = RE_LC_C; break;
+    case 'd': type = RE_LC_D; break;
+    case 'e': type = RE_LC_E; break;
+    case 'f': type = RE_LC_F; break;
+    case 'g': type = RE_LC_G; break;
+    case 'h': type = RE_LC_H; break;
+    case 'i': type = RE_LC_I; break;
+    case 'j': type = RE_LC_J; break;
+    case 'k': type = RE_LC_K; break;
+    case 'l': type = RE_LC_L; break;
+    case 'm': type = RE_LC_M; break;
+    case 'n': type = RE_LC_N; break;
+    case 'o': type = RE_LC_O; break;
+    case 'p': type = RE_LC_P; break;
+    case 'q': type = RE_LC_Q; break;
+    case 'r': type = RE_LC_R; break;
+    case 's': type = RE_LC_S; break;
+    case 't': type = RE_LC_T; break;
+    case 'u': type = RE_LC_U; break;
+    case 'v': type = RE_LC_V; break;
+    case 'w': type = RE_LC_W; break;
+    case 'x': type = RE_LC_X; break;
+    case 'y': type = RE_LC_Y; break;
+    case 'z': type = RE_LC_Z; break;
+
+    case 'A': type = RE_UC_A; break;
+    case 'B': type = RE_UC_B; break;
+    case 'C': type = RE_UC_C; break;
+    case 'D': type = RE_UC_D; break;
+    case 'E': type = RE_UC_E; break;
+    case 'F': type = RE_UC_F; break;
+    case 'G': type = RE_UC_G; break;
+    case 'H': type = RE_UC_H; break;
+    case 'I': type = RE_UC_I; break;
+    case 'J': type = RE_UC_J; break;
+    case 'K': type = RE_UC_K; break;
+    case 'L': type = RE_UC_L; break;
+    case 'M': type = RE_UC_M; break;
+    case 'N': type = RE_UC_N; break;
+    case 'O': type = RE_UC_O; break;
+    case 'P': type = RE_UC_P; break;
+    case 'Q': type = RE_UC_Q; break;
+    case 'R': type = RE_UC_R; break;
+    case 'S': type = RE_UC_S; break;
+    case 'T': type = RE_UC_T; break;
+    case 'U': type = RE_UC_U; break;
+    case 'V': type = RE_UC_V; break;
+    case 'W': type = RE_UC_W; break;
+    case 'X': type = RE_UC_X; break;
+    case 'Y': type = RE_UC_Y; break;
+    case 'Z': type = RE_UC_Z; break;
+
     case '\\':
       c = *stream.m_cursor++;
       instance.m_rd->m_pattern += c;
