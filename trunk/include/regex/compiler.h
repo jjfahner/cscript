@@ -71,7 +71,7 @@ typedef size_t State;
 
 struct Transition
 {
-  Transition(State out, TransitionTypes type, char min = 0, char max = 0) :
+  Transition(State out = 0, TransitionTypes type = ttEmpty, char min = 0, char max = 0) :
     m_type  (type), 
     m_out   (out),
     m_min   (min),
@@ -80,11 +80,74 @@ struct Transition
   {
   }
 
+  Transition(Transition const& rhs)
+  {
+    *this = rhs;
+    m_next = 0;
+  }
+
   Transition* Copy(Transition* next)
   {
-    Transition* c = new Transition(*this);
-    c->m_next = m_next ? m_next->Copy(next) : next;
-    return c;
+    Transition* t = new Transition(*this);
+
+    Transition* c = t;
+    while(c->m_next)
+    {
+      c->m_next = new Transition(*c->m_next);
+      c = c->m_next;
+    }
+    
+    return t;
+  }
+
+  void Append(Transition* p)
+  {
+    Transition* t = this;
+    while(t->m_next)
+    {
+      t = t->m_next;
+    }
+    t->m_next = p;
+  }
+
+  //
+  // Find a transition type in the list
+  //
+  Transition* Find(TransitionTypes type)
+  {
+    Transition* t = this;
+    while(t && t->m_type != type)
+    {
+      t = t->m_next;
+    }
+    return t;
+  }
+
+  //
+  // Find a transition in the list
+  //
+  Transition* Find(Transition const& p)
+  {
+    Transition* t = this;
+    while(t && *t != p)
+    {
+      t = t->m_next;
+    }
+    return t;
+  }
+
+  bool operator == (Transition const& rhs)
+  {
+    // Don't compare next pointer
+    return m_type == rhs.m_type &&
+           m_out  == rhs.m_out  &&           
+           m_min  == rhs.m_min  &&
+           m_max  == rhs.m_max  ;
+  }
+
+  bool operator != (Transition const& rhs)
+  {
+    return ! (*this == rhs);
   }
 
   TransitionTypes m_type;
@@ -234,6 +297,11 @@ public:
   void OnSyntaxError(char ch);
 
 private:
+
+  //
+  // Append transition, recursively reducing empty transitions
+  //
+  void ReduceTransitions(Transition* source, Transition* appendTo);
 
   //
   // Push a character to the parser

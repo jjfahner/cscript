@@ -215,123 +215,103 @@ RegexCompiler::Finalize(Pair const& r)
   Optimize();
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void 
 RegexCompiler::Optimize()
 {
-#if 0
-  // Initialize state table
+  // Create new table
+  Transitions table;
+
+  // Mapping from old to new states
   std::vector<State> states;
-  states.resize(m_table.size());
+  states.resize(m_table.size(), -1);
 
-  // Replace every transition of type Empty
-  size_t replaced = 1;
-  while(replaced)
+  // Set of reachable states starts at 0
+  std::vector<State> reachable;
+  reachable.push_back(0);
+
+  // Recursively replace empty transitions
+  while(reachable.size())
   {
-    replaced = 0;
-    for(size_t i = 0; i < m_table.size(); ++i)
-    {
-      Transition** pt = &m_table[i];
-      while(*pt)
-      {
-        Transition* t = *pt;
+    // Remove state from stack
+    State oldstate = reachable.back();
+    reachable.pop_back();
 
-        // Skip non-empty and final transitions
-        if((*pt)->m_type != ttEmpty)
-        {
-          pt = &(*pt)->m_next;
-          continue;
-        }
-
-        // Replace source transition by target transitions
-        *pt = m_table[t->m_out]->Copy(t->m_next);
-        
-        // Advance through transitions
-        while(*pt && *pt != t->m_next)
-        {
-          pt = &(*pt)->m_next;
-        }
-
-        // Delete old transition
-        delete t;
-        
-        // Do another round
-        ++replaced;
-      }
-    }
-  }
-
-#else
-  // Initialize state table
-  std::vector<State> states;
-  states.resize(m_table.size());
-
-  // Find states with one transition, of type Empty
-  for(size_t i = 0; i < m_table.size(); ++i)
-  {
-    Transition* t = m_table[i];
-
-    // Initialize with self
-    states[i] = i;
-
-    // Skip all states that don't apply
-    if(t == 0 || t->m_next != 0 || t->m_type != ttEmpty)
+    // Don't handle states twice
+    if(states[oldstate] != -1)
     {
       continue;
     }
 
-    // Store out state of transition as new in state
-    states[i] = t->m_out;
+    // Get new index for state
+    State newstate = table.size();
+    table.resize(newstate + 1);
 
-    // Delete the table entry, won't be used again
-    delete t;
-    m_table[i] = 0;
-  }
+    // Store mapping from old to new
+    states[oldstate] = newstate;
 
-  // Update all remaining transitions
-  for(size_t i = 0; i < m_table.size(); ++i)
-  {
-    for(Transition* t = m_table[i]; t; t = t->m_next)
+    // Insert temporary transition
+    Transition etrans;
+    table[newstate] = &etrans;
+
+    // Reduce transitions
+    for(Transition* t = m_table[oldstate]; t; t = t->m_next)
     {
-      // Determine new out state from table
-      t->m_out = states[t->m_out];
+      ReduceTransitions(t, table[newstate]);
+    }
 
-      // Search for a non-empty out state (ignore final state)
-      while(m_table[t->m_out] == 0)
+    // Replace temporary transition
+    table[newstate] = table[newstate]->m_next;
+
+    // Determine newly reachable states
+    for(Transition* t = table[newstate]; t; t = t->m_next)
+    {
+      if(states[t->m_out] == -1)
       {
-        t->m_out = states[t->m_out];
+        reachable.push_back(t->m_out);
       }
     }
   }
 
-  // Build new table
-  Transitions table;
-
-  // Copy transitions
-  for(size_t i = 0; i < m_table.size(); ++i)
+  // Assign new out states to transitions
+  for(State s = 0; s < table.size(); ++s)
   {
-    if(m_table[i] == 0)
-    {
-      states[i] = -1;
-    }
-    else
-    {
-      table.push_back(m_table[i]);
-      states[i] = table.size() - 1;
-    }
-  }
-
-  // Update transitions
-  for(size_t i = 0; i < table.size(); ++i)
-  {
-    for(Transition* t = table[i]; t; t = t->m_next)
+    for(Transition* t = table[s]; t; t = t->m_next)
     {
       t->m_out = states[t->m_out];
     }
   }
 
+  // Delete old transitions
+  for(State s = 0; s < m_table.size(); ++s)
+  {
+    for(Transition* t = m_table[s]; t; )
+    {
+      Transition* p = t->m_next;
+      delete t;
+      t = p;
+    }
+  }
+
   // Store new table
-  m_table.swap(table);
-#endif
+  m_table = table;
+}
+
+void 
+RegexCompiler::ReduceTransitions(Transition* source, Transition* appendTo)
+{
+  if(source->m_type == ttEmpty)
+  {
+    for(Transition* t = m_table[source->m_out]; t; t = t->m_next)
+    {
+      ReduceTransitions(t, appendTo);
+    }
+  }
+  else if(appendTo->Find(*source) == 0)
+  {
+    appendTo->Append(new Transition(*source));
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
