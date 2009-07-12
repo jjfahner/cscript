@@ -81,8 +81,7 @@ Regex::TableToString()
 {
   std::ostringstream r;
 
-  r << "Start: " << m_rd->m_start << "\nFinal: " << m_rd->m_final << "\n\n";
-  for(size_t state = 0; state < m_rd->m_final; ++state)
+  for(size_t state = 0; state < m_rd->m_table.size(); ++state)
   {
     r << "State " << state << ":\n";
     for(Transition* t = m_rd->m_table[state]; t; t = t->m_next)
@@ -91,6 +90,7 @@ Regex::TableToString()
       switch(t->m_type)
       {
       case ttEmpty:    r << "Empty"; break;
+      case ttFinal:    r << "Final"; break;
       case ttNext:     r << "Next"; break;
       case ttOffset:   r << "Offset"; break;
       case ttAnchorL:  r << "AnchorL"; break;
@@ -281,8 +281,8 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
 
   // Create initial stack frame
   ReFrame* pbt = new ReFrame(
-    m_rd->m_start, 
-    m_rd->m_table[m_rd->m_start], 
+    0, 
+    m_rd->m_table[0], 
     input.c_str(), 
     input.c_str());
 
@@ -297,8 +297,15 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
     Transition* tr = pbt->m_trans;
     switch(tr->m_type)
     {
-    case ttEmpty:    break;
-    case ttNext:     p = n; break;
+    case ttFinal:
+      break;
+
+    case ttEmpty:
+      break;
+
+    case ttNext:     
+      p = n; break;
+
     case ttOffset:   
       p = ++pbt->m_start; 
       p = *p ? p : 0; 
@@ -337,7 +344,7 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
     }
 
     // Final state reached
-    if(pbt->m_cur && tr->m_out == m_rd->m_final)
+    if(pbt->m_cur && tr->m_type == ttFinal)
     {
       if(pbt->m_cur > pbt->m_start)
       {
