@@ -157,8 +157,27 @@ struct Transition
   Transition* m_next;
 };
 
-// Transition vector
-typedef std::vector<Transition*> Transitions;
+//
+// Wrapper around TransitionVec for memory cleanup
+//
+class Transitions : public std::vector<Transition*>
+{
+public:
+
+  ~Transitions()
+  {
+    for(size_t i = 0; i < size(); ++i)
+    {
+      for(Transition* t = at(i); t;)
+      {
+        Transition* p = t->m_next;
+        delete t;
+        t = p;
+      }
+    }
+  }
+
+};
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -200,11 +219,6 @@ public:
   // Construction
   //
   RegexCompiler();
-
-  //
-  // Destruction
-  //
-  ~RegexCompiler();
 
   //
   // Create a new state

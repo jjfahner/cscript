@@ -31,20 +31,6 @@ m_stateSeq(0)
 {
 }
 
-RegexCompiler::~RegexCompiler()
-{
-  for(size_t i = 0; i < m_table.size(); ++i)
-  {
-    Transition* t = m_table[i];
-    while(t)
-    {
-      Transition* u = t->m_next;
-      delete t;
-      t = u;
-    }
-  }
-}
-
 inline State 
 RegexCompiler::AddState()
 {
@@ -283,19 +269,8 @@ RegexCompiler::Optimize()
     }
   }
 
-  // Delete old transitions
-  for(State s = 0; s < m_table.size(); ++s)
-  {
-    for(Transition* t = m_table[s]; t; )
-    {
-      Transition* p = t->m_next;
-      delete t;
-      t = p;
-    }
-  }
-
   // Store new table
-  m_table = table;
+  m_table.swap(table);
 }
 
 void 
@@ -495,10 +470,7 @@ RegexCompiler::Compile(LexStream& stream)
   // Build return value
   RegexData* rd = new RegexData;
   rd->m_pattern = instance.m_pattern;
-  rd->m_table   = instance.m_table;
-
-  // Clear transition table
-  instance.m_table.clear();
+  rd->m_table.swap(instance.m_table);
 
   // Return regex struct
   return rd;
