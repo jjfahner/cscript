@@ -33,7 +33,6 @@ enum TransitionTypes
 {
   ttEmpty,
   ttFinal,
-  ttNext,
   ttOffset,
   ttAnchorL,
   ttAnchorR,

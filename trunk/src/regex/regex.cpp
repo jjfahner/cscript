@@ -89,30 +89,29 @@ Regex::TableToString()
       r << "  ";
       switch(t->m_type)
       {
-      case ttEmpty:    r << "Empty"; break;
-      case ttFinal:    r << "Final"; break;
-      case ttNext:     r << "Next"; break;
-      case ttOffset:   r << "Offset"; break;
-      case ttAnchorL:  r << "AnchorL"; break;
-      case ttAnchorR:  r << "AnchorR"; break;
+      case ttEmpty:    r << "Empty";    break;
+      case ttFinal:    r << "Final";    break;
+      case ttOffset:   r << "Offset";   break;
+      case ttAnchorL:  r << "AnchorL";  break;
+      case ttAnchorR:  r << "AnchorR";  break;
       case ttCaptureL: r << "CaptureL"; break;
       case ttCaptureR: r << "CaptureR"; break;
-      case ttAny:      r << "Any"; break;
-      case ttChar:     r << "Char '" << t->m_min << "'"; break;
-      case ttRange:    r << "Range '" << t->m_min << "', '" << t->m_max << "'"; break;
+      case ttAny:      r << "Any";      break;
+      case ttChar:     r << "Char '"   << t->m_min << "'"; break;
+      case ttRange:    r << "Range '"  << t->m_min << "', '" << t->m_max << "'"; break;
       case ttNRange:   r << "NRange '" << t->m_min << "', '" << t->m_max << "'"; break;
-      case ccAlnum:    r << "Alnum"; break;
-      case ccAlpha:    r << "Alpha"; break;
-      case ccBlank:    r << "Blank"; break;
-      case ccCntrl:    r << "Cntrl"; break;
-      case ccDigit:    r << "Digit"; break;
-      case ccGraph:    r << "Graph"; break;
-      case ccLower:    r << "Lower"; break;
-      case ccPrint:    r << "Print"; break;
-      case ccPunct:    r << "Punct"; break;
-      case ccSpace:    r << "Space"; break;
-      case ccUpper:    r << "Upper"; break;
-      case ccXdigit:   r << "XDigit"; break;
+      case ccAlnum:    r << "Alnum";    break;
+      case ccAlpha:    r << "Alpha";    break;
+      case ccBlank:    r << "Blank";    break;
+      case ccCntrl:    r << "Cntrl";    break;
+      case ccDigit:    r << "Digit";    break;
+      case ccGraph:    r << "Graph";    break;
+      case ccLower:    r << "Lower";    break;
+      case ccPrint:    r << "Print";    break;
+      case ccPunct:    r << "Punct";    break;
+      case ccSpace:    r << "Space";    break;
+      case ccUpper:    r << "Upper";    break;
+      case ccXdigit:   r << "XDigit";   break;
       }
       r << " -> " << t->m_out << "\n";
     }
@@ -302,9 +301,6 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
 
     case ttEmpty:
       break;
-
-    case ttNext:     
-      p = n; break;
 
     case ttOffset:   
       p = ++pbt->m_start; 
