@@ -288,12 +288,24 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
   // Main match loop
   while(pbt)
   {
-    // Current and next position
+    // Create some aliases
+    Transition* tr = pbt->m_trans;
     char const*& p = pbt->m_cur;
     char const*  n = p + 1;
 
+    // Record backtrack for next transition
+    if(tr->m_next)
+    {
+      ReFrame* f = stack.Push(
+        pbt->m_state, 
+        pbt->m_trans->m_next, 
+        pbt->m_start, 
+        pbt->m_cur);
+      f->m_captures = pbt->m_captures ? pbt->m_captures->Copy() : 0;
+      f->m_capstack  = pbt->m_capstack  ? pbt->m_capstack->Copy()  : 0;
+    }
+
     // Match transition
-    Transition* tr = pbt->m_trans;
     switch(tr->m_type)
     {
     case ttFinal:
@@ -360,18 +372,6 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
     }
     else
     {
-      // Record backtrack for next transition
-      if(tr->m_next)
-      {
-        ReFrame* f = stack.Push(
-          pbt->m_state, 
-          pbt->m_trans->m_next, 
-          pbt->m_start, 
-          pbt->m_cur);
-        f->m_captures = pbt->m_captures ? pbt->m_captures->Copy() : 0;
-        f->m_capstack  = pbt->m_capstack  ? pbt->m_capstack->Copy()  : 0;
-      }
-
       // Advance current backrefs
       for(Capture* pbr = pbt->m_capstack; pbr; pbr = pbr->m_prev)
       {
