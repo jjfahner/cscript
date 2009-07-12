@@ -92,7 +92,43 @@ File::ReadLn()
   buf[len] = 0;
 
   // Return string
-  return GCString::Create(buf, len);
+  return GCString::Create(buf, len ? len - 1 : 0);
+}
+
+Value 
+File::ReadFile()
+{
+  // Remember file position
+  std::istream::pos_type p = m_stream.tellg();
+
+  // Seek to end and store length
+  m_stream.seekg(0, std::ios::end);
+  std::istream::pos_type e = m_stream.tellg();
+
+  // Seek to start of file
+  m_stream.seekg(0, std::ios::beg);
+  std::istream::pos_type s = m_stream.tellg();
+
+  // Calculate length
+  size_t len = e - s;
+
+  // Allocate buffer
+  char* buf = new char[len + 1];
+
+  // Read file
+  m_stream.read(buf, len);
+
+  // Terminate buffer
+  buf[len] = 0;
+
+  // Construct return value
+  Value result = GCString::Create(buf, len);
+
+  // Restore file position
+  m_stream.seekg(p);
+
+  // Done
+  return result;
 }
 
 void

@@ -58,6 +58,11 @@ public:
   __native_method Value ReadLn();
 
   //
+  // Read complete file
+  //
+  __native_method Value ReadFile();
+
+  //
   // Write string
   //
   __native_method void Write(StringCRef data, int64 length);
