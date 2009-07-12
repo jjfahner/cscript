@@ -193,12 +193,12 @@ public:
   //
   // Retrieve substring
   //
-  __native_method virtual String Substr(int64 start, int64 length) = 0;
+  __native_method virtual String Substr(int64 start, int64 length = 0) = 0;
 
   //
   // Find offset of substring
   //
-  __native_method virtual int64 Find(StringCRef what, int64 start) = 0;
+  __native_method virtual int64 Find(StringCRef what, int64 start = 0) = 0;
 
 };
 

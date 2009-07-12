@@ -250,7 +250,7 @@ public:
 
   virtual int64 Find(StringCRef what, int64 start)
   {
-    return m_value.find(what, (size_t)(start == -1 ? DeclType::npos : start));
+    return m_value.find(what, 0);
   }
 
 protected:

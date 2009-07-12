@@ -35,7 +35,7 @@ public:
   //
   // Open file
   //
-  __native_method void Open(StringCRef s_name, StringCRef s_mode, bool b_binary, bool b_atend, bool b_truncate);
+  __native_method void Open(StringCRef s_name, StringCRef s_mode = "r", bool b_binary = false, bool b_atend = false, bool b_truncate = false);
 
   //
   // Close file
@@ -65,7 +65,7 @@ public:
   //
   // Write string
   //
-  __native_method void Write(StringCRef data, int64 length);
+  __native_method void Write(StringCRef data, int64 length = 0);
 
 private:
 

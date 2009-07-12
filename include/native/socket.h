@@ -53,12 +53,12 @@ public:
   //
   // Send data
   //
-  __native_method Value Send(StringCRef data, int64 length);
+  __native_method Value Send(StringCRef data, int64 length = 0);
 
   //
   // Receive data
   //
-  __native_method Value Receive(int64 length, int64 timeout);
+  __native_method Value Receive(int64 length, int64 timeout = 0);
 
 
 private:
