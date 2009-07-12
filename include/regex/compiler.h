@@ -136,6 +136,11 @@ public:
   RegexCompiler();
 
   //
+  // Destruction
+  //
+  ~RegexCompiler();
+
+  //
   // Create a new state
   //
   State AddState();
@@ -216,6 +221,11 @@ public:
   void Finalize(Pair const& result);
 
   //
+  // Optimize the transition table
+  //
+  void Optimize();
+
+  //
   // Called when there is a syntax error
   //
   void OnSyntaxError(char ch);
@@ -227,14 +237,22 @@ private:
   //
   void PushChar(char ch);
 
+  //
+  // Pattern string
+  //
+  String m_pattern;
+
   // State sequence number
   size_t m_stateSeq;
 
-  // Current regex
-  RegexData* m_rd;
+  // Regular expression table
+  Transitions m_table;
+
+  // Start and final state
+  State m_start;
+  State m_final;
 
 };
 
 #endif // CSCRIPT_REGEX_COMPILER_H
-
 

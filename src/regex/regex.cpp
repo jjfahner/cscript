@@ -82,7 +82,7 @@ Regex::TableToString()
   std::ostringstream r;
 
   r << "Start: " << m_rd->m_start << "\nFinal: " << m_rd->m_final << "\n\n";
-  for(size_t state = 0; state <= m_rd->m_final; ++state)
+  for(size_t state = 0; state < m_rd->m_final; ++state)
   {
     r << "State " << state << ":\n";
     for(Transition* t = m_rd->m_table[state]; t; t = t->m_next)
@@ -410,8 +410,6 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
     delete pbt;
   }
 
-  std::cout << "Max stack depth: " << stack.Max() << "\n";
-  
   // Done
   return result;
 }

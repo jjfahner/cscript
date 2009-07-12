@@ -23,15 +23,26 @@
 #include "lemon.h"
 
 #include <sstream>
-#include <list>
 
 //////////////////////////////////////////////////////////////////////////
 
 RegexCompiler::RegexCompiler() :
-m_stateSeq(0),
-m_rd      (0)
+m_stateSeq(0)
 {
-  m_rd = new RegexData;
+}
+
+RegexCompiler::~RegexCompiler()
+{
+  for(size_t i = 0; i < m_table.size(); ++i)
+  {
+    Transition* t = m_table[i];
+    while(t)
+    {
+      Transition* u = t->m_next;
+      delete t;
+      t = u;
+    }
+  }
 }
 
 inline State 
@@ -41,10 +52,10 @@ RegexCompiler::AddState()
   State state = ++m_stateSeq;
 
   // Resize table
-  size_t size = m_rd->m_table.size();
+  size_t size = m_table.size();
   if(size <= state)
   {
-    m_rd->m_table.resize(size + 10);
+    m_table.resize(size + 10);
   }
 
   // Done
@@ -58,7 +69,7 @@ RegexCompiler::AddTransition(State in, State out, TransitionTypes type, char min
   Transition* t = new Transition(out, type, min, max);
 
   // Take pointer to first entry
-  Transition** p = &m_rd->m_table[in];
+  Transition** p = &m_table[in];
 
   // Handle append/prepend
   if(append)
@@ -194,12 +205,94 @@ inline void
 RegexCompiler::Finalize(Pair const& r)
 {
   // Set start and final state
-  m_rd->m_start = 0;
-  m_rd->m_final = r.m_max;
+  m_start = 0;
+  m_final = r.m_max;
 
   // Add moving start point
-  AddTransition(m_rd->m_start, r.m_min, ttEmpty);
-  AddTransition(m_rd->m_start, m_rd->m_start, ttOffset);
+  AddTransition(m_start, r.m_min, ttEmpty);
+  AddTransition(m_start, m_start, ttOffset);
+
+  // Optimize the table
+  Optimize();
+}
+
+void 
+RegexCompiler::Optimize()
+{
+  // Initialize state table
+  std::vector<State> states;
+  states.resize(m_table.size());
+
+  // Find states with one transition, of type Empty
+  for(size_t i = 0; i < m_table.size(); ++i)
+  {
+    Transition* t = m_table[i];
+
+    // Initialize with self
+    states[i] = i;
+
+    // Skip all states that don't apply
+    if(t == 0 || t->m_next != 0 || t->m_type != ttEmpty)
+    {
+      continue;
+    }
+
+    // Store out state of transition as new in state
+    states[i] = t->m_out;
+
+    // Delete the table entry, won't be used again
+    delete t;
+    m_table[i] = 0;
+  }
+
+  // Update all remaining transitions
+  for(size_t i = 0; i < m_table.size(); ++i)
+  {
+    for(Transition* t = m_table[i]; t; t = t->m_next)
+    {
+      // Determine new out state from table
+      t->m_out = states[t->m_out];
+
+      // Search for a non-empty out state (ignore final state)
+      while(t->m_out != m_final && m_table[t->m_out] == 0)
+      {
+        t->m_out = states[t->m_out];
+      }
+    }
+  }
+
+  // Build new table
+  Transitions table;
+
+  // Copy transitions
+  for(size_t i = 0; i < m_table.size(); ++i)
+  {
+    if(m_table[i] == 0)
+    {
+      states[i] = -1;
+    }
+    else
+    {
+      table.push_back(m_table[i]);
+      states[i] = table.size() - 1;
+    }
+  }
+
+  // Update final state
+  states[m_final] = table.size();
+  m_final = table.size();
+
+  // Update transitions
+  for(size_t i = 0; i < table.size(); ++i)
+  {
+    for(Transition* t = table[i]; t; t = t->m_next)
+    {
+      t->m_out = states[t->m_out];
+    }
+  }
+
+  // Store new table
+  m_table.swap(table);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -262,7 +355,7 @@ RegexCompiler::Compile(LexStream& stream)
     }
 
     // Append to pattern
-    instance.m_rd->m_pattern += c;
+    instance.m_pattern += c;
     
     // Select token type
     int type = RE_CHAR;
@@ -352,7 +445,7 @@ RegexCompiler::Compile(LexStream& stream)
 
     case '\\':
       c = *stream.m_cursor++;
-      instance.m_rd->m_pattern += c;
+      instance.m_pattern += c;
       type = RE_CLASS;
       switch(c)
       {
@@ -380,8 +473,18 @@ RegexCompiler::Compile(LexStream& stream)
   // Flush parser
   parse();
 
+  // Build return value
+  RegexData* rd = new RegexData;
+  rd->m_pattern = instance.m_pattern;
+  rd->m_start   = instance.m_start;
+  rd->m_final   = instance.m_final;
+  rd->m_table   = instance.m_table;
+
+  // Clear transition table
+  instance.m_table.clear();
+
   // Return regex struct
-  return instance.m_rd;
+  return rd;
 }
 
 void
