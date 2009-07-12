@@ -32,7 +32,7 @@ public:
   //
   // Evaluate code
   // TODO add default value = false
-  __native_method Value Eval(StringCRef code, bool isFile);
+  __native_method Value Eval(StringCRef code, bool isFile = false);
 
   //
   // Reset the evaluator
@@ -52,12 +52,12 @@ public:
   //
   // Exit process
   // TODO add default value = 0
-  __native_method void Exit(int64 exitcode);
+  __native_method void Exit(int64 exitcode = 0);
 
   //
   // Exit process
   // TODO add default value = 0
-  __native_method void Quit(int64 exitcode);
+  __native_method void Quit(int64 exitcode = 0);
 
   //
   // Lookup a symbol value

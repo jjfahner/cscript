@@ -67,7 +67,7 @@ function GenerateTable()
 
 ##########################################################################
 #
-# Generate a method call
+# Method call
 #
 
 function GenerateMethod(name, type,
@@ -84,23 +84,52 @@ function GenerateMethod(name, type,
   # Generate function call
   returns = type == "void" ? "" : "return ";
   call = sprintf("  %sstatic_cast<%s*>(instance)->%s(", returns, className, name);
-  
+
   # Generate parameters
   arg = 0;
   sep = " ";
   num = 0;
+  parnum = 0;
   while(++i <= NF && $i != ")")
   {
-    # Find name and type
-    partype = "";
-    parname = "";
-    while($i != "," && $i != "=" && $i != ")")
+    # Find name, type, and default value
+    partype  = "";
+    parname  = "";
+    parvalue = "";
+    while($i != "," && $i != ")")
     {
       partype = partype parname;
       parname = $i;
       ++i;
+      
+      # Parse default value
+      if($i == "=")
+      {
+        ++i;
+        #brackets = 0;
+        #while($i != "," && $i != ")")
+        #{
+        #  if($i == "(")
+        #  {
+        #    ++brackets;
+        #  }
+        #  if($i == ")")          
+        #  {
+        #    --brackets;
+        #  }
+        #  if(brackets < 0)
+        #  {
+        #    break;
+        #  }
+        #  parvalue = parvalue $i;
+        #  ++i;
+        #}
+        parvalue = parvalue $i;
+        ++i;
+      }
     }
-    
+    ++parnum;
+
     # Generate parameter
     if(partype == "ArgsCRef")
     {
@@ -109,6 +138,10 @@ function GenerateMethod(name, type,
     else if(partype == "EvalRef")
     {
       call = call sprintf("\n    %sCurEval", sep);
+    }
+    else if(parvalue != "")
+    {
+      call = call sprintf("\n    %sarguments.size() < %i ? %s : cscript_arg_to_%s(arguments[%d])", sep, parnum, parvalue, partype, arg++);
     }
     else
     {
@@ -142,6 +175,11 @@ function GenerateMethod(name, type,
   return stubname;
 }
 
+##########################################################################
+#
+# Read-only property
+#
+
 function GenerateRoProp(name, type,
                         arg, sep, partype, parname, returns, stubname)
 {
@@ -171,7 +209,7 @@ function GenerateRoProp(name, type,
 
 ##########################################################################
 #
-# Main parser
+# Read-write property
 #
 
 function GenerateRwProp(name, type,
@@ -215,8 +253,6 @@ $1 ~ /__native_rwprop/ {
     printf("\n/////////////////////////////////////////////////////////////////////\n");
     
     # Generate an include statement
-    #file = gensub("\\\\", "/", "g", filename);
-    #file = gensub("include/",  "", "", file);
     printf("\n#include <%s>\n\n", filename);
   }
 
@@ -233,6 +269,8 @@ $1 ~ /__native_rwprop/ {
   gsub(",", " , ");
   gsub(";", " ; ");
   gsub("=", " = ");
+  
+  print $0 >> "wtf.txt";
   
   # Store stub type and discard
   stubTypes[idx] = $1;

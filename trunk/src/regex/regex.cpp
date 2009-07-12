@@ -57,23 +57,23 @@ Regex::Compile(StringCRef pattern)
 }
 
 ObjectPtr
-Regex::Match(StringCRef text)
+Regex::Match(StringCRef text, int64 offset)
 {
   if(m_rd == 0)
   {
     throw CatchableException("Invalid Regex object");
   }
-  return MatchImpl(text, true).m_result;
+  return MatchImpl(text, offset, true).m_result;
 }
 
 bool 
-Regex::IsMatch(StringCRef text)
+Regex::IsMatch(StringCRef text, int64 offset)
 {
   if(m_rd == 0)
   {
     throw CatchableException("Invalid Regex object");
   }
-  return MatchImpl(text, false).m_success;
+  return MatchImpl(text, offset, false).m_success;
 }
 
 String
@@ -268,10 +268,13 @@ inline bool isblank(int ch)
 //////////////////////////////////////////////////////////////////////////
 
 Regex::ImplResult 
-Regex::MatchImpl(StringCRef input, bool createMatchResult)
+Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
 {
   Capture* br;
   
+  // Check offset
+  offset = offset < input.length() ? offset : input.length();
+
   // Setup pointer to string
   char const* text = input.c_str();
 
@@ -279,11 +282,7 @@ Regex::MatchImpl(StringCRef input, bool createMatchResult)
   ReStack stack;
 
   // Create initial stack frame
-  ReFrame* pbt = new ReFrame(
-    0, 
-    m_rd->m_table[0], 
-    input.c_str(), 
-    input.c_str());
+  ReFrame* pbt = new ReFrame(0, m_rd->m_table[0], text + offset, text + offset);
 
   // Main match loop
   while(pbt)

@@ -59,12 +59,12 @@ public:
   //
   // Match a string
   //
-  __native_method ObjectPtr Match(StringCRef text);
+  __native_method ObjectPtr Match(StringCRef text, int64 offset = 0);
 
   //
   // Simple match
   //
-  __native_method bool IsMatch(StringCRef text);
+  __native_method bool IsMatch(StringCRef text, int64 offset = 0);
 
   //
   // Write table
@@ -82,7 +82,7 @@ private:
   //
   // Match implementation
   //
-  ImplResult MatchImpl(StringCRef text, bool createMatchResult);
+  ImplResult MatchImpl(StringCRef text, int64 offset, bool createMatchResult);
 
   //
   // Object marking
