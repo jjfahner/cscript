@@ -32,6 +32,7 @@ class LexStream;
 enum TransitionTypes
 {
   ttEmpty,
+  ttFinal,
   ttNext,
   ttOffset,
   ttAnchorL,
@@ -80,6 +81,13 @@ struct Transition
   {
   }
 
+  Transition* Copy(Transition* next)
+  {
+    Transition* c = new Transition(*this);
+    c->m_next = m_next ? m_next->Copy(next) : next;
+    return c;
+  }
+
   TransitionTypes m_type;
   State       m_out;
   char        m_min;
@@ -101,10 +109,6 @@ public:
 
   // Pattern string
   String m_pattern;
-
-  // Start and final state
-  State m_start;
-  State m_final;
 
   // Transitions table
   Transitions m_table;
@@ -247,10 +251,6 @@ private:
 
   // Regular expression table
   Transitions m_table;
-
-  // Start and final state
-  State m_start;
-  State m_final;
 
 };
 

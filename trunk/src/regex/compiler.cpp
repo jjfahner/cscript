@@ -204,13 +204,12 @@ RegexCompiler::Quantify(Pair const& e, Pair const& q, bool greedy, Pair& r)
 inline void
 RegexCompiler::Finalize(Pair const& r)
 {
-  // Set start and final state
-  m_start = 0;
-  m_final = r.m_max;
+  // Add final transition
+  AddTransition(r.m_max, 0, ttFinal);
 
   // Add moving start point
-  AddTransition(m_start, r.m_min, ttEmpty);
-  AddTransition(m_start, m_start, ttOffset);
+  AddTransition(0, r.m_min, ttEmpty);
+  AddTransition(0, 0,       ttOffset);
 
   // Optimize the table
   Optimize();
@@ -219,6 +218,49 @@ RegexCompiler::Finalize(Pair const& r)
 void 
 RegexCompiler::Optimize()
 {
+#if 0
+  // Initialize state table
+  std::vector<State> states;
+  states.resize(m_table.size());
+
+  // Replace every transition of type Empty
+  size_t replaced = 1;
+  while(replaced)
+  {
+    replaced = 0;
+    for(size_t i = 0; i < m_table.size(); ++i)
+    {
+      Transition** pt = &m_table[i];
+      while(*pt)
+      {
+        Transition* t = *pt;
+
+        // Skip non-empty and final transitions
+        if((*pt)->m_type != ttEmpty)
+        {
+          pt = &(*pt)->m_next;
+          continue;
+        }
+
+        // Replace source transition by target transitions
+        *pt = m_table[t->m_out]->Copy(t->m_next);
+        
+        // Advance through transitions
+        while(*pt && *pt != t->m_next)
+        {
+          pt = &(*pt)->m_next;
+        }
+
+        // Delete old transition
+        delete t;
+        
+        // Do another round
+        ++replaced;
+      }
+    }
+  }
+
+#else
   // Initialize state table
   std::vector<State> states;
   states.resize(m_table.size());
@@ -254,7 +296,7 @@ RegexCompiler::Optimize()
       t->m_out = states[t->m_out];
 
       // Search for a non-empty out state (ignore final state)
-      while(t->m_out != m_final && m_table[t->m_out] == 0)
+      while(m_table[t->m_out] == 0)
       {
         t->m_out = states[t->m_out];
       }
@@ -278,10 +320,6 @@ RegexCompiler::Optimize()
     }
   }
 
-  // Update final state
-  states[m_final] = table.size();
-  m_final = table.size();
-
   // Update transitions
   for(size_t i = 0; i < table.size(); ++i)
   {
@@ -293,6 +331,7 @@ RegexCompiler::Optimize()
 
   // Store new table
   m_table.swap(table);
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -476,8 +515,6 @@ RegexCompiler::Compile(LexStream& stream)
   // Build return value
   RegexData* rd = new RegexData;
   rd->m_pattern = instance.m_pattern;
-  rd->m_start   = instance.m_start;
-  rd->m_final   = instance.m_final;
   rd->m_table   = instance.m_table;
 
   // Clear transition table
