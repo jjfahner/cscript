@@ -86,7 +86,7 @@ AllocAssOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
 %left BITXOR .
 %left BITAND .
 %left SEQ SNE .
-%left EQUALS NEQUALS TILDE .
+%left EQUALS NEQUALS LIKE NLIKE .
 %left LT LE GT GE .
 %left ADDOP SUBOP .
 %left MULOP DIVOP MODOP .
@@ -248,7 +248,8 @@ binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R 
 binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = AllocBinOp(p, op_mod,     A, B); }
 binary_expression(R) ::= binary_expression(A) SEQ     binary_expression(B). { R = AllocBinOp(p, op_seq,     A, B); }
 binary_expression(R) ::= binary_expression(A) SNE     binary_expression(B). { R = AllocBinOp(p, op_sne,     A, B); }
-binary_expression(R) ::= binary_expression(A) TILDE   binary_expression(B). { R = p->AllocNode(like_expression, A, B); }
+binary_expression(R) ::= binary_expression(A) LIKE    binary_expression(B). { R = p->AllocNode(like_expression, A, B); }
+binary_expression(R) ::= binary_expression(A) NLIKE   binary_expression(B). { R = p->AllocNode(prefix_expression, op_not, p->AllocNode(like_expression, A, B)); }
 
 // Unary expression
 prefix_expression(R) ::= postfix_expression(A) .       { R = A; } 
@@ -338,7 +339,6 @@ nested_name_specifier(R) ::= NS_SEP IDENTIFIER(A) nested_name_specifier(B) . { R
 //
 
 list_literal(R) ::= LBRACKET list_content(A) RBRACKET .       { R = p->AllocNode(list_literal, A); }
-list_literal(R) ::= LBRACKET RBRACKET .                       { R = p->AllocNode(list_literal); }
 list_content(R) ::= list_entry(A) .                           { R = p->AllocNode(list_content, A); }
 list_content(R) ::= list_entry(A) COMMA list_content(B) .     { R = p->AllocNode(list_content, A, B); }
 list_entry(R)   ::= expression(A) .                           { R = p->AllocNode(list_entry, A); }
@@ -349,6 +349,7 @@ list_entry(R)   ::= expression(A) .                           { R = p->AllocNode
 //
 
 map_literal(R) ::= LBRACKET map_content(A) RBRACKET .         { R = p->AllocNode(map_literal, A); }
+map_literal(R) ::= LBRACKET RBRACKET .                        { R = p->AllocNode(map_literal); }
 map_content(R) ::= map_entry(A) .                             { R = p->AllocNode(map_content, A); }
 map_content(R) ::= map_entry(A) COMMA map_content(B) .        { R = p->AllocNode(map_content, A, B); }
 map_entry(R)   ::= expression(A)    COLON expression(B) .     { R = p->AllocNode(map_entry, A, B); }
