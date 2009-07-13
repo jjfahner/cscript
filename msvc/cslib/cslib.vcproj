@@ -173,6 +173,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\test\native.csc"
+				>
+			</File>
+			<File
 				RelativePath="..\..\test\regex.csc"
 				>
 			</File>
@@ -358,7 +362,7 @@
 						<Tool
 							Name="VCCustomBuildTool"
 							Description="Generating regex parser..."
-							CommandLine="..\..\tools\win32\lemon.exe ..\..\src\regex\parser.gen.in"
+							CommandLine="..\..\tools\win32\lemon.exe ..\..\src\regex\parser.gen.in&#x0D;&#x0A;"
 							Outputs="..\..\src\regex\parser.gen.c"
 						/>
 					</FileConfiguration>
