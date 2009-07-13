@@ -142,7 +142,8 @@ ScriptObject::TrySet(Value const& key, Value const& value)
   it = m_members.find(g_prototype);
   if(it != m_members.end())
   {
-    return it->second->TrySet(key, value);
+    // On-demand created
+    m_members[key] = value;
   }
 
   // Not found
