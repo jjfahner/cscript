@@ -112,6 +112,7 @@ CSLexer::ParseNextToken()
   "%="    { return CS_ASSMOD; }
   "||"    { return CS_LOGOR; }
   "&&"    { return CS_LOGAND; }
+  "!~"    { return CS_NLIKE; }
   "::"    { return CS_NS_SEP; }
   ";"     { return CS_SEMICOLON; }
   ","     { return CS_COMMA; }
@@ -137,7 +138,7 @@ CSLexer::ParseNextToken()
   "}"     { return CS_RBRACE; }
   "!"     { return CS_NOT; }
   "'"     { return CS_LAMBDA; }
-  "~"     { return CS_TILDE; }
+  "~"     { return CS_LIKE; }
   
   */
 }
