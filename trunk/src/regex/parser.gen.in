@@ -113,6 +113,7 @@ atom(R) ::= class(A) .  { R = A; }
 
 // Complex atoms
 atom(R) ::= range(A) . { R = A; }
+atom(R) ::= LPAREN QUESTION COLON expression(A) RPAREN . { R = A; }
 atom(R) ::= lparen(A) expression(B) rparen(C) . { 
   Pair R1;
   p->AddSequence(A, B, R1);
