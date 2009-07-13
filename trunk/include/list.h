@@ -25,6 +25,7 @@
 #include <native.h>
 #include <enumerator.h>
 #include <gc.h>
+#include <exceptions.h>
 
 #include <vector>
 
@@ -143,6 +144,7 @@ public:
   {
     if(index >= m_list.size())
     {
+      throw CatchableException("Index out of bounds");
       m_list.resize((size_t)index + 1);
     }
     return m_list[(size_t)index];
