@@ -200,6 +200,11 @@ public:
   //
   __native_method virtual int64 Find(StringCRef what, int64 start = 0) = 0;
 
+  //
+  // Split a string into pieces
+  //
+  __native_method virtual Value Split(ValueCRef sep = "\x32") = 0;
+
 };
 
 //////////////////////////////////////////////////////////////////////////
