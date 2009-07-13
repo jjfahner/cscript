@@ -1440,10 +1440,11 @@ Evaluator::EvalForStatement(Object* node)
     }
 
     // Evaluate post expression
-    EvalExpression(Ast_A3(node));
-
-    // Discard result
-    g_stack.Pop();
+    if(!Ast_A3(node).Empty())
+    {
+      EvalExpression(Ast_A3(node));
+      g_stack.Pop();
+    }
   }  
 }
 
