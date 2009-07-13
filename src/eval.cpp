@@ -40,6 +40,7 @@
 #include <native/path.h>
 #include <native/console.h>
 #include <native/standard.h>
+#include <regex/regex.h>
 
 #include <list>
 #include <iostream>
@@ -620,6 +621,21 @@ Evaluator::EvalExpression(Object* node)
     g_stack.Push(new AstNode(expression_statement, Ast_A1(node), m_scope));
     break;
 
+  case like_expression:
+    {
+      EvalExpression(Ast_A2(node));
+      Value rhs = g_stack.Pop();
+      EvalExpression(Ast_A1(node));
+      Value lhs = g_stack.Pop();
+      Regex* re = dynamic_cast<Regex*>(rhs.GetObject());
+      if(re == 0)
+      {
+        throw std::runtime_error("Expected regular expression on right side of ~");
+      }
+      g_stack.Push(re->IsMatch(ValString(lhs)));
+    }
+    break;
+
   case literal_value:         
     g_stack.Push(Ast_A1(node));
     break;
@@ -731,17 +747,17 @@ Evaluator::EvalBinary(Object* node)
   Value result;
   switch(opcode)
   {
-  case op_add: g_stack.Push(ValAdd(lhs, rhs));      break;
-  case op_sub: g_stack.Push(ValSub(lhs, rhs));      break;
-  case op_mul: g_stack.Push(ValMul(lhs, rhs));      break;
-  case op_div: g_stack.Push(ValDiv(lhs, rhs));      break;
-  case op_mod: g_stack.Push(ValMod(lhs, rhs));      break;
-  case op_eq:  g_stack.Push(ValCmp(lhs, rhs) == 0); break;
-  case op_ne:  g_stack.Push(ValCmp(lhs, rhs) != 0); break;
-  case op_lt:  g_stack.Push(ValCmp(lhs, rhs) <  0); break;
-  case op_le:  g_stack.Push(ValCmp(lhs, rhs) <= 0); break;
-  case op_gt:  g_stack.Push(ValCmp(lhs, rhs) >  0); break;
-  case op_ge:  g_stack.Push(ValCmp(lhs, rhs) >= 0); break;
+  case op_add:  g_stack.Push(ValAdd(lhs, rhs));      break;
+  case op_sub:  g_stack.Push(ValSub(lhs, rhs));      break;
+  case op_mul:  g_stack.Push(ValMul(lhs, rhs));      break;
+  case op_div:  g_stack.Push(ValDiv(lhs, rhs));      break;
+  case op_mod:  g_stack.Push(ValMod(lhs, rhs));      break;
+  case op_eq:   g_stack.Push(ValCmp(lhs, rhs) == 0); break;
+  case op_ne:   g_stack.Push(ValCmp(lhs, rhs) != 0); break;
+  case op_lt:   g_stack.Push(ValCmp(lhs, rhs) <  0); break;
+  case op_le:   g_stack.Push(ValCmp(lhs, rhs) <= 0); break;
+  case op_gt:   g_stack.Push(ValCmp(lhs, rhs) >  0); break;
+  case op_ge:   g_stack.Push(ValCmp(lhs, rhs) >= 0); break;
   default: throw ScriptException(node, "Invalid binary operator");
   }  
 }

@@ -86,7 +86,7 @@ AllocAssOp(CSParser* p, opcodes opcode, Object* lhs, Object* rhs)
 %left BITXOR .
 %left BITAND .
 %left SEQ SNE .
-%left EQUALS NEQUALS .
+%left EQUALS NEQUALS TILDE .
 %left LT LE GT GE .
 %left ADDOP SUBOP .
 %left MULOP DIVOP MODOP .
@@ -248,6 +248,7 @@ binary_expression(R) ::= binary_expression(A) DIVOP   binary_expression(B). { R 
 binary_expression(R) ::= binary_expression(A) MODOP   binary_expression(B). { R = AllocBinOp(p, op_mod,     A, B); }
 binary_expression(R) ::= binary_expression(A) SEQ     binary_expression(B). { R = AllocBinOp(p, op_seq,     A, B); }
 binary_expression(R) ::= binary_expression(A) SNE     binary_expression(B). { R = AllocBinOp(p, op_sne,     A, B); }
+binary_expression(R) ::= binary_expression(A) TILDE   binary_expression(B). { R = p->AllocNode(like_expression, A, B); }
 
 // Unary expression
 prefix_expression(R) ::= postfix_expression(A) .       { R = A; } 

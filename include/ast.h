@@ -98,7 +98,8 @@ enum AstTypes
   logical_or_expression,
   logical_and_expression,
   lambda_expression,
-  regex_literal
+  regex_literal,
+  like_expression,
 };
 
 enum ParameterTypes

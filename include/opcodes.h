@@ -45,6 +45,7 @@ enum opcodes
   op_le,
   op_gt,
   op_ge,
+  op_like,
   op_assign,
   op_assadd,
   op_asssub,
