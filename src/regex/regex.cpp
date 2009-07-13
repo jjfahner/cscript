@@ -270,6 +270,8 @@ inline bool isblank(int ch)
 Regex::ImplResult 
 Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
 {
+  typedef unsigned char uchar;
+
   Capture* br;
   
   // Check offset
@@ -335,18 +337,18 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     case ttChar:     p = *p == tr->m_min ? n : 0; break;
     case ttRange:    p = *p >= tr->m_min && *p <= tr->m_max ? n : 0; break;
     case ttNRange:   p = *p >= tr->m_min && *p <= tr->m_max ? 0 : p; break;
-    case ccAlnum:    p = isalnum(*p)  ? n : 0; break;
-    case ccAlpha:    p = isalpha(*p)  ? n : 0; break;
-    case ccBlank:    p = isblank(*p)  ? n : 0; break;
-    case ccCntrl:    p = iscntrl(*p)  ? n : 0; break;
-    case ccDigit:    p = isdigit(*p)  ? n : 0; break;
-    case ccGraph:    p = isgraph(*p)  ? n : 0; break;
-    case ccLower:    p = islower(*p)  ? n : 0; break;
-    case ccPrint:    p = isprint(*p)  ? n : 0; break;
-    case ccPunct:    p = ispunct(*p)  ? n : 0; break;
-    case ccSpace:    p = isspace(*p)  ? n : 0; break;
-    case ccUpper:    p = isupper(*p)  ? n : 0; break;
-    case ccXdigit:   p = isxdigit(*p) ? n : 0; break;
+    case ccAlnum:    p = isalnum((uchar)*p)  ? n : 0; break;
+    case ccAlpha:    p = isalpha((uchar)*p)  ? n : 0; break;
+    case ccBlank:    p = isblank((uchar)*p)  ? n : 0; break;
+    case ccCntrl:    p = iscntrl((uchar)*p)  ? n : 0; break;
+    case ccDigit:    p = isdigit((uchar)*p)  ? n : 0; break;
+    case ccGraph:    p = isgraph((uchar)*p)  ? n : 0; break;
+    case ccLower:    p = islower((uchar)*p)  ? n : 0; break;
+    case ccPrint:    p = isprint((uchar)*p)  ? n : 0; break;
+    case ccPunct:    p = ispunct((uchar)*p)  ? n : 0; break;
+    case ccSpace:    p = isspace((uchar)*p)  ? n : 0; break;
+    case ccUpper:    p = isupper((uchar)*p)  ? n : 0; break;
+    case ccXdigit:   p = isxdigit((uchar)*p) ? n : 0; break;
     default:         throw std::runtime_error("Invalid transition type");
     }
 
