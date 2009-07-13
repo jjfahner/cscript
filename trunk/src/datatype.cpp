@@ -21,6 +21,8 @@
 #include "datatype.h"
 #include "native.h"
 #include "eval.h"
+#include "list.h"
+#include "regex/regex.h"
 
 // warning C4355: 'this' : used in base member initializer list
 #pragma warning(disable:4355)
@@ -251,6 +253,60 @@ public:
   virtual int64 Find(StringCRef what, int64 start)
   {
     return m_value.find(what, 0);
+  }
+
+  virtual Value Split(ValueCRef sep = " ")
+  {
+    List* list = new List;
+
+    if(sep.Type() == Value::tObject)
+    {
+      Regex* r = dynamic_cast<Regex*>(sep.GetObject());
+      if(r == 0)
+      {
+        throw std::runtime_error("Invalid separator type");
+      }
+
+      size_t offset = 0;
+      while(true)
+      {
+        MatchResult* mr = dynamic_cast<MatchResult*>(r->Match(m_value, offset));
+        if(mr->Success())
+        {
+          list->Append(m_value.substr(offset, (size_t)mr->Offset() - offset));
+          offset = (size_t)mr->Offset() + mr->Text().length();
+        }
+        else
+        {
+          list->Append(m_value.substr(offset));
+          break;
+        }
+      }
+    }
+    else if(sep.Type() == Value::tString)
+    {
+      size_t offset = 0;
+      while(true)
+      {
+        size_t pos = m_value.find_first_of(sep.GetString(), offset);
+        if(pos == String::npos)
+        {
+          list->Append(m_value.substr(offset));
+          break;
+        }
+        else
+        {
+          list->Append(m_value.substr(offset, pos - offset));
+          offset = pos + 1;
+        }
+      }
+    }
+    else
+    {
+      throw std::runtime_error("Invalid separator type");
+    }
+
+    return list;
   }
 
 protected:
