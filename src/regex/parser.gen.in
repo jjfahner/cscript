@@ -134,9 +134,23 @@ range_sequence(R) ::= range_sequence(A) range_atom(B) . { p->AddAlternation(A, B
 
 // Range characters
 %type range_char { char }
-range_char(R) ::= CHAR(A) .   { R = A; }
+range_char(R) ::= CHAR(A)   . { R = A; }
 range_char(R) ::= letter(A) . { R = A; }
-range_char(R) ::= INT(A) .    { R = A; }
+range_char(R) ::= INT(A)    . { R = A; }
+range_char(R) ::= LBRACE(A) . { R = A; }
+range_char(R) ::= RBRACE(A) . { R = A; }
+range_char(R) ::= LPAREN(A) . { R = A; }
+range_char(R) ::= RPAREN(A) . { R = A; }
+range_char(R) ::= COMMA(A)  . { R = A; }
+range_char(R) ::= ANCHOR_R(A)  . { R = A; }
+range_char(R) ::= ANY(A)       . { R = A; }
+range_char(R) ::= STAR(A)      . { R = A; }
+range_char(R) ::= QUESTION(A)  . { R = A; }
+range_char(R) ::= PLUS(A)      . { R = A; }
+range_char(R) ::= ALTERNATE(A) . { R = A; }
+//range_char(R) ::= DASH(A)   . { R = A; }
+//range_char(R) ::= COLON(A)  . { R = A; }
+//range_char(R) ::= ANCHOR_L(A)  . { R = A; }
 
 // Range atoms
 range_atom(R) ::= range_char(A) . { p->AddChar(A, R); }
