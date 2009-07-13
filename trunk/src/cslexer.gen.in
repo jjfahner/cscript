@@ -137,6 +137,7 @@ CSLexer::ParseNextToken()
   "}"     { return CS_RBRACE; }
   "!"     { return CS_NOT; }
   "'"     { return CS_LAMBDA; }
+  "~"     { return CS_TILDE; }
   
   */
 }
