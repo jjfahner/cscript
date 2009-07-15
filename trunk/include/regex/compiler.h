@@ -31,6 +31,7 @@ class LexStream;
 
 enum TransitionTypes
 {
+  ttNone,
   ttEmpty,
   ttFinal,
   ttOffset,
@@ -136,6 +137,16 @@ struct Transition
     return t;
   }
 
+  bool operator == (TransitionTypes type)
+  {
+    return m_type == type;
+  }
+
+  bool operator != (TransitionTypes type)
+  {
+    return m_type != type;
+  }
+
   bool operator == (Transition const& rhs)
   {
     // Don't compare next pointer
@@ -149,6 +160,8 @@ struct Transition
   {
     return ! (*this == rhs);
   }
+
+  String ToString() const;
 
   TransitionTypes m_type;
   State       m_out;
@@ -301,11 +314,6 @@ public:
   void Finalize(Pair const& result);
 
   //
-  // Optimize the transition table
-  //
-  void Optimize();
-
-  //
   // Called when there is a syntax error
   //
   void OnSyntaxError(char ch);
@@ -313,14 +321,24 @@ public:
 private:
 
   //
+  // Rebuild into new structure
+  //
+  void Rebuild();
+
+  //
+  // Find all non-empty transitions
+  //
+  void FindTransitions(Transition* source, std::vector<Transition>& transitions);
+
+  //
+  // Optimize the transition table
+  //
+  void Optimize();
+
+  //
   // Append transition, recursively reducing empty transitions
   //
   void ReduceTransitions(Transition* source, Transition* appendTo);
-
-  //
-  // Push a character to the parser
-  //
-  void PushChar(char ch);
 
   //
   // Pattern string
