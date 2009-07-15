@@ -63,11 +63,18 @@ public:
   __native_method Value ReadFile();
 
   //
+  // Line iterator
+  //
+  __native_roprop ObjectPtr Lines();
+
+  //
   // Write string
   //
   __native_method void Write(StringCRef data, int64 length = 0);
 
 private:
+
+  friend class LineEnumerator;
 
   //
   // Members
