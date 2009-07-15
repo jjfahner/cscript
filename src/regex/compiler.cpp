@@ -23,6 +23,45 @@
 #include "lemon.h"
 
 #include <sstream>
+#include <iostream>
+
+//////////////////////////////////////////////////////////////////////////
+
+String
+Transition::ToString() const
+{
+  std::ostringstream r;
+
+  switch(m_type)
+  {
+  case ttEmpty:    r << "Empty";    break;
+  case ttFinal:    r << "Final";    break;
+  case ttOffset:   r << "Offset";   break;
+  case ttAnchorL:  r << "AnchorL";  break;
+  case ttAnchorR:  r << "AnchorR";  break;
+  case ttCaptureL: r << "CaptureL"; break;
+  case ttCaptureR: r << "CaptureR"; break;
+  case ttAny:      r << "Any";      break;
+  case ttChar:     r << "Char '"   << m_min << "'"; break;
+  case ttRange:    r << "Range '"  << m_min << "', '" << m_max << "'"; break;
+  case ttNRange:   r << "NRange '" << m_min << "', '" << m_max << "'"; break;
+  case ccAlnum:    r << "Alnum";    break;
+  case ccAlpha:    r << "Alpha";    break;
+  case ccBlank:    r << "Blank";    break;
+  case ccCntrl:    r << "Cntrl";    break;
+  case ccDigit:    r << "Digit";    break;
+  case ccGraph:    r << "Graph";    break;
+  case ccLower:    r << "Lower";    break;
+  case ccPrint:    r << "Print";    break;
+  case ccPunct:    r << "Punct";    break;
+  case ccSpace:    r << "Space";    break;
+  case ccUpper:    r << "Upper";    break;
+  case ccXdigit:   r << "XDigit";   break;
+  }
+  r << " -> " << m_out;
+
+  return r.str();
+}
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -286,6 +325,166 @@ RegexCompiler::ReduceTransitions(Transition* source, Transition* appendTo)
   else if(appendTo->Find(*source) == 0)
   {
     appendTo->Append(new Transition(*source));
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+void 
+RegexCompiler::Rebuild()
+{
+  std::vector<size_t> offsets;
+  std::vector<Transition> table;
+
+  // Make sure all old offsets fit
+  offsets.resize(m_table.size() + 1, -1);
+
+  // Enumerate states in old table
+  for(size_t in = 0; in < m_table.size(); ++in)
+  {
+    std::vector<Transition> temptable;
+
+    // Find all reachable non-empty transitions
+    FindTransitions(m_table[in], temptable);
+    temptable.push_back(Transition(0, ttNone));
+
+    // Find first duplicate set
+    size_t dup = -1;
+    for(size_t i = 0; dup == -1 && offsets[i] != -1; ++i)
+    {
+      for(size_t j = 0; ; ++j)
+      {
+        if(table[j + offsets[i]] != temptable[j])
+        {
+          break;
+        }
+        if(table[j + offsets[i]] == ttNone)
+        {
+          dup = offsets[i];
+          break;
+        }
+      }
+    }
+
+    // Found offset, state is duplicate
+    if(dup != -1)
+    {
+      offsets[in] = dup;
+      continue;
+    }
+    
+    // Store offset of first state in table
+    offsets[in] = table.size();
+
+    // Copy states into array
+    table.insert(table.end(), temptable.begin(), temptable.end());
+  }
+
+  // Update transitions
+  for(size_t i = 0; i < table.size(); ++i)
+  {
+    if(table[i].m_type != ttNone)
+    {
+      table[i].m_out = offsets[table[i].m_out];
+    }
+  }
+
+  // Reachable states
+  std::vector<int> reachable;
+  reachable.push_back(0);
+
+  // Create new table and swap with old
+  std::vector<Transition> oldtable;
+  oldtable.swap(table);
+
+  // Clear and size offsets table
+  offsets.clear();
+  offsets.resize(oldtable.size(), -1);
+
+  // Copy reachable states from old to new
+  while(reachable.size())
+  {
+    // Fetch offset to copy from
+    size_t i = reachable.back();
+    reachable.pop_back();
+    
+    // Store new offset
+    if(offsets[i] == -1)
+    {
+      offsets[i] = table.size();
+    }
+    else
+    {
+      // Already done
+      continue;
+    }
+
+    // Copy transitions for state
+    while(true)
+    {
+      // Add transition to new table
+      table.push_back(oldtable[i]);
+
+      // End of state reached
+      if(oldtable[i] == ttNone)
+      {
+        break;
+      }
+
+      // Mark out state reachable
+      reachable.push_back(oldtable[i++].m_out);
+    }
+  }
+
+  // Update transitions
+  for(size_t i = 0; i < table.size(); ++i)
+  {
+    if(table[i].m_type != ttNone)
+    {
+      table[i].m_out = offsets[table[i].m_out];
+    }
+  }
+
+  // Dump resulting table
+  std::cout << "State 0\n";
+  for(size_t i = 0; i < table.size() - 1; ++i)
+  {
+    if(table[i] == ttNone)
+    {
+      std::cout << "State " << i + 1 << "\n";
+    }
+    else
+    {
+      std::cout << "  " << table[i].ToString() << "\n"; 
+    }
+  }
+  std::cout << "\n";
+}
+
+void 
+RegexCompiler::FindTransitions(Transition* source, std::vector<Transition>& transitions)
+{
+  while(source)
+  {
+    if(source->m_type == ttEmpty)
+    {
+      for(Transition* t = m_table[source->m_out]; t; t = t->m_next)
+      {
+        FindTransitions(t, transitions);
+      }
+    }
+    else
+    {
+      for(size_t i = 0; i < transitions.size(); ++i)
+      {
+        if(transitions[i] == *source)
+        {
+          return;
+        }
+      }
+      transitions.push_back(Transition(*source));
+    }
+    source = source->m_next;
   }
 }
 
