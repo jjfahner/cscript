@@ -170,6 +170,8 @@ struct Transition
   Transition* m_next;
 };
 
+typedef std::vector<Transition> TransitionVec;
+
 //
 // Wrapper around TransitionVec for memory cleanup
 //
@@ -205,7 +207,7 @@ public:
   String m_pattern;
 
   // Transitions table
-  Transitions m_table;
+  TransitionVec m_table;
 
 };
 
@@ -350,6 +352,7 @@ private:
 
   // Regular expression table
   Transitions m_table;
+  TransitionVec m_vec;
 
 };
 

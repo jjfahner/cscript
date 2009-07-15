@@ -236,8 +236,8 @@ RegexCompiler::Finalize(Pair const& r)
   AddTransition(0, r.m_min, ttEmpty);
   AddTransition(0, 0,       ttOffset);
 
-  // Optimize the table
-  Optimize();
+  // Rebuild the table
+  Rebuild();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -334,7 +334,7 @@ void
 RegexCompiler::Rebuild()
 {
   std::vector<size_t> offsets;
-  std::vector<Transition> table;
+  TransitionVec table;
 
   // Make sure all old offsets fit
   offsets.resize(m_table.size() + 1, -1);
@@ -394,7 +394,7 @@ RegexCompiler::Rebuild()
   reachable.push_back(0);
 
   // Create new table and swap with old
-  std::vector<Transition> oldtable;
+  TransitionVec oldtable;
   oldtable.swap(table);
 
   // Clear and size offsets table
@@ -445,20 +445,8 @@ RegexCompiler::Rebuild()
     }
   }
 
-  // Dump resulting table
-  std::cout << "State 0\n";
-  for(size_t i = 0; i < table.size() - 1; ++i)
-  {
-    if(table[i] == ttNone)
-    {
-      std::cout << "State " << i + 1 << "\n";
-    }
-    else
-    {
-      std::cout << "  " << table[i].ToString() << "\n"; 
-    }
-  }
-  std::cout << "\n";
+  // Store the new table
+  m_vec.swap(table);
 }
 
 void 
@@ -669,7 +657,7 @@ RegexCompiler::Compile(LexStream& stream)
   // Build return value
   RegexData* rd = new RegexData;
   rd->m_pattern = instance.m_pattern;
-  rd->m_table.swap(instance.m_table);
+  rd->m_table.swap(instance.m_vec);
 
   // Return regex struct
   return rd;

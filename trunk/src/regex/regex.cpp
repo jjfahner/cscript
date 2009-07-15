@@ -81,39 +81,16 @@ Regex::TableToString()
 {
   std::ostringstream r;
 
-  for(size_t state = 0; state < m_rd->m_table.size(); ++state)
+  std::cout << "State 0\n";
+  for(size_t i = 0; i < m_rd->m_table.size() - 1; ++i)
   {
-    r << "State " << state << ":\n";
-    for(Transition* t = m_rd->m_table[state]; t; t = t->m_next)
+    if(m_rd->m_table[i] == ttNone)
     {
-      r << "  ";
-      switch(t->m_type)
-      {
-      case ttEmpty:    r << "Empty";    break;
-      case ttFinal:    r << "Final";    break;
-      case ttOffset:   r << "Offset";   break;
-      case ttAnchorL:  r << "AnchorL";  break;
-      case ttAnchorR:  r << "AnchorR";  break;
-      case ttCaptureL: r << "CaptureL"; break;
-      case ttCaptureR: r << "CaptureR"; break;
-      case ttAny:      r << "Any";      break;
-      case ttChar:     r << "Char '"   << t->m_min << "'"; break;
-      case ttRange:    r << "Range '"  << t->m_min << "', '" << t->m_max << "'"; break;
-      case ttNRange:   r << "NRange '" << t->m_min << "', '" << t->m_max << "'"; break;
-      case ccAlnum:    r << "Alnum";    break;
-      case ccAlpha:    r << "Alpha";    break;
-      case ccBlank:    r << "Blank";    break;
-      case ccCntrl:    r << "Cntrl";    break;
-      case ccDigit:    r << "Digit";    break;
-      case ccGraph:    r << "Graph";    break;
-      case ccLower:    r << "Lower";    break;
-      case ccPrint:    r << "Print";    break;
-      case ccPunct:    r << "Punct";    break;
-      case ccSpace:    r << "Space";    break;
-      case ccUpper:    r << "Upper";    break;
-      case ccXdigit:   r << "XDigit";   break;
-      }
-      r << " -> " << t->m_out << "\n";
+      r << "State " << i + 1 << "\n";
+    }
+    else
+    {
+      r << "  " << m_rd->m_table[i].ToString() << "\n"; 
     }
   }
 
@@ -169,10 +146,10 @@ struct Capture
 struct ReFrame
 {
   ReFrame(State state, 
-         Transition* trans, 
-         char const* start, 
-         char const* cur,
-         ReFrame* prev = 0)
+          size_t trans, 
+          char const* start, 
+          char const* cur,
+          ReFrame* prev = 0)
   {
     m_state    = state;
     m_trans    = trans;
@@ -199,7 +176,7 @@ struct ReFrame
   }
 
   State       m_state;
-  Transition* m_trans;
+  size_t      m_trans;
   char const* m_start;
   char const* m_cur;
   ReFrame*    m_prev;
@@ -232,7 +209,7 @@ public:
     return m_max;
   }
 
-  ReFrame* Push(State state, Transition* trans, 
+  ReFrame* Push(State state, size_t trans, 
            char const* start, char const* cur)
   {
     m_max = ++m_size > m_max ? m_size : m_max;    
@@ -273,6 +250,9 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
   typedef unsigned char uchar;
 
   Capture* br;
+
+  // Alias for table
+  TransitionVec& table = m_rd->m_table;
   
   // Check offset
   offset = offset < input.length() ? offset : input.length();
@@ -284,22 +264,22 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
   ReStack stack;
 
   // Create initial stack frame
-  ReFrame* pbt = new ReFrame(0, m_rd->m_table[0], text + offset, text + offset);
+  ReFrame* pbt = new ReFrame(0, 0, text + offset, text + offset);
 
   // Main match loop
   while(pbt)
   {
     // Create some aliases
-    Transition* tr = pbt->m_trans;
+    Transition& tr = table[pbt->m_trans];
     char const*& p = pbt->m_cur;
     char const*  n = p + 1;
 
     // Record backtrack for next transition
-    if(tr->m_next)
+    if(table[pbt->m_trans + 1] != ttNone)
     {
       ReFrame* f = stack.Push(
         pbt->m_state, 
-        pbt->m_trans->m_next, 
+        pbt->m_trans + 1, 
         pbt->m_start, 
         pbt->m_cur);
       f->m_captures = pbt->m_captures ? pbt->m_captures->Copy() : 0;
@@ -307,7 +287,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     }
 
     // Match transition
-    switch(tr->m_type)
+    switch(tr.m_type)
     {
     case ttFinal:
       break;
@@ -334,9 +314,9 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     case ttAnchorL:  p = p == text ? p : 0; break;
     case ttAnchorR:  p = *p ? 0 : p; break;
     case ttAny:      p = *p ? n : 0; break;
-    case ttChar:     p = *p == tr->m_min ? n : 0; break;
-    case ttRange:    p = *p >= tr->m_min && *p <= tr->m_max ? n : 0; break;
-    case ttNRange:   p = *p >= tr->m_min && *p <= tr->m_max ? 0 : p; break;
+    case ttChar:     p = *p == tr.m_min ? n : 0; break;
+    case ttRange:    p = *p >= tr.m_min && *p <= tr.m_max ? n : 0; break;
+    case ttNRange:   p = *p >= tr.m_min && *p <= tr.m_max ? 0 : p; break;
     case ccAlnum:    p = isalnum((uchar)*p)  ? n : 0; break;
     case ccAlpha:    p = isalpha((uchar)*p)  ? n : 0; break;
     case ccBlank:    p = isblank((uchar)*p)  ? n : 0; break;
@@ -353,7 +333,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     }
 
     // Final state reached
-    if(pbt->m_cur && tr->m_type == ttFinal)
+    if(pbt->m_cur && tr.m_type == ttFinal)
     {
       if(pbt->m_cur > pbt->m_start)
       {
@@ -380,8 +360,8 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
       }
 
       // Advance to next state
-      pbt->m_state = tr->m_out;
-      pbt->m_trans = m_rd->m_table[pbt->m_state];
+      pbt->m_state = tr.m_out;
+      pbt->m_trans = pbt->m_state;
     }
   }
 
