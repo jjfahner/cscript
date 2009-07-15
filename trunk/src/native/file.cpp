@@ -20,6 +20,93 @@
 //////////////////////////////////////////////////////////////////////////
 #include <native/file.h>
 #include <eval.h>
+#include <enumerator.h>
+
+//////////////////////////////////////////////////////////////////////////
+
+class LineEnumerator : public Enumerator
+{
+public:
+
+  LineEnumerator(File* file) : 
+  m_file (file),
+  m_line (0)
+  {
+  }
+
+  virtual void Reset()
+  {
+    m_file->m_stream.seekg(std::ios::beg);
+  }
+
+  virtual bool GetNext(Value& value)
+  {
+    value = m_file->ReadLn();
+    if(m_file->m_stream.good())
+    {
+      ++m_line;
+      return true;
+    }
+    return false;
+  }
+
+  virtual bool GetNext(Value& key, Value& value)
+  {
+    if(GetNext(value))
+    {
+      key = m_line;
+      return true;
+    }
+    return false;
+  }
+
+private:
+
+  //
+  // Mark referred objects
+  //
+  virtual void MarkObjects(GCObjectVec& grey)
+  {
+    Enumerator::MarkObjects(grey);
+    GC::Mark(grey, m_file);
+  }
+
+  //
+  // Members
+  //
+  File* m_file;
+  int64 m_line;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class Lines : public Object
+{
+public:
+
+  Lines(File* file) :
+  m_file (file)
+  {
+  }
+
+  virtual Enumerator* GetEnumerator()
+  {
+    return new LineEnumerator(m_file);
+  }
+
+private:
+
+  virtual void MarkObjects(GCObjectVec& grey)
+  {
+    GC::Mark(grey, m_file);
+  }
+
+  File* m_file;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
 
 void 
 File::Open(StringCRef s_name, StringCRef s_mode, bool b_binary, bool b_atend, bool b_truncate)
@@ -77,6 +164,12 @@ Value
 File::ReadLn()
 {
   char buf[4098];
+
+  // Test stream before read
+  if(m_stream.bad())
+  {
+    return Value();
+  }
   
   // Read line
   m_stream.getline(buf, 4096);
@@ -129,6 +222,13 @@ File::ReadFile()
 
   // Done
   return result;
+}
+
+ObjectPtr 
+File::Lines()
+{
+  // Create a new line iterator
+  return new ::Lines(this);
 }
 
 void
