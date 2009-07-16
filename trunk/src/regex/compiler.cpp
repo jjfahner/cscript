@@ -41,6 +41,7 @@ Transition::ToString() const
   case ttAnchorR:  r << "AnchorR";  break;
   case ttCaptureL: r << "CaptureL"; break;
   case ttCaptureR: r << "CaptureR"; break;
+  case ttBackref:  r << "Backref " << (char)(m_min + '0'); break;
   case ttAny:      r << "Any";      break;
   case ttChar:     r << "Char '"   << m_min << "'"; break;
   case ttRange:    r << "Range '"  << m_min << "', '" << m_max << "'"; break;
@@ -191,6 +192,14 @@ RegexCompiler::AddCapture(bool start, Pair& r)
   AddTransition(r.m_min, r.m_max, start ? ttCaptureL : ttCaptureR);
 }
 
+void 
+RegexCompiler::AddBackref(char num, Pair& r)
+{
+  r.m_min = AddState();
+  r.m_max = AddState();
+  AddTransition(r.m_min, r.m_max, ttBackref, num);
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 inline void 
@@ -237,101 +246,13 @@ RegexCompiler::Finalize(Pair const& r)
   AddTransition(0, 0,       ttOffset);
 
   // Rebuild the table
-  Rebuild();
+  Optimize();
 }
 
 //////////////////////////////////////////////////////////////////////////
 
 void 
 RegexCompiler::Optimize()
-{
-  // Create new table
-  Transitions table;
-
-  // Mapping from old to new states
-  std::vector<State> states;
-  states.resize(m_table.size(), -1);
-
-  // Set of reachable states starts at 0
-  std::vector<State> reachable;
-  reachable.push_back(0);
-
-  // Recursively replace empty transitions
-  while(reachable.size())
-  {
-    // Remove state from stack
-    State oldstate = reachable.back();
-    reachable.pop_back();
-
-    // Don't handle states twice
-    if(states[oldstate] != -1)
-    {
-      continue;
-    }
-
-    // Get new index for state
-    State newstate = table.size();
-    table.resize(newstate + 1);
-
-    // Store mapping from old to new
-    states[oldstate] = newstate;
-
-    // Insert temporary transition
-    Transition etrans;
-    table[newstate] = &etrans;
-
-    // Reduce transitions
-    for(Transition* t = m_table[oldstate]; t; t = t->m_next)
-    {
-      ReduceTransitions(t, table[newstate]);
-    }
-
-    // Replace temporary transition
-    table[newstate] = table[newstate]->m_next;
-
-    // Determine newly reachable states
-    for(Transition* t = table[newstate]; t; t = t->m_next)
-    {
-      if(states[t->m_out] == -1)
-      {
-        reachable.push_back(t->m_out);
-      }
-    }
-  }
-
-  // Assign new out states to transitions
-  for(State s = 0; s < table.size(); ++s)
-  {
-    for(Transition* t = table[s]; t; t = t->m_next)
-    {
-      t->m_out = states[t->m_out];
-    }
-  }
-
-  // Store new table
-  m_table.swap(table);
-}
-
-void 
-RegexCompiler::ReduceTransitions(Transition* source, Transition* appendTo)
-{
-  if(source->m_type == ttEmpty)
-  {
-    for(Transition* t = m_table[source->m_out]; t; t = t->m_next)
-    {
-      ReduceTransitions(t, appendTo);
-    }
-  }
-  else if(appendTo->Find(*source) == 0)
-  {
-    appendTo->Append(new Transition(*source));
-  }
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-void 
-RegexCompiler::Rebuild()
 {
   std::vector<size_t> offsets;
   TransitionVec table;
@@ -627,6 +548,7 @@ RegexCompiler::Compile(LexStream& stream)
     case '\\':
       c = *stream.m_cursor++;
       instance.m_pattern += c;
+      
       type = RE_CLASS;
       switch(c)
       {
@@ -642,7 +564,18 @@ RegexCompiler::Compile(LexStream& stream)
       case 's': c = ccSpace;  break;
       case 'u': c = ccUpper;  break;
       case 'x': c = ccXdigit; break;
-      default: type = RE_CHAR; break;
+
+      case '1': case '2': case '3': 
+      case '4': case '5': case '6': 
+      case '7': case '8': 
+      case '9': 
+        type = RE_BACKREF;
+        c = c - '0';
+        break;
+      
+      default: 
+        type = RE_CHAR; 
+        break;
       }
       break;
     }

@@ -102,14 +102,15 @@ particle(R) ::= atom(A) PLUS QUESTION.      { p->OneOrMore(A, false, R);  }
 particle(R) ::= atom(A) quantifier(B) .     { p->Quantify(A, B, true, R); }
 
 // Single-character atoms
-atom(R) ::= ANY .       { p->AddAnyChar(R); }
-atom(R) ::= DASH(A) .   { p->AddChar(A, R); }
-atom(R) ::= COMMA(A) .  { p->AddChar(A, R); }
-atom(R) ::= CHAR(A) .   { p->AddChar(A, R); }
-atom(R) ::= letter(A) . { p->AddChar(A, R); }
-atom(R) ::= INT(A) .    { p->AddChar(A, R); }
-atom(R) ::= COLON(A) .  { p->AddChar(A, R); }
-atom(R) ::= class(A) .  { R = A; }
+atom(R) ::= class(A) .   { R = A; }
+atom(R) ::= ANY .        { p->AddAnyChar(R); }
+atom(R) ::= DASH(A) .    { p->AddChar(A, R); }
+atom(R) ::= COMMA(A) .   { p->AddChar(A, R); }
+atom(R) ::= CHAR(A) .    { p->AddChar(A, R); }
+atom(R) ::= letter(A) .  { p->AddChar(A, R); }
+atom(R) ::= INT(A) .     { p->AddChar(A, R); }
+atom(R) ::= COLON(A) .   { p->AddChar(A, R); }
+atom(R) ::= BACKREF(A) . { p->AddBackref(A, R); }
 
 // Complex atoms
 atom(R) ::= range(A) . { R = A; }

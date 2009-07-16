@@ -85,6 +85,11 @@ private:
   ImplResult MatchImpl(StringCRef text, int64 offset, bool createMatchResult);
 
   //
+  // Match a back reference
+  //
+  char const* MatchBackref(struct ReFrame* frame);
+
+  //
   // Object marking
   //
   virtual void MarkObjects(GCObjectVec& grey);

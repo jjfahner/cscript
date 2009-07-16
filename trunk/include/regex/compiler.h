@@ -39,6 +39,7 @@ enum TransitionTypes
   ttAnchorR,
   ttCaptureL,
   ttCaptureR,
+  ttBackref,
   ttAny,
   ttChar,
   ttRange,
@@ -286,9 +287,14 @@ public:
   void AddRange(char min, char max, Pair& result);
 
   //
-  // Add a back reference
+  // Add a capturing subexpression
   //
   void AddCapture(bool start, Pair& result);
+
+  //
+  // Add a back reference
+  //
+  void AddBackref(char num, Pair& result);
 
   //
   // Quantify zero or one (?)
@@ -323,24 +329,14 @@ public:
 private:
 
   //
-  // Rebuild into new structure
-  //
-  void Rebuild();
-
-  //
-  // Find all non-empty transitions
-  //
-  void FindTransitions(Transition* source, std::vector<Transition>& transitions);
-
-  //
   // Optimize the transition table
   //
   void Optimize();
 
   //
-  // Append transition, recursively reducing empty transitions
+  // Find all non-empty transitions
   //
-  void ReduceTransitions(Transition* source, Transition* appendTo);
+  void FindTransitions(Transition* source, std::vector<Transition>& transitions);
 
   //
   // Pattern string
