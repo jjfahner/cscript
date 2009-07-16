@@ -87,7 +87,7 @@ private:
   //
   // Match a back reference
   //
-  char const* MatchBackref(struct ReFrame* frame);
+  char const* MatchBackref(struct ReFrame& frame, size_t index);
 
   //
   // Object marking
