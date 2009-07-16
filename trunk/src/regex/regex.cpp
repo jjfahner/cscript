@@ -101,33 +101,12 @@ Regex::TableToString()
 
 struct Capture
 {
-  Capture(Capture* link, char const* ptr)
+  Capture(char const* ptr)
   {
-    m_link = link;
     m_ptr  = ptr;
     m_end  = ptr;
   }
 
-  Capture* Copy()
-  {
-    Capture* p = new Capture(*this);
-    if(m_link)
-    {
-      p->m_link = m_link->Copy();
-    }
-    return p;
-  }
-
-  void Delete()
-  {
-    if(m_link)
-    {
-      m_link->Delete();
-    }
-    delete this;
-  }
-
-  Capture*    m_link;
   char const* m_ptr;
   char const* m_end;
 };
@@ -136,23 +115,15 @@ struct Capture
 
 struct ReFrame
 {
-  ReFrame(State state, 
-          size_t trans, 
+  ReFrame(size_t trans, 
           char const* start, 
           char const* cur,
           ReFrame* prev = 0)
   {
-    m_state    = state;
     m_trans    = trans;
-    m_start    = start;
-    m_cur      = cur;
+    m_ptr    = start;
+    m_end      = cur;
     m_prev     = prev;
-    m_capstack = 0;
-  }
-
-  ~ReFrame()
-  {
-    if(m_capstack) m_capstack->Delete();
   }
 
   void Delete()
@@ -164,13 +135,12 @@ struct ReFrame
     delete this;
   }
 
-  State       m_state;
   size_t      m_trans;
-  char const* m_start;
-  char const* m_cur;
+  char const* m_ptr;
+  char const* m_end;
   ReFrame*    m_prev;
   std::vector<Capture> m_captures;
-  Capture*    m_capstack;
+  std::vector<Capture> m_capstack;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -198,12 +168,12 @@ public:
     return m_max;
   }
 
-  ReFrame* Push(State state, size_t trans, 
-           char const* start, char const* cur)
+  ReFrame* Push(size_t trans, 
+           char const* start, 
+           char const* cur)
   {
     m_max = ++m_size > m_max ? m_size : m_max;    
-    return m_last = new ReFrame(state, 
-           trans, start, cur, m_last);
+    return m_last = new ReFrame(trans, start, cur, m_last);
   }
 
   ReFrame* Pop()
@@ -238,8 +208,6 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
 {
   typedef unsigned char uchar;
 
-  Capture* br;
-
   // Alias for table
   TransitionVec& table = m_rd->m_table;
   
@@ -253,26 +221,25 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
   ReStack stack;
 
   // Create initial stack frame
-  ReFrame* pbt = new ReFrame(0, 0, text + offset, text + offset);
+  ReFrame* pbt = new ReFrame(0, text + offset, text + offset);
 
   // Main match loop
   while(pbt)
   {
     // Create some aliases
     Transition& tr = table[pbt->m_trans];
-    char const*& p = pbt->m_cur;
+    char const*& p = pbt->m_end;
     char const*  n = p + 1;
 
     // Record backtrack for next transition
     if(table[pbt->m_trans + 1] != ttNone)
     {
       ReFrame* f = stack.Push(
-        pbt->m_state, 
         pbt->m_trans + 1, 
-        pbt->m_start, 
-        pbt->m_cur);
+        pbt->m_ptr, 
+        pbt->m_end);
       f->m_captures = pbt->m_captures;
-      f->m_capstack = pbt->m_capstack ? pbt->m_capstack->Copy() : 0;
+      f->m_capstack = pbt->m_capstack;
     }
 
     // Match transition
@@ -285,23 +252,21 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
       break;
 
     case ttOffset:   
-      p = ++pbt->m_start; 
+      p = ++pbt->m_ptr; 
       p = *p ? p : 0; 
       break;
     
     case ttCaptureL: 
-      pbt->m_capstack = new Capture(pbt->m_capstack, pbt->m_cur); 
+      pbt->m_capstack.push_back(pbt->m_end); 
       break;
 
     case ttCaptureR:
-      br = pbt->m_capstack;
-      pbt->m_capstack = br->m_link;
-      br->m_link = 0;
-      pbt->m_captures.push_back(*br);
+      pbt->m_captures.push_back(pbt->m_capstack.back());
+      pbt->m_capstack.pop_back();
       break;
 
     case ttBackref:
-      pbt->m_cur = MatchBackref(pbt);
+      pbt->m_end = MatchBackref(pbt);
       break;
 
     case ttAnchorL:  p = p == text ? p : 0; break;
@@ -326,17 +291,17 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     }
 
     // Final state reached
-    if(pbt->m_cur && tr.m_type == ttFinal)
+    if(pbt->m_end && tr.m_type == ttFinal)
     {
-      if(pbt->m_cur > pbt->m_start)
+      if(pbt->m_end > pbt->m_ptr)
       {
         break;
       }
-      pbt->m_cur = 0;
+      pbt->m_end = 0;
     }
 
     // Test match
-    if(pbt->m_cur == 0)
+    if(pbt->m_end == 0)
     {
       // Failed; delete this frame
       delete pbt;
@@ -347,14 +312,13 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     else
     {
       // Advance current backrefs
-      for(Capture* pbr = pbt->m_capstack; pbr; pbr = pbr->m_link)
+      for(size_t i = 0; i < pbt->m_capstack.size(); ++i)
       {
-        pbr->m_end = pbt->m_cur;
+        pbt->m_capstack[i].m_end = pbt->m_end;
       }
 
       // Advance to next state
-      pbt->m_state = tr.m_out;
-      pbt->m_trans = pbt->m_state;
+      pbt->m_trans = tr.m_out;
     }
   }
 
@@ -371,8 +335,8 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     if(pbt)
     {
       mr->m_success = true;
-      mr->m_text = String(pbt->m_start, pbt->m_cur);
-      mr->m_offset = pbt->m_start - text;
+      mr->m_text = String(pbt->m_ptr, pbt->m_end);
+      mr->m_offset = pbt->m_ptr - text;
       mr->m_captures = new List;
       for(size_t i = 0; i < pbt->m_captures.size(); ++i)
       {
@@ -397,16 +361,17 @@ char const*
 Regex::MatchBackref(struct ReFrame* frame)
 {
   // Retrieve index
-  int i = m_rd->m_table[frame->m_state].m_min - 1;
+  int i = m_rd->m_table[frame->m_trans].m_min - 1;
 
-  // Check capture
+  // Check capture index
   if((size_t)i >= frame->m_captures.size())
   {
+    // This is really an error in the expression
     return 0;
   }
 
   // Match the strings
-  char const* p1 = frame->m_cur;
+  char const* p1 = frame->m_end;
   char const* p2 = frame->m_captures[i].m_ptr;
   char const* p3 = frame->m_captures[i].m_end;
   for(; *p1 && p2 != p3; ++p1, ++p2)
