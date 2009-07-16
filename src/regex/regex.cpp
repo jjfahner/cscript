@@ -203,7 +203,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
       break;
 
     case ttBackref:
-      frame.m_end = MatchBackref(frame, tr.m_min);
+      frame.m_end = MatchBackref(frame, tr.m_min - 1);
       break;
 
     case ttAnchorL:  p = p == text ? p : 0; break;
