@@ -74,6 +74,9 @@ typedef size_t State;
 
 struct Transition
 {
+  //
+  // Construction
+  //
   Transition(State out = 0, TransitionTypes type = ttEmpty, char min = 0, char max = 0) :
   m_type  (type), 
   m_out   (out),
@@ -82,16 +85,25 @@ struct Transition
   {
   }
 
+  //
+  // Compare transition type
+  //
   bool operator == (TransitionTypes type)
   {
     return m_type == type;
   }
 
+  //
+  // Compare transition type
+  //
   bool operator != (TransitionTypes type)
   {
     return m_type != type;
   }
 
+  //
+  // Compare to other transition
+  //
   bool operator == (Transition const& rhs)
   {
     return m_type == rhs.m_type &&
@@ -100,17 +112,27 @@ struct Transition
            m_max  == rhs.m_max  ;
   }
 
+  //
+  // Compare to other transition
+  //
   bool operator != (Transition const& rhs)
   {
     return ! (*this == rhs);
   }
 
+  //
+  // Convert to string
+  //
   String ToString() const;
 
-  TransitionTypes m_type;
-  State       m_out;
-  char        m_min;
-  char        m_max;
+  //
+  // Members
+  //
+  State           m_out  : 16;
+  TransitionTypes m_type : 8;
+  unsigned char   m_min  : 8;  
+  unsigned char   m_max  : 8;
+
 };
 
 typedef std::vector<Transition> TransitionVec;
