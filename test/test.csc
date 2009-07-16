@@ -1,5 +1,6 @@
 function TestRE(re, st, ex)
 {
+  //Console.WriteLn(re.TableToString());
   var mr = re.Match(st);
   if(mr.Success)
   {
@@ -19,7 +20,13 @@ function TestRE(re, st, ex)
 TestRE(/(.@)+|(.\d)+/, "a1@2@3%4@5@6@7@");
 TestRE(/(ab|.)*/, "ababc");
 TestRE(/(x+x+)+y/, "xxxxxxxxxy");
-TestRE(/<a>(.*?)<\/a>/, "<a>blabla</a>blabla</a>");
-TestRE(/[a-zA-Z0-9_]*/, "%abcAb0_1%");
+TestRE(/<([a-zA-Z]+)>(.*?)<\/\1>/, "<div>blabla</div>blabla</div>");
+TestRE(/[a-zA-Z0-9_]+/, "%abcAb0_1%");
 TestRE(/(.@)+|(.\d)+/, "a1@2@3%4@5@6@7@", "a1@2@3%4@5@6@7");
 TestRE(/[:digit:]+/, "abc123456789def");
+TestRE(/^1?$|^(11+?)\1+$/, "11111111111");
+
+for(var s in "a-b_c-d_e-f".Split(/[\-_]/))
+{
+  Console.WriteLn(s);
+}
