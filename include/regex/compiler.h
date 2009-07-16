@@ -26,6 +26,7 @@
 #include <gc.h>
 
 #include <vector>
+#include <list>
 
 class LexStream;
 
@@ -74,68 +75,11 @@ typedef size_t State;
 struct Transition
 {
   Transition(State out = 0, TransitionTypes type = ttEmpty, char min = 0, char max = 0) :
-    m_type  (type), 
-    m_out   (out),
-    m_min   (min),
-    m_max   (max),
-    m_next  (0)
+  m_type  (type), 
+  m_out   (out),
+  m_min   (min),
+  m_max   (max)
   {
-  }
-
-  Transition(Transition const& rhs)
-  {
-    *this = rhs;
-    m_next = 0;
-  }
-
-  Transition* Copy(Transition* next)
-  {
-    Transition* t = new Transition(*this);
-
-    Transition* c = t;
-    while(c->m_next)
-    {
-      c->m_next = new Transition(*c->m_next);
-      c = c->m_next;
-    }
-    
-    return t;
-  }
-
-  void Append(Transition* p)
-  {
-    Transition* t = this;
-    while(t->m_next)
-    {
-      t = t->m_next;
-    }
-    t->m_next = p;
-  }
-
-  //
-  // Find a transition type in the list
-  //
-  Transition* Find(TransitionTypes type)
-  {
-    Transition* t = this;
-    while(t && t->m_type != type)
-    {
-      t = t->m_next;
-    }
-    return t;
-  }
-
-  //
-  // Find a transition in the list
-  //
-  Transition* Find(Transition const& p)
-  {
-    Transition* t = this;
-    while(t && *t != p)
-    {
-      t = t->m_next;
-    }
-    return t;
   }
 
   bool operator == (TransitionTypes type)
@@ -150,7 +94,6 @@ struct Transition
 
   bool operator == (Transition const& rhs)
   {
-    // Don't compare next pointer
     return m_type == rhs.m_type &&
            m_out  == rhs.m_out  &&           
            m_min  == rhs.m_min  &&
@@ -168,32 +111,11 @@ struct Transition
   State       m_out;
   char        m_min;
   char        m_max;
-  Transition* m_next;
 };
 
 typedef std::vector<Transition> TransitionVec;
-
-//
-// Wrapper around TransitionVec for memory cleanup
-//
-class Transitions : public std::vector<Transition*>
-{
-public:
-
-  ~Transitions()
-  {
-    for(size_t i = 0; i < size(); ++i)
-    {
-      for(Transition* t = at(i); t;)
-      {
-        Transition* p = t->m_next;
-        delete t;
-        t = p;
-      }
-    }
-  }
-
-};
+typedef std::list<Transition> TransitionList;
+typedef std::vector<TransitionList> StateVec;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -336,20 +258,16 @@ private:
   //
   // Find all non-empty transitions
   //
-  void FindTransitions(Transition* source, std::vector<Transition>& transitions);
+  void FindTransitions(TransitionList& in, std::vector<Transition>& out);
 
   //
   // Pattern string
   //
   String m_pattern;
 
-  // State sequence number
-  size_t m_stateSeq;
-
   // Regular expression table
-  Transitions m_table;
+  StateVec m_table;
   TransitionVec m_vec;
-
 };
 
 #endif // CSCRIPT_REGEX_COMPILER_H
