@@ -101,9 +101,9 @@ Regex::TableToString()
 
 struct Capture
 {
-  Capture(Capture* prev, char const* ptr)
+  Capture(Capture* link, char const* ptr)
   {
-    m_prev = prev;
+    m_link = link;
     m_ptr  = ptr;
     m_end  = ptr;
   }
@@ -111,32 +111,32 @@ struct Capture
   Capture* Copy()
   {
     Capture* p = new Capture(*this);
-    if(m_prev)
+    if(m_link)
     {
-      p->m_prev = m_prev->Copy();
+      p->m_link = m_link->Copy();
     }
     return p;
   }
 
   void Insert(List* list)
   {
-    if(m_prev)
-    {
-      m_prev->Insert(list);
-    }
     list->Append(String(m_ptr, m_end));
+    if(m_link)
+    {
+      m_link->Insert(list);
+    }
   }
 
   void Delete()
   {
-    if(m_prev)
+    if(m_link)
     {
-      m_prev->Delete();
+      m_link->Delete();
     }
     delete this;
   }
 
-  Capture*    m_prev;
+  Capture*    m_link;
   char const* m_ptr;
   char const* m_end;
 };
@@ -250,6 +250,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
   typedef unsigned char uchar;
 
   Capture* br;
+  Capture** pbr;
 
   // Alias for table
   TransitionVec& table = m_rd->m_table;
@@ -283,7 +284,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
         pbt->m_start, 
         pbt->m_cur);
       f->m_captures = pbt->m_captures ? pbt->m_captures->Copy() : 0;
-      f->m_capstack  = pbt->m_capstack  ? pbt->m_capstack->Copy()  : 0;
+      f->m_capstack = pbt->m_capstack ? pbt->m_capstack->Copy() : 0;
     }
 
     // Match transition
@@ -306,9 +307,15 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
 
     case ttCaptureR:
       br = pbt->m_capstack;
-      pbt->m_capstack = br->m_prev;
-      br->m_prev = pbt->m_captures;
-      pbt->m_captures = br;
+      pbt->m_capstack = br->m_link;
+      pbr = &pbt->m_captures;
+      while(*pbr) pbr = &(*pbr)->m_link;
+      *pbr = br;
+      br->m_link = 0;
+      break;
+
+    case ttBackref:
+      pbt->m_cur = MatchBackref(pbt);
       break;
 
     case ttAnchorL:  p = p == text ? p : 0; break;
@@ -354,7 +361,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     else
     {
       // Advance current backrefs
-      for(Capture* pbr = pbt->m_capstack; pbr; pbr = pbr->m_prev)
+      for(Capture* pbr = pbt->m_capstack; pbr; pbr = pbr->m_link)
       {
         pbr->m_end = pbt->m_cur;
       }
@@ -396,4 +403,33 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
 
   // Done
   return result;
+}
+
+char const* 
+Regex::MatchBackref(struct ReFrame* frame)
+{
+  // Retrieve index
+  int i = m_rd->m_table[frame->m_state].m_min - 1;
+
+  // Find capture
+  Capture* c = frame->m_captures;
+  while(c && i)
+  {
+    c = c->m_link;
+  }
+
+  // Match the strings
+  char const* p1 = frame->m_cur;
+  char const* p2 = c->m_ptr;
+  char const* p3 = c->m_end;
+  for(; *p1 && p2 != p3; ++p1, ++p2)
+  {
+    if(*p1 != *p2)
+    {
+      return 0;
+    }
+  }
+  
+  // End of backref
+  return p2 == p3 ? p1 : 0;
 }
