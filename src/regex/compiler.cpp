@@ -68,7 +68,7 @@ Transition::ToString() const
 
 RegexCompiler::RegexCompiler()
 {
-  // Add initial state
+  // Create initial state
   AddState();
 }
 
