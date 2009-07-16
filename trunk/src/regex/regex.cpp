@@ -118,15 +118,6 @@ struct Capture
     return p;
   }
 
-  void Insert(List* list)
-  {
-    list->Append(String(m_ptr, m_end));
-    if(m_link)
-    {
-      m_link->Insert(list);
-    }
-  }
-
   void Delete()
   {
     if(m_link)
@@ -156,13 +147,11 @@ struct ReFrame
     m_start    = start;
     m_cur      = cur;
     m_prev     = prev;
-    m_captures = 0;
     m_capstack = 0;
   }
 
   ~ReFrame()
   {
-    if(m_captures) m_captures->Delete();
     if(m_capstack) m_capstack->Delete();
   }
 
@@ -180,7 +169,7 @@ struct ReFrame
   char const* m_start;
   char const* m_cur;
   ReFrame*    m_prev;
-  Capture*    m_captures;
+  std::vector<Capture> m_captures;
   Capture*    m_capstack;
 };
 
@@ -250,7 +239,6 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
   typedef unsigned char uchar;
 
   Capture* br;
-  Capture** pbr;
 
   // Alias for table
   TransitionVec& table = m_rd->m_table;
@@ -283,7 +271,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
         pbt->m_trans + 1, 
         pbt->m_start, 
         pbt->m_cur);
-      f->m_captures = pbt->m_captures ? pbt->m_captures->Copy() : 0;
+      f->m_captures = pbt->m_captures;
       f->m_capstack = pbt->m_capstack ? pbt->m_capstack->Copy() : 0;
     }
 
@@ -308,10 +296,8 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     case ttCaptureR:
       br = pbt->m_capstack;
       pbt->m_capstack = br->m_link;
-      pbr = &pbt->m_captures;
-      while(*pbr) pbr = &(*pbr)->m_link;
-      *pbr = br;
       br->m_link = 0;
+      pbt->m_captures.push_back(*br);
       break;
 
     case ttBackref:
@@ -388,9 +374,11 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
       mr->m_text = String(pbt->m_start, pbt->m_cur);
       mr->m_offset = pbt->m_start - text;
       mr->m_captures = new List;
-      if(pbt->m_captures)
+      for(size_t i = 0; i < pbt->m_captures.size(); ++i)
       {
-        pbt->m_captures->Insert(mr->m_captures);
+        mr->m_captures->Append(String(
+          pbt->m_captures[i].m_ptr, 
+          pbt->m_captures[i].m_end));
       }
     }
   }
@@ -411,17 +399,16 @@ Regex::MatchBackref(struct ReFrame* frame)
   // Retrieve index
   int i = m_rd->m_table[frame->m_state].m_min - 1;
 
-  // Find capture
-  Capture* c = frame->m_captures;
-  while(c && i)
+  // Check capture
+  if((size_t)i >= frame->m_captures.size())
   {
-    c = c->m_link;
+    return 0;
   }
 
   // Match the strings
   char const* p1 = frame->m_cur;
-  char const* p2 = c->m_ptr;
-  char const* p3 = c->m_end;
+  char const* p2 = frame->m_captures[i].m_ptr;
+  char const* p3 = frame->m_captures[i].m_end;
   for(; *p1 && p2 != p3; ++p1, ++p2)
   {
     if(*p1 != *p2)
