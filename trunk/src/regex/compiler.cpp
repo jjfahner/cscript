@@ -66,51 +66,32 @@ Transition::ToString() const
 
 //////////////////////////////////////////////////////////////////////////
 
-RegexCompiler::RegexCompiler() :
-m_stateSeq(0)
+RegexCompiler::RegexCompiler()
 {
+  // Add initial state
+  AddState();
 }
 
 inline State 
 RegexCompiler::AddState()
 {
-  // Fetch next state
-  State state = ++m_stateSeq;
-
-  // Resize table
-  size_t size = m_table.size();
-  if(size <= state)
+  // Reserve space in chunks
+  if(m_table.size() % 10 == 0)
   {
-    m_table.resize(size + 10);
+    m_table.reserve(m_table.size() + 10);
   }
 
+  // Add a slot
+  m_table.resize(m_table.size() + 1);
+
   // Done
-  return state;
+  return m_table.size() - 1;
 }
 
 inline void 
 RegexCompiler::AddTransition(State in, State out, TransitionTypes type, char min, char max, bool append)
 {
-  // Create transition
-  Transition* t = new Transition(out, type, min, max);
-
-  // Take pointer to first entry
-  Transition** p = &m_table[in];
-
-  // Handle append/prepend
-  if(append)
-  {
-    // Find last entry for append
-    for(; append && *p; p = &((*p)->m_next));
-  }
-  else
-  {
-    // Append first transition
-    t->m_next = *p;
-  }
-
-  // Store transition
-  *p = t;
+  m_table[in].insert(append ? m_table[in].end() : m_table[in].begin(), Transition(out, type, min, max));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -371,29 +352,18 @@ RegexCompiler::Optimize()
 }
 
 void 
-RegexCompiler::FindTransitions(Transition* source, std::vector<Transition>& transitions)
+RegexCompiler::FindTransitions(TransitionList& in, std::vector<Transition>& out)
 {
-  while(source)
+  for(TransitionList::iterator it = in.begin(); it != in.end(); ++it)
   {
-    if(source->m_type == ttEmpty)
+    if(it->m_type == ttEmpty)
     {
-      for(Transition* t = m_table[source->m_out]; t; t = t->m_next)
-      {
-        FindTransitions(t, transitions);
-      }
+      FindTransitions(m_table[it->m_out], out);
     }
     else
     {
-      for(size_t i = 0; i < transitions.size(); ++i)
-      {
-        if(transitions[i] == *source)
-        {
-          return;
-        }
-      }
-      transitions.push_back(Transition(*source));
+      out.push_back(*it);
     }
-    source = source->m_next;
   }
 }
 
