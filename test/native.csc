@@ -106,72 +106,34 @@ function ParseFiles(path)
 
 function ParseFile(name)
 {
-  Console.WriteLn("Parsing ", name);
+//   Console.WriteLn("Parsing ", name);
   
-  // Line parser
-  var re = /^\s*(class|__native_[a-z]+)\s*(?:([a-zA-Z_][a-zA-Z0-9_]*|\d+|\(|\)|,|=|".*?")\s*)+/;
-
   // Current class instance
   var class;
   
   // Open file
-  var f = new File;
-  f.Open(name);
+  var file = new File;
+  file.Open(name);
 
   // Read through file
-  for(var l in f.Lines)
+  for(var line in file.Lines)
   {
-    // Match line or continue
-    var mr = re.Match(l);
-    if(!mr.Success)
+    if(line ~ /^\s*(?:__native_construct\s+)?class\s+?/)
     {
-      continue;
+      ParseClass(line);
     }
-
-    // Start of new class
-    if(mr.Captures[0] == "__native_construct" ||
-       mr.Captures[0] == "class")
+    else if(line ~ /^\s*__native_method\s+?/)
     {
-      // Create class instance
-      class = new Class;
-
-      // Handle constructable
-      var ci = 0;
-      if(mr.Captures[ci] == "__native_construct")
-      {
-        class.constructable = true;
-        ++ci;
-      }
-
-      // Store class name
-      class.name = mr.Captures[++ci];
-
-      // Add to classes
-      classes[class.name] = class;
-      
-      // Next iteration
-      continue;
+      ParseMethod(line);
     }
-    
-    // Handle supported member types
-    if(mr.Captures[0] == "__native_method")
+    else if(line ~ /^\s*__native_roprop\s+?/)
     {
-      ParseMethod(class, mr.Captures);
-      continue;
+      ParseRoProp(line);
     }
-    if(mr.Captures[0] == "__native_roprop")
+    else if(line ~ /^\s*__native_rwprop\s+?/)
     {
-      ParseRoProp(class, mr.Captures);
-      continue;
+      ParseRwProp(line);
     }
-    if(mr.Captures[0] == "__native_rwprop")
-    {
-      ParseRwProp(class, mr.Captures);
-      continue;
-    }
-    
-    // Unknown native member type
-    Console.WriteLn("Error: matched invalid native declaration '", mr.Text, "'");
   }
 }
 
@@ -180,11 +142,49 @@ function ParseFile(name)
 // Parse method
 //
 
-function ParseMethod(class, tokens)
+function ParseClass(line)
 {
+  // Line parser
+  var re = /^\s*(?:(__native_construct)\s+)?class\s+([a-zA-Z_][a-zA-Z0-9_]*)/;
+
+  // Split current line  
+  var mr = re.Match(line);
+  if(!mr.Success)
+  {
+    return;
+  }
+  
+  // Create class instance
+  class = new Class;
+
+  // Handle constructable
+  var ci = 0;
+  if(mr.Captures[ci] == "__native_construct")
+  {
+    class.constructable = true;
+    ++ci;
+  }
+
+  // Store class name
+  class.name = mr.Captures[ci];
+
+  // Add to classes
+  classes[class.name] = class;
+}
+
+function ParseMethod(line)
+{
+  // Split line
+  var re = /^\s*__native_method\s+(?:([a-zA-Z_][a-zA-Z0-9_]*|\d+|\(|\)|,|=|".*?"|:)\s*)+/;
+  var mr = re.Match(line);
+  if(!mr.Success)
+  {
+    return;
+  }
+  
   // Skip modifiers
   var i = 1;
-  while(tokens[i] ~ /virtual|static/)
+  while(mr.Captures[i] ~ /virtual|static/)
   {
     ++i;
   }
@@ -194,49 +194,49 @@ function ParseMethod(class, tokens)
   member.type = "method";
   
   // Find return type and name
-  while(tokens[i] != "(")
+  while(mr.Captures[i] != "(")
   {
     member.type += member.name;
-    member.name = tokens[i++];
+    member.name = mr.Captures[i++];
   }
 
   // Append to class
   class.members[member.name] = member;  
   
   // Parse parameters
-  for(++i; tokens[i] != ")";)
+  for(++i; mr.Captures[i] != ")";)
   {
     // Create new parameter
     var par = new Parameter;
     member.parameters.Append(par);
     
     // Read type and name
-    while(tokens[i] !~ /[,)=]/)
+    while(mr.Captures[i] !~ /[,)=]/)
     {
       par.type += par.name;
-      par.name = tokens[i++];
+      par.name = mr.Captures[i++];
     }
     
     // Read default value
-    if(tokens[i] == "=")
+    if(mr.Captures[i] == "=")
     {
       var numparens = 0;
-      for(++i; tokens[i] !~ /[,)]/; ++i)
+      for(++i; mr.Captures[i] !~ /[,)]/; ++i)
       {
-        if(tokens[i] == "(") {
+        if(mr.Captures[i] == "(") {
           ++numparens;
         }
-        if(tokens[i] == ")") {
+        if(mr.Captures[i] == ")") {
           if(--numparens < 0) {
             break;
           }
         }
-        par.def += tokens[i];
+        par.def += mr.Captures[i];
       }
     }
     
     // Skip comma
-    if(tokens[i] == ",") {
+    if(mr.Captures[i] == ",") {
       ++i;
     }
   }
@@ -247,7 +247,7 @@ function ParseMethod(class, tokens)
 // Parse method
 //
 
-function ParseRoProp(class, tokens)
+function ParseRoProp(line)
 {
 }
 
@@ -256,7 +256,7 @@ function ParseRoProp(class, tokens)
 // Parse method
 //
 
-function ParseRwProp(class, tokens)
+function ParseRwProp(line)
 {
 }
 
@@ -265,7 +265,10 @@ function ParseRwProp(class, tokens)
 // Global code
 //
 
+var class;
+
 // Parse files
+var ticks = CScript.Ticks;
 ParseFiles("../include");
 
 for(var c in classes)
@@ -274,9 +277,9 @@ for(var c in classes)
 //   {
 //     continue;
 //   }
-  
-  Console.WriteLn(c.name);
-  
+ 
+  //Console.WriteLn(c.name);
+ 
 //   for(var m in c.members)
 //   {
 //      Console.WriteLn("  ", m.name);
@@ -286,3 +289,6 @@ for(var c in classes)
 //      }
 //   }
 }
+
+Console.WriteLn("\nExecuted in ", CScript.Ticks - ticks, " ms");
+Console.ReadChar();
