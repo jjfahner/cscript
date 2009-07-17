@@ -24,6 +24,8 @@
 #include "exceptions.h"
 
 #include <sstream>
+#include <iomanip>
+#include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -80,17 +82,9 @@ Regex::TableToString()
 {
   std::ostringstream r;
 
-  r << "State 0\n";
   for(size_t i = 0; i < m_rd->m_table.size() - 1; ++i)
   {
-    if(m_rd->m_table[i] == ttNone)
-    {
-      r << "State " << i + 1 << "\n";
-    }
-    else
-    {
-      r << "  " << m_rd->m_table[i].ToString() << "\n"; 
-    }
+    r << std::setw(4) << i << " " << m_rd->m_table[i].ToString() << "\n"; 
   }
 
   return r.str();
@@ -139,6 +133,36 @@ inline bool isblank(int ch)
   return ch == ' ' || ch == '\t';
 }
 #endif
+
+//////////////////////////////////////////////////////////////////////////
+
+inline char const* 
+Regex::MatchBackref(ReFrame& frame, size_t index)
+{
+  // Check capture index
+  if(index >= frame.m_captures.size())
+  {
+    // This is really an error in the expression
+    return 0;
+  }
+
+  // Setup pointers
+  char const* p1 = frame.m_end;
+  char const* p2 = frame.m_captures[index].m_ptr;
+  char const* p3 = frame.m_captures[index].m_end;
+
+  // Match strings
+  for(; *p1 && p2 != p3; ++p1, ++p2)
+  {
+    if(*p1 != *p2)
+    {
+      return 0;
+    }
+  }
+
+  // End of backref
+  return p2 == p3 ? p1 : 0;
+}
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -297,32 +321,4 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
 
   // Done
   return result;
-}
-
-char const* 
-Regex::MatchBackref(ReFrame& frame, size_t index)
-{
-  // Check capture index
-  if(index >= frame.m_captures.size())
-  {
-    // This is really an error in the expression
-    return 0;
-  }
-
-  // Setup pointers
-  char const* p1 = frame.m_end;
-  char const* p2 = frame.m_captures[index].m_ptr;
-  char const* p3 = frame.m_captures[index].m_end;
-
-  // Match strings
-  for(; *p1 && p2 != p3; ++p1, ++p2)
-  {
-    if(*p1 != *p2)
-    {
-      return 0;
-    }
-  }
-  
-  // End of backref
-  return p2 == p3 ? p1 : 0;
 }

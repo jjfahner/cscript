@@ -280,7 +280,7 @@ private:
   //
   // Find all non-empty transitions
   //
-  void FindTransitions(TransitionList& in, std::vector<Transition>& out);
+  void FindTransitions(TransitionList const& in, TransitionVec& out);
 
   //
   // Pattern string
