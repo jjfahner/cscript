@@ -24,6 +24,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +35,7 @@ Transition::ToString() const
 
   switch(m_type)
   {
+  case ttNone:     r << "";         break;
   case ttEmpty:    r << "Empty";    break;
   case ttFinal:    r << "Final";    break;
   case ttOffset:   r << "Offset";   break;
@@ -59,7 +61,16 @@ Transition::ToString() const
   case ccUpper:    r << "Upper";    break;
   case ccXdigit:   r << "XDigit";   break;
   }
-  r << " -> " << m_out;
+
+  switch(m_type)
+  {
+  case ttNone:
+  case ttFinal:
+    break;
+  default:
+    r << " -> " << m_out;
+    break;
+  }
 
   return r.str();
 }
@@ -222,15 +233,38 @@ RegexCompiler::Finalize(Pair const& r)
   // Add final transition
   AddTransition(r.m_max, 0, ttFinal);
 
-  // Add moving start point
+  // Add empty transition to initial state
   AddTransition(0, r.m_min, ttEmpty);
-  AddTransition(0, 0,       ttOffset);
+
+  // Add moving start point if there's no anchor
+  TransitionVec transitions;
+  FindTransitions(m_table[0], transitions);
+  if(transitions.size() > 1 || transitions[0] != ttAnchorL)
+  {
+    AddTransition(0, 0, ttOffset);
+  }
 
   // Rebuild the table
   Optimize();
 }
 
 //////////////////////////////////////////////////////////////////////////
+
+inline void 
+RegexCompiler::FindTransitions(TransitionList const& in, TransitionVec& out)
+{
+  for(TransitionList::const_iterator it = in.begin(); it != in.end(); ++it)
+  {
+    if(it->m_type == ttEmpty)
+    {
+      FindTransitions(m_table[it->m_out], out);
+    }
+    else if(std::find(out.begin(), out.end(), *it) == out.end())
+    {      
+      out.push_back(*it);
+    }
+  }
+}
 
 void 
 RegexCompiler::Optimize()
@@ -349,22 +383,6 @@ RegexCompiler::Optimize()
 
   // Store the new table
   m_vec.swap(table);
-}
-
-void 
-RegexCompiler::FindTransitions(TransitionList& in, std::vector<Transition>& out)
-{
-  for(TransitionList::iterator it = in.begin(); it != in.end(); ++it)
-  {
-    if(it->m_type == ttEmpty)
-    {
-      FindTransitions(m_table[it->m_out], out);
-    }
-    else
-    {
-      out.push_back(*it);
-    }
-  }
 }
 
 //////////////////////////////////////////////////////////////////////////
