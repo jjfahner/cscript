@@ -21,6 +21,8 @@
 #include "regex/compiler.h"
 #include "lexstream.h"
 #include "lemon.h"
+#include "dict.h"
+#include "enumerator.h"
 
 #include <sstream>
 #include <iostream>
@@ -37,7 +39,7 @@ Transition::ToString() const
   {
   case ttNone:     r << "";         break;
   case ttEmpty:    r << "Empty";    break;
-  case ttFinal:    r << "Final";    break;
+  case ttFinal:    r << "Final " << (int)m_min; break;
   case ttOffset:   r << "Offset";   break;
   case ttAnchorL:  r << "AnchorL";  break;
   case ttAnchorR:  r << "AnchorR";  break;
@@ -62,14 +64,9 @@ Transition::ToString() const
   case ccXdigit:   r << "XDigit";   break;
   }
 
-  switch(m_type)
+  if(m_type != ttNone && m_type != ttFinal)
   {
-  case ttNone:
-  case ttFinal:
-    break;
-  default:
     r << " -> " << m_out;
-    break;
   }
 
   return r.str();
@@ -82,6 +79,65 @@ RegexCompiler::RegexCompiler()
   // Create initial state
   AddState();
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+RegexData* 
+RegexCompiler::Compile(Dictionary* dict)
+{
+  Enumerator* pEnum = dict->GetEnumerator();
+
+  // Add all expressions to the table
+  Value key, exp;
+  while(pEnum->GetNext(key, exp))
+  {
+    Compile(exp.GetString(), key.GetInt());
+  }
+
+  // Optimize the table
+  Optimize();
+
+  // Build return value
+  RegexData* rd = new RegexData;
+  rd->m_pattern = m_pattern;
+  rd->m_table.swap(m_vec);
+
+  // Return regex struct
+  return rd;
+}
+
+RegexData* 
+RegexCompiler::Compile(String const& string, int64 exId)
+{
+  // Construct string stream
+  std::istringstream istream(string + "//");
+
+  // Construct lex stream
+  LexStream stream(istream);
+
+  // Compile from stream
+  return Compile(stream, exId);
+}
+
+RegexData* 
+RegexCompiler::Compile(LexStream& stream, int64 exId)
+{
+  // Compile the pattern
+  CompileImpl(stream, exId);
+
+  // Optimize the table
+  Optimize();
+
+  // Build return value
+  RegexData* rd = new RegexData;
+  rd->m_pattern = m_pattern;
+  rd->m_table.swap(m_vec);
+
+  // Return regex struct
+  return rd;
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 inline State 
 RegexCompiler::AddState()
@@ -230,22 +286,11 @@ RegexCompiler::Quantify(Pair const& e, Pair const& q, bool greedy, Pair& r)
 inline void
 RegexCompiler::Finalize(Pair const& r)
 {
-  // Add final transition
-  AddTransition(r.m_max, 0, ttFinal);
-
   // Add empty transition to initial state
   AddTransition(0, r.m_min, ttEmpty);
-
-  // Add moving start point if there's no anchor
-  TransitionVec transitions;
-  FindTransitions(m_table[0], transitions);
-  if(transitions.size() > 1 || transitions[0] != ttAnchorL)
-  {
-    AddTransition(0, 0, ttOffset);
-  }
-
-  // Rebuild the table
-  Optimize();
+  
+  // Add final transition
+  AddTransition(r.m_max, 0, ttFinal, (char)m_exId);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -271,6 +316,14 @@ RegexCompiler::Optimize()
 {
   std::vector<size_t> offsets;
   TransitionVec table;
+
+  // Add moving start point if there's no anchor
+//   TransitionVec transitions;
+//   FindTransitions(m_table[0], transitions);
+//   if(transitions.size() > 1 || transitions[0] != ttAnchorL)
+//   {
+//     AddTransition(0, 0, ttOffset);
+//   }
 
   // Make sure all old offsets fit
   offsets.resize(m_table.size() + 1, -1);
@@ -387,21 +440,6 @@ RegexCompiler::Optimize()
 
 //////////////////////////////////////////////////////////////////////////
 
-/*static*/ RegexData* 
-RegexCompiler::Compile(String const& string)
-{
-  // Construct string stream
-  std::istringstream istream(string + "//");
-
-  // Construct lex stream
-  LexStream stream(istream);
-
-  // Compile from stream
-  return Compile(stream);
-}
-
-//////////////////////////////////////////////////////////////////////////
-
 #include "parser.gen.c"
 #include "parser.gen.h"
 
@@ -419,14 +457,14 @@ typedef LemonParser<
   #endif
   ReParse> ReParserImpl;
 
-/*static*/ RegexData*
-RegexCompiler::Compile(LexStream& stream)
+void
+RegexCompiler::CompileImpl(LexStream& stream, int64 exId)
 {
-  // Create compiler instance
-  RegexCompiler instance;
+  // Store expression id
+  m_exId = exId;
 
   // Create parser instance
-  ReParserImpl parse(&instance, "Regex: ");
+  ReParserImpl parse(this, "Regex: ");
 
   // Push characters
   for(;;)
@@ -445,7 +483,7 @@ RegexCompiler::Compile(LexStream& stream)
     }
 
     // Append to pattern
-    instance.m_pattern += c;
+    m_pattern += c;
     
     // Select token type
     int type = RE_CHAR;
@@ -535,7 +573,7 @@ RegexCompiler::Compile(LexStream& stream)
 
     case '\\':
       c = *stream.m_cursor++;
-      instance.m_pattern += c;
+      m_pattern += c;
       
       type = RE_CLASS;
       switch(c)
@@ -574,14 +612,6 @@ RegexCompiler::Compile(LexStream& stream)
 
   // Flush parser
   parse();
-
-  // Build return value
-  RegexData* rd = new RegexData;
-  rd->m_pattern = instance.m_pattern;
-  rd->m_table.swap(instance.m_vec);
-
-  // Return regex struct
-  return rd;
 }
 
 void

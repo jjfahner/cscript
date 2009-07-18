@@ -28,6 +28,7 @@
 #include <vector>
 #include <list>
 
+class Dictionary;
 class LexStream;
 
 enum TransitionTypes
@@ -166,19 +167,24 @@ class RegexCompiler
 public:
 
   //
-  // Compile a regular expression from stream
+  // Construction
   //
-  static RegexData* Compile(LexStream& stream);
+  RegexCompiler();
 
   //
   // Compile a regular expression from string
   //
-  static RegexData* Compile(String const& string);
+  RegexData* Compile(String const& string, int64 exId = 0);
 
   //
-  // Construction
+  // Compile a regular expression from stream
   //
-  RegexCompiler();
+  RegexData* Compile(LexStream& stream, int64 exId = 0);
+
+  //
+  // Compile a set of regular expressions
+  //
+  RegexData* Compile(Dictionary* dict);
 
   //
   // Create a new state
@@ -273,6 +279,11 @@ public:
 private:
 
   //
+  // Compile the current stream into the table
+  //
+  void CompileImpl(LexStream& stream, int64 exId = 0);
+
+  //
   // Optimize the transition table
   //
   void Optimize();
@@ -283,13 +294,12 @@ private:
   void FindTransitions(TransitionList const& in, TransitionVec& out);
 
   //
-  // Pattern string
+  // Members
   //
-  String m_pattern;
-
-  // Regular expression table
-  StateVec m_table;
+  String        m_pattern;
+  StateVec      m_table;
   TransitionVec m_vec;
+  int64         m_exId;
 };
 
 #endif // CSCRIPT_REGEX_COMPILER_H

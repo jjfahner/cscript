@@ -22,6 +22,7 @@
 #include "regex/compiler.h"
 #include "gc.h"
 #include "exceptions.h"
+#include "dict.h"
 
 #include <sstream>
 #include <iomanip>
@@ -52,9 +53,27 @@ Regex::Pattern()
 }
 
 void 
-Regex::Compile(StringCRef pattern)
+Regex::Compile(ValueCRef pattern)
 {
-  m_rd = RegexCompiler::Compile(pattern);
+  if(pattern.Type() == Value::tString)
+  {
+    RegexCompiler rc;
+    m_rd = rc.Compile(pattern.GetString());
+    return;
+  }
+
+  if(pattern.Type() == Value::tObject)
+  {
+    Dictionary* dict = dynamic_cast<Dictionary*>(pattern.GetObject());
+    if(dict != 0)
+    {
+      RegexCompiler rc;
+      m_rd = rc.Compile(dict);
+      return;
+    }
+  }
+
+  throw CatchableException("Invalid pattern type");
 }
 
 ObjectPtr
@@ -307,6 +326,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     if(success)
     {
       mr->m_success = true;
+      mr->m_matchId = m_rd->m_table[frame.m_trans].m_min;
       mr->m_text = String(frame.m_ptr, frame.m_end);
       mr->m_offset = frame.m_ptr - text;
       mr->m_captures = new List;

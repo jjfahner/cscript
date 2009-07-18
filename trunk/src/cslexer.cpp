@@ -227,7 +227,8 @@ bool
 CSLexer::LexRegex(Token& token)
 {
   // Compile pattern from source file
-  RegexData* rd = RegexCompiler::Compile(m_stream);
+  RegexCompiler rc;
+  RegexData* rd = rc.Compile(m_stream);
 
   // Initialize token
   token.m_type = CS_REGEX_LITERAL;

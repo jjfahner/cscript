@@ -54,7 +54,7 @@ public:
   //
   // Compile a regular expression
   //
-  __native_method void Compile(StringCRef pattern);
+  __native_method void Compile(ValueCRef pattern);
   
   //
   // Match a string
@@ -114,6 +114,7 @@ public:
   //
   MatchResult() :
   m_success (false),
+  m_matchId (0),
   m_offset  (0)
   {
   }
@@ -124,6 +125,14 @@ public:
   __native_roprop bool Success()
   {
     return m_success;
+  }
+
+  //
+  // Match id
+  //
+  __native_roprop int64 MatchId()
+  {
+    return m_matchId;
   }
 
   //
@@ -170,6 +179,7 @@ private:
   // Members
   //
   bool m_success;
+  int64 m_matchId;
   String m_text;
   int64 m_offset;
   List* m_captures;
