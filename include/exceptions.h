@@ -51,4 +51,13 @@ struct UserException : public CatchableException
   ~UserException() throw() {}
 };
 
+//
+// Easily define an exception
+//
+#define DEF_EXCEPTION(name, text) \
+struct name : public CatchableException \
+{ \
+  name () : CatchableException(text) {} \
+}
+
 #endif // CSCRIPT_EXCEPTIONS_H
