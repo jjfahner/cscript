@@ -182,7 +182,7 @@ function ParseMethod(line)
   // Extract parameters with default values
   var re = /\((?:
         \s*([a-zA-Z0-9_]+)\s+([a-zA-Z0-9_]+)\s*
-        (?:(=)((?:[a-zA-Z0-9_]+|\(.*?\)|".*?"|\s+)+))?
+        (?:(=)\s*((?:[a-zA-Z0-9_]+|\(.*?\)|".*?"|\s+)+))?
         ,?)*\)/;
   var mr = re.Match(line);
 
@@ -253,11 +253,31 @@ function GenerateCode()
     // Generate member stubs
     for(var m in c.members)
     {
+      // Generate method prolog
       Console.WriteLn("Value cscript_native_method_", c.name, "_", m.name);
       Console.WriteLn("  (Object* instance, Arguments const& arguments)");
       Console.WriteLn("\{");
+      
+      // Generate method call
+      var sep = " ";
+      var arg = 0;
       Console.Write("  return static_cast<", c.name,"*>(instance)->", m.name, "(");
-      Console.WriteLn("  );");
+      for(var p in m.parameters)
+      {
+        if(p.def == "")
+        {
+          Console.Write("\n    ", sep, "cscript_arg_to_", p.type, "(arguments[", arg++, "])");
+        }
+        else
+        {
+          Console.Write("\n    ", sep, "arguments.size() < ", arg + 1, " ? ", p.def, " : cscript_arg_to_", p.type, "(arguments[", arg, "])");
+        }
+        arg++;
+        sep = ",";
+      }
+      Console.Write(");\n");
+      
+      // Generate method epilog
       Console.WriteLn("\}\n");
     }
   }
