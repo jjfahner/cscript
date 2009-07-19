@@ -144,29 +144,17 @@ function ParseFile(name)
 
 function ParseClass(line)
 {
-  // Line parser
-  var re = /^\s*(?:(__native_construct)\s+)?class\s+([a-zA-Z_][a-zA-Z0-9_]*)/;
-
-  // Split current line  
-  var mr = re.Match(line);
-  if(!mr.Success)
+  // Extract name
+  var name;
+  if(line !~ /class\s+(?name:[a-zA-Z_][a-zA-Z0-9_]*)/)
   {
     return;
   }
-  
+
   // Create class instance
   class = new Class;
-
-  // Handle constructable
-  var ci = 0;
-  if(mr.Captures[ci] == "__native_construct")
-  {
-    class.constructable = true;
-    ++ci;
-  }
-
-  // Store class name
-  class.name = mr.Captures[ci];
+  class.name = name;
+  class.constructable = line ~ /__native_construct/;
 
   // Add to classes
   classes[class.name] = class;
@@ -174,77 +162,49 @@ function ParseClass(line)
 
 function ParseMethod(line)
 {
+  // Remove expected prefix strings
+  line = /\s*(?:__native_method|virtual|static)\s*/.Replace(line, "");
+  
   // Extract name and type
   var type, name;
-  if(line !~ /^\s*__native_method\s+(?@type:(?:[a-zA-Z_][a-zA-Z0-9_]*\s+)+)(?@name:[a-zA-Z_][a-zA-Z0-9_]*)\s*\(/)
+  if(line !~ /^\s*(?type:[a-zA-Z_][a-zA-Z0-9_]*)
+               \s+(?name:[a-zA-Z_][a-zA-Z0-9_]*)/)
   {
     return;
-  }
-  return;
-  
-  // Split line
-  var re = /^\s*__native_method\s+(?:([a-zA-Z_][a-zA-Z0-9_]*|\d+|\(|\)|,|=|".*?")\s*)+/;
-  var mr = re.Match(line);
-  if(!mr.Success)
-  {
-    return;
-  }
-  
-  // Skip modifiers
-  var i = 1;
-  while(mr.Captures[i] ~ /virtual|static/)
-  {
-    ++i;
   }
   
   // Create method
   var member = new Member;
   member.type = "method";
+  member.name = name;
+  member.returns = type;
   
-  // Find return type and name
-  while(mr.Captures[i] != "(")
-  {
-    member.type += member.name;
-    member.name = mr.Captures[i++];
-  }
-
   // Append to class
   class.members[member.name] = member;  
-  
-  // Parse parameters
-  for(++i; mr.Captures[i] != ")";)
+
+  // Extract parameters with default values
+  var re = /\((?:
+        \s*([a-zA-Z0-9_]+)\s+([a-zA-Z0-9_]+)\s*
+        (?:(=)((?:[a-zA-Z0-9_]+|\(.*?\)|".*?"|\s+)+))?
+        ,?)*\)/;
+  var mr = re.Match(line);
+
+  // Append parameters
+  var i = 0;
+  while(i < mr.Captures.Length)
   {
     // Create new parameter
     var par = new Parameter;
     member.parameters.Append(par);
     
-    // Read type and name
-    while(mr.Captures[i] !~ /[,)=]/)
+    // Set name and type
+    par.type = mr.Captures[i++];
+    par.name = mr.Captures[i++];
+
+    // Set default value
+    if(mr.Captures.Length > i && mr.Captures[i] == "=")
     {
-      par.type += par.name;
-      par.name = mr.Captures[i++];
-    }
-    
-    // Read default value
-    if(mr.Captures[i] == "=")
-    {
-      var numparens = 0;
-      for(++i; mr.Captures[i] !~ /[,)]/; ++i)
-      {
-        if(mr.Captures[i] == "(") {
-          ++numparens;
-        }
-        if(mr.Captures[i] == ")") {
-          if(--numparens < 0) {
-            break;
-          }
-        }
-        par.def += mr.Captures[i];
-      }
-    }
-    
-    // Skip comma
-    if(mr.Captures[i] == ",") {
+      par.def = mr.Captures[++i];
       ++i;
     }
   }
