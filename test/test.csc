@@ -22,7 +22,6 @@ TestRE(/(ab|.)*/, "ababc");
 TestRE(/(x+x+)+y/, "xxxxxxxxxy");
 TestRE(/<([a-zA-Z]+)>(.*?)<\/\1>/, "blabla<div>blabla</div>blabla</div>");
 TestRE(/[a-zA-Z0-9_]+/, "%abcAb0_1%");
-TestRE(/(.@)+|(.\d)+/, "a1@2@3%4@5@6@7@", "a1@2@3%4@5@6@7");
 TestRE(/[:digit:]+/, "abc123456789def");
 TestRE(/^1?$|^(11+?)\1+$/, "11111111111");
 TestRE(/^\s*(?:(__native_construct)\s+)?class\s+([a-zA-Z_][a-zA-Z0-9_]*)/, "class foo");
@@ -68,4 +67,15 @@ while(pos < exp.Length)
   
   Console.WriteLn("Matched '", mr.Text, "' (id=", mr.MatchId, ")");
   pos += mr.Text.Length;
+}
+Console.WriteLn();
+
+var one, two;
+if("  hello world" ~ /^\s*(?one:[a-zA-Z]+)\s+(?two:[a-zA-Z]+)/)
+{
+  Console.WriteLn("Extracted one: '", one, "' and two '", two, "'");
+}
+else
+{
+  Console.WriteLn("Failed to extract variables");
 }

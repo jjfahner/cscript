@@ -74,7 +74,8 @@ Transition::ToString() const
 
 //////////////////////////////////////////////////////////////////////////
 
-RegexCompiler::RegexCompiler()
+RegexCompiler::RegexCompiler() :
+m_numCaptures (0)
 {
   // Create initial state
   AddState();
@@ -108,6 +109,7 @@ RegexCompiler::Compile(Dictionary* dict)
   RegexData* rd = new RegexData;
   rd->m_pattern = m_pattern;
   rd->m_table.swap(m_vec);
+  rd->m_namedCaptures.swap(m_namedCaptures);
 
   // Return regex struct
   return rd;
@@ -139,6 +141,7 @@ RegexCompiler::Compile(LexStream& stream, int64 exId)
   RegexData* rd = new RegexData;
   rd->m_pattern = m_pattern;
   rd->m_table.swap(m_vec);
+  rd->m_namedCaptures.swap(m_namedCaptures);
 
   // Return regex struct
   return rd;
@@ -239,20 +242,36 @@ RegexCompiler::AddRange(char min, char max, Pair& r)
                 min <= max ? max : min);
 }
 
-void 
-RegexCompiler::AddCapture(bool start, Pair& r)
+inline void 
+RegexCompiler::AddCapture(Pair const& e, Pair& r)
 {
   r.m_min = AddState();
   r.m_max = AddState();
-  AddTransition(r.m_min, r.m_max, start ? ttCaptureL : ttCaptureR);
+  AddTransition(r.m_min, e.m_min, ttCaptureL);
+  AddTransition(e.m_max, r.m_max, ttCaptureR);
 }
 
-void 
+inline void
+RegexCompiler::AddNamedCapture(Pair const& e, Pair& r)
+{
+  AddCapture(e, r);
+  
+  m_namedCaptures[m_numCaptures++] = m_ident;
+  m_ident.clear();
+}
+
+inline void 
 RegexCompiler::AddBackref(char num, Pair& r)
 {
   r.m_min = AddState();
   r.m_max = AddState();
   AddTransition(r.m_min, r.m_max, ttBackref, num);
+}
+
+inline void 
+RegexCompiler::AddIdentifierChar(char ch)
+{
+  m_ident += ch;
 }
 
 //////////////////////////////////////////////////////////////////////////

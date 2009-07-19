@@ -21,8 +21,11 @@
 #include "regex/regex.h"
 #include "regex/compiler.h"
 #include "gc.h"
-#include "exceptions.h"
 #include "dict.h"
+#include "context.h"
+#include "exceptions.h"
+#include "eval.h"
+#include "scope.h"
 
 #include <sstream>
 #include <iomanip>
@@ -342,14 +345,20 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
   // Create match result
   if(createMatchResult)
   {
+    // Create match result object
     MatchResult* mr = new MatchResult;
     result.m_result = mr;
+
+    // Fill object on success
     if(success)
     {
+
       mr->m_success = true;
       mr->m_matchId = m_rd->m_table[frame.m_trans].m_min;
       mr->m_text = String(frame.m_ptr, frame.m_end);
       mr->m_offset = frame.m_ptr - input.c_str();
+
+      // Copy captures
       mr->m_captures = new List;
       for(size_t i = 0; i < frame.m_captures.size(); ++i)
       {
@@ -357,6 +366,35 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
           frame.m_captures[i].m_ptr, 
           frame.m_captures[i].m_end));
       }
+    }
+  }
+
+  // Apply named captures
+  if(m_rd->m_namedCaptures.size())
+  {
+    // Create iterators
+    NamedCaptureMap::iterator it, ie;
+    it = m_rd->m_namedCaptures.begin();
+    ie = m_rd->m_namedCaptures.end();
+
+    // Enumerate captures
+    Evaluator& eval = CurEval;
+    for(; it != ie; ++it)
+    {
+      // Check index
+      size_t index = (size_t)it->first;
+      if(index >= frame.m_captures.size())
+      {
+        continue;
+      }
+
+      // Build captured string
+      String capture = String(
+        frame.m_captures[index].m_ptr, 
+        frame.m_captures[index].m_end);
+
+      // Apply to current scope
+      eval.GetScope()->Set(it->second, capture);
     }
   }
 

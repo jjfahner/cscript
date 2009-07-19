@@ -174,6 +174,14 @@ function ParseClass(line)
 
 function ParseMethod(line)
 {
+  // Extract name and type
+  var type, name;
+  if(line !~ /^\s*__native_method\s+(?@type:(?:[a-zA-Z_][a-zA-Z0-9_]*\s+)+)(?@name:[a-zA-Z_][a-zA-Z0-9_]*)\s*\(/)
+  {
+    return;
+  }
+  return;
+  
   // Split line
   var re = /^\s*__native_method\s+(?:([a-zA-Z_][a-zA-Z0-9_]*|\d+|\(|\)|,|=|".*?")\s*)+/;
   var mr = re.Match(line);
