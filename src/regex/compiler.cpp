@@ -91,7 +91,14 @@ RegexCompiler::Compile(Dictionary* dict)
   Value key, exp;
   while(pEnum->GetNext(key, exp))
   {
-    Compile(exp.GetString(), key.GetInt());
+    // Construct string stream
+    std::istringstream istream(exp.GetString() + "//");
+
+    // Construct lex stream
+    LexStream stream(istream);
+
+    // Compile the expression
+    CompileImpl(stream, key.GetInt());
   }
 
   // Optimize the table
@@ -317,13 +324,13 @@ RegexCompiler::Optimize()
   std::vector<size_t> offsets;
   TransitionVec table;
 
-  // Add moving start point if there's no anchor
-//   TransitionVec transitions;
-//   FindTransitions(m_table[0], transitions);
-//   if(transitions.size() > 1 || transitions[0] != ttAnchorL)
-//   {
-//     AddTransition(0, 0, ttOffset);
-//   }
+  // Add final transition
+  TransitionVec init;
+  FindTransitions(m_table[0], init);
+  if(!(init.size() == 1 && init[0].m_type == ttAnchorL))
+  {
+    AddTransition(0, 0, ttOffset);
+  }
 
   // Make sure all old offsets fit
   offsets.resize(m_table.size() + 1, -1);

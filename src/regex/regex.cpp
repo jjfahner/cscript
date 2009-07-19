@@ -153,6 +153,16 @@ inline bool isblank(int ch)
 }
 #endif
 
+inline bool isbegl(char const* p, char const* s)
+{
+  return p <= s || *(p-1) == '\n';
+}
+
+inline bool isendl(char const* p)
+{
+  return !*p || *p == '\n' || *p == '\r';
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 inline char const* 
@@ -197,14 +207,14 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
   offset = offset < input.length() ? offset : input.length();
 
   // Setup pointer to string
-  char const* text = input.c_str();
+  char const* s = input.c_str() + offset;
 
   // Backtracking stack
   ReStack stack;
   stack.reserve(1000);
 
   // Create initial stack frame
-  ReFrame frame(0, text + offset, text + offset);
+  ReFrame frame(0, s, s);
 
   // Main match loop
   bool success;
@@ -249,8 +259,8 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
       frame.m_end = MatchBackref(frame, tr.m_min - 1);
       break;
 
-    case ttAnchorL:  p = p == text ? p : 0; break;
-    case ttAnchorR:  p = *p ? 0 : p; break;
+    case ttAnchorL:  p = isbegl(p, s) ? p : 0; break;
+    case ttAnchorR:  p = isendl(p)    ? p : 0; break;
     case ttAny:      p = *p ? n : 0; break;
     case ttChar:     p = *p == tr.m_min ? n : 0; break;
     case ttRange:    p = *p >= tr.m_min && *p <= tr.m_max ? n : 0; break;
@@ -328,7 +338,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
       mr->m_success = true;
       mr->m_matchId = m_rd->m_table[frame.m_trans].m_min;
       mr->m_text = String(frame.m_ptr, frame.m_end);
-      mr->m_offset = frame.m_ptr - text;
+      mr->m_offset = frame.m_ptr - input.c_str();
       mr->m_captures = new List;
       for(size_t i = 0; i < frame.m_captures.size(); ++i)
       {
