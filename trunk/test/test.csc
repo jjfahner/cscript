@@ -31,28 +31,29 @@ TestRE(/^\s*__native_method\s+?/, "  __native_method Value Eval(StringCRef code,
 TestRE(/^\s*__native_method\s+(?:([a-zA-Z_][a-zA-Z0-9_]*|\d+|\(|\)|,|=|".*?"|:)\s*)+;$/, "  __native_method void Write(ArgsCRef args);");
 
 var tab = [
-  0  : "[ \t]+",
-  1  : "if", 
-  2  : "for", 
-  3  : "while",
-  4  : "do",
-  5  : "class",
-  6  : "[a-zA-Z_][a-zA-Z0-9_]*",
-  7  : "[0-9]+",
-  8  : "\\-",
-  9  : "\\*",
-  10 : "\\+",
-  11 : "\\/",
-  12 : "\\%",
-  13 : "\\(",
-  14 : "\\)",
-  15 : ";",
-  16 : "==",
-  17 : "="
+  0  : "^[ \t]+",
+  1  : "^if", 
+  2  : "^for", 
+  3  : "^while",
+  4  : "^do",
+  5  : "^class",
+  6  : "^[a-zA-Z_][a-zA-Z0-9_]*",
+  7  : "^[0-9]+",
+  8  : "^\\-",
+  9  : "^\\*",
+  10 : "^\\+",
+  11 : "^\\/",
+  12 : "^\\%",
+  13 : "^\\(",
+  14 : "^\\)",
+  15 : "^;",
+  16 : "^==",
+  17 : "^="
 ];
 
 var re = new Regex;
 re.Compile(tab);
+//Console.WriteLn(re.TableToString());
 
 var pos = 0;
 var exp = "if(i + 1 == 2) j = 3;";
