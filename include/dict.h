@@ -103,29 +103,41 @@ public:
 
   class Enum : public Enumerator
   {
+    Dictionary* m_dict;
     Iter m_it;
     Iter m_ie;
   
   public:
 
-    Enum(Iter it, Iter ie) : m_it (it), m_ie (ie) {
+    Enum(Dictionary* dict) : 
+    m_dict (dict)
+    {
+      Reset();
     }
 
-    virtual void Reset() {
-      m_it = m_ie;
+    virtual void Reset() 
+    {
+      m_it = m_dict->m_map.begin();
+      m_ie = m_dict->m_map.end();
     }
 
-    virtual bool GetNext(Value& value) {
-      if(m_it == m_ie) {
+    virtual bool GetNext(Value& value) 
+    {
+      if(m_it == m_ie) 
+      {
         return false;
       }
-      value = (++m_it)->second;
+      
+      value = m_it->second;
+
+      ++m_it;
+      
       return true;
     }
 
     virtual bool GetNext(Value& key, Value& value)
     {
-      if(m_it == m_ie) 
+      if(m_it == m_dict->m_map.end())
       {
         return false;
       }
@@ -137,6 +149,12 @@ public:
       
       return true;
     }
+
+    virtual void MarkObjects(GCObjectVec& grey)
+    {
+      GC::Mark(grey, m_dict);
+    }
+
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -189,7 +207,7 @@ public:
   //
   virtual Enumerator* GetEnumerator()
   {
-    return new Enum(m_map.begin(), m_map.end());
+    return new Enum(this);
   }
 
   //

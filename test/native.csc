@@ -106,7 +106,7 @@ function ParseFiles(path)
 
 function ParseFile(name)
 {
-//   Console.WriteLn("Parsing ", name);
+  //Console.WriteLn("Parsing ", name);
   
   // Current class instance
   var class;
@@ -175,7 +175,7 @@ function ParseClass(line)
 function ParseMethod(line)
 {
   // Split line
-  var re = /^\s*__native_method\s+(?:([a-zA-Z_][a-zA-Z0-9_]*|\d+|\(|\)|,|=|".*?"|:)\s*)+/;
+  var re = /^\s*__native_method\s+(?:([a-zA-Z_][a-zA-Z0-9_]*|\d+|\(|\)|,|=|".*?")\s*)+/;
   var mr = re.Match(line);
   if(!mr.Success)
   {
@@ -273,21 +273,21 @@ ParseFiles("../include");
 
 for(var c in classes)
 {
-//   if(c.members.Length == 0)
-//   {
-//     continue;
-//   }
+  if(c.members.Length == 0)
+  {
+    continue;
+  }
  
-  //Console.WriteLn(c.name);
+  Console.WriteLn(c.name);
  
-//   for(var m in c.members)
-//   {
-//      Console.WriteLn("  ", m.name);
-//      for(var p in m.parameters)
-//      {
-//        Console.WriteLn("    ", p.type, " ", p.name, " ", p.def);
-//      }
-//   }
+  for(var m in c.members)
+  {
+     Console.WriteLn("  ", m.name);
+     for(var p in m.parameters)
+     {
+       Console.WriteLn("    ", p.type, " ", p.name, " ", p.def);
+     }
+  }
 }
 
 Console.WriteLn("\nExecuted in ", CScript.Ticks - ticks, " ms");
