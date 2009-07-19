@@ -51,12 +51,12 @@ public:
 
   //
   // Exit process
-  // TODO add default value = 0
+  //
   __native_method void Exit(int64 exitcode = 0);
 
   //
   // Exit process
-  // TODO add default value = 0
+  //
   __native_method void Quit(int64 exitcode = 0);
 
   //
