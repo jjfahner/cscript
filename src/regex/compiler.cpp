@@ -312,10 +312,7 @@ RegexCompiler::Quantify(Pair const& e, Pair const& q, bool greedy, Pair& r)
 inline void
 RegexCompiler::Finalize(Pair const& r)
 {
-  // Add empty transition to initial state
   AddTransition(0, r.m_min, ttEmpty);
-  
-  // Add final transition
   AddTransition(r.m_max, 0, ttFinal, (char)m_exId);
 }
 
@@ -515,6 +512,14 @@ RegexCompiler::CompileImpl(LexStream& stream, int64 exId)
     int type = RE_CHAR;
     switch(c)
     {
+
+      // Ignore whitespace
+    case ' ':
+    case '\r':
+    case '\n':
+      m_pattern += c;
+      continue;
+
     case '(': type = RE_LPAREN; break;
     case ')': type = RE_RPAREN; break;
     case '[': type = RE_LBRACKET; break;
