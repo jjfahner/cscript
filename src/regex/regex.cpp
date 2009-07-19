@@ -107,6 +107,31 @@ Regex::IsMatch(StringCRef text, int64 offset)
 }
 
 String
+Regex::Replace(StringCRef source, StringCRef replaceBy)
+{
+  // Copy string
+  String result = source;
+  while(true)
+  {
+    // Find next match
+    MatchResult* res = MatchImpl(result, 0, true).m_result;
+    if(!res->m_success)
+    {
+      break;
+    }
+    
+    // Replace substring
+    result = result.replace(
+      (size_t)res->m_offset, 
+      res->m_text.length(), 
+      replaceBy);
+  }
+
+  // Done
+  return result;
+}
+
+String
 Regex::TableToString()
 {
   std::ostringstream r;
@@ -348,18 +373,17 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     // Create match result object
     MatchResult* mr = new MatchResult;
     result.m_result = mr;
+    mr->m_captures  = new List;
 
     // Fill object on success
     if(success)
     {
-
       mr->m_success = true;
       mr->m_matchId = m_rd->m_table[frame.m_trans].m_min;
       mr->m_text = String(frame.m_ptr, frame.m_end);
       mr->m_offset = frame.m_ptr - input.c_str();
 
       // Copy captures
-      mr->m_captures = new List;
       for(size_t i = 0; i < frame.m_captures.size(); ++i)
       {
         mr->m_captures->Append(String(

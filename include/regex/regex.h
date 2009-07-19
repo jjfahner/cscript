@@ -67,6 +67,11 @@ public:
   __native_method bool IsMatch(StringCRef text, int64 offset = 0);
 
   //
+  // Replace a substring
+  //
+  __native_method String Replace(StringCRef source, StringCRef replaceBy);
+
+  //
   // Write table
   //
   __native_method String TableToString();
