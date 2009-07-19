@@ -27,6 +27,7 @@
 
 #include <vector>
 #include <list>
+#include <map>
 
 class Dictionary;
 class LexStream;
@@ -139,6 +140,7 @@ struct Transition
 typedef std::vector<Transition> TransitionVec;
 typedef std::list<Transition> TransitionList;
 typedef std::vector<TransitionList> StateVec;
+typedef std::map<int64, String> NamedCaptureMap;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -154,6 +156,9 @@ public:
 
   // Transitions table
   TransitionVec m_table;
+
+  // Named captures
+  NamedCaptureMap m_namedCaptures;
 
 };
 
@@ -239,12 +244,22 @@ public:
   //
   // Add a capturing subexpression
   //
-  void AddCapture(bool start, Pair& result);
+  void AddCapture(Pair const& e, Pair& result);
 
   //
   // Add a back reference
   //
   void AddBackref(char num, Pair& result);
+
+  //
+  // Add a character to the current identifier
+  //
+  void AddIdentifierChar(char ch);
+
+  //
+  // Add a named capture
+  //
+  void AddNamedCapture(Pair const& e, Pair& r);
 
   //
   // Quantify zero or one (?)
@@ -296,10 +311,13 @@ private:
   //
   // Members
   //
-  String        m_pattern;
-  StateVec      m_table;
-  TransitionVec m_vec;
-  int64         m_exId;
+  String          m_pattern;
+  String          m_ident;
+  StateVec        m_table;
+  TransitionVec   m_vec;
+  int64           m_exId;
+  int64           m_numCaptures;
+  NamedCaptureMap m_namedCaptures;
 };
 
 #endif // CSCRIPT_REGEX_COMPILER_H

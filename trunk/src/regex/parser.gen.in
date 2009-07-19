@@ -114,20 +114,13 @@ atom(R) ::= BACKREF(A) . { p->AddBackref(A, R); }
 
 // Complex atoms
 atom(R) ::= range(A) . { R = A; }
+atom(R) ::= LPAREN expression(A) RPAREN . { p->AddCapture(A, R); }
 atom(R) ::= LPAREN QUESTION COLON expression(A) RPAREN . { R = A; }
-atom(R) ::= lparen(A) expression(B) rparen(C) . { 
-  Pair R1;
-  p->AddSequence(A, B, R1);
-  p->AddSequence(R1, C, R);
-}
-
-// Nesting
-lparen(R) ::= LPAREN . { p->AddCapture(true,  R); }
-rparen(R) ::= RPAREN . { p->AddCapture(false, R); }
+atom(R) ::= LPAREN QUESTION identifier COLON expression(A) RPAREN . { p->AddNamedCapture(A, R); }
 
 // Character range with optional inversion
 range(R) ::= LBRACKET          range_sequence(A) RBRACKET . { R = A; }
-range(R) ::= LBRACKET ANCHOR_L range_sequence(A) RBRACKET . { R, A; /*R = A; A->Invert(true);*/ }
+// range(R) ::= LBRACKET ANCHOR_L range_sequence(A) RBRACKET . { R, A; /*R = A; A->Invert(true);*/ }
 
 // Range contents
 range_sequence(R) ::= range_atom(A) . { R = A; }
@@ -166,6 +159,10 @@ quantifier(R) ::= LBRACE COMMA int(H) RBRACE .        { R, H; }
 // Integer, used in free quantifiers
 int(R) ::= INT(A) . { R, A; }
 int(R) ::= int(A) INT(B) . { R, A, B; }
+
+// Identifier, used for variable names
+identifier ::= letter(A) . { p->AddIdentifierChar(A); }
+identifier ::= identifier letter(A) . { p->AddIdentifierChar(A); }
 
 //////////////////////////////////////////////////////////////////////////
 //
