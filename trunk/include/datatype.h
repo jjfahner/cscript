@@ -205,6 +205,11 @@ public:
   //
   __native_method virtual Value Split(ValueCRef sep = "\x32") = 0;
 
+  //
+  // Replace all occurrences of a substring
+  //
+  __native_method virtual Value Replace(StringCRef what, StringCRef with) = 0;
+
 };
 
 //////////////////////////////////////////////////////////////////////////

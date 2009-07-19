@@ -309,6 +309,21 @@ public:
     return list;
   }
 
+  Value Replace(StringCRef what, StringCRef with)
+  {
+    String result(m_value);
+    while(true)
+    {
+      size_t pos = result.find(what);
+      if(pos == String::npos)
+      {
+        break;
+      }
+      result = result.replace(pos, what.length(), with);
+    }
+    return result;
+  }
+
 protected:
 
   DeclType m_value;
