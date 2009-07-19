@@ -28,6 +28,7 @@
 var Class = 
 {
   name          : "",
+  file          : "",
   constructable : false,
   members       : null,
 
@@ -104,23 +105,18 @@ function ParseFiles(path)
 // Parse single file for class and class member declarations
 //
 
-function ParseFile(name)
+function ParseFile(filename)
 {
-  //Console.WriteLn("Parsing ", name);
-  
-  // Current class instance
-  var class;
-  
   // Open file
   var file = new File;
-  file.Open(name);
+  file.Open(filename);
 
   // Read through file
   for(var line in file.Lines)
   {
     if(line ~ /^\s*(?:__native_construct\s+)?class\s+?/)
     {
-      ParseClass(line);
+      ParseClass(filename, line);
     }
     else if(line ~ /^\s*__native_method\s+?/)
     {
@@ -142,7 +138,7 @@ function ParseFile(name)
 // Parse method
 //
 
-function ParseClass(line)
+function ParseClass(file, line)
 {
   // Extract name
   var name;
@@ -154,6 +150,7 @@ function ParseClass(line)
   // Create class instance
   class = new Class;
   class.name = name;
+  class.file = file;
   class.constructable = line ~ /__native_construct/;
 
   // Add to classes
@@ -230,33 +227,58 @@ function ParseRwProp(line)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Code generation
+//
+
+function GenerateCode()
+{
+  // Enumerate classes
+  for(var c in classes)
+  {
+    // Skip classes with no members
+    if(c.members.Length == 0)
+    {
+      continue;
+    }
+
+    // Write header
+    Console.WriteLn("//////////////////////////////////////////////////////////////////////////");
+    Console.WriteLn("//");
+    Console.WriteLn("// Class ", c.name);
+    Console.WriteLn("//\n");
+    
+    // Write header include
+    Console.WriteLn("#include <", c.file.Replace("\\", "/"), ">\n");
+   
+    // Generate member stubs
+    for(var m in c.members)
+    {
+      Console.WriteLn("Value cscript_native_method_", c.name, "_", m.name);
+      Console.WriteLn("  (Object* instance, Arguments const& arguments)");
+      Console.WriteLn("\{");
+      Console.Write("  return static_cast<", c.name,"*>(instance)->", m.name, "(");
+      Console.WriteLn("  );");
+      Console.WriteLn("\}\n");
+    }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Global code
 //
 
 var class;
 
-// Parse files
+// Measure ticks
 var ticks = CScript.Ticks;
+
+// Parse files
 ParseFiles("../include");
 
-for(var c in classes)
-{
-  if(c.members.Length == 0)
-  {
-    continue;
-  }
- 
-  Console.WriteLn(c.name);
- 
-  for(var m in c.members)
-  {
-     Console.WriteLn("  ", m.name);
-     for(var p in m.parameters)
-     {
-       Console.WriteLn("    ", p.type, " ", p.name, " ", p.def);
-     }
-  }
-}
+// Generate output
+GenerateCode();
 
-Console.WriteLn("\nExecuted in ", CScript.Ticks - ticks, " ms");
-Console.ReadChar();
+// Write time elapsed
+Console.WriteLn("\n// Generated in ", CScript.Ticks - ticks, " ms");
+Console.WriteLn("// EOF");
