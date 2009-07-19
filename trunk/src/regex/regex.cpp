@@ -30,6 +30,13 @@
 
 //////////////////////////////////////////////////////////////////////////
 
+DEF_EXCEPTION(RegexEmptyInstance, "Regex: instance contains no pattern");
+DEF_EXCEPTION(RegexInvalidArgument, "Regex: invalid argument type");
+DEF_EXCEPTION(RegexStackOverflow, "Regex: stack overflow");
+DEF_EXCEPTION(RegexInvalidTransition, "Regex: invalid transition type");
+
+//////////////////////////////////////////////////////////////////////////
+
 Regex::Regex(RegexData* rd) :
 m_rd (rd)
 {
@@ -47,7 +54,7 @@ Regex::Pattern()
 {
   if(m_rd == 0)
   {
-    throw CatchableException("Invalid Regex object");
+    throw RegexEmptyInstance();
   }
   return m_rd->m_pattern;
 }
@@ -73,7 +80,7 @@ Regex::Compile(ValueCRef pattern)
     }
   }
 
-  throw CatchableException("Invalid pattern type");
+  throw RegexInvalidArgument();
 }
 
 ObjectPtr
@@ -81,7 +88,7 @@ Regex::Match(StringCRef text, int64 offset)
 {
   if(m_rd == 0)
   {
-    throw CatchableException("Invalid Regex object");
+    throw RegexEmptyInstance();
   }
   return MatchImpl(text, offset, true).m_result;
 }
@@ -91,7 +98,7 @@ Regex::IsMatch(StringCRef text, int64 offset)
 {
   if(m_rd == 0)
   {
-    throw CatchableException("Invalid Regex object");
+    throw RegexEmptyInstance();
   }
   return MatchImpl(text, offset, false).m_success;
 }
@@ -230,6 +237,10 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     {
       stack.push_back(frame);
       stack.back().m_trans++;
+      if(stack.size() >= 10000)
+      {
+        throw RegexStackOverflow();
+      }
     }
 
     // Match transition
@@ -277,7 +288,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     case ccSpace:    p = isspace((uchar)*p)  ? n : 0; break;
     case ccUpper:    p = isupper((uchar)*p)  ? n : 0; break;
     case ccXdigit:   p = isxdigit((uchar)*p) ? n : 0; break;
-    default:         throw std::runtime_error("Invalid transition type");
+    default:         throw RegexInvalidTransition();
     }
 
     // Final state reached
