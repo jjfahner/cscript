@@ -335,7 +335,13 @@ function GenerateCode()
         Error("Invalid member type");
       }
     }
+    
+    // Generate lookup table for methods
+    GenerateMethodTable(c);
   }
+  
+  // Generate the constructor table
+  GenerateConstructorTable();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -428,6 +434,49 @@ function GenerateRwProp(c, m)
   // Generate method epilog
   Console.WriteLn("  return Value();");
   Console.WriteLn("\}\n");
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Generate table of methods for class
+//
+
+function GenerateMethodTable(c)
+{
+  // Generate table prolog
+  Console.WriteLn("NativeCall cscript_native_table_", c.name, "[] = ");
+  Console.WriteLn("\{");
+
+  // Generate entries
+  for(var m in c.members)
+  {
+    Console.Write("  \{ ");
+    switch(m.type)
+    {
+    case "method": 
+      Console.WriteLn("stMethod, \"", m.name, "\", cscript_native_method_", c.name, "_", m.name, ", 0, 0 \},");
+      break;
+    case "roprop": 
+      Console.WriteLn("stRoProp, \"", m.name, "\", 0, cscript_native_roprop_", c.name, "_", m.name, ", 0 \},");
+      break;
+    case "rwprop": 
+      Console.WriteLn("stRwProp, \"", m.name, "\", 0, cscript_native_roprop_", c.name, "_", m.name, ", cscript_native_rwprop_", c.name, "_", m.name," \},");
+      break;
+    }
+  }
+  
+  // Generate table epilog
+  Console.WriteLn("  \{ stEmpty, 0, 0, 0, 0 \}");
+  Console.WriteLn("\};\n");
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Generate the constructor table
+//
+
+function GenerateConstructorTable()
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
