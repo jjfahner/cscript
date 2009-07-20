@@ -125,6 +125,22 @@ public:
   //
   virtual bool TryEval(Value const& key, Arguments& arguments, Value& result);
 
+  //
+  // Retrieve a value by index
+  //
+  virtual Value GetIndexed(Value const& key)
+  {
+    return Get(key);
+  }
+
+  //
+  // Set a value by index
+  //
+  virtual Value const& SetIndexed(Value const& key, Value const& value)
+  {
+    return Set(key, value);
+  }
+
 protected:
 
   //
