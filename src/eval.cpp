@@ -836,13 +836,16 @@ Evaluator::EvalPostfix(Object* node)
 void
 Evaluator::EvalIndex(Object* node)
 {
-  // Retrieve the container
-  Object* obj;
-  Value key;
-  EvalLValue(node, obj, key);
+  // Evaluate object expression
+  EvalExpression(Ast_A1(node));
+  Value lhs = g_stack.Pop();
 
+  // Evaluate key expression
+  EvalExpression(Ast_A2(node));
+  Value key = g_stack.Pop();
+  
   // Retrieve the list
-  g_stack.Push(obj->GetIndexed(key));
+  g_stack.Push(lhs->GetIndexed(key));
 }
 
 void
