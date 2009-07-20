@@ -36,7 +36,7 @@ public:
   // Native call mapping
   //
   DEF_NATIVE_EVAL(Dictionary, Object);
-  IMPL_NATIVE_GET(Dictionary, Object);
+  DEF_NATIVE_GET (Dictionary, Object);
   IMPL_NATIVE_SET(Dictionary, Object);
 
   //
@@ -163,28 +163,6 @@ public:
   //
 
   //
-  // Implement Object::Get
-  //
-  virtual Value Get(Value const& key)
-  {
-    return m_map[key];
-  }
-
-  //
-  // Try to retrieve a member by key
-  //
-  virtual bool TryGet(Value const& key, Value& value)
-  {
-    ImplType::iterator it = m_map.find(key);
-    if(it != m_map.end())
-    {
-      value = it->second;
-      return true;
-    }
-    return NativeTryGet(key, value);
-  }
-
-  //
   // Set a member
   //
   virtual Value const& Set(Value const& key, Value const& value)
@@ -200,6 +178,22 @@ public:
   {
     m_map[key] = value;
     return true;
+  }
+
+  //
+  // Retrieve a value by index
+  //
+  virtual Value GetIndexed(Value const& key)
+  {
+    return m_map[key];
+  }
+
+  //
+  // Set a value by index
+  //
+  virtual Value const& SetIndexed(Value const& key, Value const& value)
+  {
+    return m_map[key] = value;
   }
 
   //

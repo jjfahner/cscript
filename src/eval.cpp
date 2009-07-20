@@ -842,7 +842,7 @@ Evaluator::EvalIndex(Object* node)
   EvalLValue(node, obj, key);
 
   // Retrieve the list
-  g_stack.Push(obj->Get(key));
+  g_stack.Push(obj->GetIndexed(key));
 }
 
 void
