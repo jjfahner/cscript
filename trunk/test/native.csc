@@ -120,7 +120,7 @@ function ParseFile(filename)
   // Read through file
   for(var line in file.Lines)
   {
-    if(line ~ /^\s*(?:__native_construct\s+)?class\s+?/)
+    if(line ~ /^\s*(?:__native_construct\s+)?class\s+?/ && line !~ /;/)
     {
       class = ParseClass(filename, line);
     }
@@ -151,6 +151,12 @@ function ParseClass(file, line)
   if(line !~ /class\s+(?name:[a-zA-Z_][a-zA-Z0-9_]*)/)
   {
     return null;
+  }
+  
+  // Check whether it exists already
+  if(classes[name] != null)
+  {
+    return classes[name];
   }
 
   // Create class instance
@@ -209,13 +215,13 @@ function ParseRoProp(class, line)
   {
     return;
   }
-  
+
   // Create member
   var member = new Member;
   member.type = "roprop";
   member.name = name;
   member.returns = type;
-
+  
   // Append to class
   class.members[member.name] = member;
 }
@@ -415,7 +421,7 @@ function GenerateMethod(c, m)
     }
     else if(p.def == "")
     {
-      Console.Write("\n    ", sep, "cscript_arg_to_", p.type, "(arguments[", arg++, "])");
+      Console.Write("\n    ", sep, "cscript_arg_to_", p.type, "(arguments[", arg, "])");
     }
     else
     {
@@ -521,7 +527,7 @@ function GenerateMethodTable(c)
 //
 // Dictionary of classes
 //
-var classes = {};
+var classes = [];
 
 // Measure ticks
 var ticks = CScript.Ticks;
