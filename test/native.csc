@@ -316,6 +316,9 @@ function GenerateCode()
     
     // Write header include
     Console.WriteLn("#include <", c.file.Replace("\\", "/"), ">\n");
+    
+    // Generate class constructor
+    GenerateConstructor(c);
    
     // Generate member stubs
     for(var m in c.members)
@@ -342,6 +345,47 @@ function GenerateCode()
   
   // Generate the constructor table
   GenerateConstructorTable();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Generate method
+//
+
+function GenerateConstructor(c)
+{
+  // Check construct flag
+  if(c.constructable)
+  {
+    Console.WriteLn("static Value cscript_native_constructor_", c.name, "()");
+    Console.WriteLn("\{");
+    Console.WriteLn("  return new ", c.name, "();");
+    Console.WriteLn("\}\n");
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Generate the constructor table
+//
+
+function GenerateConstructorTable()
+{
+  // Generate table prolog
+  Console.WriteLn("NativeConstructor cscript_native_constructors[] = \n\{");
+  
+  // Enumerate classes
+  for(var c in classes)
+  {
+    if(c.members.Length > 0 && c.constructable)
+    {
+      Console.WriteLn("  \{ \"", c.name, "\", cscript_native_constructor_", c.name, " \},");
+    }
+  }
+  
+  // Generate table epilog
+  Console.WriteLn("  \{ 0, 0 \}");
+  Console.WriteLn("\};\n");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -402,7 +446,7 @@ function GenerateRoProp(c, m)
 {
   // Generate method prolog
   Console.WriteLn("static Value cscript_native_roprop_", c.name, "_", m.name);
-  Console.WriteLn("  (Object* instance, Arguments const& arguments)");
+  Console.WriteLn("  (Object* instance)");
   Console.WriteLn("\{");
   
   // Generate method call
@@ -423,16 +467,15 @@ function GenerateRwProp(c, m)
   GenerateRoProp(c, m);
   
   // Generate method prolog
-  Console.WriteLn("static Value cscript_native_rwprop_", c.name, "_", m.name);
-  Console.WriteLn("  (Object* instance, Arguments const& arguments)");
+  Console.WriteLn("static void cscript_native_rwprop_", c.name, "_", m.name);
+  Console.WriteLn("  (Object* instance, Value const& value)");
   Console.WriteLn("\{");
   
   // Generate method call
   Console.WriteLn("  static_cast<", c.name, "*>(instance)->Set", m.name, "(");
-  Console.WriteLn("    cscript_arg_to_", m.returns, "(arguments[0]));");
+  Console.WriteLn("    cscript_arg_to_", m.returns, "(value));");
   
   // Generate method epilog
-  Console.WriteLn("  return Value();");
   Console.WriteLn("\}\n");
 }
 
@@ -468,15 +511,6 @@ function GenerateMethodTable(c)
   // Generate table epilog
   Console.WriteLn("  \{ stEmpty, 0, 0, 0, 0 \}");
   Console.WriteLn("\};\n");
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Generate the constructor table
-//
-
-function GenerateConstructorTable()
-{
 }
 
 //////////////////////////////////////////////////////////////////////////
