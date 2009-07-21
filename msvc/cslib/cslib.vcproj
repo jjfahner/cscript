@@ -679,6 +679,10 @@
 			</Filter>
 		</Filter>
 		<File
+			RelativePath="..\..\src\dict.cpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\TODO"
 			>
 		</File>

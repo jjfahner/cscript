@@ -45,10 +45,10 @@ public:
   typedef std::map<Value, Value> ImplType;
   typedef ImplType::iterator Iter;
 
-  ////////////////////////////////////////////////////////////////////////
   //
-  // Native methods
+  // List type
   //
+  virtual DataType* GetType();
 
   //
   // Clear the map
@@ -96,72 +96,6 @@ public:
     return false;
   }
 
-  ////////////////////////////////////////////////////////////////////////
-  //
-  // Iterator class
-  //
-
-  class Enum : public Enumerator
-  {
-    Dictionary* m_dict;
-    Iter m_it;
-    Iter m_ie;
-  
-  public:
-
-    Enum(Dictionary* dict) : 
-    m_dict (dict)
-    {
-      Reset();
-    }
-
-    virtual void Reset() 
-    {
-      m_it = m_dict->m_map.begin();
-      m_ie = m_dict->m_map.end();
-    }
-
-    virtual bool GetNext(Value& value) 
-    {
-      if(m_it == m_ie) 
-      {
-        return false;
-      }
-      
-      value = m_it->second;
-
-      ++m_it;
-      
-      return true;
-    }
-
-    virtual bool GetNext(Value& key, Value& value)
-    {
-      if(m_it == m_dict->m_map.end())
-      {
-        return false;
-      }
-      
-      key   = m_it->first;
-      value = m_it->second;
-      
-      ++m_it;
-      
-      return true;
-    }
-
-    virtual void MarkObjects(GCObjectVec& grey)
-    {
-      GC::Mark(grey, m_dict);
-    }
-
-  };
-
-  ////////////////////////////////////////////////////////////////////////
-  //
-  // Overrides
-  //
-
   //
   // Set a member
   //
@@ -199,28 +133,18 @@ public:
   //
   // Implement Object::GetEnumerator
   //
-  virtual Enumerator* GetEnumerator()
-  {
-    return new Enum(this);
-  }
+  virtual Enumerator* GetEnumerator();
+
+protected:
 
   //
   // Implement GC::MarkObjects
   //
-  virtual void MarkObjects(GCObjectVec& grey)
-  {
-    // Mark object members
-    Object::MarkObjects(grey);
-
-    // Mark map contents
-    for(Iter it = m_map.begin(); it != m_map.end(); ++it)
-    {
-      GC::Mark(grey, it->first);
-      GC::Mark(grey, it->second);
-    }
-  }
+  virtual void MarkObjects(GCObjectVec& grey);
 
 private:
+
+  friend class DictEnumerator;
 
   //
   // Members
