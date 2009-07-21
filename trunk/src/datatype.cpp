@@ -252,7 +252,8 @@ public:
 
   virtual int64 Find(StringCRef what, int64 start)
   {
-    return m_value.find(what, 0);
+    int64 pos = m_value.find(what, (size_t)start);
+    return pos == String::npos ? -1 : pos;
   }
 
   virtual Value Split(ValueCRef sep = " ")
