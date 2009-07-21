@@ -46,6 +46,10 @@ Transition::ToString() const
   case ttCaptureL: r << "CaptureL"; break;
   case ttCaptureR: r << "CaptureR"; break;
   case ttBackref:  r << "Backref " << (char)(m_min + '0'); break;
+  case ttPushNum:  r << "PushNum";  break;
+  case ttTestNum:  r << "TestNum " << (size_t)m_min; break;
+  case ttIncNum:   r << "IncNum";   break;
+  case ttPopNum:   r << "PopNum";   break;
   case ttAny:      r << "Any";      break;
   case ttChar:     r << "Char '"   << m_min << "'"; break;
   case ttRange:    r << "Range '"  << m_min << "', '" << m_max << "'"; break;
@@ -304,9 +308,68 @@ RegexCompiler::OneOrMore(Pair const& e, bool greedy, Pair& r)
 }
 
 inline void
-RegexCompiler::Quantify(Pair const& e, Pair const& q, bool greedy, Pair& r)
+RegexCompiler::Quantify(Pair const& e, int min, int max, bool greedy, Pair& r)
 {
-  throw std::runtime_error("Free quantifiers not implemented");
+  // Zero or more, aka '*'
+  if(min == 0 && max == 0)
+  {
+    ZeroOrMore(e, greedy, r);
+    return;
+  }
+  
+  // Zero or one, aka '?'
+  if(min == 0 && max == 1)
+  {
+    ZeroOrOne(e, greedy, r);
+    return;
+  }
+  
+  // One or more, aka '+'
+  if(min == 1 && max == 0)
+  {
+    OneOrMore(e, greedy, r);
+    return;
+  }
+  
+  // Exactly one
+  if(min == 1 && max == 1)
+  {
+    r = e;
+    return;
+  }
+  
+  // Create start and end state
+  r.m_min = AddState();
+  State s = AddState();
+  State t = AddState();
+  State u = AddState();
+  r.m_max = AddState();
+
+  // Push counter on stack
+  AddTransition(r.m_min, s, ttPushNum);
+  
+  // Test before submatch
+  if(greedy && max || !greedy && min)
+  {
+    AddTransition(s, u, ttTestNum, greedy ? max : min);
+  }
+
+  // Submatch and counter update
+  AddTransition(s, e.m_min);
+  AddTransition(e.m_max, s, ttIncNum);
+
+  // Test after failed submatch
+  if(min)
+  {
+    AddTransition(s, u, ttTestNum, min);
+  }
+  else
+  {
+    AddTransition(s, u);
+  }
+
+  // End of pattern
+  AddTransition(u, r.m_max, ttPopNum);
 }
 
 inline void

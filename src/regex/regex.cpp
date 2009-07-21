@@ -173,6 +173,7 @@ struct ReFrame
   char const* m_ptr;
   char const* m_end;
 
+  std::vector<size_t>    m_counters;
   std::vector<ReCapture> m_captures;
   std::vector<ReCapture> m_capstack;
 };
@@ -296,6 +297,22 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
 
     case ttBackref:
       frame.m_end = MatchBackref(frame, tr.m_min - 1);
+      break;
+
+    case ttPushNum:
+      frame.m_counters.push_back(0);
+      break;
+
+    case ttTestNum:
+      p = frame.m_counters.back() >= tr.m_min ? p : 0;
+      break;
+
+    case ttIncNum:
+      ++frame.m_counters.back();
+      break;
+
+    case ttPopNum:
+      frame.m_counters.pop_back();
       break;
 
     case ttAnchorL:  p = isbegl(p, s) ? p : 0; break;

@@ -34,6 +34,13 @@
 // switch statement contains 'default' but no 'case' labels
 #pragma warning(disable:4065)
 
+struct Quantifier
+{
+  int m_min;
+  int m_max;
+  bool m_greedy;
+};
+
 }
 //
 // End inclusion block
@@ -99,7 +106,7 @@ particle(R) ::= atom(A) STAR .              { p->ZeroOrMore(A, true, R);  }
 particle(R) ::= atom(A) STAR QUESTION.      { p->ZeroOrMore(A, false, R); }
 particle(R) ::= atom(A) PLUS .              { p->OneOrMore(A, true, R);   }
 particle(R) ::= atom(A) PLUS QUESTION.      { p->OneOrMore(A, false, R);  }
-particle(R) ::= atom(A) quantifier(B) .     { p->Quantify(A, B, true, R); }
+particle(R) ::= atom(A) quantifier(B) .     { p->Quantify(A, B.m_min, B.m_max, B.m_greedy, R); }
 
 // Single-character atoms
 atom(R) ::= class(A) .   { R = A; }
@@ -151,14 +158,20 @@ range_atom(R) ::= range_char(A) . { p->AddChar(A, R); }
 range_atom(R) ::= range_char(A) DASH range_char(B) . { p->AddRange(A, B, R); }
 
 // Free quantifiers
-quantifier(R) ::= LBRACE int(L) RBRACE .              { R, L; }
-quantifier(R) ::= LBRACE int(L) COMMA RBRACE .        { R, L; }
-quantifier(R) ::= LBRACE int(L) COMMA int(H) RBRACE . { R, L, H; }
-quantifier(R) ::= LBRACE COMMA int(H) RBRACE .        { R, H; }
+%type quantifier { Quantifier }
+quantifier(R) ::= LBRACE int(L) quant_e(G) .              { R.m_min = L; R.m_max = L; R.m_greedy = G; }
+quantifier(R) ::= LBRACE int(L) COMMA quant_e(G) .        { R.m_min = L; R.m_max = 0; R.m_greedy = G; }
+quantifier(R) ::= LBRACE int(L) COMMA int(H) quant_e(G) . { R.m_min = L; R.m_max = H; R.m_greedy = G; }
+quantifier(R) ::= LBRACE COMMA int(H) quant_e(G) .        { R.m_min = 0; R.m_max = H; R.m_greedy = G; }
+
+%type quant_e { bool }
+quant_e(R) ::= RBRACE . { R = true; }
+quant_e(R) ::= RBRACE QUESTION . { R = false; }
 
 // Integer, used in free quantifiers
-int(R) ::= INT(A) . { R, A; }
-int(R) ::= int(A) INT(B) . { R, A, B; }
+%type int { int }
+int(R) ::= INT(A) . { R = A - '0'; }
+int(R) ::= int(A) INT(B) . { R = A * 10 + (B - '0'); }
 
 // Identifier, used for variable names
 identifier ::= letter(A) . { p->AddIdentifierChar(A); }
