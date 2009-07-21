@@ -22,11 +22,9 @@
 // Execution parameters
 var path = "testcases/";
 var eval  = true;
-var print = false;
+var print = true;
 var count = 0;
 var total = 0;
-
-var re = /.csc$/;
 
 // Test function
 function RunTests()
@@ -40,14 +38,10 @@ function RunTests()
   for(var file in Path.GetFiles(path))
   {
     // Check extension
-    if(!re.IsMatch(file))
+    if(file !~ /.csc$/)
     {
       continue;
     }
-//     if(file.Find(".csc", 0) == -1)
-//     {
-//       continue;
-//     }
 
     // Build path
     if(print)
