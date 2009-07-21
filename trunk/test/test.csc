@@ -17,6 +17,12 @@ function TestRE(re, st, ex)
   Console.WriteLn("");
 }
 
+TestRE(/a{0,1}b{1,}/, "a");
+TestRE(/a{0,1}b{1,}/, "b");
+TestRE(/a{0,1}b{1,}/, "ab");
+TestRE(/a{0,1}b{1,1}/, "abb");
+TestRE(/a{0,1}b{1,}/, "abb");
+TestRE(/a{2,0}?/, "baaaaaa");
 TestRE(/(.@)+|(.\d)+/, "a1@2@3%4@5@6@7@");
 TestRE(/(ab|.)*/, "ababc");
 TestRE(/(x+x+)+y/, "xxxxxxxxxy");

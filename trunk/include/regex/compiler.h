@@ -43,6 +43,10 @@ enum TransitionTypes
   ttCaptureL,
   ttCaptureR,
   ttBackref,
+  ttPushNum,
+  ttTestNum,
+  ttIncNum,
+  ttPopNum,
   ttAny,
   ttChar,
   ttRange,
@@ -279,7 +283,7 @@ public:
   //
   // Quantify an expression
   //
-  void Quantify(Pair const& expression, Pair const& quantifier, bool greedy, Pair& result);
+  void Quantify(Pair const& expression, int min, int max, bool greedy, Pair& result);
 
   //
   // Finalize the expression
