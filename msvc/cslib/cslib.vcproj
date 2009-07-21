@@ -229,6 +229,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\dict.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\eval.cpp"
 				>
 			</File>
@@ -678,10 +682,6 @@
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath="..\..\src\dict.cpp"
-			>
-		</File>
 		<File
 			RelativePath="..\..\TODO"
 			>

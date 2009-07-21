@@ -319,8 +319,9 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     case ttAnchorR:  p = isendl(p)    ? p : 0; break;
     case ttAny:      p = *p ? n : 0; break;
     case ttChar:     p = *p == tr.m_min ? n : 0; break;
+    case ttNChar:    p = *p == tr.m_min ? 0 : n; break;
     case ttRange:    p = *p >= tr.m_min && *p <= tr.m_max ? n : 0; break;
-    case ttNRange:   p = *p >= tr.m_min && *p <= tr.m_max ? 0 : p; break;
+    case ttNRange:   p = *p >= tr.m_min && *p <= tr.m_max ? 0 : n; break;
     case ccAlnum:    p = isalnum((uchar)*p)  ? n : 0; break;
     case ccAlpha:    p = isalpha((uchar)*p)  ? n : 0; break;
     case ccBlank:    p = isblank((uchar)*p)  ? n : 0; break;
