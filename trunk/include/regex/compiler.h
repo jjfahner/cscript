@@ -50,6 +50,7 @@ enum TransitionTypes
   ttAny,
   ttChar,
   ttRange,
+  ttNChar,
   ttNRange,
   ccAlnum,
   ccAlpha,
@@ -206,9 +207,9 @@ public:
   void AddTransition(State in, State out, TransitionTypes type = ttEmpty, char min = 0, char max = 0, bool append = true);
 
   //
-  // Add an alternation between lhs and rhs
+  // Add an atom
   //
-  void AddAlternation(Pair const& lhs, Pair const& rhs, Pair& result);
+  void AddAtom(Pair& result, TransitionTypes type, char min = 0, char max = 0);
 
   //
   // Add a sequence between lhs and rhs
@@ -216,39 +217,19 @@ public:
   void AddSequence(Pair const& lhs, Pair const& rhs, Pair& result);
 
   //
-  // Add a left anchor
+  // Add an alternation between lhs and rhs
   //
-  void AddLeftAnchor(Pair& result);
-
-  //
-  // Add a right anchor
-  //
-  void AddRightAnchor(Pair& result);
-
-  //
-  // Add an any char
-  //
-  void AddAnyChar(Pair& result);
-
-  //
-  // Add a char
-  //
-  void AddChar(char ch, Pair& result);
-
-  //
-  // Add a char class
-  //
-  void AddCharClass(char ch, Pair& result);
-
-  //
-  // Add a range
-  //
-  void AddRange(char min, char max, Pair& result);
+  void AddAlternation(Pair const& lhs, Pair const& rhs, Pair& result);
 
   //
   // Add a capturing subexpression
   //
   void AddCapture(Pair const& e, Pair& result);
+
+  //
+  // Add a named capture
+  //
+  void AddNamedCapture(Pair const& e, Pair& r);
 
   //
   // Add a back reference
@@ -261,29 +242,9 @@ public:
   void AddIdentifierChar(char ch);
 
   //
-  // Add a named capture
-  //
-  void AddNamedCapture(Pair const& e, Pair& r);
-
-  //
-  // Quantify zero or one (?)
-  //
-  void ZeroOrOne(Pair const& expression, bool greedy, Pair& result);
-
-  //
-  // Quantify zero or more (*)
-  //
-  void ZeroOrMore(Pair const& expression, bool greedy, Pair& result);
-
-  //
-  // Quantify one or more (+)
-  //
-  void OneOrMore(Pair const& expression, bool greedy, Pair& result);
-
-  //
   // Quantify an expression
   //
-  void Quantify(Pair const& expression, int min, int max, bool greedy, Pair& result);
+  void AddQuantifier(Pair const& expression, int min, int max, bool greedy, Pair& result);
 
   //
   // Finalize the expression

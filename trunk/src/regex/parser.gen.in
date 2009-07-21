@@ -91,32 +91,32 @@ branch(R) ::= anchor_l(A) sequence(B) anchor_r(C) . {
 }
 
 // Anchors
-anchor_l(R) ::= ANCHOR_L . { p->AddLeftAnchor(R); }
-anchor_r(R) ::= ANCHOR_R . { p->AddRightAnchor(R); }
+anchor_l(R) ::= ANCHOR_L . { p->AddAtom(R, ttAnchorL); }
+anchor_r(R) ::= ANCHOR_R . { p->AddAtom(R, ttAnchorR); }
 
 // Sequence
 sequence(R) ::= particle(A) . { R = A; }
 sequence(R) ::= sequence(A) particle(B) . { p->AddSequence(A, B, R); }
 
 // Atoms
-particle(R) ::= atom(A) . { R = A; }
-particle(R) ::= atom(A) QUESTION .          { p->ZeroOrOne(A, true, R);   }
-particle(R) ::= atom(A) QUESTION QUESTION . { p->ZeroOrOne(A, false, R);  }
-particle(R) ::= atom(A) STAR .              { p->ZeroOrMore(A, true, R);  }
-particle(R) ::= atom(A) STAR QUESTION.      { p->ZeroOrMore(A, false, R); }
-particle(R) ::= atom(A) PLUS .              { p->OneOrMore(A, true, R);   }
-particle(R) ::= atom(A) PLUS QUESTION.      { p->OneOrMore(A, false, R);  }
-particle(R) ::= atom(A) quantifier(B) .     { p->Quantify(A, B.m_min, B.m_max, B.m_greedy, R); }
+particle(R) ::= atom(A) .                   { R = A; }
+particle(R) ::= atom(A) QUESTION .          { p->AddQuantifier(A, 0, 1, true,  R); }
+particle(R) ::= atom(A) QUESTION QUESTION . { p->AddQuantifier(A, 0, 1, false, R); }
+particle(R) ::= atom(A) STAR .              { p->AddQuantifier(A, 0, 0, true,  R); }
+particle(R) ::= atom(A) STAR QUESTION.      { p->AddQuantifier(A, 0, 0, false, R); }
+particle(R) ::= atom(A) PLUS .              { p->AddQuantifier(A, 1, 0, true,  R); }
+particle(R) ::= atom(A) PLUS QUESTION.      { p->AddQuantifier(A, 1, 0, false, R); }
+particle(R) ::= atom(A) quantifier(B) .     { p->AddQuantifier(A, B.m_min, B.m_max, B.m_greedy, R); }
 
 // Single-character atoms
 atom(R) ::= class(A) .   { R = A; }
-atom(R) ::= ANY .        { p->AddAnyChar(R); }
-atom(R) ::= DASH(A) .    { p->AddChar(A, R); }
-atom(R) ::= COMMA(A) .   { p->AddChar(A, R); }
-atom(R) ::= CHAR(A) .    { p->AddChar(A, R); }
-atom(R) ::= letter(A) .  { p->AddChar(A, R); }
-atom(R) ::= INT(A) .     { p->AddChar(A, R); }
-atom(R) ::= COLON(A) .   { p->AddChar(A, R); }
+atom(R) ::= ANY .        { p->AddAtom(R, ttAny); }
+atom(R) ::= DASH(A) .    { p->AddAtom(R, ttChar, A); }
+atom(R) ::= COMMA(A) .   { p->AddAtom(R, ttChar, A); }
+atom(R) ::= CHAR(A) .    { p->AddAtom(R, ttChar, A); }
+atom(R) ::= letter(A) .  { p->AddAtom(R, ttChar, A); }
+atom(R) ::= INT(A) .     { p->AddAtom(R, ttChar, A); }
+atom(R) ::= COLON(A) .   { p->AddAtom(R, ttChar, A); }
 atom(R) ::= BACKREF(A) . { p->AddBackref(A, R); }
 
 // Complex atoms
@@ -124,14 +124,6 @@ atom(R) ::= range(A) . { R = A; }
 atom(R) ::= LPAREN expression(A) RPAREN . { p->AddCapture(A, R); }
 atom(R) ::= LPAREN QUESTION COLON expression(A) RPAREN . { R = A; }
 atom(R) ::= LPAREN QUESTION identifier COLON expression(A) RPAREN . { p->AddNamedCapture(A, R); }
-
-// Character range with optional inversion
-range(R) ::= LBRACKET          range_sequence(A) RBRACKET . { R = A; }
-// range(R) ::= LBRACKET ANCHOR_L range_sequence(A) RBRACKET . { R, A; /*R = A; A->Invert(true);*/ }
-
-// Range contents
-range_sequence(R) ::= range_atom(A) . { R = A; }
-range_sequence(R) ::= range_sequence(A) range_atom(B) . { p->AddAlternation(A, B, R); }
 
 // Range characters
 %type range_char { char }
@@ -153,9 +145,27 @@ range_char(R) ::= ALTERNATE(A) . { R = A; }
 //range_char(R) ::= COLON(A)  . { R = A; }
 //range_char(R) ::= ANCHOR_L(A)  . { R = A; }
 
+// Character range
+range(R) ::= LBRACKET range_sequence(A) RBRACKET . { R = A; }
+
+// Range contents
+range_sequence(R) ::= range_atom(A) . { R = A; }
+range_sequence(R) ::= range_sequence(A) range_atom(B) . { p->AddAlternation(A, B, R); }
+
 // Range atoms
-range_atom(R) ::= range_char(A) . { p->AddChar(A, R); }
-range_atom(R) ::= range_char(A) DASH range_char(B) . { p->AddRange(A, B, R); }
+range_atom(R) ::= range_char(A) . { p->AddAtom(R, ttChar, A); }
+range_atom(R) ::= range_char(A) DASH range_char(B) . { p->AddAtom(R, ttRange, A, B); }
+
+// Inverse range
+range(R) ::= LBRACKET ANCHOR_L inv_range_sequence(A) RBRACKET . { R = A; }
+
+// Range contents
+inv_range_sequence(R) ::= inv_range_atom(A) . { R = A; }
+inv_range_sequence(R) ::= inv_range_sequence(A) inv_range_atom(B) . { p->AddSequence(A, B, R); }
+
+// Range atoms
+inv_range_atom(R) ::= range_char(A) . { p->AddAtom(R, ttNChar, A, A); }
+inv_range_atom(R) ::= range_char(A) DASH range_char(B) . { p->AddAtom(R, ttNRange, A, B); }
 
 // Free quantifiers
 %type quantifier { Quantifier }
@@ -182,18 +192,18 @@ identifier ::= identifier letter(A) . { p->AddIdentifierChar(A); }
 // Character classes
 //
 
-cc_alnum (R) ::= LBRACKET COLON lc_a lc_l lc_n lc_u lc_m COLON RBRACKET . { p->AddCharClass(ccAlnum, R); }
-cc_alpha (R) ::= LBRACKET COLON lc_a lc_l lc_p lc_h lc_a COLON RBRACKET . { p->AddCharClass(ccAlpha, R); }
-cc_blank (R) ::= LBRACKET COLON lc_b lc_l lc_a lc_n lc_k COLON RBRACKET . { p->AddCharClass(ccBlank, R); }
-cc_cntrl (R) ::= LBRACKET COLON lc_c lc_n lc_t lc_r lc_l COLON RBRACKET . { p->AddCharClass(ccCntrl, R); }
-cc_digit (R) ::= LBRACKET COLON lc_d lc_i lc_g lc_i lc_t COLON RBRACKET . { p->AddCharClass(ccDigit, R); }
-cc_graph (R) ::= LBRACKET COLON lc_g lc_r lc_a lc_p lc_h COLON RBRACKET . { p->AddCharClass(ccGraph, R); }
-cc_lower (R) ::= LBRACKET COLON lc_l lc_o lc_w lc_e lc_r COLON RBRACKET . { p->AddCharClass(ccLower, R); }
-cc_print (R) ::= LBRACKET COLON lc_p lc_r lc_i lc_n lc_t COLON RBRACKET . { p->AddCharClass(ccPrint, R); }
-cc_punct (R) ::= LBRACKET COLON lc_p lc_u lc_n lc_c lc_t COLON RBRACKET . { p->AddCharClass(ccPunct, R); }
-cc_space (R) ::= LBRACKET COLON lc_s lc_p lc_a lc_c lc_e COLON RBRACKET . { p->AddCharClass(ccSpace, R); }
-cc_upper (R) ::= LBRACKET COLON lc_u lc_p lc_p lc_e lc_r COLON RBRACKET . { p->AddCharClass(ccUpper, R); }
-cc_xdigit(R) ::= LBRACKET COLON lc_x lc_d lc_i lc_g lc_i lc_t COLON RBRACKET . { p->AddCharClass(ccXdigit, R); }
+cc_alnum (R) ::= LBRACKET COLON lc_a lc_l lc_n lc_u lc_m COLON RBRACKET . { p->AddAtom(R, ccAlnum); }
+cc_alpha (R) ::= LBRACKET COLON lc_a lc_l lc_p lc_h lc_a COLON RBRACKET . { p->AddAtom(R, ccAlpha); }
+cc_blank (R) ::= LBRACKET COLON lc_b lc_l lc_a lc_n lc_k COLON RBRACKET . { p->AddAtom(R, ccBlank); }
+cc_cntrl (R) ::= LBRACKET COLON lc_c lc_n lc_t lc_r lc_l COLON RBRACKET . { p->AddAtom(R, ccCntrl); }
+cc_digit (R) ::= LBRACKET COLON lc_d lc_i lc_g lc_i lc_t COLON RBRACKET . { p->AddAtom(R, ccDigit); }
+cc_graph (R) ::= LBRACKET COLON lc_g lc_r lc_a lc_p lc_h COLON RBRACKET . { p->AddAtom(R, ccGraph); }
+cc_lower (R) ::= LBRACKET COLON lc_l lc_o lc_w lc_e lc_r COLON RBRACKET . { p->AddAtom(R, ccLower); }
+cc_print (R) ::= LBRACKET COLON lc_p lc_r lc_i lc_n lc_t COLON RBRACKET . { p->AddAtom(R, ccPrint); }
+cc_punct (R) ::= LBRACKET COLON lc_p lc_u lc_n lc_c lc_t COLON RBRACKET . { p->AddAtom(R, ccPunct); }
+cc_space (R) ::= LBRACKET COLON lc_s lc_p lc_a lc_c lc_e COLON RBRACKET . { p->AddAtom(R, ccSpace); }
+cc_upper (R) ::= LBRACKET COLON lc_u lc_p lc_p lc_e lc_r COLON RBRACKET . { p->AddAtom(R, ccUpper); }
+cc_xdigit(R) ::= LBRACKET COLON lc_x lc_d lc_i lc_g lc_i lc_t COLON RBRACKET . { p->AddAtom(R, ccXdigit); }
 
 class(R) ::= cc_alnum (A) . { R = A; }
 class(R) ::= cc_alpha (A) . { R = A; }
@@ -207,7 +217,7 @@ class(R) ::= cc_punct (A) . { R = A; }
 class(R) ::= cc_space (A) . { R = A; }
 class(R) ::= cc_upper (A) . { R = A; }
 class(R) ::= cc_xdigit(A) . { R = A; }
-class(R) ::= CLASS(A)     . { p->AddCharClass(A, R); }
+class(R) ::= CLASS(A)     . { p->AddAtom(R, (TransitionTypes)A); }
 
 //////////////////////////////////////////////////////////////////////////
 //

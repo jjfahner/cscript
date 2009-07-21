@@ -177,15 +177,12 @@ RegexCompiler::AddTransition(State in, State out, TransitionTypes type, char min
 
 //////////////////////////////////////////////////////////////////////////
 
-inline void
-RegexCompiler::AddAlternation(Pair const& lhs, Pair const& rhs, Pair& r)
+inline void 
+RegexCompiler::AddAtom(Pair& r, TransitionTypes type, char min, char max)
 {
   r.m_min = AddState();
   r.m_max = AddState();
-  AddTransition(r.m_min, lhs.m_min);
-  AddTransition(r.m_min, rhs.m_min);
-  AddTransition(lhs.m_max, r.m_max);
-  AddTransition(rhs.m_max, r.m_max);
+  AddTransition(r.m_min, r.m_max, type, min, max);
 }
 
 inline void
@@ -197,53 +194,14 @@ RegexCompiler::AddSequence(Pair const& lhs, Pair const& rhs, Pair& r)
 }
 
 inline void
-RegexCompiler::AddLeftAnchor(Pair& r)
+RegexCompiler::AddAlternation(Pair const& lhs, Pair const& rhs, Pair& r)
 {
   r.m_min = AddState();
   r.m_max = AddState();
-  AddTransition(r.m_min, r.m_max, ttAnchorL);
-}
-
-inline void
-RegexCompiler::AddRightAnchor(Pair& r)
-{
-  r.m_min = AddState();
-  r.m_max = AddState();
-  AddTransition(r.m_min, r.m_max, ttAnchorR);
-}
-
-inline void
-RegexCompiler::AddAnyChar(Pair& r)
-{
-  r.m_min = AddState();
-  r.m_max = AddState();
-  AddTransition(r.m_min, r.m_max, ttAny);
-}
-
-inline void
-RegexCompiler::AddChar(char ch, Pair& r)
-{
-  r.m_min = AddState();
-  r.m_max = AddState();
-  AddTransition(r.m_min, r.m_max, ttChar, ch);
-}
-
-inline void 
-RegexCompiler::AddCharClass(char ch, Pair& r)
-{
-  r.m_min = AddState();
-  r.m_max = AddState();
-  AddTransition(r.m_min, r.m_max, (TransitionTypes)ch);
-}
-
-inline void 
-RegexCompiler::AddRange(char min, char max, Pair& r)
-{
-  r.m_min = AddState();
-  r.m_max = AddState();
-  AddTransition(r.m_min, r.m_max, ttRange, 
-                min <= max ? min : max, 
-                min <= max ? max : min);
+  AddTransition(r.m_min, lhs.m_min);
+  AddTransition(r.m_min, rhs.m_min);
+  AddTransition(lhs.m_max, r.m_max);
+  AddTransition(rhs.m_max, r.m_max);
 }
 
 inline void 
@@ -280,54 +238,36 @@ RegexCompiler::AddIdentifierChar(char ch)
 
 //////////////////////////////////////////////////////////////////////////
 
-inline void 
-RegexCompiler::ZeroOrOne(Pair const& e, bool greedy, Pair& r)
-{
-  r.m_min = e.m_min;
-  r.m_max = e.m_max;
-  AddTransition(e.m_min, e.m_max, ttEmpty, 0, 0, greedy);
-}
-
-inline void 
-RegexCompiler::ZeroOrMore(Pair const& e, bool greedy, Pair& r)
-{
-  r.m_min = e.m_min;
-  r.m_max = AddState();
-  AddTransition(e.m_min, r.m_max, ttEmpty, 0, 0, greedy);
-  AddTransition(e.m_max, greedy ? e.m_min : r.m_max);
-  AddTransition(e.m_max, greedy ? r.m_max : e.m_min);
-}
-
-inline void 
-RegexCompiler::OneOrMore(Pair const& e, bool greedy, Pair& r)
-{
-  r.m_min = e.m_min;
-  r.m_max = AddState();
-  AddTransition(e.m_max, greedy ? e.m_min : r.m_max);
-  AddTransition(e.m_max, greedy ? r.m_max : e.m_min);
-}
-
 inline void
-RegexCompiler::Quantify(Pair const& e, int min, int max, bool greedy, Pair& r)
+RegexCompiler::AddQuantifier(Pair const& e, int min, int max, bool greedy, Pair& r)
 {
   // Zero or more, aka '*'
   if(min == 0 && max == 0)
   {
-    ZeroOrMore(e, greedy, r);
+    r.m_min = e.m_min;
+    r.m_max = AddState();
+    AddTransition(e.m_min, r.m_max, ttEmpty, 0, 0, greedy);
+    AddTransition(e.m_max, greedy ? e.m_min : r.m_max);
+    AddTransition(e.m_max, greedy ? r.m_max : e.m_min);
     return;
   }
   
   // Zero or one, aka '?'
   if(min == 0 && max == 1)
   {
-    ZeroOrOne(e, greedy, r);
+    r.m_min = e.m_min;
+    r.m_max = e.m_max;
+    AddTransition(e.m_min, e.m_max, ttEmpty, 0, 0, greedy);
     return;
   }
   
   // One or more, aka '+'
   if(min == 1 && max == 0)
   {
-    OneOrMore(e, greedy, r);
+    r.m_min = e.m_min;
+    r.m_max = AddState();
+    AddTransition(e.m_max, greedy ? e.m_min : r.m_max);
+    AddTransition(e.m_max, greedy ? r.m_max : e.m_min);
     return;
   }
   
