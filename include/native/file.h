@@ -21,12 +21,11 @@
 #ifndef CSCRIPT_NATIVE_FILE_H
 #define CSCRIPT_NATIVE_FILE_H
 
-#include <native.h>
-#include <object.h>
+#include <native/stream.h>
 
 #include <fstream>
 
-__native_construct class File : public Object
+__native_construct class File : public Object, public IOStream
 {
 public:
 
@@ -48,9 +47,14 @@ public:
   __native_roprop bool Eof();
 
   //
+  // Read character
+  //
+  __native_method Value ReadChar();
+
+  //
   // Read string
   //
-  __native_method Value Read();
+  __native_method Value ReadString();
 
   //
   // Read line
@@ -63,22 +67,41 @@ public:
   __native_method Value ReadFile();
 
   //
+  // Write character
+  //
+  __native_method void WriteChar(ValueCRef value);
+
+  //
+  // Write supplied arguments to output
+  //
+  __native_method void Write(ArgsCRef args);
+
+  //
+  // Write supplied arguments to output with automatic line feed
+  //
+  __native_method void WriteLn(ArgsCRef args);
+
+  //
   // Line iterator
   //
   __native_roprop ObjectPtr Lines();
 
-  //
-  // Write string
-  //
-  __native_method void Write(StringCRef data, int64 length = 0);
-
 private:
 
-  friend class LineEnumerator;
+  //
+  // Assert readability. Throws if stream is not readable.
+  //
+  void AssertReadable();
+
+  //
+  // Assert writability. Throws if stream is not writable.
+  //
+  void AssertWritable();
 
   //
   // Members
   //
+  friend class LineEnumerator;
   std::fstream m_stream;
 
 };

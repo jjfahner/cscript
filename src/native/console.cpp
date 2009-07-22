@@ -25,42 +25,104 @@
 #include <datatype.h>
 #include <iostream>
 
-void PrintValue(Value const& val, bool recurse);
+void PrintValue(std::ostream& stream, Value const& val, bool recurse = true);
+
+Value
+Console::ReadChar()
+{
+  // Read character
+  char ch;
+  std::cin.get(ch);
+
+  // Check result
+  if(std::cin.bad())
+  {
+    throw StreamBadState();
+  }
+
+  // Return char as integer
+  return (int64) ch;
+}
+
+Value
+Console::ReadString()
+{
+  // Read string
+  char buf[4098];
+  std::cin.get(buf, 4096);
+
+  // Check result
+  if(std::cin.bad())
+  {
+    throw StreamBadState();
+  }
+
+  // Create new string
+  return GCString::Create(buf, std::cin.gcount());
+}
+
+Value 
+Console::ReadLn()
+{
+  // Read string
+  char buf[4098];
+  std::cin.getline(buf, 4096);
+
+  // Check result
+  if(std::cin.bad())
+  {
+    throw StreamBadState();
+  }
+
+  // Create new string
+  return GCString::Create(buf, std::cin.gcount());
+}
+
+void 
+Console::WriteChar(ValueCRef value)
+{
+  // Write character
+  std::cout.put((char)value.GetInt());
+
+  // Check write result
+  if(std::cout.bad())
+  {
+    throw StreamWriteFail();
+  }
+}
 
 void 
 Console::Write(ArgsCRef args)
 {
-  for(size_t i = 0; i < args.size(); ++i)
+  // Enumerate arguments
+  Arguments::const_iterator it;
+  for(it = args.begin(); it != args.end(); ++it)
   {
-    PrintValue(args[i], true);
+    // Write argument
+    PrintValue(std::cout, *it);
+
+    // Check write result
+    if(std::cout.bad())
+    {
+      throw StreamWriteFail();
+    }
   }
 }
 
 void 
 Console::WriteLn(ArgsCRef args)
 {
-  for(size_t i = 0; i < args.size(); ++i)
+  // Delegate to Write
+  Write(args);
+
+  // Send newline
+  std::cout << std::endl;
+
+  // Check write result
+  if(std::cout.bad())
   {
-    PrintValue(args[i], true);
+    throw StreamWriteFail();
   }
-  std::cout << "\n";
-}
-
-String 
-Console::Read()
-{
-  String line;
-  std::cin >> line;
-  return Value(line);
-}
-
-String 
-Console::ReadChar()
-{
-  char c[2];
-  std::cin.read(c, 1);
-  c[1] = 0;
-  return c;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -68,32 +130,32 @@ Console::ReadChar()
 // Native call implementations
 //
 
-void PrintValue(Value const& val, bool recurse)
+void PrintValue(std::ostream& stream, Value const& val, bool recurse)
 {
   switch(val.Type())
   {
   case Value::tNull:      
-    std::cout << "null"; 
+    stream << "null"; 
     return;
 
   case Value::tBool:      
-    std::cout << (val.GetBool() ? "true" : "false");
+    stream << (val.GetBool() ? "true" : "false");
     return;
 
   case Value::tInt:       
     {
-      std::cout << val.GetInt();
+      stream << val.GetInt();
       return;
     }
 
   case Value::tString:    
-    std::cout << val.GetString();
+    stream << val.GetString();
     return;
 
   case Value::tObject:
     if(!recurse)
     {
-      std::cout << "[" << val.GetDataType()->TypeName() << " ]";
+      stream << "[" << val.GetDataType()->TypeName() << " ]";
       return;
     }
     break;
@@ -107,21 +169,21 @@ void PrintValue(Value const& val, bool recurse)
   Arguments args;
   if(val->TryEval("ToString", args, value))
   {
-    std::cout << value.GetString();
+    stream << value.GetString();
   }
 
-  std::cout << "[";
+  stream << "[";
 
   String sep;
   Enumerator* pEnum = val->GetEnumerator();
   while(pEnum->GetNext(key, value))
   {
-    std::cout << sep;
-    PrintValue(key, false);
-    std::cout << ":";
-    PrintValue(value, false);
+    stream << sep;
+    PrintValue(stream, key, false);
+    stream << ":";
+    PrintValue(stream, value, false);
     sep = ", ";
   }
   
-  std::cout << "]";
+  stream << "]";
 }

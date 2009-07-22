@@ -19,8 +19,11 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include <native/file.h>
-#include <eval.h>
+#include <gc.h>
+#include <args.h>
 #include <enumerator.h>
+
+void PrintValue(std::ostream& stream, Value const& val, bool recurse = true);
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -109,6 +112,48 @@ private:
 //////////////////////////////////////////////////////////////////////////
 
 void 
+File::AssertReadable()
+{
+  // Check file is open
+  if(!m_stream.is_open())
+  {
+    throw StreamNotOpen();
+  }
+
+  // Check for end of file
+  if(m_stream.eof())
+  {
+    throw StreamAtEof();
+  }
+
+  // Check for other errors
+  if(m_stream.bad())
+  {
+    throw StreamBadState();
+  }
+
+  // TODO Check file is in read mode
+}
+
+void 
+File::AssertWritable()
+{
+  // Check file is open
+  if(!m_stream.is_open())
+  {
+    throw StreamNotOpen();
+  }
+
+  // Check for other errors
+  if(m_stream.bad())
+  {
+    throw StreamBadState();
+  }
+
+  // TODO Check file is in write mode
+}
+
+void 
 File::Open(StringCRef s_name, StringCRef s_mode, bool b_binary, bool b_atend, bool b_truncate)
 {
   // Close current file
@@ -140,44 +185,77 @@ File::Open(StringCRef s_name, StringCRef s_mode, bool b_binary, bool b_atend, bo
 void 
 File::Close()
 {
-  // Close current file
+  // Close the current file
   if(m_stream.is_open())
   {
     m_stream.close();
   }
+  
+  // Clear all state flags
   m_stream.clear();
 }
 
 bool 
 File::Eof()
 {
+  // Check for eof
   return m_stream.eof();
 }
 
 Value 
-File::Read()
+File::ReadChar()
 {
-  return Value();
+  // Check readability
+  AssertReadable();
+
+  // Read character
+  char ch;
+  m_stream.get(ch);
+
+  // Check read result
+  if(m_stream.bad())
+  {
+    throw StreamReadFail();
+  }
+
+  // Return char
+  return (int64) ch;
+}
+
+Value 
+File::ReadString()
+{
+  // Check readability
+  AssertReadable();
+
+  // Read string
+  char buf[4098];
+  m_stream.get(buf, 4098);
+
+  // Check read result
+  if(m_stream.bad())
+  {
+    throw StreamReadFail();
+  }
+
+  // Return string
+  return buf;
 }
 
 Value 
 File::ReadLn()
 {
-  char buf[4098];
+  // Check readability
+  AssertReadable();
 
-  // Test stream before read
-  if(m_stream.bad())
-  {
-    return Value();
-  }
-  
   // Read line
+  char buf[4098];
   m_stream.getline(buf, 4096);
 
-  // Test stream
+  // Check read result
   if(m_stream.bad())
   {
-    return Value();
+    throw StreamReadFail();
   }
   
   // Null-terminate buffer
@@ -224,46 +302,65 @@ File::ReadFile()
   return result;
 }
 
+void 
+File::WriteChar(ValueCRef value)
+{
+  // Check writability
+  AssertWritable();
+
+  // Write character
+  m_stream.put((char)value.GetInt());
+
+  // Check write result
+  if(m_stream.bad())
+  {
+    throw StreamWriteFail();
+  }
+}
+
+void
+File::Write(ArgsCRef args)
+{
+  // Check writability
+  AssertWritable();
+
+  // Enumerate arguments
+  Arguments::const_iterator it;
+  for(it = args.begin(); it != args.end(); ++it)
+  {
+    // Write argument
+    PrintValue(m_stream, *it);
+
+    // Check write result
+    if(m_stream.bad())
+    {
+      throw StreamWriteFail();
+    }
+  }
+}
+
+void
+File::WriteLn(ArgsCRef args)
+{
+  // Check writability
+  AssertWritable();
+
+  // Delegate to Write
+  Write(args);
+
+  // Send newline
+  m_stream << std::endl;
+
+  // Check write result
+  if(m_stream.bad())
+  {
+    throw StreamWriteFail();
+  }
+}
+
 ObjectPtr 
 File::Lines()
 {
   // Create a new line iterator
   return new ::Lines(this);
-}
-
-void
-File::Write(StringCRef data, int64 length)
-{
-  // Check file
-  if(!m_stream.is_open())
-  {
-    throw CatchableException("Write to closed file");
-  }
-
-  // Determine length
-  if(length == 0)
-  {
-    length = data.length();
-  }
-
-  // Check for no output
-  if(length == 0)
-  {
-    return;
-  }
-
-  // Check for buffer underflow
-  if(length > (int)data.length())
-  {
-    throw CatchableException("Buffer underflow");
-  }
-
-  // Write the string
-  m_stream.write(data.c_str(), (int)length);
-
-  // Check stream
-  if(m_stream.bad())
-  {
-    throw CatchableException("Failed to write to file");
-  }
 }
