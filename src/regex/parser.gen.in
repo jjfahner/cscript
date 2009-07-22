@@ -68,7 +68,7 @@ struct Quantifier
 }
 
 // Starting point of parser
-main ::= expression(A) . { p->Finalize(A); }
+main ::= expression(A) . { p->ParseComplete(A); }
 
 // Regular expression with optional anchors
 expression(R) ::= alternation(A) . { R = A; }

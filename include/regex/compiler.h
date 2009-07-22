@@ -93,41 +93,6 @@ struct Transition
   }
 
   //
-  // Compare transition type
-  //
-  bool operator == (TransitionTypes type)
-  {
-    return m_type == type;
-  }
-
-  //
-  // Compare transition type
-  //
-  bool operator != (TransitionTypes type)
-  {
-    return m_type != type;
-  }
-
-  //
-  // Compare to other transition
-  //
-  bool operator == (Transition const& rhs)
-  {
-    return m_type == rhs.m_type &&
-           m_out  == rhs.m_out  &&           
-           m_min  == rhs.m_min  &&
-           m_max  == rhs.m_max  ;
-  }
-
-  //
-  // Compare to other transition
-  //
-  bool operator != (Transition const& rhs)
-  {
-    return ! (*this == rhs);
-  }
-
-  //
   // Convert to string
   //
   String ToString() const;
@@ -135,12 +100,24 @@ struct Transition
   //
   // Members
   //
-  State           m_out  : 16;
-  TransitionTypes m_type : 8;
-  unsigned char   m_min  : 8;  
-  unsigned char   m_max  : 8;
+  unsigned short  m_out;
+  unsigned char   m_type;
+  unsigned char   m_min; 
+  unsigned char   m_max;
 
 };
+
+inline bool 
+operator == (Transition const& l, Transition const& r)
+{
+  return memcmp(&l, &r, sizeof(l)) == 0;
+}
+
+inline bool 
+operator != (Transition const& l, Transition const& r)
+{
+  return memcmp(&l, &r, sizeof(l)) != 0;
+}
 
 typedef std::vector<Transition> TransitionVec;
 typedef std::list<Transition> TransitionList;
@@ -247,9 +224,9 @@ public:
   void AddQuantifier(Pair const& expression, int min, int max, bool greedy, Pair& result);
 
   //
-  // Finalize the expression
+  // Called when the parser is done
   //
-  void Finalize(Pair const& result);
+  void ParseComplete(Pair const& result);
 
   //
   // Called when there is a syntax error
@@ -261,17 +238,17 @@ private:
   //
   // Compile the current stream into the table
   //
-  void CompileImpl(LexStream& stream, int64 exId = 0);
+  void Parse(LexStream& stream, int64 exId = 0);
 
   //
-  // Optimize the transition table
+  // Assemble the final the transition table
   //
-  void Optimize();
+  void Assemble();
 
   //
   // Find all non-empty transitions
   //
-  void FindTransitions(TransitionList const& in, TransitionVec& out);
+  void FindTransitions(State s, TransitionVec& out);
 
   //
   // Members
