@@ -182,9 +182,9 @@ struct ReFrame
 
   ~ReFrame()
   {
-    m_counters ? delete m_counters : 0;
-    m_captures ? delete m_captures : 0;
-    m_capstack ? delete m_capstack : 0;
+    if(m_counters) delete m_counters;
+    if(m_captures) delete m_captures;
+    if(m_capstack) delete m_capstack;
   }
 
   ReFrame const& operator = (ReFrame const& rhs)
@@ -201,9 +201,9 @@ struct ReFrame
 
   void Clear()
   {
-    m_counters ? delete m_counters : 0;
-    m_captures ? delete m_captures : 0;
-    m_capstack ? delete m_capstack : 0;
+    if(m_counters) delete m_counters;
+    if(m_captures) delete m_captures;
+    if(m_capstack) delete m_capstack;
     memset(this, 0, sizeof(ReFrame));
   }
 
