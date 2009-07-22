@@ -102,12 +102,12 @@ RegexCompiler::Compile(Dictionary* dict)
     // Construct lex stream
     LexStream stream(istream);
 
-    // Compile the expression
-    CompileImpl(stream, key.GetInt());
+    // Parse the expression
+    Parse(stream, key.GetInt());
   }
 
-  // Optimize the table
-  Optimize();
+  // Assemble the table
+  Assemble();
 
   // Build return value
   RegexData* rd = new RegexData;
@@ -136,10 +136,10 @@ RegexData*
 RegexCompiler::Compile(LexStream& stream, int64 exId)
 {
   // Compile the pattern
-  CompileImpl(stream, exId);
+  Parse(stream, exId);
 
   // Optimize the table
-  Optimize();
+  Assemble();
 
   // Build return value
   RegexData* rd = new RegexData;
@@ -313,7 +313,7 @@ RegexCompiler::AddQuantifier(Pair const& e, int min, int max, bool greedy, Pair&
 }
 
 inline void
-RegexCompiler::Finalize(Pair const& r)
+RegexCompiler::ParseComplete(Pair const& r)
 {
   AddTransition(0, r.m_min, ttEmpty);
   AddTransition(r.m_max, 0, ttFinal, (char)m_exId);
@@ -322,30 +322,54 @@ RegexCompiler::Finalize(Pair const& r)
 //////////////////////////////////////////////////////////////////////////
 
 inline void 
-RegexCompiler::FindTransitions(TransitionList const& in, TransitionVec& out)
+RegexCompiler::FindTransitions(State s, TransitionVec& out)
 {
-  for(TransitionList::const_iterator it = in.begin(); it != in.end(); ++it)
+  Transition stack[1024];
+  Transition* sp = stack - 1;
+
+  // Copy initial transitions
+  TransitionList::reverse_iterator it;
+  for(it = m_table[s].rbegin(); it != m_table[s].rend(); ++it)
   {
-    if(it->m_type == ttEmpty)
+    *++sp = *it;
+  }
+
+  // Copy transitions recursively
+  while(sp >= stack)
+  {
+    // Pop next transition
+    Transition t = *sp--;
+
+    // Copy if non-empty
+    if(t.m_type != ttEmpty)
     {
-      FindTransitions(m_table[it->m_out], out);
+      out.push_back(t);
+      continue;
     }
-    else if(std::find(out.begin(), out.end(), *it) == out.end())
-    {      
-      out.push_back(*it);
+
+    // Skip duplicate transition
+    if(std::find(out.begin(), out.end(), t) != out.end())
+    {
+      continue;
+    }
+
+    // Push transitions from next state
+    for(it = m_table[t.m_out].rbegin(); it != m_table[t.m_out].rend(); ++it)
+    {
+      *++sp = *it;
     }
   }
 }
 
 void 
-RegexCompiler::Optimize()
+RegexCompiler::Assemble()
 {
   std::vector<size_t> offsets;
   TransitionVec table;
 
   // Add final transition
   TransitionVec init;
-  FindTransitions(m_table[0], init);
+  FindTransitions(0, init);
   if(!(init.size() == 1 && init[0].m_type == ttAnchorL))
   {
     AddTransition(0, 0, ttOffset);
@@ -360,7 +384,7 @@ RegexCompiler::Optimize()
     std::vector<Transition> temptable;
 
     // Find all reachable non-empty transitions
-    FindTransitions(m_table[in], temptable);
+    FindTransitions(in, temptable);
     temptable.push_back(Transition(0, ttNone));
 
     // Find first duplicate set
@@ -373,7 +397,7 @@ RegexCompiler::Optimize()
         {
           break;
         }
-        if(table[j + offsets[i]] == ttNone)
+        if(table[j + offsets[i]].m_type == ttNone)
         {
           dup = offsets[i];
           break;
@@ -441,7 +465,7 @@ RegexCompiler::Optimize()
       table.push_back(oldtable[i]);
 
       // End of state reached
-      if(oldtable[i] == ttNone)
+      if(oldtable[i].m_type == ttNone)
       {
         break;
       }
@@ -484,7 +508,7 @@ typedef LemonParser<
   ReParse> ReParserImpl;
 
 void
-RegexCompiler::CompileImpl(LexStream& stream, int64 exId)
+RegexCompiler::Parse(LexStream& stream, int64 exId)
 {
   // Store expression id
   m_exId = exId;

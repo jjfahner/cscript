@@ -351,7 +351,7 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     char const*  n = p + 1;
 
     // Record backtracking info for next transition
-    if(table[frame.m_trans + 1] != ttNone)
+    if(table[frame.m_trans + 1].m_type != ttNone)
     {
       stack.push_back(frame);
       stack.back().m_trans++;
