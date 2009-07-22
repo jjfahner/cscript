@@ -162,20 +162,109 @@ struct ReCapture
 
 struct ReFrame
 {
+  typedef std::vector<size_t>    NumStack;
+  typedef std::vector<ReCapture> CapStack;
+
   ReFrame(size_t trans, char const* ptr, char const* end) :
-  m_trans (trans),
-  m_ptr   (ptr),
-  m_end   (end)
+  m_trans     (trans),
+  m_ptr       (ptr),
+  m_end       (end),
+  m_counters  (0),
+  m_captures  (0),
+  m_capstack  (0)
   {
+  }
+
+  ReFrame(ReFrame const& rhs)
+  {
+    *this = rhs;
+  }
+
+  ~ReFrame()
+  {
+    m_counters ? delete m_counters : 0;
+    m_captures ? delete m_captures : 0;
+    m_capstack ? delete m_capstack : 0;
+  }
+
+  ReFrame const& operator = (ReFrame const& rhs)
+  {
+    if(this != &rhs)
+    {
+      memcpy(this, &rhs, sizeof(ReFrame));
+      m_counters = m_counters ? new NumStack(*m_counters) : 0;
+      m_captures = m_captures ? new CapStack(*m_captures) : 0;
+      m_capstack = m_capstack ? new CapStack(*m_capstack) : 0;
+    }
+    return *this;
+  }
+
+  void Clear()
+  {
+    m_counters ? delete m_counters : 0;
+    m_captures ? delete m_captures : 0;
+    m_capstack ? delete m_capstack : 0;
+    memset(this, 0, sizeof(ReFrame));
+  }
+
+  void Swap(ReFrame& rhs)
+  {
+    char buf[sizeof(ReFrame)];
+    memcpy(buf, &rhs, sizeof(ReFrame));
+    memcpy(&rhs, this, sizeof(ReFrame));
+    memcpy(this, buf, sizeof(ReFrame));
+  }
+
+  void PushCapStack()
+  {
+    if(m_capstack == 0) 
+    {
+      m_capstack = new ReFrame::CapStack;
+    }
+    m_capstack->push_back(m_end); 
+  }
+
+  void PopCapStack()
+  {
+    if(m_captures == 0) 
+    {
+      m_captures = new ReFrame::CapStack;
+    }
+    m_captures->push_back(m_capstack->back());
+    m_capstack->pop_back();
+  }
+
+  void PushNum()
+  {
+    if(m_counters == 0)
+    {
+      m_counters = new NumStack;
+    }
+    m_counters->push_back(0);
+  }
+
+  bool TestNum(size_t num)
+  {
+    return m_counters->back() >= num;
+  }
+
+  void IncNum()
+  {
+    ++m_counters->back();
+  }
+
+  void PopNum()
+  {
+    m_counters->pop_back();
   }
 
   size_t      m_trans;
   char const* m_ptr;
   char const* m_end;
 
-  std::vector<size_t>    m_counters;
-  std::vector<ReCapture> m_captures;
-  std::vector<ReCapture> m_capstack;
+  NumStack*   m_counters;
+  CapStack*   m_captures;
+  CapStack*   m_capstack;
 };
 
 typedef std::vector<ReFrame> ReStack;
@@ -205,7 +294,7 @@ inline char const*
 Regex::MatchBackref(ReFrame& frame, size_t index)
 {
   // Check capture index
-  if(index >= frame.m_captures.size())
+  if(frame.m_captures == 0 || index >= frame.m_captures->size())
   {
     // This is really an error in the expression
     return 0;
@@ -213,8 +302,8 @@ Regex::MatchBackref(ReFrame& frame, size_t index)
 
   // Setup pointers
   char const* p1 = frame.m_end;
-  char const* p2 = frame.m_captures[index].m_ptr;
-  char const* p3 = frame.m_captures[index].m_end;
+  char const* p2 = (*frame.m_captures)[index].m_ptr;
+  char const* p3 = (*frame.m_captures)[index].m_end;
 
   // Match strings
   for(; *p1 && p2 != p3; ++p1, ++p2)
@@ -275,46 +364,16 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     // Match transition
     switch(tr.m_type)
     {
-    case ttFinal:
-      break;
-
-    case ttEmpty:
-      break;
-
-    case ttOffset:   
-      p = ++frame.m_ptr; 
-      p = *p ? p : 0; 
-      break;
-    
-    case ttCaptureL: 
-      frame.m_capstack.push_back(frame.m_end); 
-      break;
-
-    case ttCaptureR:
-      frame.m_captures.push_back(frame.m_capstack.back());
-      frame.m_capstack.pop_back();
-      break;
-
-    case ttBackref:
-      frame.m_end = MatchBackref(frame, tr.m_min - 1);
-      break;
-
-    case ttPushNum:
-      frame.m_counters.push_back(0);
-      break;
-
-    case ttTestNum:
-      p = frame.m_counters.back() >= tr.m_min ? p : 0;
-      break;
-
-    case ttIncNum:
-      ++frame.m_counters.back();
-      break;
-
-    case ttPopNum:
-      frame.m_counters.pop_back();
-      break;
-
+    case ttFinal:    break;
+    case ttEmpty:    break;
+    case ttOffset:   p = ++frame.m_ptr; p = *p ? p : 0; break;
+    case ttCaptureL: frame.PushCapStack(); break;
+    case ttCaptureR: frame.PopCapStack(); break;
+    case ttBackref:  frame.m_end = MatchBackref(frame, tr.m_min - 1); break;
+    case ttPushNum:  frame.PushNum(); break;
+    case ttTestNum:  p = frame.TestNum(tr.m_min) ? p : 0; break;
+    case ttIncNum:   frame.IncNum(); break;
+    case ttPopNum:   frame.PopNum(); break;
     case ttAnchorL:  p = isbegl(p, s) ? p : 0; break;
     case ttAnchorR:  p = isendl(p)    ? p : 0; break;
     case ttAny:      p = *p ? n : 0; break;
@@ -364,15 +423,18 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
       }
       
       // Backtrack to previous frame
-      frame = stack.back();
+      frame.Swap(stack.back());
       stack.pop_back();
     }
     else
     {
       // Advance current backrefs
-      for(size_t i = 0; i < frame.m_capstack.size(); ++i)
+      if(frame.m_capstack)
       {
-        frame.m_capstack[i].m_end = frame.m_end;
+        for(size_t i = 0; i < frame.m_capstack->size(); ++i)
+        {
+          (*frame.m_capstack)[i].m_end = frame.m_end;
+        }
       }
 
       // Advance to next state
@@ -402,11 +464,14 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
       mr->m_offset = frame.m_ptr - input.c_str();
 
       // Copy captures
-      for(size_t i = 0; i < frame.m_captures.size(); ++i)
+      if(frame.m_captures)
       {
-        mr->m_captures->Append(String(
-          frame.m_captures[i].m_ptr, 
-          frame.m_captures[i].m_end));
+        for(size_t i = 0; i < frame.m_captures->size(); ++i)
+        {
+          mr->m_captures->Append(String(
+            (*frame.m_captures)[i].m_ptr, 
+            (*frame.m_captures)[i].m_end));
+        }
       }
     }
   }
@@ -425,15 +490,15 @@ Regex::MatchImpl(StringCRef input, int64 offset, bool createMatchResult)
     {
       // Check index
       size_t index = (size_t)it->first;
-      if(index >= frame.m_captures.size())
+      if(index >= frame.m_captures->size())
       {
         continue;
       }
 
       // Build captured string
       String capture = String(
-        frame.m_captures[index].m_ptr, 
-        frame.m_captures[index].m_end);
+        (*frame.m_captures)[index].m_ptr, 
+        (*frame.m_captures)[index].m_end);
 
       // Apply to current scope
       eval.GetScope()->Set(it->second, capture);
