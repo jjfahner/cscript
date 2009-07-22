@@ -126,7 +126,7 @@ CSParser::OnSyntaxError(Token const& token)
 {
   std::ostringstream str;
   str << "Syntax error near '" 
-    << *token.m_text
+    << (token.m_text ? token.m_text->c_str() : "")
     << "' on line " 
     << m_stream->m_line 
     << ", char " 
