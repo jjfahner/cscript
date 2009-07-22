@@ -18,49 +18,76 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //////////////////////////////////////////////////////////////////////////
-#ifndef CSCRIPT_NATIVE_CONSIO_H
-#define CSCRIPT_NATIVE_CONSIO_H
+#ifndef CSCRIPT_STREAM_H
+#define CSCRIPT_STREAM_H
 
-#include <native.h>
+#include <cscript.h>
 #include <object.h>
-#include <native/stream.h>
+#include <native.h>
+#include <exceptions.h>
 
-class Console : public Object, public IOStream
+DEF_EXCEPTION(StreamAtEof,      "Stream at eof");
+DEF_EXCEPTION(StreamNotOpen,    "Stream not open");
+DEF_EXCEPTION(StreamBadState,   "Stream in error state");
+DEF_EXCEPTION(StreamReadFail,   "Stream could not be read");
+DEF_EXCEPTION(StreamWriteFail,  "Stream could not be written");
+
+
+//
+// Input stream
+//
+class IStream
 {
 public:
 
-  DEF_NATIVE_CALLS(Console, Object);
+  //
+  // Read a character
+  //
+  virtual Value ReadChar() = 0;
 
   //
-  // Read character
+  // Read the next whitespace-delimited string
   //
-  __native_method Value ReadChar();
+  virtual Value ReadString() = 0;
 
   //
-  // Read string
+  // Read the next line
   //
-  __native_method Value ReadString();
-
-  //
-  // Read line
-  //
-  __native_method Value ReadLn();
-
-  //
-  // Write character
-  //
-  __native_method void WriteChar(ValueCRef value);
-
-  //
-  // Print supplied arguments
-  //
-  __native_method void Write(ArgsCRef args);
-
-  //
-  // Print supplied arguments, append newline
-  //
-  __native_method void WriteLn(ArgsCRef args);
+  virtual Value ReadLn() = 0;
 
 };
 
-#endif // CSCRIPT_NATIVE_CONSIO_H
+//
+// Output stream
+//
+class OStream
+{
+public:
+
+  //
+  // Write a character
+  //
+  virtual void WriteChar(ValueCRef value) = 0;
+
+  //
+  // Write supplied arguments to output
+  //
+  virtual void Write(ArgsCRef args) = 0;
+
+  //
+  // Write supplied arguments to output with automatic line feed
+  //
+  virtual void WriteLn(ArgsCRef args) = 0;
+
+};
+
+//
+// Combined I/O stream
+//
+class IOStream : public IStream, public OStream
+{
+public:
+
+};
+
+#endif // CSCRIPT_STREAM_H
