@@ -1,0 +1,209 @@
+//////////////////////////////////////////////////////////////////////////
+//
+// This file is © 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is part of the cscript interpreter.
+// CScript can be found at http://svn.jan-jaap.net/
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//////////////////////////////////////////////////////////////////////////
+
+//
+// Lemon language definition for cscript xml parser
+//
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Include section
+//
+%include {
+
+#include <cassert>
+#include <xmlparser.h>
+
+#pragma warning(disable:4065)
+
+} 
+//
+// End inclusion block
+//
+//////////////////////////////////////////////////////////////////////////
+
+// Set prefix for tokens
+%name             XmlParse
+%token_prefix     XML_
+%token_type       { XmlToken }
+%extra_argument   { XmlParser* p }
+
+// Error handlers
+%parse_failure {
+  p->OnParseFailure();
+}
+%syntax_error {
+  p->OnSyntaxError();
+}
+
+%nonassoc EOF WS UNKNOWN .
+
+//////////////////////////////////////////////////////////////////////////
+
+//
+// The root element of this grammar
+//
+document ::= prolog element misc EOF .
+
+//
+// The document prolog
+//
+prolog ::= xmldecl misc .
+
+//
+// XML declaration
+//
+xmldecl ::= DECL attribute_list_opt PRO_E .
+
+//
+// The particles for misc
+//
+misc_particle ::= whitespace .
+misc_particle ::= processing_instruction .
+
+//
+// Left-recursive list of misc particles
+//
+misc_list ::= misc_particle .
+misc_list ::= misc_list misc_particle .
+
+//
+// Misc definition
+//
+misc ::= .
+misc ::= misc_list .
+
+//
+// Element definition
+//
+element ::= closed_element .
+element ::= start_element content end_element .
+
+//
+// Possible content particles
+//
+content_particle ::= whitespace .
+content_particle ::= text .
+content_particle ::= element .
+
+//
+// Left-recursive list of content particles
+//
+content_list ::= content_particle .
+content_list ::= content_list content_particle .
+
+//
+// Content, may be empty
+//
+content ::= .
+content ::= content_list .
+
+//
+// Processing instruction
+//
+processing_instruction ::= PRO_I name(A) PRO_DATA(B) PRO_E . 
+{ 
+  p->processingInstruction(A, B.m_text); 
+}
+
+//
+// Start of element
+//
+%type element_prolog { XmlParser::XmlName }
+element_prolog(R) ::= LT name(A) .
+{
+  p->startElement(A);
+  R = A;
+}
+
+//
+// Start element
+//
+start_element ::= element_prolog attribute_list_opt GT  .
+
+//
+// End element
+//
+end_element ::= end_element_prolog GT .
+end_element_prolog ::= LT_SL name(A) .
+{
+  p->endElement(A);
+}
+
+//
+// Closed element
+//
+closed_element ::= element_prolog(A) attribute_list_opt SL_GT .
+{
+  p->endElement(A);
+}
+
+//
+// Text node
+//
+text ::= TEXT(A) .
+{
+  p->characters(A.m_text);
+}
+
+//
+// Ignorable whitespace
+//
+whitespace ::= WS(A) .
+{
+  p->ignorableWhitespace(A.m_text);
+}
+
+//
+// Attribute
+//
+attribute ::= name(A) EQ STRING(B) . 
+{
+  p->attribute(A, B.m_text);
+}
+
+//
+// Attribute recursion
+//
+attribute_list ::= attribute .
+attribute_list ::= attribute_list attribute .
+
+//
+// Optional attribute list
+//
+attribute_list_opt ::= .
+attribute_list_opt ::= attribute_list .
+
+//
+// XML names
+//
+%type name { XmlParser::XmlName }
+
+name(R) ::= NAME(A) .
+{
+  R.m_localName = A.m_text;
+}
+
+name(R) ::= NAME(A) COLON NAME(B) .
+{
+  R.m_namespace = A.m_text;
+  R.m_localName = B.m_text;
+}
