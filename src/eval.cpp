@@ -1102,10 +1102,10 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   }
 
   // Create function scope
-  AutoScope asf(NewScope(parentScope, fun));
+  //AutoScope asf(NewScope(parentScope, fun));
 
   // Create argument scope
-  AutoScope asa(NewScope(m_scope));
+  AutoScope asa(NewScope(parentScope));
 
   // Insert arguments into argument scope
   List::Iterator pi, pe;

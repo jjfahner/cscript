@@ -37,7 +37,8 @@ public:
   //
   // Variable map
   //
-  typedef std::map<String, Value> VarMap;
+  typedef std::pair<bool, Value> Var;
+  typedef std::map<String, Var> VarMap;
   typedef VarMap::iterator Iter;
 
   //
@@ -106,7 +107,6 @@ public:
   virtual void SetParent(Scope* parent)
   {
     m_parent = parent;
-    m_vars["__parent"] = parent;
   }
 
   //
@@ -123,7 +123,6 @@ public:
   virtual void SetObject(Object* object)
   {
     m_object = object;
-    m_vars["__object"] = object;
   }
 
   //
@@ -135,14 +134,14 @@ public:
     Iter it = m_vars.find(key);
     if(it == m_vars.end())
     {
-      m_vars[key] = value;
+      m_vars[key] = std::make_pair(true, value);
       return value;
     }
 
     // Replace
     if(replace)
     {
-      it->second = value;
+      it->second = std::make_pair(true, value);
       return value;
     }
 
@@ -171,24 +170,32 @@ public:
   //
   virtual bool TryGet(Value const& key, Value& value)
   {
+    // Find in this scope
+    if(!m_vars.empty())
+    {
+      Iter it = m_vars.find(key);
+      if(it != m_vars.end())
+      {
+        value = it->second.second;
+        return true;
+      }
+    }
+
     // Find in object
     if(m_object && m_object->TryGet(key, value))
     {
-      return true;
-    }
-
-    // Find in this scope
-    Iter it = m_vars.find(key);
-    if(it != m_vars.end())
-    {
-      value = it->second;
+      m_vars[key] = std::make_pair(false, value);
       return true;
     }
 
     // Find in parent scope
     if(m_parent)
     {
-      return m_parent->TryGet(key, value);
+      if(m_parent->TryGet(key, value))
+      {
+        m_vars[key] = std::make_pair(false, value);
+        return true;
+      }
     }
 
     // Unknown variable
@@ -215,17 +222,23 @@ public:
   //
   virtual bool TrySet(Value const& key, Value const& value)
   {
+    // Find in this scope
+    if(m_vars.size())
+    {
+      Iter it = m_vars.find(key);
+      if(it != m_vars.end())
+      {
+        it->second.second = value;
+        if(it->second.first)
+        {
+          return true;
+        }
+      }
+    }
+
     // Find in object scope
     if(m_object && m_object->TrySet(key, value))
     {
-      return true;
-    }
-
-    // Find in this scope
-    Iter it = m_vars.find(key);
-    if(it != m_vars.end())
-    {
-      it->second = value;
       return true;
     }
 
@@ -244,24 +257,28 @@ public:
   //
   virtual bool Unset(Value const& key)
   {
+    // Find in this scope
+    Iter it = m_vars.find(key);
+    if(it != m_vars.end())
+    {
+      if(it->second.first)
+      {
+        m_vars.erase(it);
+        return true;
+      }
+      m_vars.erase(key);
+    }
+
     // Unset in object
     if(m_object && m_object->Unset(key))
     {
       return true;
     }
 
-    // Find in this scope
-    Iter it = m_vars.find(key);
-    if(it != m_vars.end())
-    {
-      m_vars.erase(it);
-      return true;
-    }
-
     // Find in parent scope
-    if(Scope* parent = GetParent())
+    if(m_parent)
     {
-      return parent->Unset(key);
+      return m_parent->Unset(key);
     }
 
     // Failed
@@ -277,11 +294,13 @@ protected:
   {
     // Mark object members
     Object::MarkObjects(grey);
+    GC::Mark(grey, m_parent);
+    GC::Mark(grey, m_object);
     
     // Mark map contents
     for(Iter mi = m_vars.begin(); mi != m_vars.end(); ++mi)
     {
-      GC::Mark(grey, mi->second);
+      GC::Mark(grey, mi->second.second);
     }
   }
 
@@ -336,17 +355,17 @@ public:
       throw std::runtime_error("Namespace must have a parent");
     }
 
-    // Remove namespace scope from current parent
-    if(Scope* parent = GetParent())
-    {
-      parent->Unset(m_name);
-    }
+//     // Remove namespace scope from current parent
+//     if(Scope* parent = GetParent())
+//     {
+//       parent->Unset(m_name);
+//     }
 
     // Delegate to scope implementation
     Scope::SetParent(parent);
 
-    // Reinsert into new parent
-    parent->Add(m_name, this, true);
+//     // Reinsert into new parent
+//     parent->Add(m_name, this, true);
   }
 
   //
