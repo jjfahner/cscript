@@ -90,9 +90,11 @@ public:
   // Construction
   // 
   ScriptFunction(String name, Object* node) :
-  Function (name)
+  Function (name),
+  m_node   (node),
+  m_params (0)
   {
-    Set("__ast", node);
+    m_params = AstList_A2(m_node);
   }
 
   //
@@ -100,7 +102,7 @@ public:
   //
   Object* GetNode() const
   {
-    return const_cast<ScriptFunction&>(*this).Get("__ast");
+    return m_node;
   }
 
   //
@@ -108,13 +110,25 @@ public:
   //
   virtual List* GetParameters() const
   {
-    return AstList_A2(GetNode());
+    return m_params;
   }
 
   //
   // Execution
   //
   virtual Value Execute(Arguments& args);
+
+protected:
+
+  virtual void MarkObjects(GCObjectVec& grey)
+  {
+    GC::Mark(grey, m_node);
+  }
+
+private:
+
+  Object* m_node;
+  List* m_params;
 
 };
 
