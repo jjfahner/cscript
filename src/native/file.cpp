@@ -37,6 +37,11 @@ public:
   {
   }
 
+  virtual Object* GetSource() const
+  {
+    return m_file;
+  }
+
   virtual void Reset()
   {
     m_file->m_stream.seekg(std::ios::beg);

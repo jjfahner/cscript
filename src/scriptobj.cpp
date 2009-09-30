@@ -44,6 +44,11 @@ public:
     Reset();
   }
 
+  virtual Object* GetSource() const
+  {
+    return m_obj;
+  }
+
   virtual void Reset()
   {
     m_cur = m_obj->m_members.begin();
@@ -77,6 +82,21 @@ public:
 
     return true;
   }
+
+  virtual bool SetNext(Value const& value)
+  {
+    if(m_cur == m_obj->m_members.end())
+    {
+      return false;
+    }
+
+    m_cur->second = value;
+
+    ++m_cur;
+
+    return true;
+  }
+
 };
 
 //////////////////////////////////////////////////////////////////////////

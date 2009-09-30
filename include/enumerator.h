@@ -34,6 +34,11 @@ public:
   virtual ~Enumerator() {}
 
   //
+  // Retrieve source object
+  //
+  virtual Object* GetSource() const = 0;
+
+  //
   // Reset enumerator to first entry
   //
   virtual void Reset() = 0;
