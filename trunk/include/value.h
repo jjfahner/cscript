@@ -264,6 +264,8 @@ Value ValSub(Value const& lhs, Value const& rhs);
 Value ValMul(Value const& lhs, Value const& rhs);
 Value ValDiv(Value const& lhs, Value const& rhs);
 Value ValMod(Value const& lhs, Value const& rhs);
+Value ValShl(Value const& lhs, Value const& rhs);
+Value ValShr(Value const& lhs, Value const& rhs);
 
 int ValCmp(Value const& lhs, Value const& rhs);
 

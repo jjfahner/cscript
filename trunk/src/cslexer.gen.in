@@ -114,6 +114,8 @@ CSLexer::ParseNextToken()
   "&&"    { return CS_LOGAND; }
   "!~"    { return CS_NLIKE; }
   "::"    { return CS_NS_SEP; }
+  "<<"    { return CS_SHL; }
+  ">>"    { return CS_SHR; }
   ";"     { return CS_SEMICOLON; }
   ","     { return CS_COMMA; }
   "="     { return CS_ASSIGN; }

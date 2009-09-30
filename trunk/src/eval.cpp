@@ -754,6 +754,8 @@ Evaluator::EvalBinary(Object* node)
   case op_mul:  g_stack.Push(ValMul(lhs, rhs));      break;
   case op_div:  g_stack.Push(ValDiv(lhs, rhs));      break;
   case op_mod:  g_stack.Push(ValMod(lhs, rhs));      break;
+  case op_shl:  g_stack.Push(ValShl(lhs, rhs));      break;
+  case op_shr:  g_stack.Push(ValShr(lhs, rhs));      break;
   case op_eq:   g_stack.Push(ValCmp(lhs, rhs) == 0); break;
   case op_ne:   g_stack.Push(ValCmp(lhs, rhs) != 0); break;
   case op_lt:   g_stack.Push(ValCmp(lhs, rhs) <  0); break;
