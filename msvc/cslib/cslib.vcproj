@@ -205,6 +205,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\test\winapi.csc"
+				>
+			</File>
+			<File
 				RelativePath="..\..\test\xml.csc"
 				>
 			</File>
@@ -337,6 +341,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\native\standard.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\native\winapi.cpp"
 					>
 				</File>
 				<File
@@ -521,6 +529,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\native\stream.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\native\winapi.h"
 					>
 				</File>
 				<File

@@ -40,6 +40,7 @@
 #include <native/path.h>
 #include <native/console.h>
 #include <native/standard.h>
+#include <native/winapi.h>
 #include <regex/regex.h>
 
 #include <list>
@@ -184,6 +185,7 @@ Evaluator::Reset()
   scope->Add("Path", new Path());
   scope->Add("Console", new Console());
   scope->Add("CScript", new CScriptMethods());
+  scope->Add("Winapi", new Winapi());
 
   // Create a new global scope
   m_global = new NamespaceScope(scope, "");
