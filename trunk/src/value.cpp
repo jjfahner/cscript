@@ -230,6 +230,28 @@ ValMod(Value const& lhs, Value const& rhs)
 }
 
 Value 
+ValShl(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return (int64)((uint64)lhs.GetInt() << (uint64)ValInt(rhs));
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for left shift operator");
+}
+
+Value 
+ValShr(Value const& lhs, Value const& rhs)
+{
+  switch(lhs.Type())
+  {
+  case Value::tInt:     return (int64)((uint64)lhs.GetInt() >> (uint64)ValInt(rhs));
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Invalid type(s) for right shift operator");
+}
+
+Value
 ValNeg(Value const& lhs)
 {
   switch(lhs.Type())
