@@ -52,7 +52,9 @@ enum opcodes
   op_assmul,
   op_assdiv,
   op_assmod,
-  op_function
+  op_function,
+  op_shl,
+  op_shr
 };
 
 String OpcodeToString(opcodes opcode);
