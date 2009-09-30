@@ -47,27 +47,30 @@ class ListEnumerator : public Enumerator
 {
   typedef List::Iterator Iterator;
 
-  Iterator m_beg;
+  List*    m_list;
   Iterator m_cur;
-  Iterator m_end;
 
 public:
 
   ListEnumerator(List* list) :
-  m_beg (list->Begin()),
-  m_cur (m_beg),
-  m_end (list->End())
+  m_list (list),
+  m_cur  (list->Begin())
   {
+  }
+
+  virtual Object* GetSource() const
+  {
+    return m_list;
   }
 
   virtual void Reset()
   {
-    m_cur = m_beg;
+    m_cur = m_list->Begin();
   }
 
   virtual bool GetNext(Value& value)
   {
-    if(m_cur == m_end)
+    if(m_cur == m_list->End())
     {
       return false;
     }
@@ -79,12 +82,12 @@ public:
 
   virtual bool GetNext(Value& key, Value& value)
   {
-    if(m_cur == m_end)
+    if(m_cur == m_list->End())
     {
       return false;
     }
 
-    key   = std::distance(m_beg, m_cur);
+    key = std::distance(m_list->Begin(), m_cur);
     value = *m_cur;
 
     ++m_cur;

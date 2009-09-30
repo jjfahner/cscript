@@ -56,6 +56,11 @@ public:
     Reset();
   }
 
+  virtual Object* GetSource() const
+  {
+    return m_dict;
+  }
+
   virtual void Reset() 
   {
     m_it = m_dict->m_map.begin();
