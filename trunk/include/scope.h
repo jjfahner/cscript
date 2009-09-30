@@ -106,7 +106,6 @@ public:
   virtual void SetParent(Scope* parent)
   {
     m_parent = parent;
-    m_vars["__parent"] = parent;
   }
 
   //
@@ -123,7 +122,6 @@ public:
   virtual void SetObject(Object* object)
   {
     m_object = object;
-    m_vars["__object"] = object;
   }
 
   //
@@ -171,17 +169,20 @@ public:
   //
   virtual bool TryGet(Value const& key, Value& value)
   {
-    // Find in object
-    if(m_object && m_object->TryGet(key, value))
+    // Find in local scope
+    if(m_vars.size())
     {
-      return true;
+      Iter it = m_vars.find(key);
+      if(it != m_vars.end())
+      {
+        value = it->second;
+        return true;
+      }
     }
 
-    // Find in this scope
-    Iter it = m_vars.find(key);
-    if(it != m_vars.end())
+    // Find in object scope
+    if(m_object && m_object->TryGet(key, value))
     {
-      value = it->second;
       return true;
     }
 
@@ -215,17 +216,20 @@ public:
   //
   virtual bool TrySet(Value const& key, Value const& value)
   {
+    // Find in local scope
+    if(m_vars.size())
+    {
+      Iter it = m_vars.find(key);
+      if(it != m_vars.end())
+      {
+        it->second = value;
+        return true;
+      }
+    }
+
     // Find in object scope
     if(m_object && m_object->TrySet(key, value))
     {
-      return true;
-    }
-
-    // Find in this scope
-    Iter it = m_vars.find(key);
-    if(it != m_vars.end())
-    {
-      it->second = value;
       return true;
     }
 
@@ -244,21 +248,24 @@ public:
   //
   virtual bool Unset(Value const& key)
   {
-    // Unset in object
+    // Unset in local scope
+    if(m_vars.size())
+    {
+      Iter it = m_vars.find(key);
+      if(it != m_vars.end())
+      {
+        m_vars.erase(it);
+        return true;
+      }
+    }
+
+    // Unset in object scope
     if(m_object && m_object->Unset(key))
     {
       return true;
     }
 
-    // Find in this scope
-    Iter it = m_vars.find(key);
-    if(it != m_vars.end())
-    {
-      m_vars.erase(it);
-      return true;
-    }
-
-    // Find in parent scope
+    // Unset in parent scope
     if(Scope* parent = GetParent())
     {
       return parent->Unset(key);
@@ -275,11 +282,16 @@ protected:
   //
   virtual void MarkObjects(GCObjectVec& grey)
   {
-    // Mark object members
+    // Mark Object
     Object::MarkObjects(grey);
+
+    // Mark members
+    if(m_parent) GC::Mark(grey, m_parent);
+    if(m_object) GC::Mark(grey, m_object);
     
     // Mark map contents
-    for(Iter mi = m_vars.begin(); mi != m_vars.end(); ++mi)
+    for(Iter mi = m_vars.begin(); 
+        mi != m_vars.end(); ++mi)
     {
       GC::Mark(grey, mi->second);
     }
