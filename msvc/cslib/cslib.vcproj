@@ -706,6 +706,10 @@
 			RelativePath="..\..\TODO"
 			>
 		</File>
+		<File
+			RelativePath="..\..\include\native\wintypes.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
