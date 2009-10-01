@@ -105,4 +105,41 @@ private:
 
 };
 
+//////////////////////////////////////////////////////////////////////////
+
+class WinapiStub : public Object
+{
+public:
+
+  //
+  // Construction
+  //
+  WinapiStub(Function* fun);
+
+  //
+  // Destruction
+  //
+  ~WinapiStub();
+
+  //
+  // Retrieve code
+  //
+  void* GetCodePtr() const;
+
+private:
+
+  //
+  // Invoke stub
+  //
+  static unsigned int __stdcall Invoke(WinapiStub* stub, unsigned int* stack);
+
+  //
+  // Members
+  //
+  Function* m_pfun;
+  void*     m_code;
+  size_t    m_size;
+
+};
+
 #endif // CSCRIPT_NATIVE_WINAPI_H
