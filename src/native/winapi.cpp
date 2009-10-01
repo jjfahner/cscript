@@ -26,6 +26,7 @@
 #include <windows.h>
 #undef GetObject
 
+DEF_EXCEPTION(WinapiInvalidStub, "Invalid stub in __winapi_stub");
 DEF_EXCEPTION(WinapiStructError, "Cannot convert object to struct");
 DEF_EXCEPTION(WinapiStructOverwrite, "Memory structure overwritten");
 
@@ -94,6 +95,102 @@ WinapiFunction::MarkObjects(GCObjectVec& grey)
 
 //////////////////////////////////////////////////////////////////////////
 
+WinapiStub::WinapiStub(Function* fun)
+: m_pfun (fun),
+  m_code (0),
+  m_size (0)
+{
+  // Allocate code block
+  unsigned char* const code = new unsigned char[32];
+  unsigned char* p = code;
+
+  // int 3 (breakpoint)
+  //*p++ = 0xCC;
+
+  // push ebp
+  *p++ = 0x55;
+
+  // mov eax, this
+  *p++ = 0xB8;
+  *p++ = ((unsigned int)this >>  0) & 0xFF;
+  *p++ = ((unsigned int)this >>  8) & 0xFF;
+  *p++ = ((unsigned int)this >> 16) & 0xFF;
+  *p++ = ((unsigned int)this >> 24) & 0xFF;
+
+  // push eax 
+  *p++ = 0x50;
+
+  // mov eax, pstub 
+  void* pstub = &WinapiStub::Invoke;
+  *p++ = 0xB8;
+  *p++ = ((unsigned int)pstub >>  0) & 0xFF;
+  *p++ = ((unsigned int)pstub >>  8) & 0xFF;
+  *p++ = ((unsigned int)pstub >> 16) & 0xFF;
+  *p++ = ((unsigned int)pstub >> 24) & 0xFF;
+
+  // call eax
+  *p++ = 0xFF;
+  *p++ = 0xD0;
+
+  // ret 16
+  *p++ = 0xC2;
+  *p++ = 0x10;
+  *p++ = 0x00;
+
+  // Store code pointer and code size
+  m_code = code;
+  m_size = p - code;
+}
+
+WinapiStub::~WinapiStub()
+{
+  delete [] (char*) m_code;
+}
+
+void*
+WinapiStub::GetCodePtr() const
+{
+  return m_code;
+}
+
+/*static*/ unsigned int __stdcall 
+WinapiStub::Invoke(WinapiStub* stub, unsigned int* stack)
+{
+  Arguments args;
+  args.push_back(*(stack+3));
+  args.push_back(*(stack+4));
+  args.push_back(*(stack+5));
+  args.push_back(*(stack+6));
+  return (int)stub->m_pfun->Execute(args);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+void* 
+MakeFunctionStub(Function* pfun)
+{
+  Value value;
+
+  // Retrieve stub
+  if(pfun->TryGet("__winapi_stub", value))
+  {
+    WinapiStub* stub = dynamic_cast<WinapiStub*>(value.GetObject());
+    if(stub == 0)
+    {
+      throw WinapiInvalidStub();
+    }
+    return stub->GetCodePtr();
+  }
+
+  // Create new stub
+  WinapiStub* stub = new WinapiStub(pfun);
+  
+  // Cache the stub
+  pfun->Set("__winapi_stub", stub);
+
+  // Done
+  return stub->GetCodePtr();
+}
 
 struct Member
 {
@@ -151,13 +248,22 @@ BindObject(Object* obj)
 
       case Value::tString:
         s.push_back(Member(p->GetSource(), key, val));
-        s.back().m_len = val.GetString().length() + 1;
+        s.back().m_len = 4;
         size += s.back().m_len;
         break;
 
       case Value::tObject:
-        stack.push_back(p);
-        p = val->GetEnumerator();
+        if(Function* f = dynamic_cast<Function*>(val.GetObject()))
+        {
+          s.push_back(Member(0, Value(), f));
+          s.back().m_len = 4;
+          size += s.back().m_len;
+        }
+        else
+        {
+          stack.push_back(p);
+          p = val->GetEnumerator();
+        }
         break;
       }
     }
@@ -179,7 +285,10 @@ BindObject(Object* obj)
       *(unsigned int*)p = (unsigned int) s[i].m_val.GetInt();
       break;
     case Value::tString:
-      strcpy((char*)p, s[i].m_val.GetString().c_str());
+      *(char const**)p = s[i].m_val.GetString().c_str();
+      break;
+    case Value::tObject:
+      *(unsigned int*)p = (unsigned int)MakeFunctionStub((Function*)s[i].m_val.GetObject());
       break;
     default:
       throw WinapiStructError();
@@ -243,19 +352,19 @@ WinapiFunction::Execute(Arguments& args)
   size_t index = 0;
   for(size_t index = 0; index < args.size(); ++index)
   {
-    size_t aindex = args.size() - 1 - index;
-    switch(args[aindex].Type())
+    //size_t aindex = args.size() - 1 - index;
+    switch(args[index].Type())
     {
     case Value::tInt:   // int
-      stack[index] = (int)args[aindex].GetInt();
+      stack[index] = (int)args[index].GetInt();
       break;
 
     case Value::tString:   // string
-      stack[index] = (intptr_t)args[aindex].GetString().c_str();
+      stack[index] = (intptr_t)args[index].GetString().c_str();
       break;
 
     case Value::tObject:
-      bindInfo = BindObject(args[aindex]);
+      bindInfo = BindObject(args[index]);
       bindInfoVec.push_back(bindInfo);
       stack[index] = (intptr_t)bindInfo->m_buffer;
       break;
@@ -282,7 +391,7 @@ WinapiFunction::Execute(Arguments& args)
   __asm call proc;
 
   // Copy return value
-  __asm mov res, eax;
+   __asm mov res, eax;
 
   // Unbind objects
   for(size_t i = 0; i < bindInfoVec.size(); ++i)

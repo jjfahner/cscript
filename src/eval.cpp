@@ -1093,7 +1093,7 @@ Evaluator::EvalScriptCall(ScriptFunction* fun, Arguments& args)
   AutoScope cs;
 
   // Determine base scope for function
-  Scope* parentScope = dynamic_cast<Scope*>(fun->Get("scope").GetObject());
+  Scope* parentScope = dynamic_cast<Scope*>(fun->Get("parent").GetObject());
 
   // Determine parent scope for invocation
   if(args.GetObject())
