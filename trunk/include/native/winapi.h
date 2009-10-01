@@ -25,11 +25,13 @@
 #include <object.h>
 #include <native.h>
 #include <function.h>
+#include <native/wintypes.h>
 
 class Winapi : public Object
 {
 public:
 
+  IMPL_NATIVE_GET(Winapi, Object);
   DEF_NATIVE_SET (Winapi, Object);
   DEF_NATIVE_EVAL(Winapi, Object);
 
@@ -39,9 +41,17 @@ public:
   bool TryGet(Value const& key, Value& value);
 
   //
-  // Create a type
+  // Type creators
   //
-  __native_method ObjectPtr StringBuf(int64 size);
+  __native_method ObjectPtr StringBuf(int64 size) { return new WinapiStringBuf(size); }
+  __native_method ObjectPtr Uint8(int64 value)    { return new WinapiUint8(value); }
+  __native_method ObjectPtr Int8(int64 value)     { return new WinapiInt8(value); }
+  __native_method ObjectPtr Uint16(int64 value)   { return new WinapiUint16(value); }
+  __native_method ObjectPtr Int16(int64 value)    { return new WinapiInt16(value); }
+  __native_method ObjectPtr Uint32(int64 value)   { return new WinapiUint32(value); }
+  __native_method ObjectPtr Int32(int64 value)    { return new WinapiInt32(value); }
+  __native_method ObjectPtr Uint64(int64 value)   { return new WinapiUint64(value); }
+  __native_method ObjectPtr Int64(int64 value)    { return new WinapiInt64(value); }
 
 };
 
@@ -157,67 +167,6 @@ private:
   Function* m_pfun;
   void*     m_code;
   size_t    m_size;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
-class WinapiType : public Object 
-{
-public:
-
-  //
-  // Retrieve argument size
-  //
-  virtual size_t GetArgSize() = 0;
-
-  //
-  // Retrieve argument
-  //
-  virtual void CopyArgData(void* dest) = 0;
-
-};
-
-//////////////////////////////////////////////////////////////////////////
-
-class WinapiStringBuf : public WinapiType
-{
-public:
-
-  DEF_NATIVE_CALLS(WinapiStringBuf, WinapiType);
-
-  //
-  // Construction
-  //
-  WinapiStringBuf(int64 size);
-
-  //
-  // Destruction
-  //
-  ~WinapiStringBuf();
-
-  //
-  // Retrieve data as string
-  //
-  __native_method String ToString();
-
-  //
-  // Retrieve argument size
-  //
-  virtual size_t GetArgSize();
-
-  //
-  // Retrieve argument
-  //
-  virtual void CopyArgData(void* dest);
-
-private:
-
-  //
-  // Members
-  //
-  char* m_data;
-  int64 m_size;
 
 };
 
