@@ -112,6 +112,11 @@ class WinapiStub : public Object
 public:
 
   //
+  // Retrieve (cached) stub code for function
+  //
+  static void* GetCodePtr(Function* fun);
+
+  //
   // Construction
   //
   WinapiStub(Function* fun);
@@ -127,6 +132,11 @@ public:
   void* GetCodePtr() const;
 
 private:
+
+  //
+  // Calculate the number of bytes for the ret statement
+  //
+  size_t CalcRetSize() const;
 
   //
   // Invoke stub
