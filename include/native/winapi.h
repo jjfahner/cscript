@@ -30,10 +30,18 @@ class Winapi : public Object
 {
 public:
 
+  DEF_NATIVE_SET (Winapi, Object);
+  DEF_NATIVE_EVAL(Winapi, Object);
+
   //
   // Retrieves a module
   //
-  virtual bool TryGet(Value const& key, Value& value);
+  bool TryGet(Value const& key, Value& value);
+
+  //
+  // Create a type
+  //
+  __native_method ObjectPtr StringBuf(int64 size);
 
 };
 
@@ -149,6 +157,67 @@ private:
   Function* m_pfun;
   void*     m_code;
   size_t    m_size;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class WinapiType : public Object 
+{
+public:
+
+  //
+  // Retrieve argument size
+  //
+  virtual size_t GetArgSize() = 0;
+
+  //
+  // Retrieve argument
+  //
+  virtual void CopyArgData(void* dest) = 0;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class WinapiStringBuf : public WinapiType
+{
+public:
+
+  DEF_NATIVE_CALLS(WinapiStringBuf, WinapiType);
+
+  //
+  // Construction
+  //
+  WinapiStringBuf(int64 size);
+
+  //
+  // Destruction
+  //
+  ~WinapiStringBuf();
+
+  //
+  // Retrieve data as string
+  //
+  __native_method String ToString();
+
+  //
+  // Retrieve argument size
+  //
+  virtual size_t GetArgSize();
+
+  //
+  // Retrieve argument
+  //
+  virtual void CopyArgData(void* dest);
+
+private:
+
+  //
+  // Members
+  //
+  char* m_data;
+  int64 m_size;
 
 };
 

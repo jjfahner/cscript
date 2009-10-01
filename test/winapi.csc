@@ -1,6 +1,10 @@
+
 function EnumWindowProc(hwnd, param)
 {
-  Console.WriteLn("Window: ", hwnd);
+  var title = Winapi.StringBuf(1024);
+  Winapi.User32.GetWindowTextA(hwnd, title, 1024);
+    
+  Console.WriteLn("Window: ", hwnd, " ", title.ToString());
   return 1;
 }
 

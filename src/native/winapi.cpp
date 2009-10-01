@@ -30,18 +30,30 @@ DEF_EXCEPTION(WinapiInvalidStub, "Invalid stub in __winapi_stub");
 DEF_EXCEPTION(WinapiStructError, "Cannot convert object to struct");
 DEF_EXCEPTION(WinapiStructOverwrite, "Memory structure overwritten");
 
+//////////////////////////////////////////////////////////////////////////
+
 bool 
 Winapi::TryGet(Value const& key, Value& value)
 {
   HMODULE hModule = LoadLibrary(key.GetString().c_str());
-  if(hModule == 0)
+  if(hModule)
   {
-    return false;
+    value = new WinapiModule(key.GetString(), hModule);
+    return true;
   }
 
-  value = new WinapiModule(key.GetString(), hModule);
+  extern struct NativeCall cscript_native_table_Winapi[];
+  if(NativeCallTryGet(cscript_native_table_Winapi, (Object*)this, key, value))
+  {
+    return true;
+  }
+  return Object::TryGet(key, value);
+}
 
-  return true;
+Object* 
+Winapi::StringBuf(int64 size)
+{
+  return new WinapiStringBuf(size);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -398,6 +410,10 @@ WinapiFunction::Execute(Arguments& args)
       {
         stack[index] = (unsigned int)WinapiStub::GetCodePtr(f);
       }
+      else if(WinapiType* t = dynamic_cast<WinapiType*>(args[index].GetObject()))
+      {
+        t->CopyArgData(stack + index);
+      }
       else
       {
         bindInfo = BindObject(args[index]);
@@ -438,4 +454,35 @@ WinapiFunction::Execute(Arguments& args)
 
   // Done
   return Value((Value::Int)res);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+WinapiStringBuf::WinapiStringBuf(int64 size)
+{
+  m_data = new char[(size_t)size + 1];
+  m_size = (size_t)size;
+}
+
+WinapiStringBuf::~WinapiStringBuf()
+{
+  delete [] m_data;
+}
+
+String 
+WinapiStringBuf::ToString()
+{
+  return m_data;
+}
+
+size_t 
+WinapiStringBuf::GetArgSize()
+{
+  return 4;
+}
+
+void 
+WinapiStringBuf::CopyArgData(void* dest)
+{
+  *(char const**)dest = m_data;
 }
