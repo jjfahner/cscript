@@ -1,3 +1,10 @@
+function EnumWindowProc(hwnd, param)
+{
+  Console.WriteLn("Window: ", hwnd);
+  return 1;
+}
+
+Winapi.User32.EnumWindows(EnumWindowProc, 0);
 
 function wndproc(hwnd, message, wparam, lparam)
 {
@@ -55,3 +62,5 @@ while(Winapi.User32.GetMessageA(msg, 0, 0, 0))
   Winapi.User32.TranslateMessage(msg);
   Winapi.User32.DispatchMessageA(msg);
 }
+
+Console.WriteLn("Exited message loop");

@@ -95,6 +95,37 @@ WinapiFunction::MarkObjects(GCObjectVec& grey)
 
 //////////////////////////////////////////////////////////////////////////
 
+/*static*/ void* 
+WinapiStub::GetCodePtr(Function* fun)
+{
+  Value value;
+
+  // Retrieve stub
+  if(fun->TryGet("__winapi_stub", value))
+  {
+    // Convert to stub
+    WinapiStub* stub = dynamic_cast<WinapiStub*>(value.GetObject());
+
+    // Check cast; just to make sure
+    if(stub == 0)
+    {
+      throw WinapiInvalidStub();
+    }
+
+    // Return the code
+    return stub->GetCodePtr();
+  }
+
+  // Create new stub
+  WinapiStub* stub = new WinapiStub(fun);
+
+  // Cache the stub
+  fun->Set("__winapi_stub", stub);
+
+  // Done
+  return stub->GetCodePtr();
+}
+
 WinapiStub::WinapiStub(Function* fun)
 : m_pfun (fun),
   m_code (0),
@@ -107,8 +138,8 @@ WinapiStub::WinapiStub(Function* fun)
   // int 3 (breakpoint)
   //*p++ = 0xCC;
 
-  // push ebp
-  *p++ = 0x55;
+  // push esp
+  *p++ = 0x54;
 
   // mov eax, this
   *p++ = 0xB8;
@@ -134,7 +165,7 @@ WinapiStub::WinapiStub(Function* fun)
 
   // ret 16
   *p++ = 0xC2;
-  *p++ = 0x10;
+  *p++ = CalcRetSize() & 0xFF;
   *p++ = 0x00;
 
   // Store code pointer and code size
@@ -153,44 +184,43 @@ WinapiStub::GetCodePtr() const
   return m_code;
 }
 
+size_t 
+WinapiStub::CalcRetSize() const
+{
+  size_t size = 0;
+  Value value;
+
+  Enumerator* p = m_pfun->GetParameters()->GetEnumerator();
+  while(p->GetNext(value))
+  {
+    size += 4;
+  }
+
+  return size;
+}
+
 /*static*/ unsigned int __stdcall 
 WinapiStub::Invoke(WinapiStub* stub, unsigned int* stack)
 {
   Arguments args;
-  args.push_back(*(stack+3));
-  args.push_back(*(stack+4));
-  args.push_back(*(stack+5));
-  args.push_back(*(stack+6));
+  Value value;
+
+  // Move to first argument
+  ++stack;
+
+  // Build argument list
+  Enumerator* p = stub->m_pfun->GetParameters()->GetEnumerator();
+  while(p->GetNext(value))
+  {
+    args.push_back(*stack);
+    ++stack;
+  }
+
+  // Invoke function
   return (int)stub->m_pfun->Execute(args);
 }
 
 //////////////////////////////////////////////////////////////////////////
-
-void* 
-MakeFunctionStub(Function* pfun)
-{
-  Value value;
-
-  // Retrieve stub
-  if(pfun->TryGet("__winapi_stub", value))
-  {
-    WinapiStub* stub = dynamic_cast<WinapiStub*>(value.GetObject());
-    if(stub == 0)
-    {
-      throw WinapiInvalidStub();
-    }
-    return stub->GetCodePtr();
-  }
-
-  // Create new stub
-  WinapiStub* stub = new WinapiStub(pfun);
-  
-  // Cache the stub
-  pfun->Set("__winapi_stub", stub);
-
-  // Done
-  return stub->GetCodePtr();
-}
 
 struct Member
 {
@@ -288,7 +318,7 @@ BindObject(Object* obj)
       *(char const**)p = s[i].m_val.GetString().c_str();
       break;
     case Value::tObject:
-      *(unsigned int*)p = (unsigned int)MakeFunctionStub((Function*)s[i].m_val.GetObject());
+      *(unsigned int*)p = (unsigned int)WinapiStub::GetCodePtr((Function*)s[i].m_val.GetObject());
       break;
     default:
       throw WinapiStructError();
@@ -364,9 +394,16 @@ WinapiFunction::Execute(Arguments& args)
       break;
 
     case Value::tObject:
-      bindInfo = BindObject(args[index]);
-      bindInfoVec.push_back(bindInfo);
-      stack[index] = (intptr_t)bindInfo->m_buffer;
+      if(Function* f = dynamic_cast<Function*>(args[index].GetObject()))
+      {
+        stack[index] = (unsigned int)WinapiStub::GetCodePtr(f);
+      }
+      else
+      {
+        bindInfo = BindObject(args[index]);
+        bindInfoVec.push_back(bindInfo);
+        stack[index] = (intptr_t)bindInfo->m_buffer;
+      }
       break;
 
     default:
