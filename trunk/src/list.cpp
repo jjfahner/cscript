@@ -47,14 +47,16 @@ class ListEnumerator : public Enumerator
 {
   typedef List::Iterator Iterator;
 
-  List*    m_list;
-  Iterator m_cur;
+  List*     m_list;
+  int64     m_key;
+  Iterator  m_cur;
 
 public:
 
   ListEnumerator(List* list) :
-  m_list (list),
-  m_cur  (list->Begin())
+  m_list  (list),
+  m_key   (0),
+  m_cur   (list->Begin())
   {
   }
 
@@ -65,6 +67,7 @@ public:
 
   virtual void Reset()
   {
+    m_key = 0;
     m_cur = m_list->Begin();
   }
 
@@ -75,21 +78,25 @@ public:
       return false;
     }
 
-    value = *m_cur++;
+    value = *m_cur;
+
+    ++m_key;
+    ++m_cur;
 
     return true;
   }
 
-  virtual bool GetNext(Value& key, Value& value)
+  virtual bool GetNext(Value& key, Value& val)
   {
     if(m_cur == m_list->End())
     {
       return false;
     }
 
-    key = std::distance(m_list->Begin(), m_cur);
-    value = *m_cur;
+    key = m_key;
+    val = *m_cur;
 
+    ++m_key;
     ++m_cur;
 
     return true;
