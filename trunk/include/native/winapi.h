@@ -140,11 +140,6 @@ public:
   WinapiStub(Function* fun);
 
   //
-  // Destruction
-  //
-  ~WinapiStub();
-
-  //
   // Retrieve code
   //
   void* GetCodePtr() const;
@@ -164,9 +159,8 @@ private:
   //
   // Members
   //
-  Function* m_pfun;
-  void*     m_code;
-  size_t    m_size;
+  Function*     m_pfun;
+  unsigned char m_code[32];
 
 };
 
