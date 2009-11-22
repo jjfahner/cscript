@@ -131,13 +131,10 @@ WinapiStub::GetCodePtr(Function* fun)
 }
 
 WinapiStub::WinapiStub(Function* fun)
-: m_pfun (fun),
-  m_code (0),
-  m_size (0)
+: m_pfun (fun)
 {
   // Allocate code block
-  unsigned char* const code = new unsigned char[32];
-  unsigned char* p = code;
+  unsigned char* p = m_code;
 
   // int 3 (breakpoint)
   //*p++ = 0xCC;
@@ -171,21 +168,12 @@ WinapiStub::WinapiStub(Function* fun)
   *p++ = 0xC2;
   *p++ = CalcRetSize() & 0xFF;
   *p++ = 0x00;
-
-  // Store code pointer and code size
-  m_code = code;
-  m_size = p - code;
-}
-
-WinapiStub::~WinapiStub()
-{
-  delete [] (char*) m_code;
 }
 
 void*
 WinapiStub::GetCodePtr() const
 {
-  return m_code;
+  return const_cast<unsigned char*>(m_code);
 }
 
 size_t 
