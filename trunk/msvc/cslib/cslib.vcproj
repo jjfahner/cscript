@@ -536,6 +536,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\native\wintypes.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\native\xml.h"
 					>
 				</File>
@@ -704,10 +708,6 @@
 		</Filter>
 		<File
 			RelativePath="..\..\TODO"
-			>
-		</File>
-		<File
-			RelativePath="..\..\include\native\wintypes.h"
 			>
 		</File>
 	</Files>
