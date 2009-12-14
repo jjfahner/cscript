@@ -114,13 +114,9 @@ ScriptObject::GetEnumerator()
 }
 
 bool 
-ScriptObject::TryGet(Value const& key, Value& value)
+ScriptObject::TryGet(Value const& vKey, Value& value)
 {
-  if(key.Type() != Value::tString)
-  {
-    throw std::runtime_error(
-      "Invalid key type for object");
-  }
+  Identifier key(vKey);
 
   // Find locally
   MemberIterator it = m_members.find(key);
@@ -142,13 +138,9 @@ ScriptObject::TryGet(Value const& key, Value& value)
 }
 
 bool
-ScriptObject::TrySet(Value const& key, Value const& value)
+ScriptObject::TrySet(Value const& vKey, Value const& value)
 {
-  if(key.Type() != Value::tString)
-  {
-    throw std::runtime_error(
-      "Invalid key type for object");
-  }
+  Identifier key(vKey);
 
   // Find locally
   MemberIterator it = m_members.find(key);

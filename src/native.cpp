@@ -22,6 +22,7 @@
 #include <native.h>
 #include <args.h>
 #include <context.h>
+#include <ident.h>
 
 //
 // Types of stubs
@@ -71,18 +72,14 @@ struct NativeConstructor
 bool 
 NativeCallTryGet(NativeCall* pTable, 
                  Object* instance, 
-                 Value const& key, 
+                 Value const& vKey, 
                  Value& pValue)
 {
-  if(key.Type() != Value::tString)
-  {
-    throw std::runtime_error(
-      "Invalid key type for object");
-  }
+  Identifier key(vKey);
 
   while(pTable->m_name)
   {
-    if(key.GetString() == pTable->m_name)
+    if(key.GetName() == pTable->m_name)
     {
       if(pTable->m_roprop)
       {
@@ -99,18 +96,14 @@ NativeCallTryGet(NativeCall* pTable,
 bool 
 NativeCallTrySet(NativeCall* pTable, 
                  Object* instance, 
-                 Value const& key, 
+                 Value const& vKey, 
                  Value const& value)
 {
-  if(key.Type() != Value::tString)
-  {
-    throw std::runtime_error(
-      "Invalid key type for object");
-  }
+  Identifier key(vKey);
 
   while(pTable->m_name)
   {
-    if(key.GetString() == pTable->m_name)
+    if(key.GetName() == pTable->m_name)
     {
       if(pTable->m_rwprop)
       {
@@ -127,19 +120,15 @@ NativeCallTrySet(NativeCall* pTable,
 bool
 NativeCallTryEval(NativeCall* pTable, 
                   Object* instance, 
-                  Value const& key, 
+                  Value const& vKey, 
                   Arguments& arguments, 
                   Value& result)
 {
-  if(key.Type() != Value::tString)
-  {
-    throw std::runtime_error(
-      "Invalid key type for object");
-  }
+  Identifier key(vKey);
 
   while(pTable->m_name)
   {
-    if(key.GetString() == pTable->m_name)
+    if(key.GetName() == pTable->m_name)
     {
       if(pTable->m_method)
       {

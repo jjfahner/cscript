@@ -35,9 +35,7 @@ public:
   //
   // Native call mapping
   //
-  DEF_NATIVE_EVAL(Dictionary, Object);
-  DEF_NATIVE_GET (Dictionary, Object);
-  IMPL_NATIVE_SET(Dictionary, Object);
+  DEF_NATIVE_CALLS(Dictionary, Object);
 
   //
   // Map type
@@ -97,37 +95,21 @@ public:
   }
 
   //
-  // Set a member
+  // Retrieve a value by index
   //
-  virtual Value const& Set(Value const& key, Value const& value)
+  virtual bool TryGetAt(Value const& key, Value& value)
   {
-    m_map[key] = value;
-    return value;
-  }
-
-  //
-  // Try to set a member
-  //
-  virtual bool TrySet(Value const& key, Value const& value)
-  {
-    m_map[key] = value;
+    value = m_map[key];
     return true;
   }
 
   //
-  // Retrieve a value by index
+  // Try to set a pair
   //
-  virtual Value GetIndexed(Value const& key)
+  virtual bool TrySetAt(Value const& key, Value const& value)
   {
-    return m_map[key];
-  }
-
-  //
-  // Set a value by index
-  //
-  virtual Value const& SetIndexed(Value const& key, Value const& value)
-  {
-    return m_map[key] = value;
+    m_map[key] = value;
+    return true;
   }
 
   //

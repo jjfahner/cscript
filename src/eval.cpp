@@ -534,8 +534,13 @@ Evaluator::EvalStatement(Object* node)
 }
 
 void
-Evaluator::EvalLValue(Object* node, Object*& obj, Value& name)
+Evaluator::EvalLValue(Object* node, Object*& obj, Value& name, bool* index)
 {
+  if (index)
+  {
+    *index = false;
+  }
+
   obj = 0;
   switch(Ast_Type(node))
   {
@@ -576,6 +581,10 @@ Evaluator::EvalLValue(Object* node, Object*& obj, Value& name)
     {
       EvalExpression(Ast_A2(node));
       name = g_stack.Pop();
+    }
+    if (index)
+    {
+      *index = true;
     }
     return;
 
@@ -710,10 +719,18 @@ Evaluator::EvalAssignment(Object* node)
   // Determine left-hand side
   Object* obj;
   Value key;
-  EvalLValue(Ast_A1(node), obj, key);
+  bool index;
+  EvalLValue(Ast_A1(node), obj, key, &index);
 
-  // Direct assignment
-  g_stack.Push(obj->Set(key, rhs));
+  // Execute assignment
+  if (index)
+  {
+    g_stack.Push(obj->SetAt(key, rhs));
+  }
+  else
+  {
+    g_stack.Push(obj->Set(key, rhs));
+  }
 }
 
 void
@@ -847,9 +864,9 @@ Evaluator::EvalIndex(Object* node)
   // Evaluate key expression
   EvalExpression(Ast_A2(node));
   Value key = g_stack.Pop();
-  
-  // Retrieve the list
-  g_stack.Push(lhs->GetIndexed(key));
+
+  // Retrieve indexed
+  g_stack.Push(lhs->GetAt(key));
 }
 
 void
@@ -1651,13 +1668,13 @@ Evaluator::EvalMemberExpression(Object* node)
   }
 
   // Determine name
-  String const& name = Ast_A1(Ast_A2(node));
+  Identifier id = Ast_A1(Ast_A2(node));
 
   // Return the value
   Value rval;
-  if(!object->TryGet(name, rval))
+  if(!object->TryGet(id, rval))
   {
-    throw ScriptException(node, "Object does not support a property '" + name + "'");
+    throw ScriptException(node, "Object does not support a property '" + id.GetName() + "'");
   }
 
   // Done

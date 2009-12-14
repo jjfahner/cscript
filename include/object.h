@@ -80,7 +80,12 @@ public:
   //
   virtual Value Get(Value const& key)
   {
-    throw std::runtime_error("Member '" + key.GetString() + "' not found");
+    Value value;
+    if (TryGet(key, value))
+    {
+      return value;
+    }
+    throw std::runtime_error("Member '" + ValString(key) + "' not found");
   }
 
   //
@@ -96,7 +101,11 @@ public:
   //
   virtual Value const& Set(Value const& key, Value const& value)
   {
-    throw std::runtime_error("Member '" + key.GetString() + "' not found");
+    if (TrySet(key, value))
+    {
+      return value;
+    }
+    throw std::runtime_error("Member '" + ValString(key) + "' not found");
   }
 
   //
@@ -105,6 +114,47 @@ public:
   virtual bool TrySet(Value const& key, Value const& value)
   {
     return false;
+  }
+
+  //
+  // Retrieve an object by index
+  //
+  virtual Value GetAt(Value const& index)
+  {
+    Value value;
+    if (TryGetAt(index, value))
+    {
+      return value;
+    }
+    throw std::runtime_error("Invalid index");
+  }
+
+  //
+  // Try to retrieve an object by index
+  //
+  virtual bool TryGetAt(Value const& index, Value& value)
+  {
+    return TryGet(index, value);
+  }
+
+  //
+  // Set an object by index
+  //
+  virtual Value const& SetAt(Value const& index, Value const& value)
+  {
+    if (TrySetAt(index, value))
+    {
+      return value;
+    }
+    throw std::runtime_error("Invalid index");
+  }
+
+  //
+  // Try to set an object by index
+  //
+  virtual bool TrySetAt(Value const& index, Value const& value)
+  {
+    return TrySet(index, value);
   }
 
   //
@@ -117,29 +167,13 @@ public:
     {
       return result;
     }
-    throw std::runtime_error("Method '" + key.GetString() + "' not found");
+    throw std::runtime_error("Method '" + ValString(key) + "' not found");
   }
 
   //
   // Try to evaluate a method
   //
   virtual bool TryEval(Value const& key, Arguments& arguments, Value& result);
-
-  //
-  // Retrieve a value by index
-  //
-  virtual Value GetIndexed(Value const& key)
-  {
-    return Get(key);
-  }
-
-  //
-  // Set a value by index
-  //
-  virtual Value const& SetIndexed(Value const& key, Value const& value)
-  {
-    return Set(key, value);
-  }
 
 protected:
 

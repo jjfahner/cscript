@@ -34,6 +34,7 @@
 #include "csparser.h"
 #include "astnode.h"
 #include "list.h"
+#include "ident.h"
 
 #include <cassert>
 
@@ -319,7 +320,7 @@ literal(R) ::= regex_literal(A) . { R = A; }
 
 id_expression(R) ::= unqualified_id(A) . { 
   R = A; 
-  R->m_a2 = p->GetVar(A->m_a1); 
+  // R->m_a2 = p->GetVar(A->m_a1); 
 }
 id_expression(R) ::= qualified_id(A) . { 
   R = A;
@@ -327,7 +328,7 @@ id_expression(R) ::= qualified_id(A) . {
 }
 
 // Unqualified name
-unqualified_id(R) ::= IDENTIFIER(A) . { R = p->AllocNode(unqualified_id, String(A)); }
+unqualified_id(R) ::= IDENTIFIER(A) . { R = p->AllocNode(unqualified_id, Identifier::Lookup(String(A))); }
 
 // Qualified id
 qualified_id(R) ::= nested_name_specifier(A) . { R = A; }

@@ -257,6 +257,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\ident.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\list.cpp"
 				>
 			</File>
@@ -454,6 +458,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\hash.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\ident.h"
 				>
 			</File>
 			<File
