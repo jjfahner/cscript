@@ -164,6 +164,22 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
+class RealType : public ScalarType
+{
+public:
+
+  //
+  // Native calls
+  //
+  DEF_NATIVE_CALLS(IntegerType, ScalarType)
+
+  //
+  // Retrieve singleton instance
+  //
+  static DataType* Instance();
+
+};
+
 class StringType : public ScalarType
 {
 public:

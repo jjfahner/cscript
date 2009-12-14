@@ -31,9 +31,7 @@ int32 str2dec(char const* src);
 //
 // Convert string to floating point
 //
-// TODO: this is a dummy function
-//
-int str2flt(char const* src);
+long double str2flt(char const* src);
 
 //
 // Convert hexadecimal string to integer value

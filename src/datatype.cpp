@@ -211,6 +211,47 @@ DataType* IntegerType::Instance()
 
 //////////////////////////////////////////////////////////////////////////
 
+class RealTypeImpl : public RealType
+{
+public:
+
+  RealTypeImpl(Value::Real value = Value::Real()) :
+  m_value (value)
+  {
+  }
+
+  String TypeName()
+  {
+    return "real";
+  }
+
+  String ToString()
+  {
+    char buf[25];
+    sprintf(buf, "%f", m_value);
+    return buf;
+  }
+
+  RealType* Box(Value const& value)
+  {
+    return new RealTypeImpl(value.GetReal());
+  }
+
+protected:
+
+  Value::Real m_value;
+
+};
+
+DataType* RealType::Instance()
+{
+  static RealTypeImpl m_type;
+  GC::Pin(&m_type);
+  return &m_type;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 class StringTypeImpl : public StringType
 {
 public:
