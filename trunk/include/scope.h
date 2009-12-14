@@ -22,6 +22,7 @@
 #define CSCRIPT_SCOPE_H
 
 #include <cscript.h>
+#include <ident.h>
 #include <value.h>
 #include <function.h>
 
@@ -37,7 +38,7 @@ public:
   //
   // Variable map
   //
-  typedef std::map<String, Value> VarMap;
+  typedef std::map<Identifier, Value> VarMap;
   typedef VarMap::iterator Iter;
 
   //
@@ -127,7 +128,7 @@ public:
   //
   // Add a new variable
   //
-  virtual Value const& Add(String const& key, Value const& value, bool replace = false)
+  virtual Value const& Add(Identifier const& key, Value const& value, bool replace = false)
   {
     // Find in this scope
     Iter it = m_vars.find(key);
@@ -149,26 +150,12 @@ public:
   }
 
   //
-  // Retrieve an existing variable
-  //
-  virtual Value Get(Value const& key)
-  {
-    // Find value
-    Value value;
-    if(TryGet(key, value))
-    {
-      return value;
-    }
-
-    // Pass to base
-    return Object::Get(key);
-  }
-
-  //
   // Try to retrieve a variable
   //
-  virtual bool TryGet(Value const& key, Value& value)
+  virtual bool TryGet(Value const& vKey, Value& value)
   {
+    Identifier key(vKey);
+
     // Find in local scope
     if(m_vars.size())
     {
@@ -197,25 +184,12 @@ public:
   }
 
   //
-  // Set an existing variable
-  //
-  virtual Value const& Set(Value const& key, Value const& value)
-  {
-    // Try to set the value
-    if(TrySet(key, value))
-    {
-      return value;
-    }
-
-    // Pass to base
-    return Object::Set(key, value);
-  }
-
-  //
   // Try to set a variable
   //
-  virtual bool TrySet(Value const& key, Value const& value)
+  virtual bool TrySet(Value const& vKey, Value const& value)
   {
+    Identifier key(vKey);
+
     // Find in local scope
     if(m_vars.size())
     {
@@ -251,7 +225,7 @@ public:
     // Unset in local scope
     if(m_vars.size())
     {
-      Iter it = m_vars.find(key);
+      Iter it = m_vars.find(Identifier::Lookup(key));
       if(it != m_vars.end())
       {
         m_vars.erase(it);

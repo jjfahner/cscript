@@ -33,9 +33,7 @@ __native_construct class List : public Object
 {
 public:
 
-  DEF_NATIVE_EVAL(List, Object);
-  IMPL_NATIVE_GET(List, Object);
-  IMPL_NATIVE_SET(List, Object);
+  DEF_NATIVE_CALLS(List, Object);
 
   //
   // The implementation list type
@@ -151,53 +149,29 @@ public:
   }
 
   //
-  // Retrieve a member by key
-  //
-  virtual Value Get(Value const& key)
-  {
-    if(key.Type() == Value::tInt)
-    {
-      return GetAt(key.GetInt());
-    }
-    return NativeGet(key);
-  }
-
-  //
   // Try to retrieve a member by key
   //
-  virtual bool TryGet(Value const& key, Value& value)
+  virtual bool TryGetAt(Value const& key, Value& value)
   {
     if(key.Type() == Value::tInt)
     {
       value = GetAt(key.GetInt());
       return true;
     }
-    return NativeTryGet(key, value);
-  }
-
-  //
-  // Set a member
-  //
-  virtual Value const& Set(Value const& key, Value const& value)
-  {
-    if(key.Type() == Value::tInt)
-    {
-      return GetAt(key.GetInt()) = value;
-    }
-    return NativeSet(key, value);
+    return false;
   }
 
   //
   // Try to set a member
   //
-  virtual bool TrySet(Value const& key, Value const& value)
+  virtual bool TrySetAt(Value const& key, Value const& value)
   {
     if(key.Type() == Value::tInt)
     {
       GetAt(key.GetInt()) = value;
       return true;
     }
-    return NativeTrySet(key, value);
+    return false;
   }
 
 protected:

@@ -23,6 +23,7 @@
 
 #include <object.h>
 #include <map>
+#include <ident.h>
 
 class ScriptObject : public Object
 {
@@ -78,7 +79,7 @@ protected:
   //
   // Member map
   //
-  typedef std::map<String, Value> MemberMap;
+  typedef std::map<Identifier, Value> MemberMap;
   typedef MemberMap::iterator MemberIterator;
 
   //
