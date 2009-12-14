@@ -75,22 +75,8 @@ public:
       return false;
     }
     
-    key   = m_cur->first;
+    key   = Identifier::Lookup(m_cur->first);
     value = m_cur->second;
-
-    ++m_cur;
-
-    return true;
-  }
-
-  virtual bool SetNext(Value const& value)
-  {
-    if(m_cur == m_obj->m_members.end())
-    {
-      return false;
-    }
-
-    m_cur->second = value;
 
     ++m_cur;
 
@@ -127,10 +113,10 @@ ScriptObject::TryGet(Value const& vKey, Value& value)
   }
 
   // Find in prototype
-  it = m_members.find(g_prototype);
+  it = m_members.find(Identifier::Lookup(g_prototype));
   if(it != m_members.end())
   {
-    return it->second->TryGet(key, value);
+    return it->second->TryGet(vKey, value);
   }
 
   // Not found
@@ -151,7 +137,7 @@ ScriptObject::TrySet(Value const& vKey, Value const& value)
   }
 
   // Find in prototype
-  it = m_members.find(g_prototype);
+  it = m_members.find(Identifier::Lookup(g_prototype));
   if(it != m_members.end())
   {
     // On-demand created

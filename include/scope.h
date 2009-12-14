@@ -38,7 +38,7 @@ public:
   //
   // Variable map
   //
-  typedef std::map<Identifier, Value> VarMap;
+  typedef std::map<IdentId, Value> VarMap;
   typedef VarMap::iterator Iter;
 
   //
@@ -128,20 +128,14 @@ public:
   //
   // Add a new variable
   //
-  virtual Value const& Add(Identifier const& key, Value const& value, bool replace = false)
+  virtual Value const& Add(Value const& vKey, Value const& value, bool replace = false)
   {
-    // Find in this scope
-    Iter it = m_vars.find(key);
-    if(it == m_vars.end())
+    Identifier key(vKey);
+
+    // Assign or replace
+    if (replace || m_vars.count(key) == 0)
     {
       m_vars[key] = value;
-      return value;
-    }
-
-    // Replace
-    if(replace)
-    {
-      it->second = value;
       return value;
     }
 
@@ -152,14 +146,12 @@ public:
   //
   // Try to retrieve a variable
   //
-  virtual bool TryGet(Value const& vKey, Value& value)
+  virtual bool TryGet(Value const& key, Value& value)
   {
-    Identifier key(vKey);
-
     // Find in local scope
     if(m_vars.size())
     {
-      Iter it = m_vars.find(key);
+      Iter it = m_vars.find(Identifier(key));
       if(it != m_vars.end())
       {
         value = it->second;
@@ -186,14 +178,12 @@ public:
   //
   // Try to set a variable
   //
-  virtual bool TrySet(Value const& vKey, Value const& value)
+  virtual bool TrySet(Value const& key, Value const& value)
   {
-    Identifier key(vKey);
-
     // Find in local scope
     if(m_vars.size())
     {
-      Iter it = m_vars.find(key);
+      Iter it = m_vars.find(Identifier(key));
       if(it != m_vars.end())
       {
         it->second = value;

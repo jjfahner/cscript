@@ -79,7 +79,7 @@ protected:
   //
   // Member map
   //
-  typedef std::map<Identifier, Value> MemberMap;
+  typedef std::map<IdentId, Value> MemberMap;
   typedef MemberMap::iterator MemberIterator;
 
   //
@@ -105,7 +105,7 @@ ScriptObject::Count()
 inline bool 
 ScriptObject::Unset(Value const& key)
 {
-  return m_members.erase(key) > 0;
+  return m_members.erase(Identifier(key)) > 0;
 }
 
 inline Value
@@ -124,7 +124,7 @@ ScriptObject::Set(Value const& key, Value const& value)
 {
   if(!TrySet(key, value))
   {
-    m_members[key] = value;
+    m_members[Identifier(key)] = value;
   }
   return value;
 }
