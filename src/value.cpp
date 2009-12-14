@@ -80,11 +80,10 @@ Value::StringToType(String type)
 int 
 ValCmp(Value const& lhs, Value const& rhs)
 {
-  // Comparing different types
+  // Compare different types by comparing type ids
   if(lhs.Type() != rhs.Type())
   {
-    // TODO this must be improved
-    return int((char*)&lhs - (char*)&rhs);
+    return lhs.Type() - rhs.Type();
   }
 
   // Type-based compare
