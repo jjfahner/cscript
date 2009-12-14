@@ -209,7 +209,10 @@ WinapiStub::Invoke(WinapiStub* stub, unsigned int* stack)
   }
 
   // Invoke function
-  return (int)stub->m_pfun->Execute(args);
+  Value result = stub->m_pfun->Execute(args);
+
+  // Convert result to integer result
+  return (unsigned int) result.GetInt();
 }
 
 //////////////////////////////////////////////////////////////////////////

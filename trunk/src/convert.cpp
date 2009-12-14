@@ -51,10 +51,12 @@ str2dec(char const* src)
   return value;
 }
 
-int
+long double
 str2flt(char const* src)
 {
-  throw 0;
+  float flt;
+  sscanf(src, "%f", &flt);
+  return flt;
 }
 
 int32 

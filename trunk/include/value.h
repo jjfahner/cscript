@@ -43,6 +43,7 @@ public:
 
   typedef bool        Bool;
   typedef int64       Int;
+  typedef long double Real;
   typedef std::string String;
 
   static String TypeToString(Types);
@@ -81,6 +82,12 @@ public:
   Value(size_t val) :
   m_type (tInt),
   m_int  ((Int)val)
+  {
+  }
+
+  Value(Real real) : 
+  m_type (tReal),
+  m_real (real)
   {
   }
 
@@ -144,6 +151,12 @@ public:
     throw std::runtime_error("Value is not of type int");
   }
 
+  Real GetReal() const
+  {
+    if (m_type == tReal) return m_real;
+    throw std::runtime_error("Value is not of type real");
+  }
+
   GCString const& GetString() const
   {
     if(m_type == tString) return *m_string;
@@ -159,6 +172,11 @@ public:
   operator Int () const
   {
     return GetInt();
+  }
+
+  operator Real() const
+  {
+    return GetReal();
   }
 
   operator String const& () const
@@ -222,6 +240,7 @@ private:
     GCString const* m_string;
     Int             m_int;
     Bool            m_bool;
+    Real            m_real;
     Object*         m_object;
   };
 
@@ -253,6 +272,7 @@ inline T* ValueToType(Value const& v)
 
 Value::Bool ValBool(Value const& val);
 Value::Int ValInt(Value const& val);
+Value::Real ValReal(Value const& val);
 String ValString(Value const& val);
 Object* ValObject(Value const& val);
 

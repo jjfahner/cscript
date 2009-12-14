@@ -25,6 +25,7 @@
 
 #include <typeinfo>
 #include <cstdio>
+#include <cmath>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -47,6 +48,7 @@ Value::GetDataType() const
   case Value::tNull:    return NullType::Instance();
   case Value::tBool:    return BooleanType::Instance();
   case Value::tInt:     return IntegerType::Instance();
+  case Value::tReal:    return RealType::Instance();
   case Value::tString:  return StringType::Instance();
   case Value::tObject:  return GetObject()->GetType();
   }
@@ -61,6 +63,7 @@ Value::TypeToString(Types type)
   case Value::tNull:    return "null";
   case Value::tBool:    return "bool";
   case Value::tInt:     return "int";
+  case Value::tReal:    return "real";
   case Value::tString:  return "string";
   case Value::tObject:  return "object";
   }
@@ -72,6 +75,7 @@ Value::StringToType(String type)
 {
   if(!strcmp_nocase(type.c_str(), "bool"))    return Value::tBool;
   if(!strcmp_nocase(type.c_str(), "int"))     return Value::tInt;
+  if(!strcmp_nocase(type.c_str(), "real"))    return Value::tReal;
   if(!strcmp_nocase(type.c_str(), "string"))  return Value::tString;
   if(!strcmp_nocase(type.c_str(), "object"))  return Value::tObject;
   throw std::runtime_error("Invalid type");
@@ -98,6 +102,10 @@ ValCmp(Value const& lhs, Value const& rhs)
   case Value::tInt:    
     return int(lhs.GetInt() - rhs.GetInt());
 
+  case Value::tReal:
+    return lhs.GetReal() < rhs.GetReal() ? -1 :
+           lhs.GetReal() > rhs.GetReal() ? +1 : 0;
+
   case Value::tString: 
     return lhs.m_string == rhs.m_string ? 0 :
             strcmp(lhs.GetString().c_str(), 
@@ -120,6 +128,7 @@ ValBool(Value const& val)
   case Value::tNull:    return false;
   case Value::tBool:    return val.GetBool();
   case Value::tInt:     return val.GetInt() != 0;
+  case Value::tReal:    return val.GetReal() != Value::Real(0);
   case Value::tString:  return val.GetString().length() != 0;
   case Value::tObject:  break;
   }
@@ -134,7 +143,23 @@ ValInt(Value const& val)
   case Value::tNull:    return 0;
   case Value::tBool:    return val.GetBool() ? 1 : 0;
   case Value::tInt:     return val.GetInt();
+  case Value::tReal:    return (Value::Int)val.GetReal();
   case Value::tString:  return atoi(val.GetString().c_str());
+  case Value::tObject:  break; // TODO
+  }
+  throw std::runtime_error("Cannot convert between types");
+}
+
+Value::Real 
+ValReal(Value const& val)
+{
+  switch(val.Type())
+  {
+  case Value::tNull:    return 0;
+  case Value::tBool:    return val.GetBool() ? 1 : 0;
+  case Value::tInt:     return (Value::Real) val.GetInt();
+  case Value::tReal:    return val.GetReal();
+  case Value::tString:  return atof(val.GetString().c_str());
   case Value::tObject:  break; // TODO
   }
   throw std::runtime_error("Cannot convert between types");
@@ -178,6 +203,7 @@ ValAdd(Value const& lhs, Value const& rhs)
   switch(lhs.Type())
   {
   case Value::tInt:     return lhs.GetInt() + ValInt(rhs);
+  case Value::tReal:    return lhs.GetReal() + ValReal(rhs);
   case Value::tString:  return lhs.GetString() + ValString(rhs);
   case Value::tObject:  break; // TODO
   }
@@ -190,6 +216,7 @@ ValSub(Value const& lhs, Value const& rhs)
   switch(lhs.Type())
   {
   case Value::tInt:     return lhs.GetInt() - ValInt(rhs);
+  case Value::tReal:    return lhs.GetReal() - ValReal(rhs);
   case Value::tObject:  break; // TODO
   }
   throw std::runtime_error("Invalid type(s) for subtraction operator");
@@ -201,6 +228,7 @@ ValMul(Value const& lhs, Value const& rhs)
   switch(lhs.Type())
   {
   case Value::tInt:     return lhs.GetInt() * ValInt(rhs);
+  case Value::tReal:    return lhs.GetReal() * ValReal(rhs);
   case Value::tObject:  break; // TODO
   }
   throw std::runtime_error("Invalid type(s) for multiplication operator");
@@ -212,6 +240,7 @@ ValDiv(Value const& lhs, Value const& rhs)
   switch(lhs.Type())
   {
   case Value::tInt:     return lhs.GetInt() / ValInt(rhs);
+  case Value::tReal:    return lhs.GetReal() / ValReal(rhs);
   case Value::tObject:  break; // TODO
   }
   throw std::runtime_error("Invalid type(s) for division operator");
@@ -223,6 +252,7 @@ ValMod(Value const& lhs, Value const& rhs)
   switch(lhs.Type())
   {
   case Value::tInt:     return lhs.GetInt() % ValInt(rhs);
+  case Value::tReal:    return fmod(lhs.GetReal(), ValReal(rhs));
   case Value::tObject:  break; // TODO
   }
   throw std::runtime_error("Invalid type(s) for modulo operator");
@@ -256,6 +286,7 @@ ValNeg(Value const& lhs)
   switch(lhs.Type())
   {
   case Value::tInt:     return -lhs.GetInt();
+  case Value::tReal:    return -lhs.GetReal();
   case Value::tObject:  break; // TODO
   }
   throw std::runtime_error("Invalid type(s) for negation operator");
@@ -268,6 +299,7 @@ ValNot(Value const& lhs)
   {
   case Value::tBool:    return lhs.GetBool() == false;
   case Value::tInt:     return lhs.GetInt()  == 0;
+  case Value::tReal:    return lhs.GetReal() == 0;
   case Value::tObject:  break; // TODO
   }
   throw std::runtime_error("Invalid type(s) for negation operator");

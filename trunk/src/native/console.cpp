@@ -148,6 +148,12 @@ void PrintValue(std::ostream& stream, Value const& val, bool recurse)
       return;
     }
 
+  case Value::tReal:
+    {
+      stream << val.GetReal();
+      return;
+    }
+
   case Value::tString:    
     stream << val.GetString();
     return;
