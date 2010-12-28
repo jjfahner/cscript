@@ -22,6 +22,7 @@
 #include "hash.h"
 
 #include <map>
+#include <cstring>
 
 inline 
 GCString::GCString() 

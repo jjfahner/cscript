@@ -24,6 +24,8 @@
 #include <cscript.h>
 #include <value.h>
 #include <cassert>
+#include <cstdlib>
+#include <cstring>
 
 class Stack
 {

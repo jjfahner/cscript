@@ -13,6 +13,7 @@ libcs_a_SOURCES = args.cpp \
 		  cslexer.cpp \
 		  csparser.cpp \
 		  datatype.cpp \
+		  dict.cpp \
 		  eval.cpp \
 		  gc.cpp \
 		  gcstring.cpp \
