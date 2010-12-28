@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 //
-// This file is © 2007 - 2009 JJ Fahner <jan-jaap@jan-jaap.net>
+// This file is © 2007 - 2011 JJ Fahner <jan-jaap@jan-jaap.net>
 // This file is part of the cscript interpreter.
 // CScript can be found at http://svn.jan-jaap.net/
 //
