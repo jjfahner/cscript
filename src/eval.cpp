@@ -40,8 +40,11 @@
 #include <native/path.h>
 #include <native/console.h>
 #include <native/standard.h>
-#include <native/winapi.h>
 #include <regex/regex.h>
+
+#ifdef _WIN32
+#include <native/winapi.h>
+#endif
 
 #include <list>
 #include <iostream>
@@ -185,7 +188,11 @@ Evaluator::Reset()
   scope->Add("Path", new Path());
   scope->Add("Console", new Console());
   scope->Add("CScript", new CScriptMethods());
+
+  // Add Winapi
+#ifdef _WIN32
   scope->Add("Winapi", new Winapi());
+#endif
 
   // Create a new global scope
   m_global = new NamespaceScope(scope, "");

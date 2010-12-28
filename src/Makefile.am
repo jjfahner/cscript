@@ -18,6 +18,7 @@ libcs_a_SOURCES = args.cpp \
 		  gc.cpp \
 		  gcstring.cpp \
 		  function.cpp \
+		  ident.cpp \
 		  lexstream.cpp \
 		  list.cpp \
 		  native.cpp \

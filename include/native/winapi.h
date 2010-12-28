@@ -27,6 +27,12 @@
 #include <function.h>
 #include <native/wintypes.h>
 
+#ifdef _WIN32
+# define WIN32_STDCALL __stdcall
+#else
+# define WIN32_STDCALL
+#endif
+
 class Winapi : public Object
 {
 public:
@@ -154,7 +160,7 @@ private:
   //
   // Invoke stub
   //
-  static unsigned int __stdcall Invoke(WinapiStub* stub, unsigned int* stack);
+  static unsigned int WIN32_STDCALL Invoke(WinapiStub* stub, unsigned int* stack);
 
   //
   // Members
