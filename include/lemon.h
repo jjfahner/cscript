@@ -21,6 +21,8 @@
 #ifndef CSCRIPT_LEMON_PARSER_H
 #define CSCRIPT_LEMON_PARSER_H
 
+#include <cstdlib>
+
 template <
   typename ParserClass, 
   typename TokenClass,
