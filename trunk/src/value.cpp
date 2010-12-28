@@ -25,6 +25,8 @@
 
 #include <typeinfo>
 #include <cstdio>
+#include <cstring>
+#include <cstdlib>
 #include <cmath>
 
 //////////////////////////////////////////////////////////////////////////

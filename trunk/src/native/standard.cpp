@@ -25,6 +25,7 @@
 #include <lexstream.h>
 #include <scriptobj.h>
 #include <thread.h>
+#include <cstdlib>
 
 #ifdef __GNUC__
 #define _popen popen

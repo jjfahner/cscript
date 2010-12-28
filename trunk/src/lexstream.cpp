@@ -19,7 +19,9 @@
 //
 //////////////////////////////////////////////////////////////////////////
 #include "lexstream.h"
+
 #include <istream>
+#include <cstring>
 
 #pragma warning(disable:4355)
 

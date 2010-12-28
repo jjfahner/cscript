@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 #include <native/socket.h>
 #include <eval.h>
+#include <cstring>
 
 // Include windows socket headers
 #ifdef _MSC_VER
