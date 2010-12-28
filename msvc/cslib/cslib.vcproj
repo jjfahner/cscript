@@ -656,7 +656,7 @@
 						<Tool
 							Name="VCCustomBuildTool"
 							Description="Generating cs parser..."
-							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\lemon.exe csparser.gen.in &amp;&amp; move csparser.gen.h ..\include&#x0D;&#x0A;"
+							CommandLine="..\..\tools\win32\lemon.exe ..\..\src\csparser.gen.in &amp;&amp; move ..\..\src\csparser.gen.h ..\..\include"
 							Outputs="..\..\src\csparser.gen.c;..\..\include\csparser.gen.h"
 						/>
 					</FileConfiguration>
@@ -679,6 +679,17 @@
 							Name="VCCustomBuildTool"
 							Description="Generating xml lexer..."
 							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\re2c.exe -iswb --no-generation-date -o xmllexer.gen.c xmllexer.gen.in&#x0D;&#x0A;"
+							AdditionalDependencies="..\..\include\xmlparser.gen.h"
+							Outputs="..\..\src\xmllexer.gen.c"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Generating xml lexer..."
+							CommandLine="cd ..\..\src &amp;&amp; ..\tools\win32\re2c.exe -iswb --no-generation-date -o xmllexer.gen.c xmllexer.gen.in"
 							AdditionalDependencies="..\..\include\xmlparser.gen.h"
 							Outputs="..\..\src\xmllexer.gen.c"
 						/>
