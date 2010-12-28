@@ -215,7 +215,7 @@ public:
     // Unset in local scope
     if(m_vars.size())
     {
-      Iter it = m_vars.find(Identifier::Lookup(key));
+      Iter it = m_vars.find(Identifier::Lookup(key.GetString()));
       if(it != m_vars.end())
       {
         m_vars.erase(it);

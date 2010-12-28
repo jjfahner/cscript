@@ -254,7 +254,7 @@ ValMod(Value const& lhs, Value const& rhs)
   switch(lhs.Type())
   {
   case Value::tInt:     return lhs.GetInt() % ValInt(rhs);
-  case Value::tReal:    return fmod(lhs.GetReal(), ValReal(rhs));
+  case Value::tReal:    return (Value::Real) fmod(lhs.GetReal(), ValReal(rhs));
   case Value::tObject:  break; // TODO
   }
   throw std::runtime_error("Invalid type(s) for modulo operator");
