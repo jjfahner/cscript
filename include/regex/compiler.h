@@ -28,6 +28,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <cstring>
 
 class Dictionary;
 class LexStream;
